@@ -1,3 +1,87 @@
+<!-- BEGIN PP DIAGNOSTIC TOOL (TEMP - REMOVE AFTER DEBUG) -->
+<style>
+  #ppDiag { position: fixed; right: 12px; top: 12px; width: 320px; max-height: 70vh; overflow:auto; z-index:99999;
+            background: rgba(255,255,255,0.98); border:1px solid rgba(0,0,0,0.08); padding:10px; border-radius:10px;
+            font-family:system-ui; font-size:13px; color:#111; box-shadow:0 6px 20px rgba(0,0,0,0.12); }
+  #ppDiag h4{margin:0 0 8px 0;font-size:14px}
+  #ppDiag button{margin:4px 2px;padding:6px 8px;border-radius:8px;border:1px solid #ddd;background:#f7f7f7;cursor:pointer}
+  #ppDiag pre{white-space:pre-wrap;background:#fafafa;border-radius:6px;padding:6px;border:1px solid #eee;margin-top:6px}
+</style>
+<div id="ppDiag" aria-live="polite" role="status">
+  <h4>Puritan Parser — Diagnostics</h4>
+  <div>
+    <button id="pp_test_json">Test JSON endpoints</button>
+    <button id="pp_unreg_sw">Unregister SW</button>
+    <button id="pp_clear_ls">Clear localStorage</button>
+    <button id="pp_show_state">Show state</button>
+  </div>
+  <div id="ppDiagOut" style="margin-top:8px" />
+</div>
+
+<script>
+(function(){
+  const out = id => { document.getElementById('ppDiagOut').innerHTML = id; };
+  window.addEventListener('error', e => {
+    out('<strong>JS Error:</strong> ' + (e && e.message ? e.message : String(e)) + '<pre>' + (e && e.error && e.error.stack ? e.error.stack : '') + '</pre>');
+    console.error('PP diag error', e);
+  });
+  window.addEventListener('unhandledrejection', ev => {
+    out('<strong>Unhandled Rejection:</strong> ' + (ev.reason && ev.reason.message ? ev.reason.message : String(ev.reason)) + '<pre>' + (ev.reason && ev.reason.stack ? ev.reason.stack : '') + '</pre>');
+    console.error('PP diag unhandled rejection', ev);
+  });
+
+  async function testUrl(path){
+    try {
+      const url = window.location.origin + window.location.pathname.replace(/\/[^\/]*$/, '/') + path + '?t=' + Date.now();
+      const r = await fetch(url, {cache:'no-store'});
+      if(!r.ok) return `${path} -> HTTP ${r.status}`;
+      const txt = await r.text();
+      return `${path} -> OK, ${Math.min(200, txt.length)} chars (preview):\n${txt.slice(0,200)}`;
+    } catch(err){
+      return `${path} -> fetch error: ${err && err.message ? err.message : err}`;
+    }
+  }
+
+  document.getElementById('pp_test_json').addEventListener('click', async ()=>{
+    out('Testing JSON files...');
+    const res1 = await testUrl('greek_25plus.json');
+    const res2 = await testUrl('hebrew_60plus.json');
+    const res3 = await testUrl('vocab_all.json');
+    out('<pre>' + [res1, res2, res3].join('\n\n') + '</pre>');
+  });
+
+  document.getElementById('pp_unreg_sw').addEventListener('click', async ()=>{
+    if(!('serviceWorker' in navigator)) { out('No serviceWorker API'); return; }
+    out('Unregistering service worker(s)...');
+    const regs = await navigator.serviceWorker.getRegistrations();
+    if(!regs.length) { out('No SW registrations found'); return; }
+    await Promise.all(regs.map(r => r.unregister()));
+    // clear caches
+    if('caches' in window){
+      const keys = await caches.keys();
+      await Promise.all(keys.map(k => caches.delete(k)));
+    }
+    out('Service worker(s) unregistered and caches cleared. Reload page.');
+  });
+
+  document.getElementById('pp_clear_ls').addEventListener('click', ()=>{
+    if(!confirm('Clear localStorage?')) return;
+    localStorage.clear();
+    out('localStorage cleared. Reload page.');
+  });
+
+  document.getElementById('pp_show_state').addEventListener('click', ()=>{
+    let ls = {};
+    try { for(const k of Object.keys(localStorage)) ls[k] = localStorage.getItem(k); } catch(e){ ls = {error: e.message}; }
+    out('<pre>' + JSON.stringify(ls, null, 2) + '</pre>');
+  });
+
+  // small visible banner to confirm script ran
+  out('Diagnostic loaded. Use buttons above. (Remove this block after debug.)');
+})();
+</script>
+<!-- END PP DIAGNOSTIC TOOL -->
+  
 <!doctype html>
 <html lang="en">
 <head>
