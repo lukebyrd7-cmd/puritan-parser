@@ -455,7 +455,7 @@ async function loadData(){
   if(all && all.length){
     state.data.greek = all.filter(x => (x.lang||'greek').toLowerCase()==='greek').map(i=>ensureSRS(i,'greek'));
     state.data.hebrew = all.filter(x => (x.lang||'hebrew').toLowerCase()==='hebrew').map(i=>ensureSRS(i,'hebrew'));
-    saveLangData('greek'); saveLangData('hebrew'); renderFlashcard();renderDashboard(); updateStats(); return;
+    saveLangData('greek'); saveLangData('hebrew'); renderFlashCard();renderDashboard(); updateStats(); return;
   }
   const g = await tryFetchJson(FILE_GREEK);
   const h = await tryFetchJson(FILE_HEBREW);
@@ -472,7 +472,7 @@ async function loadData(){
     state.data.hebrew = state.data.hebrew.map(i=>ensureSRS(i,'hebrew'));
   }
   saveLangData('greek'); saveLangData('hebrew');
-  renderFlashcard();
+  renderFlashCard();
 renderDashboard();
 updateStats();
 }
