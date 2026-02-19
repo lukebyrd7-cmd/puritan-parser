@@ -396,9 +396,17 @@ function todayISO(offsetDays=0){
 }
 function clamp(v,a,b){return Math.max(a,Math.min(b,v));}
 function uid(len=10){ return Math.random().toString(36).slice(2,2+len); }
+
+/**
+ * daysBetween - robustly accept Date or ISO string
+ * returns (a - b) in whole days (can be negative)
+ */
 function daysBetween(aIso, bIso){
-  const a = new Date(aIso); const b = new Date(bIso);
-  return Math.round((a - b) / (1000*60*60*24));
+  const toDate = x => (x instanceof Date) ? new Date(Date.UTC(x.getFullYear(), x.getMonth(), x.getDate())) : new Date(x + 'T00:00:00Z');
+  const a = toDate(aIso);
+  const b = toDate(bIso);
+  const diff = (a - b) / (1000*60*60*24);
+  return Math.round(diff);
 }
 
 /* ---------- Storage ---------- */
@@ -559,7 +567,9 @@ function applyTheme(theme){
 /* Accent button rendering */
 const ACCENTS = ['#4e8f6e','#246b9c','#2a9d8f','#8a2b2b','#d97706','#475569','#6b21a8','#b91c1c','#0ea5a4','#ef4444','#f97316','#06b6d4'];
 function renderAccentButtons(){
-  const el = document.getElementById('accentPicker'); el.innerHTML = '';
+  const el = document.getElementById('accentPicker');
+  if(!el) return;
+  el.innerHTML = '';
   ACCENTS.forEach(hex=>{
     const b = document.createElement('button');
     b.className='color-btn';
@@ -571,20 +581,25 @@ function renderAccentButtons(){
     el.appendChild(b);
   });
 }
-renderAccentButtons();
 
 /* ---------- UI wiring & behavior ---------- */
 const $ = sel => document.querySelector(sel);
 const $$ = sel => Array.from(document.querySelectorAll(sel));
 
+/**
+ * setLang - sets UI language but DOES NOT change document direction.
+ * Hebrew remains displayed LTR (no mirroring).
+ */
 function setLang(lang){
   state.lang = lang;
-  // set active button
-  $$('#btnGreek,#btnHebrew').forEach(b => b.classList.toggle('active', b.dataset?.lang === lang || b.id === (lang==='greek'?'btnGreek':'btnHebrew')));
+  // set active button - ensure both language buttons are toggled
+  $$('#btnGreek,#btnHebrew').forEach(b => {
+    const btnLang = (b.dataset && b.dataset.lang) ? b.dataset.lang : (b.id === 'btnGreek' ? 'greek' : (b.id === 'btnHebrew' ? 'hebrew' : ''));
+    b.classList.toggle('active', btnLang === lang);
+  });
   $('#langTag').textContent = lang === 'greek' ? 'Greek' : 'Hebrew';
   $('#langTag').setAttribute('aria-label', `${lang === 'greek' ? 'Greek' : 'Hebrew'} section`);
-  // RTL handling for Hebrew
-  if(lang === 'hebrew'){ document.documentElement.dir = 'rtl'; } else { document.documentElement.dir = 'ltr'; }
+  // IMPORTANT: Do NOT change document.documentElement.dir
   renderList();
   saveLastLang();
 }
@@ -599,14 +614,16 @@ function computeMastery(item){
   const reps = item.repetitions || 0;
   const ease = item.ease || state.prefs.initialEase || 2.5;
   const last = item.history && item.history.length ? item.history[item.history.length-1].date : item.due;
-  const days = Math.max(0, daysBetween(new Date(), new Date(last || todayISO())));
+  // compute days between today and last
+  let days = 0;
+  try { days = Math.max(0, daysBetween(todayISO(), last || todayISO())); } catch(e){ days = 0; }
   const raw = (reps * ease) / (1 + days/30);
   const score = Math.round(clamp(raw/ ( (state.prefs.initialEase||2.5) ) * 100, 0, 100));
   return score;
 }
 
 function renderList(){
-  const q = ($('#searchInput').value || '').toLowerCase().trim();
+  const q = ($('#searchInput') && $('#searchInput').value) ? ($('#searchInput').value || '').toLowerCase().trim() : '';
   const minFreq = Number($('#freqSlider').value) || 1;
   const sort = $('#sortSelect').value;
   let list = getCurrentList().filter(it => {
@@ -626,28 +643,34 @@ function renderList(){
   });
 
   state.filtered = list;
-  $('#entriesCount').textContent = `${list.length} entries`;
+  const entriesCountEl = $('#entriesCount');
+  if(entriesCountEl) entriesCountEl.textContent = `${list.length} entries`;
   // due counts
   const dueCount = list.filter(it => it.due && it.due <= todayISO()).length;
-  $('#dueBadge').textContent = `Due: ${dueCount}`;
-  $('#dashDue').textContent = dueCount;
+  const dueBadgeEl = $('#dueBadge'); if(dueBadgeEl) dueBadgeEl.textContent = `Due: ${dueCount}`;
+  const dashDueEl = $('#dashDue'); if(dashDueEl) dashDueEl.textContent = dueCount;
 
   // render rows
-  const tbody = $('#wordsTbody'); tbody.innerHTML = '';
+  const tbody = $('#wordsTbody'); if(!tbody) return;
+  tbody.innerHTML = '';
   if(!list.length){
-    const tr = document.createElement('tr'); tr.innerHTML = `<td colspan="8" class="muted">No entries found. Reduce min frequency or switch language.</td>`; tbody.appendChild(tr); return;
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td colspan="8" class="muted">No entries found. Reduce min frequency or switch language.</td>`;
+    tbody.appendChild(tr);
+    return;
   }
   for(const it of list){
     const tr = document.createElement('tr');
     const mastery = computeMastery(it);
     let cls = 'mastery.low'; if(mastery>60) cls='mastery.high'; else if(mastery>25) cls='mastery.mid';
+    const easeDisplay = (typeof it.ease === 'number') ? (it.ease).toFixed(2) : (it.ease || '—');
     tr.innerHTML = `<td>${escapeHtml(it.word||'')}</td>
                     <td>${escapeHtml(it.lemma||'')}</td>
                     <td>${escapeHtml(it.gloss||'')}</td>
                     <td>${escapeHtml(it.pos||'')}</td>
                     <td>${escapeHtml(String(it.freq||0))}</td>
                     <td>${escapeHtml(it.due||'—')}</td>
-                    <td>${escapeHtml((it.ease||'—').toFixed? (it.ease||'—').toFixed(2) : (it.ease||'—'))}</td>
+                    <td>${escapeHtml(easeDisplay)}</td>
                     <td><span class="mastery ${cls.replace('mastery.','')}" style="display:inline-block;padding:4px 8px">${mastery}</span></td>`;
     tbody.appendChild(tr);
   }
@@ -659,7 +682,8 @@ function escapeHtml(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,
 /* ---------- Flashcard Session ---------- */
 function startFlash(){
   // build queue
-  const mode = $('#studyMode').value || 'due';
+  const studyModeEl = $('#studyMode');
+  const mode = studyModeEl ? studyModeEl.value : 'due';
   const minFreq = Number($('#freqSlider').value) || 1;
   let pool = getCurrentList().filter(it => (it.freq||0) >= minFreq);
   if(mode === 'due') pool = pool.filter(it => it.due && it.due <= todayISO());
@@ -671,16 +695,28 @@ function startFlash(){
   state.session.idx = 0;
   state.session.mode = mode;
   state.session.showGlossFront = !!$('#showGlossFront').checked;
-  // show flash view
+  // show flash view and render first card
   showView('flash');
   renderFlashCard();
 }
 function renderFlashCard(){
-  const q = state.session.queue;
-  const idx = state.session.idx;
-  $('#flashProgress').textContent = `${idx+1} / ${q.length}`;
-  if(!q.length){ $('#cardWord').textContent = '—'; $('#cardMeta').textContent='No cards'; return; }
+  const q = state.session.queue || [];
+  const idx = Math.max(0, state.session.idx || 0);
+  if(!$('#flashProgress')){} else {
+    $('#flashProgress').textContent = (q.length ? `${idx+1} / ${q.length}` : `0 / 0`);
+  }
+  if(!q.length){
+    $('#cardWord').textContent = '—';
+    $('#cardMeta').textContent='No cards';
+    const rrEmpty = $('#ratingRow'); if(rrEmpty) rrEmpty.innerHTML = '';
+    return;
+  }
   const cur = q[idx];
+  if(!cur){
+    $('#cardWord').textContent = '—';
+    $('#cardMeta').textContent='No current card';
+    return;
+  }
   $('#cardWord').textContent = cur.word || '—';
   const metaParts = [`${cur.pos||'—'}`, `freq ${cur.freq||0}`, `due ${cur.due||'—'}`];
   $('#cardMeta').textContent = state.session.showGlossFront ? `${metaParts.join(' • ')}\n${cur.gloss||''}` : metaParts.join(' • ');
@@ -703,29 +739,32 @@ function onReveal(){
   $('#revealBtn').textContent = 'Hide';
 }
 function onAgain(){
-  // push cur to end without scheduling change
   const idx = state.session.idx;
   const q = state.session.queue;
+  if(!Array.isArray(q) || q.length === 0) return;
   const cur = q.splice(idx,1)[0];
   q.push(cur);
   if(idx >= q.length) state.session.idx = Math.max(0, q.length-1);
   renderFlashCard();
 }
 function onRate(quality){
-  const cur = state.session.queue[state.session.idx];
+  const q = state.session.queue || [];
+  const idx = state.session.idx || 0;
+  const cur = q[idx];
   if(!cur) return;
   // record rating
   if(state.prefs.useSM2) sm2Update(cur, quality);
   else leitnerUpdate(cur, quality);
   // persist
   saveVocab(cur.lang);
-  // bury in session: remove and do not show again this session
-  state.session.queue.splice(state.session.idx,1);
+  // remove from session queue
+  state.session.queue.splice(idx,1);
+  // adjust idx
   if(state.session.idx >= state.session.queue.length) state.session.idx = Math.max(0, state.session.queue.length-1);
   // stats & dashboard
   recordReview(quality);
   // if done
-  if(state.session.queue.length === 0){ alert('Session complete'); showView('list'); renderList(); return; }
+  if(!state.session.queue.length){ alert('Session complete'); showView('list'); renderList(); return; }
   renderFlashCard();
 }
 
@@ -738,7 +777,6 @@ function recordReview(quality){
   state.dashboard.recent = recent.filter(r => new Date(r.date) >= cutoff);
   // simple streak: increment if last day had review
   const lastDates = Array.from(new Set(state.dashboard.recent.map(r=>r.date))).sort();
-  const today = todayISO();
   // compute streak
   let streak=0; let d=new Date();
   for(let i=0;i<365;i++){
@@ -748,15 +786,15 @@ function recordReview(quality){
   }
   state.dashboard.streak = streak;
   localStorage.setItem('pp_dashboard', JSON.stringify(state.dashboard));
-  $('#streakBadge').textContent = `Streak: ${state.dashboard.streak}`;
-  $('#dashStreak').textContent = state.dashboard.streak;
+  const sb = $('#streakBadge'); if(sb) sb.textContent = `Streak: ${state.dashboard.streak}`;
+  const ds = $('#dashStreak'); if(ds) ds.textContent = state.dashboard.streak;
 }
 
 /* ---------- Parsing Practice ---------- */
 let parsingSession = { questions: [], idx: 0, correct:0, total:0 };
 
 function startParsing(){
-  const mode = $('#parsingMode').value;
+  const mode = $('#parsingMode') ? $('#parsingMode').value : 'mixed';
   const count = Number($('#parsingCount').value) || 10;
   const minFreq = Number($('#freqSlider').value) || 1;
   let pool = getCurrentList().filter(it => (it.freq||0) >= minFreq);
@@ -766,6 +804,7 @@ function startParsing(){
   pool = shuffle(pool).slice(0, Math.min(count, pool.length));
   parsingSession.questions = pool;
   parsingSession.idx = 0; parsingSession.correct = 0; parsingSession.total = pool.length;
+  showView('parsing');
   renderParsingQuestion();
 }
 
@@ -773,10 +812,16 @@ function renderParsingQuestion(){
   const qWrap = $('#parsingWrap');
   const idx = parsingSession.idx;
   const qn = parsingSession.questions[idx];
-  if(!qn){ $('#parsingQuestion').textContent = 'Finished'; return; }
+  if(!qn){
+    $('#parsingQuestion').textContent = 'Finished'; 
+    $('#parsingForm').innerHTML = '';
+    $('#parsingProgress').textContent = `0 / 0`;
+    return;
+  }
   $('#parsingQuestion').textContent = `Parse: ${qn.word}`;
   // build form
-  const form = $('#parsingForm'); form.innerHTML = '';
+  const form = $('#parsingForm'); if(!form) return;
+  form.innerHTML = '';
   const fields = [];
   // if parse field exists, parse it (assume compact like "N-NSM" or "V-PAI-3S")
   if(qn.parse){
@@ -824,7 +869,7 @@ function checkParsingAnswer(qn){
   let correct = 0; let total = 0; const feedback = [];
   if(qn.parse){
     // split parse by '-' and map heuristics
-    const p = qn.parse.toLowerCase();
+    const p = (qn.parse || '').toLowerCase();
     // noun checks
     if((qn.pos||'').toLowerCase().includes('n') || p.startsWith('n-')){
       const cas = $('#par_case') ? $('#par_case').value : '';
@@ -868,19 +913,24 @@ function checkParsingAnswer(qn){
 /* ---------- Dashboard rendering (sparkline) ---------- */
 function renderDashboard(){
   const recent = state.dashboard.recent || [];
-  $('#revWeek').textContent = (recent && recent.length) || 0;
-  $('#avgEase').textContent = (computeAvgEase()||'—').toFixed ? computeAvgEase().toFixed(2) : '—';
-  $('#streakBadge').textContent = `Streak: ${state.dashboard.streak||0}`;
+  const revWeek = $('#revWeek'); if(revWeek) revWeek.textContent = (recent && recent.length) || 0;
+  const avgEaseEl = $('#avgEase');
+  const avg = computeAvgEase();
+  if(avgEaseEl) avgEaseEl.textContent = (typeof avg === 'number' ? avg.toFixed(2) : '—');
+  const sb = $('#streakBadge'); if(sb) sb.textContent = `Streak: ${state.dashboard.streak||0}`;
   // sparkline: use canvas with recent q values
-  const canvas = $('#perfSpark'); const ctx = canvas.getContext('2d');
+  const canvas = $('#perfSpark'); if(!canvas) return;
+  const ctx = canvas.getContext('2d');
   ctx.clearRect(0,0,canvas.width,canvas.height);
   if(!recent.length) return;
   const arr = recent.slice(-30).map(r => r.q);
   const w = canvas.width, h = canvas.height;
   const maxQ = 5, minQ = 0;
-  ctx.beginPath(); ctx.moveTo(0, h - ((arr[0]-minQ)/(maxQ-minQ))*h);
+  ctx.beginPath();
+  const firstY = h - ((arr[0]-minQ)/(maxQ-minQ))*h;
+  ctx.moveTo(0, firstY);
   arr.forEach((v,i)=>{
-    const x = (i/(arr.length-1)) * w;
+    const x = (i/(arr.length-1 || 1)) * w;
     const y = h - ((v-minQ)/(maxQ-minQ))*h;
     ctx.lineTo(x,y);
   });
@@ -894,56 +944,118 @@ function computeAvgEase(){
   return sum/list.length;
 }
 
-/* ---------- Helpers ---------- */
-function showView(v){
-  // hide all: listView, flashView, parsingView, dashboardView
-  ['listView','flashView','parsingView','dashboardView'].forEach(id => {
-    const el = document.getElementById(id); if(!el) return;
-    el.classList.toggle('hidden', id !== v);
+/* ---------- Helpers & View Controller ---------- */
+
+/**
+ * showView - accepts a shorthand ('list','flash','parsing','dashboard') or a full id ('listView', etc.)
+ * Ensures only the requested view is visible. Also updates focus and runs any render hooks.
+ */
+function showView(request){
+  const map = {
+    list: 'listView',
+    flash: 'flashView',
+    parsing: 'parsingView',
+    dashboard: 'dashboardView',
+    listView: 'listView',
+    flashView: 'flashView',
+    parsingView: 'parsingView',
+    dashboardView: 'dashboardView'
+  };
+  const targetId = map[request] || request;
+  const allViews = ['listView','flashView','parsingView','dashboardView'];
+  allViews.forEach(id => {
+    const el = document.getElementById(id);
+    if(!el) return;
+    if(id === targetId) el.classList.remove('hidden');
+    else el.classList.add('hidden');
   });
-  // update some headers
-  if(v === 'flash') { $('#openFlash').focus(); }
-  if(v === 'dashboard') renderDashboard();
+  // run view-specific hooks
+  if(targetId === 'flashView'){
+    const btn = $('#openFlash'); if(btn) btn.focus();
+  } else if(targetId === 'parsingView'){
+    const btn = $('#openParsing'); if(btn) btn.focus();
+  } else if(targetId === 'dashboardView'){
+    renderDashboard();
+    const btn = $('#openDashboard'); if(btn) btn.focus();
+  } else if(targetId === 'listView'){
+    renderList();
+    const el = $('#openDashboard'); if(el) el.blur();
+  }
 }
 
 /* ---------- Misc UI events ---------- */
+let eventsWired = false;
 function wireEvents(){
+  if(eventsWired) return;
+  eventsWired = true;
+
   // language buttons
   $('#btnGreek').addEventListener('click', ()=> setLang('greek'));
   $('#btnHebrew').addEventListener('click', ()=> setLang('hebrew'));
+
   // search & controls
-  $('#searchInput').addEventListener('input', debounce(()=> renderList(),150));
-  $('#freqSlider').addEventListener('input', ()=> { $('#freqLabel').textContent = ($('#freqSlider').value >= 50) ? '50+' : $('#freqSlider').value + '+'; $('#sidebarFreq').value = $('#freqSlider').value; renderList(); });
-  $('#sidebarFreq').addEventListener('input', ()=> { $('#sidebarFreqLabel').textContent = ($('#sidebarFreq').value >= 50) ? '50+' : $('#sidebarFreq').value + '+'; $('#freqSlider').value = $('#sidebarFreq').value; renderList(); });
-  $('#sortSelect').addEventListener('change', ()=> renderList());
+  const searchInput = $('#searchInput');
+  if(searchInput) searchInput.addEventListener('input', debounce(()=> renderList(),150));
+
+  const freqSlider = $('#freqSlider');
+  if(freqSlider) freqSlider.addEventListener('input', ()=> {
+    $('#freqLabel').textContent = (freqSlider.value >= 50) ? '50+' : freqSlider.value + '+';
+    const sidebar = $('#sidebarFreq'); if(sidebar) sidebar.value = freqSlider.value;
+    renderList();
+  });
+  const sidebarFreq = $('#sidebarFreq');
+  if(sidebarFreq) sidebarFreq.addEventListener('input', ()=> {
+    $('#sidebarFreqLabel').textContent = (sidebarFreq.value >= 50) ? '50+' : sidebarFreq.value + '+';
+    const mainSlider = $('#freqSlider'); if(mainSlider) mainSlider.value = sidebarFreq.value;
+    renderList();
+  });
+
+  const sortSelect = $('#sortSelect');
+  if(sortSelect) sortSelect.addEventListener('change', ()=> renderList());
+
   // flash
-  $('#openFlash').addEventListener('click', ()=> { showView('flash'); startFlash(); });
-  $('#revealBtn').addEventListener('click', ()=> { if($('#revealBtn').textContent === 'Reveal') onReveal(); else { renderFlashCard(); } });
-  $('#againBtn').addEventListener('click', onAgain);
+  $('#openFlash').addEventListener('click', ()=> startFlash());
+  const revealBtn = $('#revealBtn');
+  if(revealBtn) revealBtn.addEventListener('click', ()=> {
+    if($('#revealBtn').textContent === 'Reveal') onReveal();
+    else { renderFlashCard(); }
+  });
+  const againBtn = $('#againBtn');
+  if(againBtn) againBtn.addEventListener('click', onAgain);
+
   // parsing
   $('#openParsing').addEventListener('click', ()=> showView('parsing'));
   $('#startParsing').addEventListener('click', startParsing);
   $('#nextParsing').addEventListener('click', ()=> { parsingSession.idx++; renderParsingQuestion(); });
   $('#endParsing').addEventListener('click', ()=> showView('list'));
+
   // dashboard & settings
-  $('#openDashboard').addEventListener('click', ()=> { showView('dashboard'); renderDashboard(); });
+  $('#openDashboard').addEventListener('click', ()=> { showView('dashboard'); });
   $('#openSettings').addEventListener('click', ()=> { document.getElementById('sidePanel').scrollIntoView({behavior:'smooth'}); });
+
   // SRS controls
-  $('#useSM2').addEventListener('change', (e)=> { state.prefs.useSM2 = e.target.checked; savePrefs(); });
-  $('#initialEase').addEventListener('change', (e)=> { state.prefs.initialEase = Number(e.target.value)||2.5; savePrefs(); });
-  $('#minEase').addEventListener('change', (e)=> { state.prefs.minEase = Number(e.target.value)||1.3; savePrefs(); });
-  $('#dailyCap').addEventListener('change', (e)=> { state.prefs.dailyCap = Number(e.target.value)||200; savePrefs(); });
+  const useSM2El = $('#useSM2');
+  if(useSM2El) useSM2El.addEventListener('change', (e)=> { state.prefs.useSM2 = e.target.checked; savePrefs(); });
+  const initialEaseEl = $('#initialEase');
+  if(initialEaseEl) initialEaseEl.addEventListener('change', (e)=> { state.prefs.initialEase = Number(e.target.value)||2.5; savePrefs(); });
+  const minEaseEl = $('#minEase');
+  if(minEaseEl) minEaseEl.addEventListener('change', (e)=> { state.prefs.minEase = Number(e.target.value)||1.3; savePrefs(); });
+  const dailyCapEl = $('#dailyCap');
+  if(dailyCapEl) dailyCapEl.addEventListener('change', (e)=> { state.prefs.dailyCap = Number(e.target.value)||200; savePrefs(); });
+
   // accents
   $('#applyAccent').addEventListener('click', ()=> {
     const val = ($('#customAccent').value||'').trim();
     if(/^#([0-9a-f]{3}|[0-9a-f]{6})$/i.test(val)){ setAccent(val); } else alert('Enter valid hex #rrggbb');
   });
+
   // theme
   $$('.theme-btn').forEach(b => b.addEventListener('click', ()=> applyTheme(b.dataset.theme)));
+
   // reset SRS and clear data
   $('#resetSRS').addEventListener('click', ()=> {
     if(!confirm('Reset SRS for current language? This will set ease/interval/repetitions/due to defaults.')) return;
-    const list = state.data[state.lang];
+    const list = state.data[state.lang] || [];
     list.forEach(it => { it.ease = state.prefs.initialEase; it.interval = 0; it.repetitions = 0; it.due = todayISO(); it.history = []; });
     saveVocab(state.lang); renderList();
   });
@@ -959,7 +1071,8 @@ function wireEvents(){
     if(e.key === 'd' || e.key === 'D'){ e.preventDefault(); $('#openDashboard').click(); }
     if(e.key === 's' || e.key === 'S'){ e.preventDefault(); $('#openSettings').click(); }
     // rating keys during flash
-    if(!document.getElementById('flashView').classList.contains('hidden')){
+    const flashViewEl = document.getElementById('flashView');
+    if(flashViewEl && !flashViewEl.classList.contains('hidden')){
       const key = Number(e.key);
       if(!isNaN(key) && key >= 0 && key <= 5){ onRate(key); }
     }
@@ -968,10 +1081,12 @@ function wireEvents(){
   // page visibility: save prefs periodically
   window.addEventListener('beforeunload', ()=> persistAll());
 
-  // service worker registration (optional)
-  if('serviceWorker' in navigator){
-    navigator.serviceWorker.register('./sw.js').catch(()=>{/* ignore */});
-  }
+  // service worker registration (optional & safe)
+  try {
+    if('serviceWorker' in navigator){
+      navigator.serviceWorker.register('./sw.js').catch(()=>{/* ignore registration errors */});
+    }
+  } catch (e){}
 }
 
 /* ---------- Utilities ---------- */
@@ -1003,18 +1118,21 @@ const SAMPLE_HEBREW = [
 
 /* ---------- Init ---------- */
 async function init(){
+  // load preferences, data, wire events — in safe order
   loadPrefs();
   loadLastLang();
   await loadData();
+  // wire events once DOM elements exist
   wireEvents();
+  // ensure language UI is in sync
   setLang(state.lang);
   renderList();
   // restore dashboard if present
   try { const d = JSON.parse(localStorage.getItem('pp_dashboard')||'{}'); state.dashboard = d || state.dashboard; } catch(e){}
-  $('#streakBadge').textContent = `Streak: ${state.dashboard.streak||0}`;
+  const streakEl = $('#streakBadge'); if(streakEl) streakEl.textContent = `Streak: ${state.dashboard.streak||0}`;
   // hook sidebar freq to main slider
-  $('#sidebarFreq').value = $('#freqSlider').value;
-  $('#sidebarFreqLabel').textContent = ($('#sidebarFreq').value >=50)?'50+':$('#sidebarFreq').value + '+';
+  const sidebarFreqEl = $('#sidebarFreq'); const freqEl = $('#freqSlider');
+  if(sidebarFreqEl && freqEl){ sidebarFreqEl.value = freqEl.value; $('#sidebarFreqLabel').textContent = (sidebarFreqEl.value >=50)?'50+':sidebarFreqEl.value + '+'; }
   // set theme & accent UI
   document.documentElement.style.setProperty('--accent', state.prefs.accent || DEFAULTS.accent);
   renderAccentButtons();
