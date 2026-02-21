@@ -16,8 +16,7 @@
 <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,600;0,700;0,800;1,400&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
 <style>
 /* =============================================
-   PURITAN PARSER v2 — "Reformed Seminary Desk"
-   Warm parchment meets digital precision.
+   PURITAN PARSER v3 — Enhanced
    ============================================= */
 :root {
   --bg: #faf8f4;
@@ -44,7 +43,7 @@
   --font-mono: 'JetBrains Mono', 'Courier New', monospace;
   --font-sans: system-ui, -apple-system, 'Segoe UI', sans-serif;
 }
-.dark {
+html.dark {
   --bg: #0d0c0a;
   --surface: #161410;
   --surface-2: #1e1c17;
@@ -157,10 +156,8 @@ a { color: var(--accent); }
 .btn-sm { padding: 5px 10px; font-size: 12px; border-radius: 6px; }
 .btn-icon { padding: 6px; border-radius: 6px; }
 
-/* ===== NAV TABS (mobile) ===== */
-.view-nav {
-  display: flex; gap: 4px; flex-wrap: wrap;
-}
+/* ===== NAV TABS ===== */
+.view-nav { display: flex; gap: 4px; flex-wrap: wrap; }
 .nav-tab {
   padding: 6px 12px; border-radius: 6px; font-size: 13px; font-weight: 600;
   color: var(--muted); transition: all 150ms; border: 1px solid transparent;
@@ -177,6 +174,27 @@ a { color: var(--accent); }
 .input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-glow); }
 select.input { cursor: pointer; }
 
+/* ===== SHARED FILTER BAR ===== */
+.filter-bar {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-sm);
+  padding: 10px 14px;
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.filter-bar-group { display: flex; align-items: center; gap: 6px; }
+.filter-label { font-size: 12px; color: var(--muted); white-space: nowrap; font-weight: 600; }
+.freq-range-wrap { display: flex; align-items: center; gap: 4px; }
+.freq-range-wrap .input { width: 72px; }
+.freq-range-sep { color: var(--muted); font-size: 12px; }
+.due-toggle-wrap { display: flex; align-items: center; gap: 5px; cursor: pointer; }
+.due-toggle-wrap input[type="checkbox"] { cursor: pointer; accent-color: var(--accent); }
+.filter-entries { font-size: 12px; color: var(--muted); margin-left: auto; white-space: nowrap; }
+
 /* ===== PANELS ===== */
 .panel {
   background: var(--card); border: 1px solid var(--border);
@@ -192,9 +210,7 @@ table { width: 100%; border-collapse: collapse; font-size: 13px; }
 th { padding: 8px 10px; text-align: left; font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; border-bottom: 1px solid var(--border); white-space: nowrap; }
 td { padding: 9px 10px; border-bottom: 1px solid var(--border); vertical-align: middle; }
 tbody tr:last-child td { border-bottom: none; }
-tbody tr:hover { background: var(--surface-2); }
-
-/* Word in table - big and serif */
+tbody tr:hover { background: var(--surface-2); cursor: pointer; }
 .word-cell { font-family: var(--font-serif); font-size: 18px; font-weight: 600; }
 .lemma-cell { font-family: var(--font-serif); font-size: 15px; color: var(--text-2); }
 .gloss-cell { color: var(--text-2); }
@@ -203,8 +219,6 @@ tbody tr:hover { background: var(--surface-2); }
   font-size: 11px; font-weight: 600; background: var(--surface-2); color: var(--muted);
   border: 1px solid var(--border);
 }
-
-/* Mastery bar */
 .mastery-wrap { display: flex; align-items: center; gap: 6px; min-width: 80px; }
 .mastery-bar { flex: 1; height: 6px; border-radius: 3px; background: var(--surface-2); overflow: hidden; }
 .mastery-fill { height: 100%; border-radius: 3px; transition: width 300ms; }
@@ -213,6 +227,42 @@ tbody tr:hover { background: var(--surface-2); }
 .mastery-fill.high { background: var(--success); }
 .mastery-pct { font-size: 11px; font-weight: 700; color: var(--muted); min-width: 26px; }
 
+/* ===== MODAL ===== */
+.modal-overlay {
+  position: fixed; inset: 0; z-index: 1000;
+  background: rgba(26,18,8,0.45);
+  display: flex; align-items: center; justify-content: center;
+  padding: 16px;
+  animation: fadeIn 150ms ease;
+}
+.modal-overlay.hidden { display: none; }
+.modal-box {
+  background: var(--card);
+  border: 1px solid var(--border-strong);
+  border-radius: 14px;
+  box-shadow: var(--shadow-lg);
+  padding: 24px;
+  max-width: 480px;
+  width: 100%;
+  max-height: 85dvh;
+  overflow-y: auto;
+  animation: slideDown 200ms ease;
+}
+.modal-word { font-family: var(--font-serif); font-size: 52px; font-weight: 700; text-align: center; color: var(--text); margin-bottom: 4px; }
+.modal-gloss { font-family: var(--font-serif); font-size: 22px; text-align: center; color: var(--muted); margin-bottom: 16px; }
+.modal-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--border); font-size: 13px; }
+.modal-row:last-of-type { border-bottom: none; }
+.modal-row-label { color: var(--muted); font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; }
+.modal-history { margin-top: 12px; }
+.modal-history-title { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); margin-bottom: 6px; }
+.history-dots { display: flex; gap: 4px; flex-wrap: wrap; }
+.history-dot {
+  width: 20px; height: 20px; border-radius: 4px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 10px; font-weight: 700; font-family: var(--font-mono);
+  color: white;
+}
+
 /* ===== FLASHCARD ===== */
 .fc-outer {
   display: flex; flex-direction: column; align-items: center;
@@ -220,9 +270,7 @@ tbody tr:hover { background: var(--surface-2); }
   gap: 16px;
 }
 .fc-progress-bar-wrap { width: 100%; max-width: 560px; }
-.fc-progress-bar {
-  height: 4px; background: var(--surface-2); border-radius: 2px; overflow: hidden;
-}
+.fc-progress-bar { height: 4px; background: var(--surface-2); border-radius: 2px; overflow: hidden; }
 .fc-progress-fill { height: 100%; background: var(--accent); border-radius: 2px; transition: width 400ms ease; }
 .fc-progress-text { display: flex; justify-content: space-between; font-size: 12px; color: var(--muted); margin-bottom: 6px; }
 
@@ -230,6 +278,7 @@ tbody tr:hover { background: var(--surface-2); }
   width: 100%; max-width: 560px;
   perspective: 1400px;
   min-height: 280px;
+  touch-action: pan-y;
 }
 .fc-card {
   width: 100%; min-height: 280px;
@@ -273,7 +322,6 @@ tbody tr:hover { background: var(--surface-2); }
   border-color: var(--border-strong); box-shadow: none;
 }
 
-/* Back side content */
 .fc-back-word { font-family: var(--font-serif); font-size: 32px; font-weight: 600; text-align: center; color: var(--muted); }
 .fc-gloss { font-family: var(--font-serif); font-size: 28px; font-weight: 700; text-align: center; color: var(--text); }
 .fc-meta-row { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
@@ -283,7 +331,6 @@ tbody tr:hover { background: var(--surface-2); }
   background: var(--surface-2); border: 1px solid var(--border); color: var(--text-2);
 }
 
-/* Rating buttons */
 .fc-rating { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; margin-top: 8px; }
 .fc-rating-btn {
   padding: 10px 16px; border-radius: 8px; border: 1px solid var(--border-strong);
@@ -296,18 +343,23 @@ tbody tr:hover { background: var(--surface-2); }
 .fc-rating-btn.easy-btn { border-color: rgba(21,128,61,0.4); color: var(--success); }
 .fc-rating-btn.easy-btn:hover { background: var(--success); color: white; }
 
-/* Session complete */
+/* Swipe hint */
+.swipe-hint { font-size: 11px; color: var(--muted); text-align: center; opacity: 0.7; }
+
 .session-complete {
   display: flex; flex-direction: column; align-items: center; gap: 16px;
   padding: 40px 24px; text-align: center;
 }
 .session-complete .big-check { font-size: 56px; }
 .session-complete h3 { font-family: var(--font-serif); font-size: 26px; font-weight: 700; }
+.session-missed-list { width: 100%; max-width: 400px; text-align: left; }
+.session-missed-title { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); margin-bottom: 8px; }
+.session-missed-item { display: flex; align-items: center; gap: 8px; padding: 6px 0; border-bottom: 1px solid var(--border); font-size: 13px; }
+.session-missed-item:last-child { border-bottom: none; }
+.session-missed-word { font-family: var(--font-serif); font-size: 17px; font-weight: 600; }
 
 /* ===== PARSING PRACTICE ===== */
-.parsing-wrap {
-  display: flex; flex-direction: column; gap: 14px;
-}
+.parsing-wrap { display: flex; flex-direction: column; gap: 14px; }
 .parsing-question-word {
   font-family: var(--font-serif); font-size: 48px; font-weight: 700;
   text-align: center; color: var(--text); margin: 16px 0;
@@ -329,6 +381,25 @@ tbody tr:hover { background: var(--surface-2); }
 .ps-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--surface-2); border: 1px solid var(--border); transition: background 300ms; }
 .ps-dot.correct-dot { background: var(--success); border-color: var(--success); }
 .ps-dot.wrong-dot { background: var(--danger); border-color: var(--danger); }
+
+/* Word forms lemma picker */
+.lemma-picker-wrap { display: flex; flex-direction: column; gap: 8px; }
+.lemma-search { width: 100%; }
+.lemma-list {
+  max-height: 200px; overflow-y: auto;
+  border: 1px solid var(--border-strong);
+  border-radius: 8px;
+  background: var(--surface);
+}
+.lemma-item {
+  padding: 8px 12px; cursor: pointer; font-family: var(--font-serif); font-size: 16px;
+  border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between;
+  transition: background 100ms;
+}
+.lemma-item:last-child { border-bottom: none; }
+.lemma-item:hover, .lemma-item.selected { background: var(--accent-glow); }
+.lemma-item.selected { font-weight: 700; }
+.lemma-count { font-size: 11px; color: var(--muted); font-family: var(--font-sans); }
 
 /* ===== DASHBOARD ===== */
 .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; }
@@ -353,6 +424,18 @@ canvas { display: block; }
 .hm-cell[data-v="3"] { background: rgba(78,143,110,0.65); }
 .hm-cell[data-v="4"] { background: var(--accent); }
 
+/* Streak warning */
+.streak-warning {
+  display: flex; align-items: center; gap: 8px;
+  padding: 10px 14px; border-radius: 8px;
+  background: rgba(201,124,6,0.1); border: 1px solid rgba(201,124,6,0.3);
+  color: var(--warn); font-size: 13px; font-weight: 600;
+}
+
+/* POS breakdown bar */
+.pos-breakdown { display: flex; gap: 6px; margin-top: 10px; flex-wrap: wrap; }
+.pos-pill { padding: 3px 8px; border-radius: 999px; font-size: 11px; font-weight: 600; background: var(--surface-2); border: 1px solid var(--border); }
+
 /* ===== SETTINGS ===== */
 .settings-section { display: flex; flex-direction: column; gap: 6px; }
 .settings-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); }
@@ -363,7 +446,6 @@ canvas { display: block; }
 .color-swatch:hover { transform: scale(1.15); }
 .color-swatch.active { border-color: var(--text); }
 
-/* ===== KEYBOARD SHORTCUT HINTS ===== */
 kbd {
   display: inline-block; padding: 1px 5px; border-radius: 4px; font-size: 10px; font-family: var(--font-mono);
   background: var(--surface-2); border: 1px solid var(--border-strong); color: var(--muted);
@@ -430,6 +512,7 @@ button:focus-visible, input:focus-visible, select:focus-visible {
   table { font-size: 12px; }
   .word-cell { font-size: 15px; }
   .fc-rating-btn { padding: 8px 10px; font-size: 12px; }
+  .freq-range-wrap .input { width: 56px; }
 }
 
 /* ===== TWO-COL DESKTOP ===== */
@@ -444,6 +527,23 @@ button:focus-visible, input:focus-visible, select:focus-visible {
 
   <!-- TOAST CONTAINER -->
   <div class="toast-container" id="toastContainer" aria-live="polite"></div>
+
+  <!-- WORD DETAIL MODAL -->
+  <div class="modal-overlay hidden" id="wordModal" role="dialog" aria-modal="true">
+    <div class="modal-box" id="wordModalBox">
+      <div style="display:flex;justify-content:flex-end;margin-bottom:8px">
+        <button class="btn btn-ghost btn-sm" id="closeModal">✕ Close</button>
+      </div>
+      <div class="modal-word" id="modalWord">—</div>
+      <div class="modal-gloss" id="modalGloss">—</div>
+      <div id="modalRows"></div>
+      <div class="modal-history" id="modalHistory"></div>
+      <div style="display:flex;gap:8px;margin-top:16px;flex-wrap:wrap">
+        <button class="btn btn-ghost btn-sm" id="modalResetBtn">↺ Reset this word</button>
+        <button class="btn btn-primary btn-sm" id="modalCloseBtn2">Done</button>
+      </div>
+    </div>
+  </div>
 
   <!-- HEADER -->
   <header class="header">
@@ -477,31 +577,46 @@ button:focus-visible, input:focus-visible, select:focus-visible {
     </div>
   </div>
 
+  <!-- SHARED FILTER BAR (visible on list, flash, parsing) -->
+  <div class="filter-bar" id="sharedFilterBar">
+    <!-- Search: only shown on list view -->
+    <div class="filter-bar-group" id="filterSearchGroup">
+      <input class="input" id="searchInput" placeholder="🔍 Search word, gloss, pos…" style="min-width:160px" autocomplete="off" />
+    </div>
+    <!-- Freq range -->
+    <div class="filter-bar-group">
+      <span class="filter-label">Freq</span>
+      <div class="freq-range-wrap">
+        <input id="freqMin" type="number" class="input" value="1" min="1" max="9999" placeholder="min" title="Min frequency" />
+        <span class="freq-range-sep">–</span>
+        <input id="freqMax" type="number" class="input" value="9999" min="1" max="99999" placeholder="max" title="Max frequency" />
+      </div>
+    </div>
+    <!-- Due only toggle -->
+    <div class="filter-bar-group">
+      <label class="due-toggle-wrap" title="Show only cards due for review">
+        <input type="checkbox" id="dueOnlyToggle" />
+        <span class="filter-label">Due only</span>
+      </label>
+    </div>
+    <!-- Sort: only shown on list view -->
+    <div class="filter-bar-group" id="filterSortGroup">
+      <select id="sortSelect" class="input">
+        <option value="freq-desc">freq ↓</option>
+        <option value="freq-asc">freq ↑</option>
+        <option value="due-asc">due ↑</option>
+        <option value="mastery-asc">mastery ↑</option>
+        <option value="word-az">word A→Z</option>
+      </select>
+    </div>
+    <div class="filter-entries" id="filterEntriesCount"></div>
+  </div>
+
   <!-- MAIN CONTENT AREA -->
   <div id="mainArea" style="flex:1">
 
     <!-- ==================== LIST VIEW ==================== -->
     <div id="listView" class="fade-in">
-      <!-- Filter bar -->
-      <div class="panel" style="margin-bottom:12px">
-        <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
-          <input class="input" id="searchInput" placeholder="🔍  Search word, gloss, pos…" style="flex:1;min-width:160px" autocomplete="off" />
-          <div style="display:flex;align-items:center;gap:6px">
-            <span class="small muted" style="white-space:nowrap">Min freq</span>
-            <input id="freqSlider" type="range" min="1" max="50" value="1" style="width:100px" />
-            <span class="small muted" id="freqLabel" style="min-width:24px">1+</span>
-          </div>
-          <select id="sortSelect" class="input">
-            <option value="freq-desc">freq ↓</option>
-            <option value="freq-asc">freq ↑</option>
-            <option value="due-asc">due ↑</option>
-            <option value="mastery-asc">mastery ↑</option>
-            <option value="word-az">word A→Z</option>
-          </select>
-          <div class="muted small" id="entriesCount">0 entries</div>
-        </div>
-      </div>
-
       <div class="panel" style="padding:0">
         <div class="table-wrap">
           <table id="wordsTable" aria-label="Vocabulary list">
@@ -548,7 +663,7 @@ button:focus-visible, input:focus-visible, select:focus-visible {
         </div>
       </div>
 
-      <!-- Card area (hidden until session started) -->
+      <!-- Card area -->
       <div id="flashSessionArea" class="hidden">
         <div class="fc-outer">
           <div class="fc-progress-bar-wrap">
@@ -559,7 +674,7 @@ button:focus-visible, input:focus-visible, select:focus-visible {
             <div class="fc-progress-bar"><div class="fc-progress-fill" id="flashProgressFill" style="width:0%"></div></div>
           </div>
 
-          <div class="fc-scene">
+          <div class="fc-scene" id="fcScene">
             <div class="fc-card" id="fcCard">
               <!-- FRONT -->
               <div class="fc-face" id="fcFront">
@@ -578,24 +693,26 @@ button:focus-visible, input:focus-visible, select:focus-visible {
               </div>
             </div>
           </div>
+          <div class="swipe-hint muted small" id="swipeHint" style="display:none">← swipe to flip · swipe ↑ for Good · swipe ↓ for Again</div>
 
-          <!-- Session complete state (replaces card) -->
+          <!-- Session complete -->
           <div id="flashComplete" class="session-complete hidden">
             <div class="big-check">✅</div>
             <h3>Session Complete!</h3>
             <div id="flashCompleteStats" class="muted small"></div>
+            <div id="flashMissedList" class="session-missed-list hidden"></div>
             <button class="btn btn-primary" id="flashCompleteBack">Back to List</button>
           </div>
         </div>
       </div>
 
-      <!-- Empty state when no session running -->
+      <!-- Idle state -->
       <div id="flashIdle" class="panel">
         <div class="empty-state">
           <div class="empty-icon">🎴</div>
           <p style="font-size:15px;font-weight:600;color:var(--text);margin-bottom:6px">Ready to study?</p>
           <p>Select a mode above and hit <strong>Start Session</strong>.</p>
-          <p class="small muted" style="margin-top:8px">Due cards are shown first. Use <kbd>Space</kbd> to flip, <kbd>0–5</kbd> to rate.</p>
+          <p class="small muted" style="margin-top:8px">Use <kbd>Space</kbd> to flip, <kbd>0–5</kbd> to rate. Swipe on mobile.</p>
         </div>
       </div>
     </div>
@@ -610,14 +727,23 @@ button:focus-visible, input:focus-visible, select:focus-visible {
               <option value="mixed">Mixed</option>
               <option value="nouns">Nouns</option>
               <option value="verbs">Verbs</option>
+              <option value="wordforms">Word Forms</option>
             </select>
           </div>
-          <div style="display:flex;gap:6px;align-items:center">
+          <div style="display:flex;gap:6px;align-items:center" id="parsingCountWrap">
             <span class="small muted">Count</span>
             <input id="parsingCount" type="number" class="input" value="10" min="5" max="100" style="width:70px" />
           </div>
           <button class="btn btn-primary" id="startParsing">▶ Start</button>
           <button class="btn btn-ghost btn-sm hidden" id="endParsing">✕ End</button>
+        </div>
+        <!-- Word forms lemma picker (hidden unless wordforms mode) -->
+        <div id="lemmaPicker" class="hidden" style="margin-top:12px">
+          <div class="lemma-picker-wrap">
+            <input class="input lemma-search" id="lemmaSearch" placeholder="🔍 Search lemmas…" autocomplete="off" />
+            <div class="lemma-list" id="lemmaList"></div>
+            <div class="small muted" id="lemmaSelected" style="margin-top:4px">No lemma selected</div>
+          </div>
         </div>
       </div>
 
@@ -625,32 +751,28 @@ button:focus-visible, input:focus-visible, select:focus-visible {
         <div class="empty-state">
           <div class="empty-icon">🔤</div>
           <p style="font-size:15px;font-weight:600;color:var(--text);margin-bottom:6px">Parsing Practice</p>
-          <p>Identify the grammatical form of a word. Choose noun or verb drills.</p>
+          <p>Identify the grammatical form of a word. Choose noun or verb drills, or train all forms of a specific word.</p>
+          <p class="small muted" style="margin-top:8px">Words need a <code>parse</code> field in your vocab JSON (e.g. <code>"parse":"N-NSM"</code>).</p>
         </div>
       </div>
 
       <div id="parsingSession" class="hidden">
         <div class="panel parsing-wrap">
-          <!-- Progress dots -->
           <div style="display:flex;justify-content:space-between;align-items:center">
             <div class="muted small" id="parsingProgress">1 / 10</div>
             <div class="parsing-score-bar" id="parsingDots"></div>
           </div>
-
           <div class="parsing-question-word" id="parsingWord">—</div>
           <div class="fc-meta-row" id="parsingMeta" style="justify-content:center;margin-bottom:8px"></div>
-
           <div class="parsing-form" id="parsingForm"></div>
-
           <div style="display:flex;gap:8px;margin-top:4px">
             <button class="btn btn-primary" id="parsingSubmit">Check →</button>
             <button class="btn btn-ghost btn-sm" id="parsingReveal">Show answer</button>
           </div>
-
           <div id="parsingResult" class="hidden parsing-result"></div>
-
           <div style="display:flex;justify-content:flex-end;margin-top:8px">
-            <button class="btn btn-ghost btn-sm" id="nextParsing">Next →</button>
+            <button class="btn btn-ghost btn-sm hidden" id="nextParsing">Next →</button>
+            <button class="btn btn-primary btn-sm hidden" id="finishParsing">Finish ✓</button>
           </div>
         </div>
       </div>
@@ -659,7 +781,6 @@ button:focus-visible, input:focus-visible, select:focus-visible {
     <!-- ==================== DASHBOARD VIEW ==================== -->
     <div id="dashboardView" class="hidden fade-in">
       <div style="display:grid;gap:12px">
-        <!-- Stats row -->
         <div class="stats-grid" id="statsGrid">
           <div class="stat-card"><div class="stat-num" id="dashDue">0</div><div class="stat-label">Due Today</div></div>
           <div class="stat-card"><div class="stat-num" id="dashStreak">0</div><div class="stat-label">Day Streak 🔥</div></div>
@@ -669,25 +790,26 @@ button:focus-visible, input:focus-visible, select:focus-visible {
           <div class="stat-card"><div class="stat-num" id="dashAvgEase">—</div><div class="stat-label">Avg Ease</div></div>
         </div>
 
-        <!-- Performance chart -->
-        <div class="panel">
-          <div class="panel-title" style="margin-bottom:10px">Recent Performance (30 reviews)</div>
-          <div class="spark-wrap">
-            <canvas id="perfSpark" height="70"></canvas>
-          </div>
+        <!-- Streak warning -->
+        <div id="streakWarning" class="streak-warning hidden">
+          ⚠ Study today to keep your streak!
         </div>
 
-        <!-- Study heatmap (last 60 days) -->
+        <div class="panel">
+          <div class="panel-title" style="margin-bottom:10px">Recent Performance (30 reviews)</div>
+          <div class="spark-wrap"><canvas id="perfSpark" height="70"></canvas></div>
+        </div>
+
         <div class="panel">
           <div class="panel-title" style="margin-bottom:10px">Study Activity (60 days)</div>
           <div class="heatmap-row" id="heatmapRow"></div>
           <div class="small muted" style="margin-top:6px">Darker = more reviews</div>
         </div>
 
-        <!-- Upcoming due -->
         <div class="panel">
           <div class="panel-title" style="margin-bottom:10px">Upcoming Due</div>
           <div id="upcomingDue" class="muted small">—</div>
+          <div id="posDueBreakdown" class="pos-breakdown" style="margin-top:8px"></div>
         </div>
       </div>
     </div>
@@ -704,8 +826,6 @@ button:focus-visible, input:focus-visible, select:focus-visible {
         </div>
 
         <div style="display:flex;flex-direction:column;gap:20px">
-
-          <!-- Theme -->
           <div class="settings-section">
             <div class="settings-label">Theme</div>
             <div style="display:flex;gap:8px">
@@ -715,7 +835,6 @@ button:focus-visible, input:focus-visible, select:focus-visible {
             </div>
           </div>
 
-          <!-- Accent color -->
           <div class="settings-section">
             <div class="settings-label">Accent Color</div>
             <div id="accentPicker" style="display:flex;gap:6px;flex-wrap:wrap"></div>
@@ -725,7 +844,6 @@ button:focus-visible, input:focus-visible, select:focus-visible {
             </div>
           </div>
 
-          <!-- Font size -->
           <div class="settings-section">
             <div class="settings-label">Card Font Size</div>
             <div style="display:flex;gap:8px;align-items:center">
@@ -736,7 +854,6 @@ button:focus-visible, input:focus-visible, select:focus-visible {
 
           <hr class="divider">
 
-          <!-- SRS Options -->
           <div class="settings-section">
             <div class="settings-label">SRS Algorithm</div>
             <label style="display:flex;align-items:center;gap:8px;cursor:pointer">
@@ -766,7 +883,6 @@ button:focus-visible, input:focus-visible, select:focus-visible {
 
           <hr class="divider">
 
-          <!-- Flashcard options -->
           <div class="settings-section">
             <div class="settings-label">Flashcard Options</div>
             <label style="display:flex;align-items:center;gap:8px;cursor:pointer">
@@ -775,13 +891,12 @@ button:focus-visible, input:focus-visible, select:focus-visible {
             </label>
             <label style="display:flex;align-items:center;gap:8px;cursor:pointer;margin-top:6px">
               <input type="checkbox" id="autoNextCard" />
-              <span>Auto-advance after rating</span>
+              <span>Auto-advance after rating (600ms)</span>
             </label>
           </div>
 
           <hr class="divider">
 
-          <!-- Data actions -->
           <div class="settings-section">
             <div class="settings-label">Data</div>
             <div style="display:flex;gap:8px;flex-wrap:wrap">
@@ -791,7 +906,6 @@ button:focus-visible, input:focus-visible, select:focus-visible {
             </div>
           </div>
 
-          <!-- Keyboard shortcuts -->
           <div class="settings-section">
             <div class="settings-label">Keyboard Shortcuts</div>
             <div class="small muted" style="display:grid;grid-template-columns:1fr 1fr;gap:4px">
@@ -801,9 +915,10 @@ button:focus-visible, input:focus-visible, select:focus-visible {
               <div><kbd>S</kbd> Settings</div>
               <div><kbd>Space</kbd> Flip card</div>
               <div><kbd>0–5</kbd> Rate card</div>
+              <div><kbd>Enter</kbd> Submit parse</div>
+              <div><kbd>→</kbd> Next parse</div>
             </div>
           </div>
-
         </div>
       </div>
     </div>
@@ -811,23 +926,20 @@ button:focus-visible, input:focus-visible, select:focus-visible {
   </div><!-- /mainArea -->
 
   <footer style="font-size:11px;color:var(--muted);padding:8px 0;border-top:1px solid var(--border);margin-top:auto">
-    The Puritan Parser v2 — all data stored locally. <span id="footerLang"></span>
+    The Puritan Parser v3 — all data stored locally. <span id="footerLang"></span>
   </footer>
 
 </div><!-- /app -->
 
-<!-- SVG fallback -->
 <script>
 const svgFallback = `<svg xmlns="http://www.w3.org/2000/svg" width="38" height="38" viewBox="0 0 64 64"><rect width="64" height="64" rx="12" fill="#4e8f6e"/><text x="50%" y="54%" font-size="26" text-anchor="middle" fill="#fff" font-family="serif" font-weight="700">PP</text></svg>`;
 </script>
 
 <script>
 /* ============================================================
-   THE PURITAN PARSER v2
-   All SRS logic preserved, many bugs fixed, UX improved.
+   THE PURITAN PARSER v3
    ============================================================ */
 
-/* ---------- Constants ---------- */
 const FILE_ALL = 'vocab_all.json';
 const FILE_GREEK = 'greek_25plus.json';
 const FILE_HEBREW = 'hebrew_60plus.json';
@@ -844,7 +956,6 @@ const DEFAULTS = {
   useSM2: true,
   dailyCap: 200,
   newPerDay: 20,
-  freqMin: 1,
   cardFontSize: 54,
   showPosHint: false,
   autoNextCard: false
@@ -856,12 +967,15 @@ let state = {
   data: { greek: [], hebrew: [] },
   filtered: [],
   prefs: { ...DEFAULTS },
-  session: { queue: [], idx: 0, mode: 'due', flipped: false, reviewed: 0, forgotten: 0 },
+  filters: { query: '', minFreq: 1, maxFreq: 9999, dueOnly: false },
+  session: { queue: [], idx: 0, mode: 'due', flipped: false, reviewed: 0, forgotten: 0, total: 0, missedWords: [] },
   dashboard: { streak: 0, lastStudied: '', recent: [], heatmap: {} },
   currentView: 'list'
 };
 
-let parsingSession = { questions: [], idx: 0, correct: 0, total: 0, results: [] };
+let parsingSession = { questions: [], idx: 0, correct: 0, total: 0, results: [], wordformsLemma: '' };
+let selectedLemma = null;
+let autoAdvanceTimer = null;
 
 /* ---------- Utilities ---------- */
 const $ = s => document.querySelector(s);
@@ -874,10 +988,6 @@ function clamp(v,a,b){ return Math.max(a,Math.min(b,v)); }
 function uid(){ return Math.random().toString(36).slice(2,12); }
 function shuffle(a){ return a.slice().sort(()=>Math.random()-0.5); }
 function debounce(fn,w=200){ let t; return (...a)=>{ clearTimeout(t); t=setTimeout(()=>fn(...a),w); }; }
-function daysBetween(aIso, bIso){
-  const ms = new Date(aIso+'T00:00:00Z') - new Date(bIso+'T00:00:00Z');
-  return Math.round(ms/(1000*60*60*24));
-}
 function toast(msg, type='', duration=3000){
   const c = $('#toastContainer');
   const el = document.createElement('div');
@@ -904,7 +1014,7 @@ function loadDashboard(){
 }
 function saveDashboard(){ localStorage.setItem(LS_DASHBOARD, JSON.stringify(state.dashboard)); }
 
-/* ---------- SRS: SM-2 ---------- */
+/* ---------- SRS ---------- */
 function ensureSRS(item){
   if(typeof item.ease !== 'number') item.ease = state.prefs.initialEase || 2.5;
   if(typeof item.interval !== 'number') item.interval = 0;
@@ -987,7 +1097,6 @@ async function loadData(){
 /* ---------- Theme & Accent ---------- */
 function setAccent(hex){
   document.documentElement.style.setProperty('--accent', hex);
-  const dark = hex; // simple; could derive darker shade
   document.documentElement.style.setProperty('--accent-dark', adjustBrightness(hex, -20));
   document.documentElement.style.setProperty('--accent-glow', hexToRgba(hex, 0.15));
   state.prefs.accent = hex; savePrefs(); renderAccentButtons();
@@ -1027,16 +1136,47 @@ function renderAccentButtons(){
   });
 }
 
+/* ---------- Filter helpers ---------- */
+function readFiltersFromDOM(){
+  state.filters.query = ($('#searchInput')?.value||'').toLowerCase().trim();
+  state.filters.minFreq = Number($('#freqMin')?.value)||1;
+  state.filters.maxFreq = Number($('#freqMax')?.value)||9999;
+  state.filters.dueOnly = $('#dueOnlyToggle')?.checked||false;
+}
+function applyFreqFilter(list){
+  const { minFreq, maxFreq, dueOnly } = state.filters;
+  const today = todayISO();
+  return list.filter(it=>{
+    if(!it) return false;
+    const freq = it.freq||0;
+    if(freq < minFreq) return false;
+    if(freq > maxFreq) return false;
+    if(dueOnly && it.due > today) return false;
+    return true;
+  });
+}
+
 /* ---------- View Controller ---------- */
 function showView(viewId){
   const views = ['listView','flashView','parsingView','dashboardView','settingsView'];
   views.forEach(id=>{ const el=document.getElementById(id); if(el) el.classList.toggle('hidden', id!==viewId); });
-  // Update nav tabs
   $$('.nav-tab').forEach(t=>t.classList.toggle('active', t.dataset.view===viewId.replace('View','')));
   state.currentView = viewId;
+
+  // Show/hide filter bar and its sub-elements
+  const filterBar = $('#sharedFilterBar');
+  const noFilterViews = ['dashboardView','settingsView'];
+  if(filterBar) filterBar.classList.toggle('hidden', noFilterViews.includes(viewId));
+  // search only on list
+  const sg = $('#filterSearchGroup'); if(sg) sg.classList.toggle('hidden', viewId!=='listView');
+  // sort only on list
+  const ssg = $('#filterSortGroup'); if(ssg) ssg.classList.toggle('hidden', viewId!=='listView');
+  // entries count only on list
+  const ec = $('#filterEntriesCount'); if(ec) ec.classList.toggle('hidden', viewId!=='listView');
+
   if(viewId==='dashboardView') renderDashboard();
   if(viewId==='listView') renderList();
-  // Update footer
+
   const fl = $('#footerLang');
   if(fl) fl.textContent = `${state.lang==='greek'?'Greek (GNT)':'Hebrew'} — ${getCurrentList().length} words loaded`;
 }
@@ -1048,7 +1188,6 @@ function setLang(lang){
   renderList(); updateDueBadge();
   localStorage.setItem('pp_last_lang', lang);
 }
-
 function getCurrentList(){ return state.data[state.lang]||[]; }
 
 /* ---------- Due badge ---------- */
@@ -1069,14 +1208,17 @@ function computeMastery(item){
 
 /* ---------- LIST VIEW ---------- */
 function renderList(){
-  const q = ($('#searchInput')?.value||'').toLowerCase().trim();
-  const minFreq = Number($('#freqSlider')?.value)||1;
+  readFiltersFromDOM();
+  const { query, minFreq, maxFreq, dueOnly } = state.filters;
   const sort = $('#sortSelect')?.value||'freq-desc';
+  const today = todayISO();
   let list = getCurrentList().filter(it=>{
     if(!it) return false;
-    if((it.freq||0) < minFreq) return false;
-    if(!q) return true;
-    return `${it.word||''} ${it.lemma||''} ${it.gloss||''} ${it.pos||''}`.toLowerCase().includes(q);
+    const freq = it.freq||0;
+    if(freq < minFreq || freq > maxFreq) return false;
+    if(dueOnly && it.due > today) return false;
+    if(!query) return true;
+    return `${it.word||''} ${it.lemma||''} ${it.gloss||''} ${it.pos||''}`.toLowerCase().includes(query);
   });
   list.sort((a,b)=>{
     if(sort==='freq-desc') return (b.freq||0)-(a.freq||0);
@@ -1087,21 +1229,20 @@ function renderList(){
     return 0;
   });
   state.filtered = list;
-  const ec = $('#entriesCount'); if(ec) ec.textContent = `${list.length} entries`;
-  const today = todayISO();
+  const ec = $('#filterEntriesCount'); if(ec) ec.textContent = `${list.length} entries`;
   const due = list.filter(it=>it.due<=today).length;
   const db = $('#dueBadge'); if(db){ db.textContent=`Due: ${due}`; }
   const tbody = $('#wordsTbody'); if(!tbody) return;
   if(!list.length){
-    tbody.innerHTML = `<tr><td colspan="7" class="empty-state"><div class="empty-icon">🔍</div><p>No entries found — try a lower frequency or different search.</p></td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="7" class="empty-state"><div class="empty-icon">🔍</div><p>No entries found. Try expanding the frequency range or clearing the search.</p></td></tr>`;
     return;
   }
-  tbody.innerHTML = list.map(it=>{
+  tbody.innerHTML = list.map((it,i)=>{
     const m = computeMastery(it);
     const cls = m>60?'high':m>25?'mid':'low';
     const isDue = it.due<=today;
     const posColor = {noun:'#246b9c',verb:'#8a2b2b',adj:'#d97706',prep:'#475569',adv:'#2a9d8f'}[(it.pos||'').toLowerCase().slice(0,4)]||'#6b7280';
-    return `<tr>
+    return `<tr data-idx="${i}" style="cursor:pointer">
       <td class="word-cell">${escHtml(it.word||'')}${isDue?'<span style="color:var(--accent);font-size:10px;margin-left:4px">●</span>':''}</td>
       <td class="gloss-cell">${escHtml(it.gloss||'')}</td>
       <td><span class="pos-tag" style="color:${posColor}">${escHtml(it.pos||'—')}</span></td>
@@ -1111,18 +1252,70 @@ function renderList(){
       <td><div class="mastery-wrap"><div class="mastery-bar"><div class="mastery-fill ${cls}" style="width:${m}%"></div></div><span class="mastery-pct">${m}</span></div></td>
     </tr>`;
   }).join('');
+
+  // Wire row clicks for modal
+  $$('#wordsTbody tr').forEach((tr,i)=>{
+    tr.addEventListener('click', ()=>openWordModal(state.filtered[i]));
+  });
+}
+
+/* ---------- WORD DETAIL MODAL ---------- */
+function openWordModal(item){
+  if(!item) return;
+  $('#modalWord').textContent = item.word||'—';
+  $('#modalGloss').textContent = item.gloss||'—';
+  const rows = [
+    ['POS', item.pos||'—'],
+    ['Parse', item.parse||'—'],
+    ['Frequency', item.freq||0],
+    ['Due', item.due||'—'],
+    ['Ease', typeof item.ease==='number'?item.ease.toFixed(2):'—'],
+    ['Interval', item.interval ? `${item.interval} day${item.interval!==1?'s':''}` : '—'],
+    ['Repetitions', item.repetitions||0],
+    ['Mastery', computeMastery(item)+'%'],
+  ];
+  $('#modalRows').innerHTML = rows.map(([l,v])=>`<div class="modal-row"><span class="modal-row-label">${l}</span><span>${escHtml(String(v))}</span></div>`).join('');
+
+  // History
+  const hist = (item.history||[]).slice(-10);
+  const histEl = $('#modalHistory');
+  if(hist.length){
+    const qualityColor = q => q>=4?'#15803d':q>=3?'#4e8f6e':q>=2?'#c97c06':'#b91c1c';
+    histEl.innerHTML = `<div class="modal-history-title">Review History (last ${hist.length})</div>
+      <div class="history-dots">${hist.map(h=>`<div class="history-dot" style="background:${qualityColor(h.q)}" title="${h.date}: quality ${h.q}">${h.q}</div>`).join('')}</div>
+      <div class="small muted" style="margin-top:4px">${hist[hist.length-1]?.date||''}</div>`;
+  } else {
+    histEl.innerHTML = `<div class="modal-history-title">Review History</div><div class="small muted">No reviews yet</div>`;
+  }
+
+  // Reset button
+  $('#modalResetBtn').onclick = ()=>{
+    if(!confirm(`Reset SRS data for "${item.word}"?`)) return;
+    item.ease = state.prefs.initialEase||2.5;
+    item.interval = 0; item.repetitions = 0;
+    item.due = todayISO(); item.history = [];
+    saveVocab(item.lang||state.lang);
+    closeWordModal();
+    renderList();
+    toast('Word reset.','success');
+  };
+
+  $('#wordModal').classList.remove('hidden');
+}
+function closeWordModal(){
+  $('#wordModal').classList.add('hidden');
 }
 
 /* ---------- FLASHCARD SESSION ---------- */
 function startFlash(){
+  readFiltersFromDOM();
   const mode = $('#studyMode')?.value||'due';
-  const minFreq = Number($('#freqSlider')?.value)||1;
   const today = todayISO();
-  let pool = getCurrentList().filter(it=>(it.freq||0)>=minFreq);
+  let pool = applyFreqFilter(getCurrentList());
   if(mode==='due') pool = pool.filter(it=>it.due<=today);
   else if(mode==='new') pool = pool.filter(it=>!it.repetitions||it.repetitions===0);
   if(!pool.length){
-    toast('No cards available. Try "All filtered" or reduce min frequency.','danger'); return;
+    toast('No cards available. Try "All filtered" or expand the frequency range.','danger'); return;
   }
   pool = shuffle(pool);
   const cap = Number(state.prefs.dailyCap||200);
@@ -1133,14 +1326,17 @@ function startFlash(){
   state.session.reviewed = 0;
   state.session.forgotten = 0;
   state.session.total = state.session.queue.length;
-  // Show card area
+  state.session.missedWords = [];
+
   $('#flashIdle').classList.add('hidden');
   $('#flashSessionArea').classList.remove('hidden');
   $('#flashComplete').classList.add('hidden');
+  $('#fcCard').parentElement.classList.remove('hidden');
   $('#endFlashBtn').classList.remove('hidden');
   renderFlashCard();
 }
 function endFlash(){
+  if(autoAdvanceTimer){ clearTimeout(autoAdvanceTimer); autoAdvanceTimer=null; }
   $('#flashSessionArea').classList.add('hidden');
   $('#flashIdle').classList.remove('hidden');
   $('#flashComplete').classList.add('hidden');
@@ -1150,9 +1346,7 @@ function endFlash(){
 
 function renderFlashCard(){
   const q = state.session.queue;
-  const idx = state.session.idx;
   const total = state.session.total;
-  // Progress
   const done = total - q.length;
   const pct = total ? Math.round(done/total*100) : 0;
   const pt = $('#flashProgressText'); if(pt) pt.textContent = `${done} / ${total}`;
@@ -1161,7 +1355,7 @@ function renderFlashCard(){
 
   setCardFlipped(false);
   if(!q.length){ showSessionComplete(); return; }
-  const cur = q[0]; // always front of queue
+  const cur = q[0];
   const dir = $('#cardDirection')?.value||'word2gloss';
 
   if(dir==='word2gloss'){
@@ -1174,22 +1368,15 @@ function renderFlashCard(){
     $('#fcGloss').textContent = cur.word||'—';
   }
 
-  // POS hint
   const ph = $('#fcPosHint');
-  if(ph){
-    ph.textContent = cur.pos||'';
-    ph.classList.toggle('hidden', !state.prefs.showPosHint);
-  }
+  if(ph){ ph.textContent = cur.pos||''; ph.classList.toggle('hidden', !state.prefs.showPosHint); }
 
-  // Meta tags on back
   const mr = $('#fcMetaRow'); if(mr){
     mr.innerHTML='';
     if(cur.pos){ const s=document.createElement('span'); s.className='fc-parse-tag'; s.textContent=cur.pos; mr.appendChild(s); }
     if(cur.parse){ const s=document.createElement('span'); s.className='fc-parse-tag'; s.textContent=cur.parse; mr.appendChild(s); }
     if(cur.freq){ const s=document.createElement('span'); s.className='fc-parse-tag'; s.textContent=`freq ${cur.freq}`; mr.appendChild(s); }
   }
-
-  // Rating buttons
   buildRatingButtons();
 }
 
@@ -1197,7 +1384,7 @@ function buildRatingButtons(){
   const rr = $('#fcRating'); if(!rr) return;
   rr.innerHTML='';
   const ratings = [
-    {q:0, label:'Again', cls:'forgot-btn', title:'Blackout — show again immediately'},
+    {q:0, label:'Again', cls:'forgot-btn', title:'Blackout — show again'},
     {q:1, label:'Hard', cls:'', title:'Remembered with difficulty'},
     {q:2, label:'Hmm', cls:'', title:'Slight hesitation'},
     {q:3, label:'Good', cls:'', title:'Recalled correctly'},
@@ -1220,16 +1407,17 @@ function setCardFlipped(flipped){
 }
 
 function onRate(quality){
+  if(autoAdvanceTimer){ clearTimeout(autoAdvanceTimer); autoAdvanceTimer=null; }
   const q = state.session.queue;
   if(!q.length) return;
   const cur = q[0];
   scheduleUpdate(cur, quality);
   saveVocab(cur.lang||state.lang);
   if(quality<3){
-    // Re-queue at a later position (not immediately, but soon)
     state.session.forgotten++;
+    state.session.missedWords.push(cur);
     q.shift();
-    const reinsert = Math.min(4, q.length); // put back in 4 cards
+    const reinsert = Math.min(4, q.length);
     q.splice(reinsert, 0, cur);
   } else {
     state.session.reviewed++;
@@ -1237,17 +1425,63 @@ function onRate(quality){
   }
   recordReview(quality);
   if(!q.length){ showSessionComplete(); return; }
-  renderFlashCard();
+
+  if(state.prefs.autoNextCard){
+    autoAdvanceTimer = setTimeout(()=>{ renderFlashCard(); }, 600);
+  } else {
+    renderFlashCard();
+  }
 }
 
 function showSessionComplete(){
   $('#flashComplete').classList.remove('hidden');
-  $('#fcCard')?.parentElement?.classList.add('hidden');
+  const cardEl = $('#fcCard');
+  if(cardEl && cardEl.parentElement) cardEl.parentElement.classList.add('hidden');
   const stats = $('#flashCompleteStats');
   if(stats){
     const pct = state.session.total ? Math.round(state.session.reviewed/state.session.total*100) : 0;
     stats.textContent = `${state.session.reviewed} correct · ${state.session.forgotten} again · ${pct}% recall`;
   }
+  // Missed words breakdown
+  const missed = state.session.missedWords;
+  const ml = $('#flashMissedList');
+  if(ml){
+    if(missed.length){
+      const unique = [...new Map(missed.map(w=>[w.id||w.word,w])).values()];
+      ml.innerHTML = `<div class="session-missed-title">Words to focus on (${unique.length})</div>`+
+        unique.map(w=>`<div class="session-missed-item"><span class="session-missed-word">${escHtml(w.word||'')}</span><span class="muted small">${escHtml(w.gloss||'')}</span></div>`).join('');
+      ml.classList.remove('hidden');
+    } else {
+      ml.classList.add('hidden');
+    }
+  }
+}
+
+/* ---------- Swipe support ---------- */
+function wireSwipe(){
+  const scene = $('#fcScene'); if(!scene) return;
+  let tx=0, ty=0, startX=0, startY=0, dragging=false;
+  scene.addEventListener('touchstart', e=>{
+    startX=e.touches[0].clientX; startY=e.touches[0].clientY; dragging=true;
+    $('#swipeHint').style.display='block';
+  }, {passive:true});
+  scene.addEventListener('touchend', e=>{
+    if(!dragging) return; dragging=false;
+    const dx=e.changedTouches[0].clientX-startX;
+    const dy=e.changedTouches[0].clientY-startY;
+    const adx=Math.abs(dx), ady=Math.abs(dy);
+    if(adx>40&&adx>ady*1.5){
+      // horizontal swipe
+      if(!state.session.flipped) setCardFlipped(dx>0);
+      else setCardFlipped(dx<0);
+    } else if(ady>40&&ady>adx*1.5){
+      // vertical swipe (only on back)
+      if(state.session.flipped){
+        if(dy<-40) onRate(3); // swipe up = Good
+        else if(dy>40) onRate(0); // swipe down = Again
+      }
+    }
+  }, {passive:true});
 }
 
 /* ---------- Session tracking ---------- */
@@ -1255,13 +1489,10 @@ function recordReview(quality){
   const today = todayISO();
   state.dashboard.recent = state.dashboard.recent || [];
   state.dashboard.recent.push({ date: today, q: Number(quality) });
-  // Trim to 90 days
   const cutoff = new Date(); cutoff.setDate(cutoff.getDate()-90);
   state.dashboard.recent = state.dashboard.recent.filter(r=>new Date(r.date)>=cutoff);
-  // Heatmap
   state.dashboard.heatmap = state.dashboard.heatmap || {};
   state.dashboard.heatmap[today] = (state.dashboard.heatmap[today]||0)+1;
-  // Streak
   const dates = Array.from(new Set(state.dashboard.recent.map(r=>r.date))).sort();
   let streak=0; const d=new Date();
   for(let i=0;i<365;i++){
@@ -1275,21 +1506,82 @@ function recordReview(quality){
 }
 
 /* ---------- PARSING PRACTICE ---------- */
-function startParsing(){
+function updateParsingModeUI(){
   const mode = $('#parsingMode')?.value||'mixed';
+  const isWordForms = mode==='wordforms';
+  $('#parsingCountWrap')?.classList.toggle('hidden', isWordForms);
+  $('#lemmaPicker')?.classList.toggle('hidden', !isWordForms);
+  if(isWordForms) renderLemmaPicker();
+}
+
+function renderLemmaPicker(){
+  readFiltersFromDOM();
+  const search = ($('#lemmaSearch')?.value||'').toLowerCase();
+  const pool = applyFreqFilter(getCurrentList()).filter(it=>it.parse);
+  // Group by lemma
+  const lemmaMap = {};
+  pool.forEach(it=>{
+    const l = it.lemma||it.word||'';
+    if(!lemmaMap[l]) lemmaMap[l]=0;
+    lemmaMap[l]++;
+  });
+  const lemmas = Object.entries(lemmaMap)
+    .filter(([l])=>!search||l.toLowerCase().includes(search))
+    .sort((a,b)=>a[0].localeCompare(b[0]));
+
+  const ll = $('#lemmaList'); if(!ll) return;
+  if(!lemmas.length){
+    ll.innerHTML = `<div class="lemma-item"><span class="muted small">No parseable lemmas found</span></div>`;
+    return;
+  }
+  ll.innerHTML = lemmas.map(([l,cnt])=>
+    `<div class="lemma-item${selectedLemma===l?' selected':''}" data-lemma="${escHtml(l)}">`+
+    `<span>${escHtml(l)}</span><span class="lemma-count">${cnt} form${cnt!==1?'s':''}</span></div>`
+  ).join('');
+  $$('#lemmaList .lemma-item').forEach(el=>{
+    el.addEventListener('click',()=>{
+      selectedLemma = el.dataset.lemma;
+      $$('#lemmaList .lemma-item').forEach(x=>x.classList.remove('selected'));
+      el.classList.add('selected');
+      const sd = $('#lemmaSelected'); if(sd) sd.textContent = `Selected: ${selectedLemma}`;
+    });
+  });
+}
+
+function startParsing(){
+  readFiltersFromDOM();
+  const mode = $('#parsingMode')?.value||'mixed';
+
+  if(mode==='wordforms'){
+    if(!selectedLemma){ toast('Please select a lemma first.','danger'); return; }
+    const pool = applyFreqFilter(getCurrentList()).filter(it=>it.parse && (it.lemma||it.word||'')=== selectedLemma);
+    if(!pool.length){
+      toast(`No parseable forms found for "${selectedLemma}".`,'danger'); return;
+    }
+    parsingSession = { questions: shuffle(pool), idx:0, correct:0, total:pool.length, results:[], wordformsLemma: selectedLemma };
+    if(pool.length===1) toast(`Only 1 form found for "${selectedLemma}".`);
+    $('#parsingIdle').classList.add('hidden');
+    $('#parsingSession').classList.remove('hidden');
+    $('#endParsing').classList.remove('hidden');
+    renderParsingQuestion();
+    return;
+  }
+
   const count = Number($('#parsingCount')?.value)||10;
-  const minFreq = Number($('#freqSlider')?.value)||1;
-  let pool = getCurrentList().filter(it=>(it.freq||0)>=minFreq&&it.parse);
+  let pool = applyFreqFilter(getCurrentList()).filter(it=>it.parse);
   if(mode==='nouns') pool=pool.filter(it=>(it.pos||'').toLowerCase().includes('n'));
   else if(mode==='verbs') pool=pool.filter(it=>(it.pos||'').toLowerCase().includes('v'));
-  if(!pool.length){ toast('No parseable words with current filters. Words need a "parse" field.','danger'); return; }
+  if(!pool.length){
+    toast('No parseable words found. Words need a "parse" field in your vocab JSON (e.g. "parse":"N-NSM").','danger'); return;
+  }
   pool = shuffle(pool).slice(0, Math.min(count, pool.length));
-  parsingSession = { questions: pool, idx:0, correct:0, total:pool.length, results:[] };
+  parsingSession = { questions: pool, idx:0, correct:0, total:pool.length, results:[], wordformsLemma: '' };
   $('#parsingIdle').classList.add('hidden');
   $('#parsingSession').classList.remove('hidden');
   $('#endParsing').classList.remove('hidden');
   renderParsingQuestion();
 }
+
 function endParsing(){
   $('#parsingSession').classList.add('hidden');
   $('#parsingIdle').classList.remove('hidden');
@@ -1297,8 +1589,7 @@ function endParsing(){
 }
 
 function renderParsingQuestion(){
-  const { idx, questions, total, results } = parsingSession;
-  // Progress dots
+  const { idx, questions, total, results, wordformsLemma } = parsingSession;
   const dots = $('#parsingDots');
   if(dots){
     dots.innerHTML = questions.slice(0,total).map((_,i)=>{
@@ -1307,9 +1598,15 @@ function renderParsingQuestion(){
     }).join('');
   }
 
-  if(idx>=questions.length){
-    // Session done — show summary inline
+  const isLast = idx === total-1;
+  const isDone = idx >= total;
+
+  if(isDone){
+    // Summary
     const pct = total?Math.round(parsingSession.correct/total*100):0;
+    const summaryText = wordformsLemma
+      ? `You identified ${parsingSession.correct}/${total} forms of ${wordformsLemma} correctly.`
+      : `${parsingSession.correct}/${total} correct`;
     $('#parsingWord').innerHTML = `<span style="font-size:40px">${pct>=70?'🎉':'📖'}</span>`;
     $('#parsingForm').innerHTML='';
     $('#parsingMeta').innerHTML='';
@@ -1317,21 +1614,26 @@ function renderParsingQuestion(){
     $('#parsingProgress').textContent = `Complete: ${parsingSession.correct}/${total} (${pct}%)`;
     $('#parsingSubmit').classList.add('hidden');
     $('#nextParsing').classList.add('hidden');
+    $('#finishParsing').classList.add('hidden');
     $('#parsingReveal').classList.add('hidden');
-    toast(`Parsing complete: ${parsingSession.correct}/${total} correct`, pct>=70?'success':'');
+    toast(summaryText, pct>=70?'success':'');
     return;
   }
 
   const qn = questions[idx];
   $('#parsingWord').textContent = qn.word||'—';
-  $('#parsingProgress').textContent = `${idx+1} / ${total}`;
+  if(wordformsLemma){
+    $('#parsingProgress').textContent = `Training: ${wordformsLemma} — ${idx+1}/${total} forms`;
+  } else {
+    $('#parsingProgress').textContent = `${idx+1} / ${total}`;
+  }
   const pm = $('#parsingMeta');
   if(pm){ pm.innerHTML=''; if(qn.freq){ const s=document.createElement('span'); s.className='fc-parse-tag'; s.textContent=`freq ${qn.freq}`; pm.appendChild(s); } }
 
-  // Hide result, show submit
   const res = $('#parsingResult'); if(res){ res.classList.add('hidden'); res.innerHTML=''; }
   $('#parsingSubmit').classList.remove('hidden');
   $('#nextParsing').classList.add('hidden');
+  $('#finishParsing').classList.add('hidden');
   $('#parsingReveal').classList.remove('hidden');
 
   const form = $('#parsingForm'); if(!form) return;
@@ -1383,16 +1685,13 @@ function checkParsingAnswer(reveal=false){
   fields.forEach(f=>{
     if(f.type==='select'){
       const el = $(`#par_${f.id}`); if(!el) return;
-      const val = el.value;
-      total++;
+      const val = el.value; total++;
       const ok = p.includes(val);
       if(ok) correct++;
       lines.push({ ok, text: ok ? `✓ ${f.label}: ${val}` : `✗ ${f.label}: you said "${val}" — expected part of "${qn.parse}"` });
     } else {
-      // lemma
       const el = $(`#par_${f.id}`); if(!el) return;
-      const val = (el.value||'').trim().toLowerCase();
-      total++;
+      const val = (el.value||'').trim().toLowerCase(); total++;
       const ok = val===(qn.lemma||'').toLowerCase();
       if(ok) correct++;
       lines.push({ ok, text: ok ? `✓ Lemma: ${val}` : `✗ Lemma: you said "${val||'—'}" — correct: "${qn.lemma}"` });
@@ -1410,9 +1709,15 @@ function checkParsingAnswer(reveal=false){
   res.classList.remove('hidden');
   $('#parsingSubmit').classList.add('hidden');
   $('#parsingReveal').classList.add('hidden');
-  $('#nextParsing').classList.remove('hidden');
 
-  // Refresh dots
+  const isLastQuestion = parsingSession.idx >= parsingSession.total;
+  if(isLastQuestion){
+    $('#nextParsing').classList.add('hidden');
+    $('#finishParsing').classList.remove('hidden');
+  } else {
+    $('#nextParsing').classList.remove('hidden');
+    $('#finishParsing').classList.add('hidden');
+  }
   renderParsingDots();
 }
 
@@ -1436,9 +1741,17 @@ function revealParsingAnswer(){
   res.classList.remove('hidden');
   $('#parsingSubmit').classList.add('hidden');
   $('#parsingReveal').classList.add('hidden');
-  $('#nextParsing').classList.remove('hidden');
   parsingSession.results[idx] = false;
   parsingSession.idx++;
+
+  const isLastQuestion = parsingSession.idx >= parsingSession.total;
+  if(isLastQuestion){
+    $('#nextParsing').classList.add('hidden');
+    $('#finishParsing').classList.remove('hidden');
+  } else {
+    $('#nextParsing').classList.remove('hidden');
+    $('#finishParsing').classList.add('hidden');
+  }
   renderParsingDots();
 }
 
@@ -1459,9 +1772,16 @@ function renderDashboard(){
   set('#dashTotal', list.length);
   set('#dashLearned', learned);
   set('#dashRevWeek', recent7.length);
-
   const avg = list.length ? (list.reduce((s,it)=>s+(it.ease||0),0)/list.length).toFixed(2) : '—';
   set('#dashAvgEase', avg);
+
+  // Streak warning
+  const sw = $('#streakWarning');
+  if(sw){
+    const studiedToday = state.dashboard.lastStudied===today;
+    const hasStreak = (state.dashboard.streak||0) > 0;
+    sw.classList.toggle('hidden', studiedToday||!hasStreak);
+  }
 
   renderSparkline();
   renderHeatmap();
@@ -1485,7 +1805,6 @@ function renderSparkline(){
   });
   ctx.strokeStyle=state.prefs.accent||'#4e8f6e'; ctx.lineWidth=2.5;
   ctx.lineJoin='round'; ctx.stroke();
-  // Fill under
   ctx.lineTo(W,H); ctx.lineTo(0,H); ctx.closePath();
   ctx.fillStyle=hexToRgba(state.prefs.accent||'#4e8f6e',0.1); ctx.fill();
 }
@@ -1518,6 +1837,19 @@ function renderUpcomingDue(list, today){
   el.innerHTML='<div style="display:flex;flex-wrap:wrap;gap:8px">'+
     sorted.map(([d,n])=>`<div class="stat-card" style="padding:8px 12px;min-width:0"><div style="font-weight:700;font-size:14px">${n}</div><div class="small muted">${d===today?'Today':d}</div></div>`).join('')+
     '</div>';
+
+  // POS breakdown for today's due
+  const pbd = $('#posDueBreakdown');
+  if(pbd){
+    const todayDue = list.filter(it=>(it.due||'9999')<=today);
+    const byPos = {};
+    todayDue.forEach(it=>{
+      const p = (it.pos||'other').toLowerCase().slice(0,4);
+      const label = p==='noun'?'Nouns':p==='verb'?'Verbs':p==='adj'?'Adj':'Other';
+      byPos[label]=(byPos[label]||0)+1;
+    });
+    pbd.innerHTML = Object.entries(byPos).map(([l,n])=>`<span class="pos-pill">${l}: ${n}</span>`).join('');
+  }
 }
 
 /* ---------- SETTINGS SYNC ---------- */
@@ -1562,14 +1894,13 @@ function wireEvents(){
     showView(v);
   }));
 
-  // Search & filter
-  const si=$('#searchInput'); if(si) si.addEventListener('input',debounce(()=>renderList(),150));
-  const fs=$('#freqSlider');
-  if(fs) fs.addEventListener('input',()=>{
-    const v=fs.value; $('#freqLabel').textContent=v>=50?'50+':v+'+';
-    renderList();
-  });
-  const ss=$('#sortSelect'); if(ss) ss.addEventListener('change',()=>renderList());
+  // Shared filter bar inputs
+  const debouncedRender = debounce(()=>renderList(),150);
+  $('#searchInput')?.addEventListener('input', debouncedRender);
+  $('#freqMin')?.addEventListener('input', ()=>{ readFiltersFromDOM(); renderList(); });
+  $('#freqMax')?.addEventListener('input', ()=>{ readFiltersFromDOM(); renderList(); });
+  $('#dueOnlyToggle')?.addEventListener('change', ()=>{ readFiltersFromDOM(); renderList(); });
+  $('#sortSelect')?.addEventListener('change', ()=>renderList());
 
   // Flashcard
   $('#startFlashBtn').addEventListener('click',startFlash);
@@ -1578,12 +1909,23 @@ function wireEvents(){
   $('#fcFlipToFront').addEventListener('click',()=>setCardFlipped(false));
   $('#flashCompleteBack').addEventListener('click',()=>{ endFlash(); showView('listView'); });
 
+  // Swipe
+  wireSwipe();
+
   // Parsing
+  $('#parsingMode')?.addEventListener('change', updateParsingModeUI);
+  $('#lemmaSearch')?.addEventListener('input', debounce(renderLemmaPicker, 150));
   $('#startParsing').addEventListener('click',startParsing);
   $('#endParsing').addEventListener('click',endParsing);
   $('#parsingSubmit').addEventListener('click',()=>checkParsingAnswer());
   $('#parsingReveal').addEventListener('click',revealParsingAnswer);
   $('#nextParsing').addEventListener('click',()=>renderParsingQuestion());
+  $('#finishParsing').addEventListener('click',()=>{ parsingSession.idx=parsingSession.total; renderParsingQuestion(); });
+
+  // Modal
+  $('#closeModal')?.addEventListener('click', closeWordModal);
+  $('#modalCloseBtn2')?.addEventListener('click', closeWordModal);
+  $('#wordModal')?.addEventListener('click', e=>{ if(e.target===$('#wordModal')) closeWordModal(); });
 
   // Settings
   $('#openSettings').addEventListener('click',()=>showView('settingsView'));
@@ -1594,7 +1936,6 @@ function wireEvents(){
     if(/^#[0-9a-f]{6}$/i.test(v)) setAccent(v); else toast('Enter valid hex #rrggbb','danger');
   });
 
-  // SRS Settings live update
   const srsFields=[['#useSM2','useSM2','bool'],['#initialEase','initialEase','num'],['#minEase','minEase','num'],
     ['#dailyCap','dailyCap','num'],['#newPerDay','newPerDay','num'],
     ['#showPosHint','showPosHint','bool'],['#autoNextCard','autoNextCard','bool']];
@@ -1606,21 +1947,16 @@ function wireEvents(){
     });
   });
 
-  // Font size slider
   const fss=$('#fontSizeSlider');
   if(fss) fss.addEventListener('input',()=>{
     const v=Number(fss.value);
     state.prefs.cardFontSize=v; savePrefs();
     document.documentElement.style.setProperty('--fc-word-size', v+'px');
     $('#fontSizeLabel').textContent=v+'px';
-    // Update live
     $$('.fc-word-display').forEach(el=>el.style.fontSize=v+'px');
   });
 
-  // Export
   $('#exportData')?.addEventListener('click',exportData);
-
-  // Reset / clear
   $('#resetSRS').addEventListener('click',()=>{
     if(!confirm('Reset SRS data for current language?')) return;
     getCurrentList().forEach(it=>{ it.ease=state.prefs.initialEase; it.interval=0; it.repetitions=0; it.due=todayISO(); it.history=[]; });
@@ -1635,33 +1971,62 @@ function wireEvents(){
   // Keyboard shortcuts
   document.addEventListener('keydown',e=>{
     const tag = document.activeElement.tagName;
-    if(tag==='INPUT'||tag==='SELECT'||tag==='TEXTAREA') return;
-    const fv = document.getElementById('flashView');
-    const inFlash = fv&&!fv.classList.contains('hidden');
-    if(e.key==='f'||e.key==='F'){ e.preventDefault(); showView('flashView'); }
-    else if(e.key==='p'||e.key==='P'){ e.preventDefault(); showView('parsingView'); }
-    else if(e.key==='d'||e.key==='D'){ e.preventDefault(); showView('dashboardView'); }
-    else if(e.key==='s'||e.key==='S'){ e.preventDefault(); showView('settingsView'); }
-    else if(e.key==='l'||e.key==='L'){ e.preventDefault(); showView('listView'); }
-    if(inFlash&&state.session.queue.length){
-      if(e.key===' '){ e.preventDefault(); setCardFlipped(!state.session.flipped); }
-      if(state.session.flipped){
-        const k=Number(e.key);
-        if(!isNaN(k)&&k>=0&&k<=5){ e.preventDefault(); onRate(k); }
+    const inInput = tag==='INPUT'||tag==='SELECT'||tag==='TEXTAREA';
+
+    // Modal close
+    if(e.key==='Escape'){ closeWordModal(); return; }
+
+    // Global nav shortcuts (skip if in input)
+    if(!inInput){
+      const fv = document.getElementById('flashView');
+      const inFlash = fv&&!fv.classList.contains('hidden');
+      if(e.key==='f'||e.key==='F'){ e.preventDefault(); showView('flashView'); }
+      else if(e.key==='p'||e.key==='P'){ e.preventDefault(); showView('parsingView'); }
+      else if(e.key==='d'||e.key==='D'){ e.preventDefault(); showView('dashboardView'); }
+      else if(e.key==='s'||e.key==='S'){ e.preventDefault(); showView('settingsView'); }
+      else if(e.key==='l'||e.key==='L'){ e.preventDefault(); showView('listView'); }
+      if(inFlash&&state.session.queue.length){
+        if(e.key===' '){ e.preventDefault(); setCardFlipped(!state.session.flipped); }
+        if(state.session.flipped){
+          const k=Number(e.key);
+          if(!isNaN(k)&&k>=0&&k<=5){ e.preventDefault(); onRate(k); }
+        }
+      }
+    }
+
+    // Parsing keyboard: Enter to submit/next
+    const pv = document.getElementById('parsingView');
+    const inParsing = pv&&!pv.classList.contains('hidden');
+    if(inParsing){
+      const submitBtn = $('#parsingSubmit');
+      const nextBtn = $('#nextParsing');
+      const finishBtn = $('#finishParsing');
+      if(e.key==='Enter'){
+        e.preventDefault();
+        if(submitBtn&&!submitBtn.classList.contains('hidden')) checkParsingAnswer();
+        else if(finishBtn&&!finishBtn.classList.contains('hidden')){ parsingSession.idx=parsingSession.total; renderParsingQuestion(); }
+        else if(nextBtn&&!nextBtn.classList.contains('hidden')) renderParsingQuestion();
+      }
+      if((e.key==='ArrowRight'||e.key==='Tab')&&!e.shiftKey){
+        if(nextBtn&&!nextBtn.classList.contains('hidden')){ e.preventDefault(); renderParsingQuestion(); }
       }
     }
   });
 
   window.addEventListener('beforeunload',()=>{ saveVocab('greek'); saveVocab('hebrew'); savePrefs(); });
-  // Service worker
   try { if('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js').catch(()=>{}); } catch(e){}
 }
 
 /* ---------- Sample Data ---------- */
 const SAMPLE_GREEK = [
   {word:"λόγος",lemma:"λόγος",gloss:"word, message",pos:"noun",freq:330,parse:"N-NSM"},
+  {word:"λόγον",lemma:"λόγος",gloss:"word (acc)",pos:"noun",freq:120,parse:"N-ASM"},
+  {word:"λόγῳ",lemma:"λόγος",gloss:"word (dat)",pos:"noun",freq:80,parse:"N-DSM"},
   {word:"ἀγαπάω",lemma:"ἀγαπάω",gloss:"to love",pos:"verb",freq:143,parse:"V-PRES-ACT-1S"},
+  {word:"ἠγάπησεν",lemma:"ἀγαπάω",gloss:"he loved",pos:"verb",freq:58,parse:"V-AOR-ACT-3S"},
   {word:"θεός",lemma:"θεός",gloss:"God",pos:"noun",freq:1317,parse:"N-NSM"},
+  {word:"θεοῦ",lemma:"θεός",gloss:"of God",pos:"noun",freq:620,parse:"N-GSM"},
+  {word:"θεῷ",lemma:"θεός",gloss:"to God",pos:"noun",freq:190,parse:"N-DSM"},
   {word:"πιστός",lemma:"πιστός",gloss:"faithful",pos:"adj",freq:67},
   {word:"πνεῦμα",lemma:"πνεῦμα",gloss:"spirit, wind",pos:"noun",freq:379,parse:"N-NSN"},
   {word:"γράφω",lemma:"γράφω",gloss:"to write",pos:"verb",freq:191,parse:"V-PRES-ACT-1S"},
@@ -1705,7 +2070,6 @@ async function init(){
   setLang(state.lang);
   showView('listView');
   updateDueBadge();
-  // Apply saved font size
   if(state.prefs.cardFontSize){
     document.documentElement.style.setProperty('--fc-word-size', state.prefs.cardFontSize+'px');
     $$('.fc-word-display').forEach(el=>el.style.fontSize=state.prefs.cardFontSize+'px');
