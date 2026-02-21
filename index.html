@@ -14,7 +14,7 @@
   --card: #fbfdfb;
   --muted: #6b7280;
   --text: #0f1720;
-  --accent: #4e8f6e; /* neutral green default */
+  --accent: #4e8f6e;
   --border: rgba(0,0,0,0.06);
   --radius: 12px;
   --shadow: 0 8px 24px rgba(15,23,32,0.06);
@@ -25,7 +25,7 @@
   --font-size: 16px;
   --reduced-motion: 0;
 }
-.light { /* explicit light */
+.light {
   --bg:#ffffff; --card:#fbfdfb; --text:#0f1720; --muted:#6b7280;
 }
 .dark {
@@ -61,11 +61,10 @@ body{
 .lang-btn.active{background:var(--accent); color:#fff; border-color:var(--border)}
 .badge{background:var(--card); border:1px solid var(--border); padding:6px 8px;border-radius:999px;font-size:13px;color:var(--muted)}
 
-/* layout: single column app - views are inside main panel */
+/* layout */
 .grid{display:grid; grid-template-columns:1fr; gap:14px}
 .panel{background:var(--card); padding:14px; border-radius:var(--radius); box-shadow:var(--shadow); border:1px solid var(--border)}
 @media (min-width:1100px){
-  /* On very wide screens we can show two-column layout for dashboard + list, but settings is full-width */
   .grid.two-col{ grid-template-columns: 1fr 360px; }
 }
 @media (max-width:900px){ .panel{padding:10px} }
@@ -81,30 +80,101 @@ table{width:100%; border-collapse:collapse; font-size:14px}
 th,td{padding:8px;border-bottom:1px solid var(--border); text-align:left}
 th{font-weight:700;color:var(--muted); font-size:13px}
 
-/* flashcard */
-.flashcard{
-  display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:220px;
+/* =====================
+   FLASHCARD — two sides
+   ===================== */
+.fc-scene{
+  width:100%; min-height:320px;
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  perspective:1200px;
+  padding:20px 0;
 }
-.card-word{font-size:34px;font-weight:800;margin-bottom:6px; text-align:center}
-.card-meta{font-size:13px;color:var(--muted); text-align:center; white-space:pre-wrap}
-.card-actions{display:flex; gap:8px; margin-top:12px; flex-wrap:wrap; justify-content:center}
-.btn{background:var(--accent); color:white; padding:8px 12px; border-radius:10px; border:none; cursor:pointer}
-.btn.ghost{background:transparent; color:var(--accent); border:1px solid var(--border)}
-.small{padding:6px 8px; font-size:13px}
 
-/* rating buttons row */
-.rating-row{display:flex; gap:8px; flex-wrap:wrap; justify-content:center}
-.rating-btn{padding:8px 12px; border-radius:8px; border:1px solid var(--border); cursor:pointer; background:transparent}
+/* The flipping container */
+.fc-card{
+  width:100%; max-width:560px; min-height:260px;
+  position:relative;
+  transform-style:preserve-3d;
+  transition:transform 420ms cubic-bezier(0.45,0,0.55,1);
+}
+.fc-card.flipped{
+  transform:rotateY(180deg);
+}
+
+/* Both faces share base styles */
+.fc-face{
+  position:absolute; inset:0;
+  backface-visibility:hidden;
+  -webkit-backface-visibility:hidden;
+  border-radius:var(--radius);
+  background:var(--card);
+  border:1px solid var(--border);
+  box-shadow:var(--shadow);
+  display:flex; flex-direction:column;
+  align-items:center; justify-content:center;
+  padding:32px 24px;
+  box-sizing:border-box;
+}
+
+/* Back face is pre-rotated */
+.fc-back{
+  transform:rotateY(180deg);
+}
+
+/* Content inside faces */
+.fc-word{
+  font-size:42px; font-weight:800; text-align:center; margin-bottom:8px;
+  line-height:1.2;
+}
+.fc-gloss{
+  font-size:22px; font-weight:600; text-align:center; margin-bottom:6px;
+}
+.fc-meta{
+  font-size:13px; color:var(--muted); text-align:center; margin-bottom:20px;
+}
+.fc-flip-btn{
+  margin-top:20px;
+  background:var(--accent); color:white;
+  border:none; border-radius:10px;
+  padding:10px 28px; font-size:15px; font-weight:600;
+  cursor:pointer;
+  transition:opacity 150ms;
+}
+.fc-flip-btn:hover{ opacity:0.88; }
+.fc-flip-btn.ghost{
+  background:transparent; color:var(--accent);
+  border:1px solid var(--border);
+}
+
+/* Rating row on back */
+.fc-rating{
+  display:flex; gap:8px; flex-wrap:wrap; justify-content:center; margin-top:16px;
+}
+.fc-rating-btn{
+  padding:9px 14px; border-radius:8px;
+  border:1px solid var(--border);
+  cursor:pointer; background:transparent;
+  color:var(--text); font-size:14px; font-weight:600;
+  transition:background 120ms, color 120ms;
+}
+.fc-rating-btn:hover{ background:var(--accent); color:white; border-color:var(--accent); }
+.fc-rating-btn.forgot{ border-color:var(--danger); color:var(--danger); }
+.fc-rating-btn.forgot:hover{ background:var(--danger); color:white; }
+
+/* ===================== */
 
 /* quiz / parsing */
 .quiz-choices{display:flex; flex-direction:column; gap:10px}
 .choice{padding:10px;border-radius:8px;border:1px solid var(--border); background:transparent; cursor:pointer; text-align:left}
 
-/* settings (now a view) */
+/* settings */
 .settings-grid{display:grid; grid-template-columns:1fr 1fr; gap:10px}
 @media (max-width:700px){ .settings-grid{grid-template-columns:1fr} }
 
 /* small utilities */
+.btn{background:var(--accent); color:white; padding:8px 12px; border-radius:10px; border:none; cursor:pointer}
+.btn.ghost{background:transparent; color:var(--accent); border:1px solid var(--border)}
+.small{padding:6px 8px; font-size:13px}
 .muted{color:var(--muted); font-size:13px}
 .tag{display:inline-block;padding:6px 8px;border-radius:999px;background:rgba(0,0,0,0.03);border:1px solid var(--border); font-size:12px;color:var(--muted)}
 
@@ -116,34 +186,23 @@ th{font-weight:700;color:var(--muted); font-size:13px}
 
 /* focus & accessibility */
 button:focus, input:focus, select:focus { outline:3px solid rgba(78,143,110,0.16); outline-offset:2px }
-[role="dialog"]{max-width:860px}
 
 /* animations - respect reduced motion */
 @media (prefers-reduced-motion: reduce){
   :root{ --reduced-motion:1 }
+  .fc-card{ transition:none; }
 }
 .fade{transition:opacity 180ms ease}
 .hidden{display:none}
 </style>
-   
-   <!-- PWA / Home Screen Icons -->
-<!-- Home Screen Icon (iOS uses this) -->
+
 <link rel="apple-touch-icon" href="logo.png">
-
-<!-- Optional favicon -->
 <link rel="icon" href="logo.png">
-
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="Puritan Parser">
-<meta name="theme-color" content="#4e8f6e">
-   
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="Puritan Parser">
 <meta name="theme-color" content="#4e8f6e">
-
-<link rel="manifest" href="manifest.json">  
-   
+<link rel="manifest" href="manifest.json">
 </head>
 <body>
 <div class="app" id="app">
@@ -162,7 +221,6 @@ button:focus, input:focus, select:focus { outline:3px solid rgba(78,143,110,0.16
       <button class="lang-btn" data-lang="greek" id="btnGreek">Greek (GNT)</button>
       <button class="lang-btn" data-lang="hebrew" id="btnHebrew">Hebrew</button>
     </div>
-
     <div style="margin-left:auto;display:flex;gap:8px;align-items:center">
       <div class="badge" id="dueBadge">Due: 0</div>
       <div class="badge" id="streakBadge">Streak: 0</div>
@@ -174,8 +232,8 @@ button:focus, input:focus, select:focus { outline:3px solid rgba(78,143,110,0.16
   </div>
 
   <div class="grid" id="mainGrid">
-    <!-- Main column (all views live here) -->
     <main class="panel" id="mainPanel" aria-live="polite">
+
       <!-- Mode header -->
       <div id="modeHeader" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
         <div>
@@ -217,7 +275,8 @@ button:focus, input:focus, select:focus { outline:3px solid rgba(78,143,110,0.16
 
       <!-- Flash view -->
       <section id="flashView" class="hidden">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+        <!-- Controls bar -->
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
           <div class="muted" id="flashProgress">0 / 0</div>
           <div style="display:flex;gap:8px;align-items:center">
             <label class="muted">Study mode</label>
@@ -225,19 +284,30 @@ button:focus, input:focus, select:focus { outline:3px solid rgba(78,143,110,0.16
               <option value="due">Due only</option>
               <option value="all">All filtered</option>
             </select>
-            <label class="muted">Show gloss on front</label>
-            <input type="checkbox" id="showGlossFront" />
           </div>
         </div>
-        <div class="flashcard panel" id="cardWrap" style="min-height:260px">
-          <div class="card-word" id="cardWord">—</div>
-          <div class="card-meta" id="cardMeta">pos • freq • due</div>
-          <div style="margin-top:12px">
-            <button class="btn ghost small" id="revealBtn">Reveal</button>
-            <button class="btn small" id="againBtn">Again</button>
-          </div>
-          <div style="margin-top:12px" class="rating-row" id="ratingRow">
-            <!-- rating buttons 0-5 -->
+
+        <!-- Two-sided card -->
+        <div class="fc-scene">
+          <div class="fc-card" id="fcCard">
+
+            <!-- FRONT -->
+            <div class="fc-face fc-front" id="fcFront">
+              <div class="fc-word" id="fcWord">—</div>
+              <button class="fc-flip-btn" id="fcFlipToBack">Flip</button>
+            </div>
+
+            <!-- BACK -->
+            <div class="fc-face fc-back" id="fcBack">
+              <div class="fc-word" id="fcWordBack">—</div>
+              <div class="fc-gloss" id="fcGloss">—</div>
+              <div class="fc-meta" id="fcMeta">—</div>
+              <div class="fc-rating" id="fcRating">
+                <!-- populated by JS -->
+              </div>
+              <button class="fc-flip-btn ghost" id="fcFlipToFront" style="margin-top:12px">Flip back</button>
+            </div>
+
           </div>
         </div>
       </section>
@@ -300,7 +370,7 @@ button:focus, input:focus, select:focus { outline:3px solid rgba(78,143,110,0.16
         </div>
       </section>
 
-      <!-- Settings view (moved from sidebar to its own screen) -->
+      <!-- Settings view -->
       <section id="settingsView" class="hidden panel">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
           <div>
@@ -311,7 +381,6 @@ button:focus, input:focus, select:focus { outline:3px solid rgba(78,143,110,0.16
             <button class="btn ghost small" id="closeSettingsBtn">Close</button>
           </div>
         </div>
-
         <div class="settings-grid">
           <div>
             <label class="muted">Accent color</label>
@@ -321,7 +390,6 @@ button:focus, input:focus, select:focus { outline:3px solid rgba(78,143,110,0.16
               <button class="btn small" id="applyAccent">Apply</button>
             </div>
           </div>
-
           <div>
             <label class="muted">Theme</label>
             <div style="display:flex;gap:8px;margin-top:8px">
@@ -330,7 +398,6 @@ button:focus, input:focus, select:focus { outline:3px solid rgba(78,143,110,0.16
               <button class="btn ghost small theme-btn" data-theme="system">System</button>
             </div>
           </div>
-
           <div>
             <label class="muted">SRS Options</label>
             <div style="display:flex;flex-direction:column;gap:8px;margin-top:8px">
@@ -349,7 +416,6 @@ button:focus, input:focus, select:focus { outline:3px solid rgba(78,143,110,0.16
               </div>
             </div>
           </div>
-
           <div>
             <label class="muted">Frequency filter</label>
             <div style="display:flex;align-items:center;gap:8px;margin-top:8px">
@@ -357,7 +423,6 @@ button:focus, input:focus, select:focus { outline:3px solid rgba(78,143,110,0.16
               <div class="muted" id="sidebarFreqLabel">1+</div>
             </div>
           </div>
-
           <div>
             <label class="muted">Actions</label>
             <div style="display:flex;gap:8px;margin-top:8px">
@@ -365,7 +430,6 @@ button:focus, input:focus, select:focus { outline:3px solid rgba(78,143,110,0.16
               <button class="btn ghost small" id="clearAll">Clear all local data</button>
             </div>
           </div>
-
           <div>
             <label class="muted">Help</label>
             <div class="muted" style="margin-top:8px">First time? The app will initialize SRS fields automatically. Use Flashcards to review due items. Parsing Practice contains noun/verb drills.</div>
@@ -379,9 +443,9 @@ button:focus, input:focus, select:focus { outline:3px solid rgba(78,143,110,0.16
   <footer style="margin-top:14px;color:var(--muted);font-size:13px">The Puritan Parser — local-only data. Service worker available for offline.</footer>
 </div>
 
-<!-- Inline SVG fallback used by logo onerror -->
+<!-- Inline SVG fallback -->
 <script>
-const svgFallback = `<?xml version="1.0" encoding="UTF-8"?> 
+const svgFallback = `<?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" width="56" height="56" viewBox="0 0 64 64" role="img" aria-label="Puritan Parser">
   <rect width="64" height="64" rx="12" fill="#4e8f6e"/>
   <text x="50%" y="54%" font-size="26" text-anchor="middle" fill="#fff" font-family="serif" font-weight="700">PP</text>
@@ -418,7 +482,7 @@ let state = {
   data: { greek: [], hebrew: [] },
   filtered: [],
   prefs: {},
-  session: { queue: [], idx: 0, mode: 'due', showGlossFront:false },
+  session: { queue: [], idx: 0, mode: 'due', flipped: false },
   dashboard: { streak: 0, recent: [] }
 };
 
@@ -431,10 +495,6 @@ function todayISO(offsetDays=0){
 function clamp(v,a,b){return Math.max(a,Math.min(b,v));}
 function uid(len=10){ return Math.random().toString(36).slice(2,2+len); }
 
-/**
- * daysBetween - robustly accept Date or ISO string
- * returns (a - b) in whole days (can be negative)
- */
 function daysBetween(aIso, bIso){
   const toDate = x => (x instanceof Date) ? new Date(Date.UTC(x.getFullYear(), x.getMonth(), x.getDate())) : new Date(x + 'T00:00:00Z');
   const a = toDate(aIso);
@@ -448,7 +508,6 @@ function loadPrefs(){
   try {
     const raw = localStorage.getItem(LS_PREFS);
     state.prefs = raw ? JSON.parse(raw) : {...DEFAULTS};
-    // ensure defaults
     state.prefs = Object.assign({}, DEFAULTS, state.prefs || {});
     applyTheme(state.prefs.theme || DEFAULTS.theme);
     setAccent(state.prefs.accent || DEFAULTS.accent);
@@ -464,27 +523,18 @@ function persistAll(){
   saveVocab('greek'); saveVocab('hebrew'); savePrefs();
 }
 
-/* ---------- SRS: SM-2 Implementation ---------- */
-/*
-  Word object shape (ensured):
-  { id, lang, word, lemma, gloss, pos, freq,
-    ease, interval, repetitions, due, history: [{date,q}] }
-*/
+/* ---------- SRS: SM-2 ---------- */
 function ensureSRS(item){
   if(typeof item.ease !== 'number') item.ease = Number(state.prefs.initialEase || DEFAULTS.initialEase) || 2.5;
   if(typeof item.interval !== 'number') item.interval = 0;
   if(typeof item.repetitions !== 'number') item.repetitions = 0;
   if(!item.due) item.due = todayISO();
   if(!Array.isArray(item.history)) item.history = [];
-  // id
   if(!item.id) item.id = `${item.lang}-${uid(8)}-${Math.abs((item.word||'').length)}`;
   return item;
 }
 
-/* SM-2: quality scale 0-5 input */
 function sm2Update(item, quality){
-  // quality: 0..5 (5 perfect)
-  // follow SM-2 algorithm
   if(!item) return;
   item.history = item.history || [];
   item.history.push({date: todayISO(), q: quality});
@@ -497,19 +547,15 @@ function sm2Update(item, quality){
     else if(item.repetitions === 2) item.interval = 6;
     else item.interval = Math.round((item.interval || 1) * (item.ease || 2.5));
   }
-  // update ease
   item.ease = (item.ease || state.prefs.initialEase || 2.5) + (0.1 - (5 - quality) * (0.08 + (5 - quality) * 0.02));
   item.ease = clamp(item.ease, state.prefs.minEase || DEFAULTS.minEase, 10);
-  // set next due
   const next = new Date();
   next.setDate(next.getDate() + (item.interval || 1));
   item.due = next.toISOString().slice(0,10);
   return item;
 }
 
-/* Fallback Leitner-style simple scheduler */
 function leitnerUpdate(item, quality){
-  // quality 0-5: treat >=3 as success, else fail
   const success = quality >= 3;
   if(success){
     item.repetitions = (item.repetitions || 0) + 1;
@@ -523,14 +569,12 @@ function leitnerUpdate(item, quality){
   return item;
 }
 
-/* Wrapper: update by quality using chosen algorithm */
 function scheduleUpdate(item, quality){
   if(state.prefs.useSM2) return sm2Update(item, quality);
   return leitnerUpdate(item, quality);
 }
 
 /* ---------- Data Loading ---------- */
-/* Try vocab_all.json first, else per-language files, else fallback samples */
 async function tryFetchJson(path){
   try {
     const r = await fetch(path, {cache:'no-store'});
@@ -542,10 +586,8 @@ async function tryFetchJson(path){
 }
 
 async function loadData(){
-  // attempt all-in-one
   const all = await tryFetchJson(FILE_ALL);
   if(all && all.length){
-    // split
     const g = all.filter(x => (x.lang||'greek').toLowerCase() === 'greek');
     const h = all.filter(x => (x.lang||'hebrew').toLowerCase() === 'hebrew');
     state.data.greek = g.map(it => { it.lang='greek'; return ensureSRS(it); });
@@ -554,12 +596,10 @@ async function loadData(){
     renderAll();
     return;
   }
-  // try per-language files
   const gfile = await tryFetchJson(FILE_GREEK);
   const hfile = await tryFetchJson(FILE_HEBREW);
   if(gfile && gfile.length){ state.data.greek = gfile.map(it=>{ it.lang='greek'; return ensureSRS(it); }); saveVocab('greek'); }
   else {
-    // try localStorage
     try {
       const raw = localStorage.getItem(LS_VOCAB_GREEK);
       state.data.greek = raw ? JSON.parse(raw) : SAMPLE_GREEK.map(it=>ensureSRS(Object.assign({lang:'greek'}, it)));
@@ -575,12 +615,11 @@ async function loadData(){
   renderAll();
 }
 
-/* ---------- Rendering: Accent & Theme ---------- */
+/* ---------- Theme & Accent ---------- */
 function setAccent(hex){
   document.documentElement.style.setProperty('--accent', hex);
   state.prefs.accent = hex;
   savePrefs();
-  // re-render accent buttons selection
   renderAccentButtons();
 }
 function applyTheme(theme){
@@ -590,15 +629,12 @@ function applyTheme(theme){
   if(theme === 'dark'){ document.documentElement.classList.add('dark'); }
   else if(theme === 'light'){ document.documentElement.classList.add('light'); }
   else {
-    // system
     if(window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) document.documentElement.classList.add('dark');
     else document.documentElement.classList.add('light');
   }
-  // mark active
   document.querySelectorAll('.theme-btn').forEach(b => b.classList.toggle('active', b.dataset.theme === theme));
 }
 
-/* Accent button rendering */
 const ACCENTS = ['#4e8f6e','#246b9c','#2a9d8f','#8a2b2b','#d97706','#475569','#6b21a8','#b91c1c','#0ea5a4','#ef4444','#f97316','#06b6d4'];
 function renderAccentButtons(){
   const el = document.getElementById('accentPicker');
@@ -607,33 +643,25 @@ function renderAccentButtons(){
   ACCENTS.forEach(hex=>{
     const b = document.createElement('button');
     b.className='color-btn';
-    b.style.width='32px'; b.style.height='32px'; b.style.borderRadius='8px';
-    b.style.border='2px solid transparent'; b.style.cursor='pointer';
-    b.style.background=hex;
+    b.style.cssText=`width:32px;height:32px;border-radius:8px;border:2px solid transparent;cursor:pointer;background:${hex}`;
     b.title = hex;
     b.addEventListener('click', ()=> setAccent(hex));
     el.appendChild(b);
   });
 }
 
-/* ---------- UI wiring & behavior ---------- */
+/* ---------- UI helpers ---------- */
 const $ = sel => document.querySelector(sel);
 const $$ = sel => Array.from(document.querySelectorAll(sel));
 
-/**
- * setLang - sets UI language but DOES NOT change document direction.
- * Hebrew remains displayed LTR (no mirroring).
- */
 function setLang(lang){
   state.lang = lang;
-  // set active button - ensure both language buttons are toggled
   $$('#btnGreek,#btnHebrew').forEach(b => {
-    const btnLang = (b.dataset && b.dataset.lang) ? b.dataset.lang : (b.id === 'btnGreek' ? 'greek' : (b.id === 'btnHebrew' ? 'hebrew' : ''));
+    const btnLang = b.dataset.lang || (b.id === 'btnGreek' ? 'greek' : 'hebrew');
     b.classList.toggle('active', btnLang === lang);
   });
   $('#langTag').textContent = lang === 'greek' ? 'Greek' : 'Hebrew';
   $('#langTag').setAttribute('aria-label', `${lang === 'greek' ? 'Greek' : 'Hebrew'} section`);
-  // IMPORTANT: Do NOT change document.documentElement.dir
   renderList();
   saveLastLang();
 }
@@ -641,23 +669,20 @@ function setLang(lang){
 function saveLastLang(){ localStorage.setItem('pp_last_lang', state.lang); }
 function loadLastLang(){ const last = localStorage.getItem('pp_last_lang'); if(last) state.lang = last; }
 
-/* Filtering & rendering list */
 function getCurrentList(){ return state.data[state.lang] || []; }
 
 function computeMastery(item){
   const reps = item.repetitions || 0;
   const ease = item.ease || state.prefs.initialEase || 2.5;
   const last = item.history && item.history.length ? item.history[item.history.length-1].date : item.due;
-  // compute days between today and last
   let days = 0;
   try { days = Math.max(0, daysBetween(todayISO(), last || todayISO())); } catch(e){ days = 0; }
   const raw = (reps * ease) / (1 + days/30);
-  const score = Math.round(clamp(raw/ ( (state.prefs.initialEase||2.5) ) * 100, 0, 100));
-  return score;
+  return Math.round(clamp(raw / (state.prefs.initialEase||2.5) * 100, 0, 100));
 }
 
 function renderList(){
-  const q = ($('#searchInput') && $('#searchInput').value) ? ($('#searchInput').value || '').toLowerCase().trim() : '';
+  const q = ($('#searchInput') ? $('#searchInput').value : '').toLowerCase().trim();
   const minFreq = Number($('#freqSlider').value) || 1;
   const sort = $('#sortSelect').value;
   let list = getCurrentList().filter(it => {
@@ -667,7 +692,6 @@ function renderList(){
     const combined = `${it.word||''} ${it.lemma||''} ${it.gloss||''} ${it.pos||''}`.toLowerCase();
     return freqOk && combined.includes(q);
   });
-
   list.sort((a,b)=>{
     if(sort==='freq-desc') return (b.freq||0)-(a.freq||0);
     if(sort==='freq-asc') return (a.freq||0)-(b.freq||0);
@@ -675,29 +699,23 @@ function renderList(){
     if(sort==='word-za') return String(b.word||'').localeCompare(String(a.word||''));
     return 0;
   });
-
   state.filtered = list;
-  const entriesCountEl = $('#entriesCount');
-  if(entriesCountEl) entriesCountEl.textContent = `${list.length} entries`;
-  // due counts
+  const ec = $('#entriesCount'); if(ec) ec.textContent = `${list.length} entries`;
   const dueCount = list.filter(it => it.due && it.due <= todayISO()).length;
-  const dueBadgeEl = $('#dueBadge'); if(dueBadgeEl) dueBadgeEl.textContent = `Due: ${dueCount}`;
-  const dashDueEl = $('#dashDue'); if(dashDueEl) dashDueEl.textContent = dueCount;
-
-  // render rows
+  const db = $('#dueBadge'); if(db) db.textContent = `Due: ${dueCount}`;
+  const dd = $('#dashDue'); if(dd) dd.textContent = dueCount;
   const tbody = $('#wordsTbody'); if(!tbody) return;
   tbody.innerHTML = '';
   if(!list.length){
     const tr = document.createElement('tr');
     tr.innerHTML = `<td colspan="8" class="muted">No entries found. Reduce min frequency or switch language.</td>`;
-    tbody.appendChild(tr);
-    return;
+    tbody.appendChild(tr); return;
   }
   for(const it of list){
     const tr = document.createElement('tr');
     const mastery = computeMastery(it);
-    let cls = 'mastery.low'; if(mastery>60) cls='mastery.high'; else if(mastery>25) cls='mastery.mid';
-    const easeDisplay = (typeof it.ease === 'number') ? (it.ease).toFixed(2) : (it.ease || '—');
+    let cls = 'low'; if(mastery>60) cls='high'; else if(mastery>25) cls='mid';
+    const easeDisplay = (typeof it.ease === 'number') ? it.ease.toFixed(2) : (it.ease || '—');
     tr.innerHTML = `<td>${escapeHtml(it.word||'')}</td>
                     <td>${escapeHtml(it.lemma||'')}</td>
                     <td>${escapeHtml(it.gloss||'')}</td>
@@ -705,118 +723,108 @@ function renderList(){
                     <td>${escapeHtml(String(it.freq||0))}</td>
                     <td>${escapeHtml(it.due||'—')}</td>
                     <td>${escapeHtml(easeDisplay)}</td>
-                    <td><span class="mastery ${cls.replace('mastery.','')}" style="display:inline-block;padding:4px 8px">${mastery}</span></td>`;
+                    <td><span class="mastery ${cls}" style="display:inline-block;padding:4px 8px">${mastery}</span></td>`;
     tbody.appendChild(tr);
   }
 }
 
-/* Simple escaping */
 function escapeHtml(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
 /* ---------- Flashcard Session ---------- */
 function startFlash(){
-  // build queue
-  const studyModeEl = $('#studyMode');
-  const mode = studyModeEl ? studyModeEl.value : 'due';
+  const mode = $('#studyMode') ? $('#studyMode').value : 'due';
   const minFreq = Number($('#freqSlider').value) || 1;
   let pool = getCurrentList().filter(it => (it.freq||0) >= minFreq);
   if(mode === 'due') pool = pool.filter(it => it.due && it.due <= todayISO());
   if(!pool.length){ alert('No cards available for this session. Try "All filtered" or reduce min frequency.'); return; }
-  // shuffle and cap daily
   pool = shuffle(pool);
   const cap = Number(state.prefs.dailyCap || 200) || 200;
   state.session.queue = pool.slice(0, cap);
   state.session.idx = 0;
   state.session.mode = mode;
-  state.session.showGlossFront = !!$('#showGlossFront').checked;
-  // show flash view and render first card
+  state.session.flipped = false;
   showView('flash');
   renderFlashCard();
 }
+
+/* Show the front side of the current card */
 function renderFlashCard(){
   const q = state.session.queue || [];
   const idx = Math.max(0, state.session.idx || 0);
-  if(!$('#flashProgress')){} else {
-    $('#flashProgress').textContent = (q.length ? `${idx+1} / ${q.length}` : `0 / 0`);
-  }
+  const prog = $('#flashProgress');
+  if(prog) prog.textContent = q.length ? `${idx+1} / ${q.length}` : '0 / 0';
+
+  // always start on front
+  setCardFlipped(false);
+
   if(!q.length){
-    $('#cardWord').textContent = '—';
-    $('#cardMeta').textContent='No cards';
-    const rrEmpty = $('#ratingRow'); if(rrEmpty) rrEmpty.innerHTML = '';
+    $('#fcWord').textContent = '—';
     return;
   }
   const cur = q[idx];
-  if(!cur){
-    $('#cardWord').textContent = '—';
-    $('#cardMeta').textContent='No current card';
-    return;
-  }
-  $('#cardWord').textContent = cur.word || '—';
-  const metaParts = [`${cur.pos||'—'}`, `freq ${cur.freq||0}`, `due ${cur.due||'—'}`];
-  $('#cardMeta').textContent = state.session.showGlossFront ? `${metaParts.join(' • ')}\n${cur.gloss||''}` : metaParts.join(' • ');
-  $('#revealBtn').textContent = 'Reveal';
-  // render rating buttons 0..5
-  const rr = $('#ratingRow'); rr.innerHTML = '';
-  for(let i=0;i<=5;i++){
+  if(!cur){ $('#fcWord').textContent = '—'; return; }
+
+  // populate front
+  $('#fcWord').textContent = cur.word || '—';
+
+  // populate back
+  $('#fcWordBack').textContent = cur.word || '—';
+  $('#fcGloss').textContent = cur.gloss || '—';
+  $('#fcMeta').textContent = `${cur.pos||'—'} • freq ${cur.freq||0} • due ${cur.due||'—'}`;
+
+  // build rating buttons
+  const rr = $('#fcRating');
+  rr.innerHTML = '';
+  // "Forgot" = quality 0
+  const forgot = document.createElement('button');
+  forgot.className = 'fc-rating-btn forgot';
+  forgot.textContent = 'Forgot';
+  forgot.addEventListener('click', ()=> onRate(0));
+  rr.appendChild(forgot);
+  // 1–5
+  for(let i=1; i<=5; i++){
     const b = document.createElement('button');
-    b.className = 'rating-btn';
-    b.textContent = i===0? '0 (Forgot)' : i;
+    b.className = 'fc-rating-btn';
+    b.textContent = i;
     b.title = `Quality ${i}`;
     b.addEventListener('click', ()=> onRate(i));
     rr.appendChild(b);
   }
 }
-function onReveal(){
-  const cur = state.session.queue[state.session.idx];
-  if(!cur) return;
-  $('#cardMeta').textContent = `${cur.lemma||'—'} • ${cur.pos||'—'} • freq ${cur.freq||0}\nGloss: ${cur.gloss||''}\nNext due: ${cur.due||'—'} • interval ${cur.interval||0}d`;
-  $('#revealBtn').textContent = 'Hide';
+
+/* Toggle the CSS flip */
+function setCardFlipped(flipped){
+  state.session.flipped = flipped;
+  const card = $('#fcCard');
+  if(card) card.classList.toggle('flipped', flipped);
 }
-function onAgain(){
-  const idx = state.session.idx;
-  const q = state.session.queue;
-  if(!Array.isArray(q) || q.length === 0) return;
-  const cur = q.splice(idx,1)[0];
-  q.push(cur);
-  if(idx >= q.length) state.session.idx = Math.max(0, q.length-1);
-  renderFlashCard();
-}
+
 function onRate(quality){
   const q = state.session.queue || [];
   const idx = state.session.idx || 0;
   const cur = q[idx];
   if(!cur) return;
-  // record rating
   if(state.prefs.useSM2) sm2Update(cur, quality);
   else leitnerUpdate(cur, quality);
-  // persist
   saveVocab(cur.lang);
-  // remove from session queue
-  state.session.queue.splice(idx,1);
-  // adjust idx
+  state.session.queue.splice(idx, 1);
   if(state.session.idx >= state.session.queue.length) state.session.idx = Math.max(0, state.session.queue.length-1);
-  // stats & dashboard
   recordReview(quality);
-  // if done
-  if(!state.session.queue.length){ alert('Session complete'); showView('list'); renderList(); return; }
+  if(!state.session.queue.length){ alert('Session complete!'); showView('list'); renderList(); return; }
   renderFlashCard();
 }
 
-/* Session tracking and simple streak */
+/* ---------- Session tracking ---------- */
 function recordReview(quality){
   const recent = state.dashboard.recent || [];
   recent.push({date:todayISO(), q: Number(quality)});
-  // keep 60 days
   const cutoff = new Date(); cutoff.setDate(cutoff.getDate() - 60);
   state.dashboard.recent = recent.filter(r => new Date(r.date) >= cutoff);
-  // simple streak: increment if last day had review
   const lastDates = Array.from(new Set(state.dashboard.recent.map(r=>r.date))).sort();
-  // compute streak
   let streak=0; let d=new Date();
   for(let i=0;i<365;i++){
     const iso = d.toISOString().slice(0,10);
-    if(lastDates.includes(iso)) { streak++; d.setDate(d.getDate()-1); }
-    else break;
+    if(lastDates.includes(iso)){ streak++; d.setDate(d.getDate()-1); } else break;
   }
   state.dashboard.streak = streak;
   localStorage.setItem('pp_dashboard', JSON.stringify(state.dashboard));
@@ -843,30 +851,25 @@ function startParsing(){
 }
 
 function renderParsingQuestion(){
-  const qWrap = $('#parsingWrap');
   const idx = parsingSession.idx;
   const qn = parsingSession.questions[idx];
   if(!qn){
-    $('#parsingQuestion').textContent = 'Finished'; 
+    $('#parsingQuestion').textContent = 'Finished';
     $('#parsingForm').innerHTML = '';
     $('#parsingProgress').textContent = `0 / 0`;
     return;
   }
   $('#parsingQuestion').textContent = `Parse: ${qn.word}`;
-  // build form
   const form = $('#parsingForm'); if(!form) return;
   form.innerHTML = '';
   const fields = [];
-  // if parse field exists, parse it (assume compact like "N-NSM" or "V-PAI-3S")
   if(qn.parse){
     if(qn.parse.startsWith('N-') || (qn.pos||'').toLowerCase().includes('n')){
-      // noun: case, number, gender, lemma
       fields.push({id:'case', label:'Case', type:'select', opts:['nom','acc','gen','dat','voc']});
       fields.push({id:'number', label:'Number', type:'select', opts:['sg','pl']});
       fields.push({id:'gender', label:'Gender', type:'select', opts:['m','f','n']});
       fields.push({id:'lemma', label:'Lemma', type:'text'});
     } else {
-      // verb: tense, voice, mood, personNumber, lemma
       fields.push({id:'tense', label:'Tense', type:'select', opts:['pres','impf','fut','aor','perf','plup']});
       fields.push({id:'mood', label:'Mood', type:'select', opts:['ind','subj','opt','imp']});
       fields.push({id:'voice', label:'Voice', type:'select', opts:['act','mid','pas']});
@@ -874,10 +877,8 @@ function renderParsingQuestion(){
       fields.push({id:'lemma', label:'Lemma', type:'text'});
     }
   } else {
-    // fallback: ask multiple choice lemma or gloss
     fields.push({id:'lemma', label:'Lemma (type)', type:'text'});
   }
-
   for(const f of fields){
     const row = document.createElement('div'); row.style.marginBottom='8px';
     const label = document.createElement('label'); label.className='muted'; label.textContent = f.label; row.appendChild(label);
@@ -891,7 +892,6 @@ function renderParsingQuestion(){
     }
     form.appendChild(row);
   }
-  // add submit button
   const submit = document.createElement('button'); submit.className='btn small'; submit.textContent='Submit';
   submit.addEventListener('click', (e)=>{ e.preventDefault(); checkParsingAnswer(qn); });
   form.appendChild(submit);
@@ -899,12 +899,9 @@ function renderParsingQuestion(){
 }
 
 function checkParsingAnswer(qn){
-  // naive checking: if parse present, do simple substring checks
   let correct = 0; let total = 0; const feedback = [];
   if(qn.parse){
-    // split parse by '-' and map heuristics
     const p = (qn.parse || '').toLowerCase();
-    // noun checks
     if((qn.pos||'').toLowerCase().includes('n') || p.startsWith('n-')){
       const cas = $('#par_case') ? $('#par_case').value : '';
       const num = $('#par_number') ? $('#par_number').value : '';
@@ -914,58 +911,52 @@ function checkParsingAnswer(qn){
       if(p.includes(cas)) correct++; else feedback.push(`Case expected part of "${p}"`);
       if(p.includes(num)) correct++; else feedback.push(`Number expected part of "${p}"`);
       if(p.includes(gen)) correct++; else feedback.push(`Gender expected part of "${p}"`);
-      if((qn.lemma||'').toLowerCase() === lemma.toLowerCase()) { correct++; } else feedback.push(`Lemma expected "${qn.lemma}"`);
+      if((qn.lemma||'').toLowerCase() === lemma.toLowerCase()) correct++; else feedback.push(`Lemma expected "${qn.lemma}"`);
     } else {
-      // verb
       const tense = $('#par_tense')?$('#par_tense').value:'';
-      const mood = $('#par_mood')?$('#par_mood').value:'';
+      const mood  = $('#par_mood') ?$('#par_mood').value :'';
       const voice = $('#par_voice')?$('#par_voice').value:'';
-      const person = $('#par_person')?$('#par_person').value:'';
+      const person= $('#par_person')?$('#par_person').value:'';
       const lemma = $('#par_lemma')?($('#par_lemma').value||'').trim():'';
       total += 5;
       if(p.includes(tense)) correct++; else feedback.push(`Tense expected part of "${p}"`);
-      if(p.includes(mood)) correct++; else feedback.push(`Mood expected part of "${p}"`);
+      if(p.includes(mood))  correct++; else feedback.push(`Mood expected part of "${p}"`);
       if(p.includes(voice)) correct++; else feedback.push(`Voice expected part of "${p}"`);
-      if(p.includes(person)) correct++; else feedback.push(`Person/Number expected part of "${p}"`);
-      if((qn.lemma||'').toLowerCase() === lemma.toLowerCase()) { correct++; } else feedback.push(`Lemma expected "${qn.lemma}"`);
+      if(p.includes(person))correct++; else feedback.push(`Person/Number expected part of "${p}"`);
+      if((qn.lemma||'').toLowerCase() === lemma.toLowerCase()) correct++; else feedback.push(`Lemma expected "${qn.lemma}"`);
     }
   } else {
-    // fallback: lemma only
     total = 1;
     const lemma = $('#par_lemma')?($('#par_lemma').value||'').trim():'';
-    if((qn.lemma||'').toLowerCase() === lemma.toLowerCase()){ correct = 1; } else feedback.push(`Lemma expected "${qn.lemma}"`);
+    if((qn.lemma||'').toLowerCase() === lemma.toLowerCase()) correct = 1; else feedback.push(`Lemma expected "${qn.lemma}"`);
   }
-  // update stats
   parsingSession.idx++;
   if(correct === total) parsingSession.correct++;
-  // show feedback
   alert(`You got ${correct}/${total}.\n${feedback.join('\n')}`);
   if(parsingSession.idx >= parsingSession.total){ alert(`Parsing session complete — score ${parsingSession.correct}/${parsingSession.total}`); showView('list'); return; }
   renderParsingQuestion();
 }
 
-/* ---------- Dashboard rendering (sparkline) ---------- */
+/* ---------- Dashboard ---------- */
 function renderDashboard(){
   const recent = state.dashboard.recent || [];
-  const revWeek = $('#revWeek'); if(revWeek) revWeek.textContent = (recent && recent.length) || 0;
+  const revWeek = $('#revWeek'); if(revWeek) revWeek.textContent = recent.length || 0;
   const avgEaseEl = $('#avgEase');
   const avg = computeAvgEase();
-  if(avgEaseEl) avgEaseEl.textContent = (typeof avg === 'number' ? avg.toFixed(2) : '—');
+  if(avgEaseEl) avgEaseEl.textContent = typeof avg === 'number' ? avg.toFixed(2) : '—';
   const sb = $('#streakBadge'); if(sb) sb.textContent = `Streak: ${state.dashboard.streak||0}`;
-  // sparkline: use canvas with recent q values
   const canvas = $('#perfSpark'); if(!canvas) return;
   const ctx = canvas.getContext('2d');
   ctx.clearRect(0,0,canvas.width,canvas.height);
   if(!recent.length) return;
   const arr = recent.slice(-30).map(r => r.q);
   const w = canvas.width, h = canvas.height;
-  const maxQ = 5, minQ = 0;
   ctx.beginPath();
-  const firstY = h - ((arr[0]-minQ)/(maxQ-minQ))*h;
+  const firstY = h - (arr[0]/5)*h;
   ctx.moveTo(0, firstY);
   arr.forEach((v,i)=>{
-    const x = (i/(arr.length-1 || 1)) * w;
-    const y = h - ((v-minQ)/(maxQ-minQ))*h;
+    const x = (i/(arr.length-1||1))*w;
+    const y = h - (v/5)*h;
     ctx.lineTo(x,y);
   });
   ctx.strokeStyle = state.prefs.accent || '#4e8f6e'; ctx.lineWidth = 2; ctx.stroke();
@@ -974,218 +965,176 @@ function renderDashboard(){
 function computeAvgEase(){
   const list = getCurrentList();
   if(!list.length) return 0;
-  const sum = list.reduce((s,it)=>s + (Number(it.ease)||0), 0);
+  const sum = list.reduce((s,it)=>s+(Number(it.ease)||0),0);
   return sum/list.length;
 }
 
-/* ---------- Helpers & View Controller ---------- */
-
-/**
- * showView - accepts a shorthand ('list','flash','parsing','dashboard','settings') or a full id ('listView', etc.)
- * Ensures only the requested view is visible. Also updates focus and runs any render hooks.
- */
+/* ---------- View controller ---------- */
 function showView(request){
   const map = {
-    list: 'listView',
-    flash: 'flashView',
-    parsing: 'parsingView',
-    dashboard: 'dashboardView',
-    settings: 'settingsView',
-    listView: 'listView',
-    flashView: 'flashView',
-    parsingView: 'parsingView',
-    dashboardView: 'dashboardView',
-    settingsView: 'settingsView'
+    list:'listView', flash:'flashView', parsing:'parsingView',
+    dashboard:'dashboardView', settings:'settingsView',
+    listView:'listView', flashView:'flashView', parsingView:'parsingView',
+    dashboardView:'dashboardView', settingsView:'settingsView'
   };
   const targetId = map[request] || request;
-  const allViews = ['listView','flashView','parsingView','dashboardView','settingsView'];
-  allViews.forEach(id => {
+  ['listView','flashView','parsingView','dashboardView','settingsView'].forEach(id => {
     const el = document.getElementById(id);
-    if(!el) return;
-    if(id === targetId) el.classList.remove('hidden');
-    else el.classList.add('hidden');
+    if(el) el.classList.toggle('hidden', id !== targetId);
   });
-  // run view-specific hooks
-  if(targetId === 'flashView'){
-    const btn = $('#openFlash'); if(btn) btn.focus();
-  } else if(targetId === 'parsingView'){
-    const btn = $('#openParsing'); if(btn) btn.focus();
-  } else if(targetId === 'dashboardView'){
-    renderDashboard();
-    const btn = $('#openDashboard'); if(btn) btn.focus();
-  } else if(targetId === 'settingsView'){
-    // focus the close button for accessibility
-    const closeBtn = $('#closeSettingsBtn'); if(closeBtn) closeBtn.focus();
-  } else if(targetId === 'listView'){
-    renderList();
-    const el = $('#openDashboard'); if(el) el.blur();
-  }
+  if(targetId === 'dashboardView') renderDashboard();
+  else if(targetId === 'settingsView'){ const cb=$('#closeSettingsBtn'); if(cb) cb.focus(); }
+  else if(targetId === 'listView') renderList();
 }
 
-/* ---------- Misc UI events ---------- */
+/* ---------- Event wiring ---------- */
 let eventsWired = false;
 function wireEvents(){
   if(eventsWired) return;
   eventsWired = true;
 
-  // language buttons
   $('#btnGreek').addEventListener('click', ()=> setLang('greek'));
   $('#btnHebrew').addEventListener('click', ()=> setLang('hebrew'));
 
-  // search & controls
   const searchInput = $('#searchInput');
-  if(searchInput) searchInput.addEventListener('input', debounce(()=> renderList(),150));
+  if(searchInput) searchInput.addEventListener('input', debounce(()=> renderList(), 150));
 
   const freqSlider = $('#freqSlider');
-  if(freqSlider) freqSlider.addEventListener('input', ()=> {
-    $('#freqLabel').textContent = (freqSlider.value >= 50) ? '50+' : freqSlider.value + '+';
-    const sidebar = $('#sidebarFreq'); if(sidebar) sidebar.value = freqSlider.value;
+  if(freqSlider) freqSlider.addEventListener('input', ()=>{
+    $('#freqLabel').textContent = freqSlider.value >= 50 ? '50+' : freqSlider.value+'+';
+    const sb = $('#sidebarFreq'); if(sb) sb.value = freqSlider.value;
     renderList();
   });
   const sidebarFreq = $('#sidebarFreq');
-  if(sidebarFreq) sidebarFreq.addEventListener('input', ()=> {
-    $('#sidebarFreqLabel').textContent = (sidebarFreq.value >= 50) ? '50+' : sidebarFreq.value + '+';
-    const mainSlider = $('#freqSlider'); if(mainSlider) mainSlider.value = sidebarFreq.value;
+  if(sidebarFreq) sidebarFreq.addEventListener('input', ()=>{
+    $('#sidebarFreqLabel').textContent = sidebarFreq.value >= 50 ? '50+' : sidebarFreq.value+'+';
+    const ms = $('#freqSlider'); if(ms) ms.value = sidebarFreq.value;
     renderList();
   });
 
   const sortSelect = $('#sortSelect');
   if(sortSelect) sortSelect.addEventListener('change', ()=> renderList());
 
-  // flash
+  // Flashcard nav
   $('#openFlash').addEventListener('click', ()=> startFlash());
-  const revealBtn = $('#revealBtn');
-  if(revealBtn) revealBtn.addEventListener('click', ()=> {
-    if($('#revealBtn').textContent === 'Reveal') onReveal();
-    else { renderFlashCard(); }
-  });
-  const againBtn = $('#againBtn');
-  if(againBtn) againBtn.addEventListener('click', onAgain);
 
-  // parsing
+  // Flip buttons
+  $('#fcFlipToBack').addEventListener('click', ()=> setCardFlipped(true));
+  $('#fcFlipToFront').addEventListener('click', ()=> setCardFlipped(false));
+
+  // Parsing
   $('#openParsing').addEventListener('click', ()=> showView('parsing'));
   $('#startParsing').addEventListener('click', startParsing);
-  $('#nextParsing').addEventListener('click', ()=> { parsingSession.idx++; renderParsingQuestion(); });
+  $('#nextParsing').addEventListener('click', ()=>{ parsingSession.idx++; renderParsingQuestion(); });
   $('#endParsing').addEventListener('click', ()=> showView('list'));
 
-  // dashboard & settings
-  $('#openDashboard').addEventListener('click', ()=> { showView('dashboard'); });
-  $('#openSettings').addEventListener('click', ()=> { showView('settings'); });
-  const closeSettingsBtn = $('#closeSettingsBtn');
-  if(closeSettingsBtn) closeSettingsBtn.addEventListener('click', ()=> showView('list'));
+  // Dashboard & settings
+  $('#openDashboard').addEventListener('click', ()=> showView('dashboard'));
+  $('#openSettings').addEventListener('click', ()=> showView('settings'));
+  const csb = $('#closeSettingsBtn'); if(csb) csb.addEventListener('click', ()=> showView('list'));
 
-  // SRS controls
+  // SRS settings
   const useSM2El = $('#useSM2');
-  if(useSM2El) useSM2El.addEventListener('change', (e)=> { state.prefs.useSM2 = e.target.checked; savePrefs(); });
-  const initialEaseEl = $('#initialEase');
-  if(initialEaseEl) initialEaseEl.addEventListener('change', (e)=> { state.prefs.initialEase = Number(e.target.value)||2.5; savePrefs(); });
-  const minEaseEl = $('#minEase');
-  if(minEaseEl) minEaseEl.addEventListener('change', (e)=> { state.prefs.minEase = Number(e.target.value)||1.3; savePrefs(); });
-  const dailyCapEl = $('#dailyCap');
-  if(dailyCapEl) dailyCapEl.addEventListener('change', (e)=> { state.prefs.dailyCap = Number(e.target.value)||200; savePrefs(); });
+  if(useSM2El) useSM2El.addEventListener('change', e=>{ state.prefs.useSM2=e.target.checked; savePrefs(); });
+  const initEase = $('#initialEase');
+  if(initEase) initEase.addEventListener('change', e=>{ state.prefs.initialEase=Number(e.target.value)||2.5; savePrefs(); });
+  const minEase = $('#minEase');
+  if(minEase) minEase.addEventListener('change', e=>{ state.prefs.minEase=Number(e.target.value)||1.3; savePrefs(); });
+  const dailyCap = $('#dailyCap');
+  if(dailyCap) dailyCap.addEventListener('change', e=>{ state.prefs.dailyCap=Number(e.target.value)||200; savePrefs(); });
 
-  // accents
-  $('#applyAccent').addEventListener('click', ()=> {
+  // Accent
+  $('#applyAccent').addEventListener('click', ()=>{
     const val = ($('#customAccent').value||'').trim();
-    if(/^#([0-9a-f]{3}|[0-9a-f]{6})$/i.test(val)){ setAccent(val); } else alert('Enter valid hex #rrggbb');
+    if(/^#([0-9a-f]{3}|[0-9a-f]{6})$/i.test(val)) setAccent(val); else alert('Enter valid hex #rrggbb');
   });
 
-  // theme
+  // Theme
   $$('.theme-btn').forEach(b => b.addEventListener('click', ()=> applyTheme(b.dataset.theme)));
 
-  // reset SRS and clear data
-  $('#resetSRS').addEventListener('click', ()=> {
-    if(!confirm('Reset SRS for current language? This will set ease/interval/repetitions/due to defaults.')) return;
-    const list = state.data[state.lang] || [];
-    list.forEach(it => { it.ease = state.prefs.initialEase; it.interval = 0; it.repetitions = 0; it.due = todayISO(); it.history = []; });
+  // Reset / clear
+  $('#resetSRS').addEventListener('click', ()=>{
+    if(!confirm('Reset SRS for current language?')) return;
+    (state.data[state.lang]||[]).forEach(it=>{ it.ease=state.prefs.initialEase; it.interval=0; it.repetitions=0; it.due=todayISO(); it.history=[]; });
     saveVocab(state.lang); renderList();
   });
-  $('#clearAll').addEventListener('click', ()=> {
-    if(!confirm('Clear all local data? This will reset vocab and progress.')) return;
+  $('#clearAll').addEventListener('click', ()=>{
+    if(!confirm('Clear all local data?')) return;
     localStorage.removeItem(LS_VOCAB_GREEK); localStorage.removeItem(LS_VOCAB_HEBREW); localStorage.removeItem(LS_PREFS); location.reload();
   });
 
-  // keyboard shortcuts
-  document.addEventListener('keydown', (e)=>{
-    if(e.key === 'f' || e.key === 'F'){ e.preventDefault(); $('#openFlash').click(); }
-    if(e.key === 'p' || e.key === 'P'){ e.preventDefault(); $('#openParsing').click(); }
-    if(e.key === 'd' || e.key === 'D'){ e.preventDefault(); $('#openDashboard').click(); }
-    if(e.key === 's' || e.key === 'S'){ e.preventDefault(); $('#openSettings').click(); }
-    // rating keys during flash
-    const flashViewEl = document.getElementById('flashView');
-    if(flashViewEl && !flashViewEl.classList.contains('hidden')){
-      const key = Number(e.key);
-      if(!isNaN(key) && key >= 0 && key <= 5){ onRate(key); }
+  // Keyboard shortcuts
+  document.addEventListener('keydown', e=>{
+    const tag = document.activeElement.tagName;
+    if(tag==='INPUT'||tag==='SELECT'||tag==='TEXTAREA') return;
+    if(e.key==='f'||e.key==='F'){ e.preventDefault(); $('#openFlash').click(); }
+    if(e.key==='p'||e.key==='P'){ e.preventDefault(); $('#openParsing').click(); }
+    if(e.key==='d'||e.key==='D'){ e.preventDefault(); $('#openDashboard').click(); }
+    if(e.key==='s'||e.key==='S'){ e.preventDefault(); $('#openSettings').click(); }
+    // Space bar flips card
+    const fv = document.getElementById('flashView');
+    if(fv && !fv.classList.contains('hidden')){
+      if(e.key===' '){ e.preventDefault(); setCardFlipped(!state.session.flipped); }
+      // number keys rate (only when card is flipped to back)
+      if(state.session.flipped){
+        const k = Number(e.key);
+        if(!isNaN(k) && k>=0 && k<=5){ onRate(k); }
+      }
     }
   });
 
-  // page visibility: save prefs periodically
   window.addEventListener('beforeunload', ()=> persistAll());
-
-  // service worker registration (optional & safe)
   try {
-    if('serviceWorker' in navigator){
-      navigator.serviceWorker.register('./sw.js').catch(()=>{/* ignore registration errors */});
-    }
-  } catch (e){}
+    if('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js').catch(()=>{});
+  } catch(e){}
 }
 
 /* ---------- Utilities ---------- */
 function shuffle(a){ return a.slice().sort(()=>Math.random()-0.5); }
-function debounce(fn, wait=200){ let t; return (...a)=>{ clearTimeout(t); t = setTimeout(()=>fn(...a), wait); }; }
+function debounce(fn, wait=200){ let t; return (...a)=>{ clearTimeout(t); t=setTimeout(()=>fn(...a),wait); }; }
 
-/* ---------- Sample Data (fallback) ---------- */
+/* ---------- Sample Data ---------- */
 const SAMPLE_GREEK = [
-  {word:"λόγος",lemma:"λόγος",gloss:"word, message",pos:"noun",freq:330, parse:"N-NSM"},
-  {word:"ἀγαπᾷ",lemma:"ἀγαπάω",gloss:"to love",pos:"verb",freq:120, parse:"V-PRES-ACT-3S"},
-  {word:"θεός",lemma:"θεός",gloss:"God",pos:"noun",freq:1317, parse:"N-NSM"},
+  {word:"λόγος",lemma:"λόγος",gloss:"word, message",pos:"noun",freq:330,parse:"N-NSM"},
+  {word:"ἀγαπᾷ",lemma:"ἀγαπάω",gloss:"to love",pos:"verb",freq:120,parse:"V-PRES-ACT-3S"},
+  {word:"θεός",lemma:"θεός",gloss:"God",pos:"noun",freq:1317,parse:"N-NSM"},
   {word:"πιστός",lemma:"πιστός",gloss:"faithful",pos:"adj",freq:45},
-  {word:"πνεῦμα",lemma:"πνεῦμα",gloss:"spirit",pos:"noun",freq:200, parse:"N-NSN"},
-  {word:"γράφω",lemma:"γράφω",gloss:"to write",pos:"verb",freq:88, parse:"V-PRES-ACT-1S"},
-  {word:"ἄνθρωπος",lemma:"ἄνθρωπος",gloss:"man, person",pos:"noun",freq:410, parse:"N-NSM"},
+  {word:"πνεῦμα",lemma:"πνεῦμα",gloss:"spirit",pos:"noun",freq:200,parse:"N-NSN"},
+  {word:"γράφω",lemma:"γράφω",gloss:"to write",pos:"verb",freq:88,parse:"V-PRES-ACT-1S"},
+  {word:"ἄνθρωπος",lemma:"ἄνθρωπος",gloss:"man, person",pos:"noun",freq:410,parse:"N-NSM"},
   {word:"ἐν",lemma:"ἐν",gloss:"in",pos:"prep",freq:980}
 ];
-
 const SAMPLE_HEBREW = [
-  {word:"דָּוִד",lemma:"דָּוִד",gloss:"David",pos:"noun",freq:220, parse:"N-NSM"},
-  {word:"אֱלֹהִים",lemma:"אֱלֹהִים",gloss:"God",pos:"noun",freq:300, parse:"N-NSM"},
-  {word:"אָמַר",lemma:"אָמַר",gloss:"to say",pos:"verb",freq:5317, parse:"V-PAST-3S"},
-  {word:"תּוֹרָה",lemma:"תּוֹרָה",gloss:"law, instruction",pos:"noun",freq:190, parse:"N-NSF"},
+  {word:"דָּוִד",lemma:"דָּוִד",gloss:"David",pos:"noun",freq:220,parse:"N-NSM"},
+  {word:"אֱלֹהִים",lemma:"אֱלֹהִים",gloss:"God",pos:"noun",freq:300,parse:"N-NSM"},
+  {word:"אָמַר",lemma:"אָמַר",gloss:"to say",pos:"verb",freq:5317,parse:"V-PAST-3S"},
+  {word:"תּוֹרָה",lemma:"תּוֹרָה",gloss:"law, instruction",pos:"noun",freq:190,parse:"N-NSF"},
   {word:"טוֹב",lemma:"טוֹב",gloss:"good",pos:"adj",freq:60},
-  {word:"יָד",lemma:"יָד",gloss:"hand",pos:"noun",freq:250, parse:"N-NSF"},
+  {word:"יָד",lemma:"יָד",gloss:"hand",pos:"noun",freq:250,parse:"N-NSF"},
   {word:"שָׁלוֹם",lemma:"שָׁלוֹם",gloss:"peace",pos:"noun",freq:310},
-  {word:"בֵּן",lemma:"בֵּן",gloss:"son",pos:"noun",freq:180, parse:"N-NSM"}
+  {word:"בֵּן",lemma:"בֵּן",gloss:"son",pos:"noun",freq:180,parse:"N-NSM"}
 ];
 
 /* ---------- Init ---------- */
 async function init(){
-  // load preferences, data, wire events — in safe order
   loadPrefs();
   loadLastLang();
   await loadData();
-  // wire events once DOM elements exist
   wireEvents();
-  // ensure language UI is in sync
   setLang(state.lang);
   renderList();
-  // restore dashboard if present
-  try { const d = JSON.parse(localStorage.getItem('pp_dashboard')||'{}'); state.dashboard = d || state.dashboard; } catch(e){}
-  const streakEl = $('#streakBadge'); if(streakEl) streakEl.textContent = `Streak: ${state.dashboard.streak||0}`;
-  // hook sidebar freq to main slider
-  const sidebarFreqEl = $('#sidebarFreq'); const freqEl = $('#freqSlider');
-  if(sidebarFreqEl && freqEl){ sidebarFreqEl.value = freqEl.value; $('#sidebarFreqLabel').textContent = (sidebarFreqEl.value >=50)?'50+':sidebarFreqEl.value + '+'; }
-  // set theme & accent UI
-  document.documentElement.style.setProperty('--accent', state.prefs.accent || DEFAULTS.accent);
+  try { const d=JSON.parse(localStorage.getItem('pp_dashboard')||'{}'); state.dashboard=d||state.dashboard; } catch(e){}
+  const sb=$('#streakBadge'); if(sb) sb.textContent=`Streak: ${state.dashboard.streak||0}`;
+  const sfEl=$('#sidebarFreq'); const fEl=$('#freqSlider');
+  if(sfEl&&fEl){ sfEl.value=fEl.value; $('#sidebarFreqLabel').textContent=(sfEl.value>=50)?'50+':sfEl.value+'+'; }
+  document.documentElement.style.setProperty('--accent', state.prefs.accent||DEFAULTS.accent);
   renderAccentButtons();
   renderAll();
 }
 
-/* Quick render wrapper */
 function renderAll(){ renderList(); renderDashboard(); }
 
-/* Start */
 init();
-
 </script>
 </body>
 </html>
