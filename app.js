@@ -10,6 +10,7 @@ const LS_VOCAB_HEBREW = 'pp_vocab_hebrew';
 const LS_PREFS = 'pp_prefs';
 const LS_DASHBOARD = 'pp_dashboard';
 const ParserCore = window.PuritanParserCore || {};
+const LIST_RENDER_LIMIT = 500;
 
 const DEFAULTS = {
   accent: '#4e8f6e',
@@ -69,8 +70,45 @@ function loadPrefs(){
 }
 function savePrefs(){ localStorage.setItem(LS_PREFS, JSON.stringify(state.prefs)); }
 function saveVocab(lang){
-  try { localStorage.setItem(lang==='greek'?LS_VOCAB_GREEK:LS_VOCAB_HEBREW, JSON.stringify(state.data[lang])); }
+  try {
+    const compact = (state.data[lang]||[]).filter(it=>{
+      const hasProgress = (it.repetitions||0)>0 || (it.interval||0)>0 || (it.history||[]).length || it.due!==todayISO() || Math.abs((it.ease||state.prefs.initialEase||2.5)-(state.prefs.initialEase||2.5))>0.001;
+      return hasProgress || it.source==='Imported';
+    }).map(it=>{
+      if(it.source==='Imported') return it;
+      return {
+        id: it.id,
+        ease: it.ease,
+        interval: it.interval,
+        repetitions: it.repetitions,
+        due: it.due,
+        history: it.history
+      };
+    });
+    localStorage.setItem(lang==='greek'?LS_VOCAB_GREEK:LS_VOCAB_HEBREW, JSON.stringify(compact));
+  }
   catch(e){ console.warn('save vocab failed', e); }
+}
+function applyStoredVocab(lang){
+  const lsKey = lang==='greek' ? LS_VOCAB_GREEK : LS_VOCAB_HEBREW;
+  try {
+    const raw = localStorage.getItem(lsKey);
+    if(!raw) return;
+    const stored = JSON.parse(raw);
+    if(!Array.isArray(stored)) return;
+    const byId = new Map(state.data[lang].map(item=>[item.id,item]));
+    stored.forEach(saved=>{
+      if(!saved || typeof saved!=='object') return;
+      const target = saved.id ? byId.get(saved.id) : null;
+      if(target){
+        ['ease','interval','repetitions','due','history'].forEach(key=>{
+          if(saved[key] !== undefined) target[key] = saved[key];
+        });
+      } else if(saved.source==='Imported' && saved.word && saved.gloss){
+        state.data[lang].push(ensureSRS(Object.assign({lang, source:'Imported'}, saved)));
+      }
+    });
+  } catch(e){ console.warn('load saved progress failed', e); }
 }
 function loadDashboard(){
   try { const r=localStorage.getItem(LS_DASHBOARD); if(r) state.dashboard=Object.assign({streak:0,lastStudied:'',recent:[],heatmap:{}}, JSON.parse(r)); } catch(e){}
@@ -134,7 +172,7 @@ async function loadData(){
     const h = all.filter(x=>(x.lang||'greek').toLowerCase()==='hebrew');
     state.data.greek = g.map(it=>{ it.lang='greek'; return ensureSRS(it); });
     state.data.hebrew = h.map(it=>{ it.lang='hebrew'; return ensureSRS(it); });
-    saveVocab('greek'); saveVocab('hebrew');
+    applyStoredVocab('greek'); applyStoredVocab('hebrew');
     return;
   }
   const gf = await tryFetchJson(FILE_GREEK);
@@ -145,7 +183,7 @@ async function loadData(){
     const sample = lang==='greek' ? SAMPLE_GREEK : SAMPLE_HEBREW;
     if(file && file.length){
       state.data[lang] = file.map(it=>{ it.lang=lang; return ensureSRS(it); });
-      saveVocab(lang);
+      applyStoredVocab(lang);
     } else {
       try {
         const raw = localStorage.getItem(lsKey);
@@ -240,6 +278,9 @@ function isParseDrillable(item){
   const family = ParserCore.decodeParse(item.parse, item.lang||state.lang).family;
   return family === 'nominal' || family === 'verb';
 }
+function hasGloss(item){
+  return !!String(item?.gloss||'').trim();
+}
 
 /* ---------- View Controller ---------- */
 function showView(viewId){
@@ -316,7 +357,8 @@ function renderList(){
     return 0;
   });
   state.filtered = list;
-  const ec = $('#filterEntriesCount'); if(ec) ec.textContent = `${list.length} entries`;
+  const ec = $('#filterEntriesCount');
+  if(ec) ec.textContent = list.length > LIST_RENDER_LIMIT ? `${LIST_RENDER_LIMIT} of ${list.length} entries` : `${list.length} entries`;
   const due = list.filter(it=>it.due<=today).length;
   const db = $('#dueBadge'); if(db){ db.textContent=`Due: ${due}`; }
   const tbody = $('#wordsTbody'); if(!tbody) return;
@@ -324,7 +366,8 @@ function renderList(){
     tbody.innerHTML = `<tr><td colspan="7" class="empty-state"><div class="empty-icon">🔍</div><p>No entries found. Try expanding the frequency range or clearing the search.</p></td></tr>`;
     return;
   }
-  tbody.innerHTML = list.map((it,i)=>{
+  const visible = list.slice(0, LIST_RENDER_LIMIT);
+  tbody.innerHTML = visible.map((it,i)=>{
     const m = computeMastery(it);
     const cls = m>60?'high':m>25?'mid':'low';
     const isDue = it.due<=today;
@@ -400,12 +443,12 @@ function startFlash(){
   readFiltersFromDOM();
   const mode = $('#studyMode')?.value||'due';
   const today = todayISO();
-  let pool = applyFreqFilter(getCurrentList());
+  let pool = applyFreqFilter(getCurrentList()).filter(hasGloss);
   if(mode==='due') pool = pool.filter(it=>it.due<=today);
   else if(mode==='new') pool = pool.filter(it=>!it.repetitions||it.repetitions===0);
   else if(mode==='weak' && ParserCore.isWeakCard) pool = pool.filter(ParserCore.isWeakCard);
   if(!pool.length){
-    toast('No cards available. Try "All filtered" or expand the frequency range.','danger'); return;
+    toast('No glossed cards available. Try "All filtered" or expand the frequency range.','danger'); return;
   }
   pool = shuffle(pool);
   const cap = Number(state.prefs.dailyCap||200);
@@ -752,6 +795,7 @@ function getParsingFields(qn){
   const lang = (qn.lang||state.lang||'greek').toLowerCase();
   const bits = p.split('-').filter(Boolean);
   const compactGreekVerb = lang==='greek' && bits[0]==='v' && /^[a-z]{3}$/.test(bits[1]||'');
+  const compactMoodCode = compactGreekVerb ? bits[1][2] : '';
   const isNoun = p.startsWith('n-') || (qn.pos||'').toLowerCase().startsWith('n');
   if(isNoun){
     const fields = [];
@@ -782,7 +826,15 @@ function getParsingFields(qn){
     ];
     const hasMood = compactGreekVerb || bits.some(x=>['ind','subj','opt','imp','inf','ptc'].includes(x));
     if(hasMood) fields.push({id:'mood', label:'Mood', type:'select', opts:['ind','subj','opt','imp','inf','ptc']});
-    fields.push({id:'person', label:'Person/Num', type:'select', opts:['1s','2s','3s','1p','2p','3p']});
+    if(compactMoodCode==='p'){
+      fields.push({id:'case', label:'Case', type:'select', opts:[
+        {value:'n', label:'nom'}, {value:'a', label:'acc'}, {value:'g', label:'gen'}, {value:'d', label:'dat'}, {value:'v', label:'voc'}
+      ]});
+      fields.push({id:'number', label:'Number', type:'select', opts:[{value:'s', label:'sg'}, {value:'p', label:'pl'}]});
+      fields.push({id:'gender', label:'Gender', type:'select', opts:[{value:'m', label:'m'}, {value:'f', label:'f'}, {value:'n', label:'n'}]});
+    } else if(compactMoodCode!=='n'){
+      fields.push({id:'person', label:'Person/Num', type:'select', opts:['1s','2s','3s','1p','2p','3p']});
+    }
     fields.push({id:'lemma', label:'Lemma', type:'text'});
     return fields;
   }
@@ -792,6 +844,12 @@ function parseHasSelection(qn, fieldId, val){
   const bits = (qn.parse||'').toLowerCase().split('-').filter(Boolean);
   const lang = (qn.lang||state.lang||'greek').toLowerCase();
   const compactGreekVerb = lang==='greek' && bits[0]==='v' && /^[a-z]{3}$/.test(bits[1]||'');
+  if(compactGreekVerb && fieldId==='tense') return {pres:'p', impf:'i', fut:'f', aor:'a', perf:'r', plup:'l'}[val] === bits[1][0];
+  if(compactGreekVerb && fieldId==='voice') return {act:'a', mid:'m', pas:'p'}[val] === bits[1][1];
+  if(compactGreekVerb && fieldId==='mood') return {ind:'i', subj:'s', opt:'o', imp:'m', inf:'n', ptc:'p'}[val] === bits[1][2];
+  if(compactGreekVerb && fieldId==='case') return bits[2]?.[0]===val;
+  if(compactGreekVerb && fieldId==='number') return bits[2]?.[1]===val;
+  if(compactGreekVerb && fieldId==='gender') return bits[2]?.[2]===val;
   if(fieldId==='case') return bits[1]?.[0]===val;
   if(fieldId==='number'){
     if(lang==='hebrew') return bits.some(bit => bit.includes(val));
@@ -801,9 +859,6 @@ function parseHasSelection(qn, fieldId, val){
     if(lang==='hebrew') return bits.some(bit => bit.includes(val));
     return bits[1]?.[2]===val;
   }
-  if(compactGreekVerb && fieldId==='tense') return {pres:'p', impf:'i', fut:'f', aor:'a', perf:'r', plup:'l'}[val] === bits[1][0];
-  if(compactGreekVerb && fieldId==='voice') return {act:'a', mid:'m', pas:'p'}[val] === bits[1][1];
-  if(compactGreekVerb && fieldId==='mood') return {ind:'i', subj:'s', opt:'o', imp:'m', inf:'n', ptc:'p'}[val] === bits[1][2];
   if(fieldId==='person') return bits.some(bit => bit===val);
   return bits.includes(val);
 }
@@ -1023,7 +1078,7 @@ async function importDataFile(file){
     const invalid = checks.filter(x=>x.errors.length);
     const valid = items.filter((_, idx)=>!checks[idx].errors.length).map(item=>{
       const lang = String(item.lang||'greek').toLowerCase();
-      return ensureSRS(Object.assign({}, item, { lang }));
+      return ensureSRS(Object.assign({}, item, { lang, source: item.source || 'Imported' }));
     });
     if(!valid.length){
       if(preview){ preview.textContent = invalid.length ? `No valid entries found. First error: row ${invalid[0].index+1} ${invalid[0].errors.join(', ')}` : 'No entries found.'; preview.classList.remove('hidden'); }

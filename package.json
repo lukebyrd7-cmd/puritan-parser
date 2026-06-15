@@ -4,6 +4,9 @@
   "private": true,
   "type": "commonjs",
   "scripts": {
+    "data:download": "node scripts/download-source-data.js",
+    "data:build": "node scripts/build-expanded-vocab.js",
+    "data:refresh": "npm run data:download && npm run data:build",
     "test": "node --test"
   }
 }

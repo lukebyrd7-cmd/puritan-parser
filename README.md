@@ -5,6 +5,7 @@ The Puritan Parser is a local-first Biblical Greek and Hebrew study app. It comb
 ## Features
 
 - Greek and Hebrew vocabulary from `vocab_all.json`
+- Expanded morphology-driven parsing entries generated from MorphGNT SBLGNT and Open Scriptures Hebrew Bible data
 - Word list with search, frequency filters, grammar category filters, due-only filtering, and mastery indicators
 - SM-2 or Leitner-style spaced repetition
 - Flashcard sessions for due, all filtered, new, or weakest cards
@@ -32,6 +33,8 @@ Vocabulary entries are JSON objects. Required fields:
 ```
 
 `word`, `gloss`, and `lang` are required for imports. `lang` must be `greek` or `hebrew`. SRS fields such as `ease`, `interval`, `repetitions`, `due`, and `history` are added automatically when missing.
+
+Generated parser-only entries may have an empty `gloss`. The app includes them in parsing drills and grammar filters, but skips them in flashcard sessions so vocabulary cards still have real definitions.
 
 ## Import Formats
 
@@ -69,6 +72,16 @@ npm test
 ```
 
 The tests cover parse-code decoding, grammar categories, weak-card detection, and import validation.
+
+## Data Refresh
+
+To rebuild the expanded morphology dataset:
+
+```sh
+npm run data:refresh
+```
+
+This downloads source files into ignored local cache directory `data/source/` and regenerates `vocab_all.json`. See [data/ATTRIBUTION.md](data/ATTRIBUTION.md) for source and license notes.
 
 ## Deployment
 

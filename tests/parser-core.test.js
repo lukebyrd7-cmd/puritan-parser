@@ -19,9 +19,24 @@ test('decodes compact Greek verb parse codes', () => {
   assert.equal(parsed.summary, 'Verb, present, active, indicative, 1st person singular');
 });
 
+test('decodes MorphGNT-style Greek verb parse codes', () => {
+  const parsed = decodeParse('V-3AAI-S--', 'greek');
+  assert.equal(parsed.summary, 'Verb, aorist, active, indicative, 3rd person singular');
+});
+
+test('decodes Greek participle parse codes', () => {
+  const parsed = decodeParse('V-PAP-NSM', 'greek');
+  assert.equal(parsed.summary, 'Verb, present, active, participle, nominative, singular, masculine');
+});
+
 test('decodes Hebrew verb parse codes', () => {
   const parsed = decodeParse('V-QAL-PERF-3MS', 'hebrew');
   assert.equal(parsed.summary, 'Verb, Qal, perfect, 3rd person masculine singular');
+});
+
+test('decodes Hebrew nominal parse codes', () => {
+  const parsed = decodeParse('N-MSA', 'hebrew');
+  assert.equal(parsed.summary, 'Noun, masculine, singular, absolute');
 });
 
 test('builds and matches grammar categories', () => {

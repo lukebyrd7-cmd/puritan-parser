@@ -120,7 +120,23 @@
     return parts.join(' ');
   }
 
-  function decodeNominal(parse, label) {
+  function decodeHebrewNominal(parse, label) {
+    const raw = norm(parse);
+    const form = raw.split('-')[1] || '';
+    const gender = { m: 'masculine', f: 'feminine', c: 'common' }[form[0]?.toLowerCase()];
+    const number = { s: 'singular', p: 'plural', d: 'dual' }[form[1]?.toLowerCase()];
+    const state = { a: 'absolute', c: 'construct', d: 'determined' }[form[2]?.toLowerCase()];
+    const details = [gender, number, state].filter(Boolean);
+    return {
+      family: 'nominal',
+      label,
+      details,
+      summary: [label].concat(details).join(', ')
+    };
+  }
+
+  function decodeNominal(parse, label, lang) {
+    if (norm(lang).toLowerCase() === 'hebrew') return decodeHebrewNominal(parse, label);
     const raw = norm(parse);
     const bits = raw.split('-');
     const form = bits[1] || '';
@@ -138,10 +154,23 @@
   function decodeGreekVerb(parse) {
     const bits = norm(parse).toLowerCase().split('-').filter(Boolean);
     const compact = bits[1]?.match(/^[a-z]{3}$/);
+    const morphGnt = bits[1]?.match(/^[123-][a-z-]{3}$/);
+    if (morphGnt) {
+      const code = bits[1];
+      const tense = GREEK_COMPACT_TENSES[code[1]];
+      const voice = GREEK_COMPACT_VOICES[code[2]];
+      const mood = GREEK_COMPACT_MOODS[code[3]] || (code[3] === 'd' ? 'imperative' : undefined);
+      const png = code[0] && code[0] !== '-' && bits[2] ? expandPersonNumberGender(`${code[0]}${bits[2][0]}`) : null;
+      const participleForm = mood === 'participle' && bits[2] ? decodeNominal(`N-${bits[2]}`, 'participle').details.join(', ') : null;
+      const details = [tense, voice, mood, png || participleForm].filter(Boolean);
+      return { family: 'verb', label: 'Verb', details, summary: ['Verb'].concat(details).join(', ') };
+    }
     const tense = compact ? GREEK_COMPACT_TENSES[bits[1][0]] : (GREEK_TENSES[bits[1]] || bits[1]);
     const voice = compact ? GREEK_COMPACT_VOICES[bits[1][1]] : (GREEK_VOICES[bits[2]] || bits[2]);
     const mood = compact ? GREEK_COMPACT_MOODS[bits[1][2]] : (GREEK_MOODS[bits[3]] || bits[3]);
-    const png = compact ? (expandPersonNumberGender(bits[2]) || bits[2]) : (expandPersonNumberGender(bits[4]) || bits[4]);
+    const compactMood = compact ? GREEK_COMPACT_MOODS[bits[1][2]] : null;
+    const compactParticiple = compactMood === 'participle' && bits[2] ? decodeNominal(`N-${bits[2]}`, 'participle').details.join(', ') : null;
+    const png = compact ? (compactParticiple || expandPersonNumberGender(bits[2]) || bits[2]) : (expandPersonNumberGender(bits[4]) || bits[4]);
     const details = [tense, voice, mood, png].filter(Boolean);
     return {
       family: 'verb',
@@ -170,10 +199,10 @@
     if (!raw) return { raw, family: 'unknown', label: 'Unknown', details: [], summary: 'No parse data' };
     const first = raw.split('-')[0].toLowerCase();
     const language = norm(lang).toLowerCase();
-    if (first === 'n') return decodeNominal(raw, 'Noun');
-    if (first === 'a' || first === 'adj') return decodeNominal(raw, 'Adjective');
-    if (first === 't') return decodeNominal(raw, 'Article');
-    if (first === 'p' || first === 'pron') return decodeNominal(raw, 'Pronoun');
+    if (first === 'n') return decodeNominal(raw, 'Noun', language);
+    if (first === 'a' || first === 'adj') return decodeNominal(raw, 'Adjective', language);
+    if (first === 't') return decodeNominal(raw, 'Article', language);
+    if (first === 'p' || first === 'pron') return decodeNominal(raw, 'Pronoun', language);
     if (first === 'v') return language === 'hebrew' ? decodeHebrewVerb(raw) : decodeGreekVerb(raw);
     const labels = {
       conj: 'Conjunction',
