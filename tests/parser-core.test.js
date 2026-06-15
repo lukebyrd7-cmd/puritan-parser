@@ -1,0 +1,53 @@
+const test = require('node:test');
+const assert = require('node:assert/strict');
+const {
+  decodeParse,
+  grammarCategories,
+  matchesGrammarCategory,
+  isWeakCard,
+  normalizeImportedPayload,
+  validateVocabItem
+} = require('../src/parser-core');
+
+test('decodes Greek noun parse codes', () => {
+  const parsed = decodeParse('N-NSM', 'greek');
+  assert.equal(parsed.summary, 'Noun, nominative, singular, masculine');
+});
+
+test('decodes compact Greek verb parse codes', () => {
+  const parsed = decodeParse('V-PAI-1S', 'greek');
+  assert.equal(parsed.summary, 'Verb, present, active, indicative, 1st person singular');
+});
+
+test('decodes Hebrew verb parse codes', () => {
+  const parsed = decodeParse('V-QAL-PERF-3MS', 'hebrew');
+  assert.equal(parsed.summary, 'Verb, Qal, perfect, 3rd person masculine singular');
+});
+
+test('builds and matches grammar categories', () => {
+  const rows = [
+    { word: 'λόγος', lang: 'greek', pos: 'noun', parse: 'N-NSM' },
+    { word: 'λέγω', lang: 'greek', pos: 'verb', parse: 'V-PRES-ACT-1S' }
+  ];
+  const cats = grammarCategories(rows, 'greek').map(cat => cat.id);
+  assert.ok(cats.includes('nominals'));
+  assert.ok(cats.includes('verbs'));
+  assert.equal(matchesGrammarCategory(rows[0], 'detail:nominative', 'greek'), true);
+  assert.equal(matchesGrammarCategory(rows[1], 'detail:nominative', 'greek'), false);
+});
+
+test('detects weak cards from recent misses and ease', () => {
+  assert.equal(isWeakCard({ ease: 2.5, repetitions: 4, history: [{ q: 5 }, { q: 2 }] }), true);
+  assert.equal(isWeakCard({ ease: 1.9, repetitions: 4, history: [{ q: 5 }] }), true);
+  assert.equal(isWeakCard({ ease: 2.5, repetitions: 4, history: [{ q: 5 }, { q: 4 }] }), false);
+});
+
+test('normalizes import payload shapes and validates required fields', () => {
+  const payload = {
+    greek: [{ word: 'καί', gloss: 'and', lang: 'greek' }],
+    hebrew: [{ word: 'אָמַר', gloss: 'to say', lang: 'hebrew' }]
+  };
+  assert.equal(normalizeImportedPayload(payload).length, 2);
+  assert.deepEqual(validateVocabItem(payload.greek[0], 0).errors, []);
+  assert.ok(validateVocabItem({ word: 'x' }, 0).errors.length > 0);
+});
