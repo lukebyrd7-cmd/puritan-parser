@@ -40,6 +40,7 @@ let state = {
 let parsingSession = { questions: [], idx: 0, correct: 0, total: 0, results: [], wordformsLemma: '' };
 let selectedLemma = null;
 let autoAdvanceTimer = null;
+let pendingParsingResult = null;
 
 /* ---------- Utilities ---------- */
 const $ = s => document.querySelector(s);
@@ -775,17 +776,12 @@ function renderParsingQuestion(){
   fields.forEach(f=>{
     const div = document.createElement('div'); div.className='parsing-field';
     div.innerHTML = `<label>${escHtml(f.label)}</label>`;
-    if(f.type==='select'){
-      const s = document.createElement('select'); s.className='input'; s.id='par_'+f.id;
-      f.opts.forEach(o=>{
-        const opt = typeof o==='string' ? {value:o, label:o} : o;
-        const op=document.createElement('option'); op.value=opt.value; op.textContent=opt.label; s.appendChild(op);
-      });
-      div.appendChild(s);
-    } else {
-      const inp = document.createElement('input'); inp.type='text'; inp.className='input'; inp.id='par_'+f.id;
-      inp.placeholder='type lemma...'; inp.autocomplete='off'; div.appendChild(inp);
-    }
+    const s = document.createElement('select'); s.className='input'; s.id='par_'+f.id;
+    f.opts.forEach(o=>{
+      const opt = typeof o==='string' ? {value:o, label:o} : o;
+      const op=document.createElement('option'); op.value=opt.value; op.textContent=opt.label; s.appendChild(op);
+    });
+    div.appendChild(s);
     form.appendChild(div);
   });
 }
@@ -809,15 +805,13 @@ function getParsingFields(qn){
       fields.push({id:'gender', label:'Gender', type:'select', opts:[{value:'m', label:'m'}, {value:'f', label:'f'}, {value:'c', label:'common'}]});
       fields.push({id:'number', label:'Number', type:'select', opts:[{value:'s', label:'sg'}, {value:'p', label:'pl'}, {value:'d', label:'dual'}]});
     }
-    fields.push({id:'lemma', label:'Lemma', type:'text'});
     return fields;
   } else {
     if(lang==='hebrew'){
       return [
         {id:'stem', label:'Stem', type:'select', opts:['qal','nifal','piel','pual','hifil','hofal','hitpael']},
         {id:'form', label:'Form', type:'select', opts:['perf','impf','wayyiqtol','imp','inf','ptc']},
-        {id:'person', label:'Person/Gender/Num', type:'select', opts:['1cs','2ms','2fs','3ms','3fs','1cp','2mp','2fp','3mp','3fp']},
-        {id:'lemma', label:'Lemma', type:'text'}
+        {id:'person', label:'Person/Gender/Num', type:'select', opts:['1cs','2ms','2fs','3ms','3fs','1cp','2mp','2fp','3mp','3fp']}
       ];
     }
     const fields = [
@@ -835,7 +829,6 @@ function getParsingFields(qn){
     } else if(compactMoodCode!=='n'){
       fields.push({id:'person', label:'Person/Num', type:'select', opts:['1s','2s','3s','1p','2p','3p']});
     }
-    fields.push({id:'lemma', label:'Lemma', type:'text'});
     return fields;
   }
 }
@@ -871,33 +864,55 @@ function checkParsingAnswer(reveal=false){
   const fields = getParsingFields(qn);
   let correct=0; let total=0; const lines=[];
   fields.forEach(f=>{
-    if(f.type==='select'){
-      const el = $(`#par_${f.id}`); if(!el) return;
-      const val = el.value; total++;
-      const ok = parseHasSelection(qn, f.id, val);
-      if(ok) correct++;
-      lines.push({ ok, text: ok ? `✓ ${f.label}: ${val}` : `✗ ${f.label}: you said "${val}" — ${parseSummary(qn)}` });
-    } else {
-      const el = $(`#par_${f.id}`); if(!el) return;
-      const val = (el.value||'').trim().toLowerCase(); total++;
-      const ok = val===(qn.lemma||'').toLowerCase();
-      if(ok) correct++;
-      lines.push({ ok, text: ok ? `✓ Lemma: ${val}` : `✗ Lemma: you said "${val||'—'}" — correct: "${qn.lemma}"` });
-    }
+    const el = $(`#par_${f.id}`); if(!el) return;
+    const val = el.value; total++;
+    const ok = parseHasSelection(qn, f.id, val);
+    if(ok) correct++;
+    lines.push({ ok, text: ok ? `✓ ${f.label}: ${val}` : `✗ ${f.label}: you said "${val}" — ${parseSummary(qn)}` });
   });
-  if(correct===total) parsingSession.correct++;
-  parsingSession.results[idx] = (correct===total);
-  parsingSession.idx++;
+  pendingParsingResult = { grammarCorrect: correct===total, correct, total };
 
   const res = $('#parsingResult'); if(!res) return;
   const allRight = correct===total;
-  res.className = `parsing-result ${allRight?'correct':'wrong'}`;
-  res.innerHTML = `<div style="font-weight:700;margin-bottom:6px">${allRight?'✅ Correct!':'❌ '+correct+'/'+total+' correct'}</div>`
+  res.className = 'parsing-result';
+  res.innerHTML = `<div style="font-weight:700;margin-bottom:6px">${allRight?'Grammar looks right':'Grammar: '+correct+'/'+total+' correct'}</div>`
     + `<div class="small muted" style="margin-bottom:6px">${escHtml(parseSummary(qn))}</div>`
-    + lines.map(l=>`<div class="parsing-result-line ${l.ok?'ok':'err'}">${escHtml(l.text)}</div>`).join('');
+    + `<div>Lemma: <span class="serif" style="font-size:16px">${escHtml(qn.lemma||'—')}</span></div>`
+    + (qn.gloss ? `<div>Gloss: ${escHtml(qn.gloss)}</div>` : '')
+    + lines.map(l=>`<div class="parsing-result-line ${l.ok?'ok':'err'}">${escHtml(l.text)}</div>`).join('')
+    + `<div class="self-grade">
+        <div class="small muted">Did you know the lemma?</div>
+        <button class="btn btn-primary btn-sm" id="lemmaKnownBtn">I knew it</button>
+        <button class="btn btn-ghost btn-sm" id="lemmaMissedBtn">Missed it</button>
+      </div>`;
   res.classList.remove('hidden');
   $('#parsingSubmit').classList.add('hidden');
   $('#parsingReveal').classList.add('hidden');
+  $('#nextParsing').classList.add('hidden');
+  $('#finishParsing').classList.add('hidden');
+  $('#lemmaKnownBtn')?.addEventListener('click',()=>finishParsingAnswer(true));
+  $('#lemmaMissedBtn')?.addEventListener('click',()=>finishParsingAnswer(false));
+}
+
+function finishParsingAnswer(lemmaKnown){
+  const idx = parsingSession.idx;
+  if(!pendingParsingResult) return;
+  const allRight = pendingParsingResult.grammarCorrect && lemmaKnown;
+  if(allRight) parsingSession.correct++;
+  parsingSession.results[idx] = allRight;
+  parsingSession.idx++;
+  pendingParsingResult = null;
+
+  const res = $('#parsingResult');
+  if(res){
+    res.classList.toggle('correct', allRight);
+    res.classList.toggle('wrong', !allRight);
+    const grade = document.createElement('div');
+    grade.className = `parsing-result-line ${lemmaKnown?'ok':'err'}`;
+    grade.textContent = lemmaKnown ? '✓ Lemma self-check: knew it' : '✗ Lemma self-check: missed it';
+    res.appendChild(grade);
+    $$('.self-grade button').forEach(btn=>btn.disabled=true);
+  }
 
   const isLastQuestion = parsingSession.idx >= parsingSession.total;
   if(isLastQuestion){
@@ -927,22 +942,19 @@ function revealParsingAnswer(){
   res.innerHTML = `<div style="font-weight:700;margin-bottom:6px">Answer: <span class="mono">${escHtml(qn.parse||'—')}</span></div>
     <div class="small muted" style="margin-bottom:6px">${escHtml(parseSummary(qn))}</div>
     <div>Lemma: <span class="serif" style="font-size:16px">${escHtml(qn.lemma||'—')}</span></div>
-    <div>Gloss: ${escHtml(qn.gloss||'—')}</div>`;
+    <div>Gloss: ${escHtml(qn.gloss||'—')}</div>
+    <div class="self-grade">
+      <button class="btn btn-primary btn-sm" id="markRevealedBtn">Got it</button>
+      <button class="btn btn-ghost btn-sm" id="markMissedRevealedBtn">Missed it</button>
+    </div>`;
   res.classList.remove('hidden');
   $('#parsingSubmit').classList.add('hidden');
   $('#parsingReveal').classList.add('hidden');
-  parsingSession.results[idx] = false;
-  parsingSession.idx++;
-
-  const isLastQuestion = parsingSession.idx >= parsingSession.total;
-  if(isLastQuestion){
-    $('#nextParsing').classList.add('hidden');
-    $('#finishParsing').classList.remove('hidden');
-  } else {
-    $('#nextParsing').classList.remove('hidden');
-    $('#finishParsing').classList.add('hidden');
-  }
-  renderParsingDots();
+  pendingParsingResult = { grammarCorrect: true, correct: getParsingFields(qn).length, total: getParsingFields(qn).length };
+  $('#nextParsing').classList.add('hidden');
+  $('#finishParsing').classList.add('hidden');
+  $('#markRevealedBtn')?.addEventListener('click',()=>finishParsingAnswer(true));
+  $('#markMissedRevealedBtn')?.addEventListener('click',()=>finishParsingAnswer(false));
 }
 
 /* ---------- DASHBOARD ---------- */

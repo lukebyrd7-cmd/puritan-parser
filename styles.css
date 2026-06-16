@@ -370,6 +370,15 @@ tbody tr:hover { background: var(--surface-2); cursor: pointer; }
 .parsing-result-line { font-size: 13px; margin-bottom: 4px; }
 .parsing-result-line.ok { color: var(--success); }
 .parsing-result-line.err { color: var(--danger); }
+.self-grade {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border);
+}
 .parsing-score-bar { display: flex; gap: 4px; justify-content: center; margin: 8px 0; }
 .ps-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--surface-2); border: 1px solid var(--border); transition: background 300ms; }
 .ps-dot.correct-dot { background: var(--success); border-color: var(--success); }
