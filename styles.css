@@ -184,6 +184,8 @@ select.input { cursor: pointer; }
 .parsing-filters-panel { margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border); display: flex; gap: 10px; align-items: flex-end; flex-wrap: wrap; }
 .parsing-filters-title { width: 100%; font-size: 13px; font-weight: 700; color: var(--text); }
 .parsing-detail-filters { display: flex; gap: 10px; align-items: flex-end; flex-wrap: wrap; }
+.parsing-filter-group-title { width: 100%; font-size: 12px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; }
+.parsing-filter-empty { align-self: center; color: var(--muted); font-size: 12px; }
 .parsing-filter-field { display: flex; flex-direction: column; gap: 4px; }
 
 /* ===== PANELS ===== */

@@ -11,6 +11,12 @@ const LS_PREFS = 'pp_prefs';
 const LS_DASHBOARD = 'pp_dashboard';
 const ParserCore = window.PuritanParserCore || {};
 const LIST_RENDER_LIMIT = 500;
+const GREEK_NUMBER_OPTIONS = ['s','p'];
+const HEBREW_NUMBER_OPTIONS = ['s','p','d'];
+
+function parsingLanguageLabel(lang = state.lang){
+  return (lang || 'greek').toLowerCase() === 'hebrew' ? 'Hebrew' : 'Greek';
+}
 
 const DEFAULTS = {
   accent: '#4e8f6e',
@@ -298,12 +304,12 @@ function parsingFilterSpecs(lang, family){
     return language === 'hebrew'
       ? [
         {id:'gender', label:'Gender', options:['m','f','c']},
-        {id:'number', label:'Number', options:['s','p','d']},
+        {id:'number', label:'Number', options:HEBREW_NUMBER_OPTIONS},
         {id:'state', label:'State', options:['a','c','d']}
       ]
       : [
         {id:'case', label:'Case', options:['n','a','g','d','v']},
-        {id:'number', label:'Number', options:['s','p','d']},
+        {id:'number', label:'Number', options:GREEK_NUMBER_OPTIONS},
         {id:'gender', label:'Gender', options:['m','f','n','c']}
       ];
   }
@@ -336,16 +342,23 @@ function readParsingFiltersFromDOM(){
 function updateParsingFilterOptions(){
   const familySelect = $('#parsingFamilySelect');
   const detailWrap = $('#parsingDetailFilters');
+  const title = $('.parsing-filters-title');
+  const languageLabel = parsingLanguageLabel();
+  if(title) title.textContent = `${languageLabel} Parsing Filters`;
   if(!familySelect || !detailWrap) return;
   const current = state.parsingFilters || readParsingFiltersFromDOM();
   familySelect.value = ['all','nominals','verbs'].includes(current.family) ? current.family : 'all';
   const specs = parsingFilterSpecs(state.lang, familySelect.value);
-  detailWrap.innerHTML = specs.map(spec => {
+  const groupTitle = specs.length ? `${languageLabel} ${familySelect.value === 'verbs' ? 'Verb' : 'Nominal'} Filters` : '';
+  const controls = specs.map(spec => {
     const selected = current.details?.[spec.id] || 'all';
     const options = [`<option value="all">Any ${escHtml(spec.label.toLowerCase())}</option>`]
       .concat(spec.options.map(value => `<option value="${escHtml(value)}"${value === selected ? ' selected' : ''}>${escHtml(studentLabel(formatParsingValue(spec.id, value)))}</option>`));
     return `<label class="parsing-filter-field"><span class="filter-label">${escHtml(spec.label)}</span><select class="input grammar-select parsing-filter-select" data-field="${escHtml(spec.id)}">${options.join('')}</select></label>`;
   }).join('');
+  detailWrap.innerHTML = specs.length
+    ? `<div class="parsing-filter-group-title">${escHtml(groupTitle)}</div>${controls}`
+    : `<div class="parsing-filter-empty">Select Nominals or Verbs to show ${escHtml(languageLabel)}-specific filters.</div>`;
   state.parsingFilters = readParsingFiltersFromDOM();
   $$('.parsing-filter-select').forEach(sel => sel.addEventListener('change', () => { state.parsingFilters = readParsingFiltersFromDOM(); renderLemmaPicker(); }));
 }
@@ -360,7 +373,10 @@ function matchesParsingFilters(item, filters = state.parsingFilters){
   const family = parsingFamily(item);
   if(normalized.family === 'nominals' && family !== 'nominal') return false;
   if(normalized.family === 'verbs' && family !== 'verb') return false;
-  return Object.entries(normalized.details || {}).every(([fieldId, value]) => parseHasSelection(item, fieldId, value));
+  const validDetailIds = new Set(parsingFilterSpecs(item?.lang || state.lang, normalized.family).map(spec => spec.id));
+  return Object.entries(normalized.details || {})
+    .filter(([fieldId]) => validDetailIds.has(fieldId))
+    .every(([fieldId, value]) => parseHasSelection(item, fieldId, value));
 }
 
 function parseSummary(item){
@@ -405,7 +421,9 @@ function showView(viewId){
 
 /* ---------- Language ---------- */
 function setLang(lang){
+  const previousLang = state.lang;
   state.lang = lang;
+  if(previousLang !== lang) state.parsingFilters = { family: state.parsingFilters?.family || 'all', details: {} };
   $$('[data-lang]').forEach(b=>b.classList.toggle('active', b.dataset.lang===lang));
   updatePosOptions();
   updateParsingFilterOptions();
@@ -929,11 +947,11 @@ function getParsingFields(qn){
     const fields = [];
     if(lang==='greek'){
       fields.push({id:'case', label:'Case', type:'select', opts: parsingOptions('case', ['n','a','g','d','v'])});
-      fields.push({id:'number', label:'Number', type:'select', opts: parsingOptions('number', ['s','p','d'])});
+      fields.push({id:'number', label:'Number', type:'select', opts: parsingOptions('number', GREEK_NUMBER_OPTIONS)});
       fields.push({id:'gender', label:'Gender', type:'select', opts: parsingOptions('gender', ['m','f','n','c'])});
     } else {
       fields.push({id:'gender', label:'Gender', type:'select', opts: parsingOptions('gender', ['m','f','c'])});
-      fields.push({id:'number', label:'Number', type:'select', opts: parsingOptions('number', ['s','p','d'])});
+      fields.push({id:'number', label:'Number', type:'select', opts: parsingOptions('number', HEBREW_NUMBER_OPTIONS)});
     }
     return fields;
   } else {
@@ -952,7 +970,7 @@ function getParsingFields(qn){
     if(hasMood) fields.push({id:'mood', label:'Mood', type:'select', opts: parsingOptions('mood', ['ind','subj','opt','imp','inf','ptc'])});
     if(compactMoodCode==='p'){
       fields.push({id:'case', label:'Case', type:'select', opts: parsingOptions('case', ['n','a','g','d','v'])});
-      fields.push({id:'number', label:'Number', type:'select', opts: parsingOptions('number', ['s','p','d'])});
+      fields.push({id:'number', label:'Number', type:'select', opts: parsingOptions('number', GREEK_NUMBER_OPTIONS)});
       fields.push({id:'gender', label:'Gender', type:'select', opts: parsingOptions('gender', ['m','f','n','c'])});
     } else if(compactMoodCode!=='n'){
       fields.push({id:'person', label:'Person/Num', type:'select', opts: parsingOptions('person', ['1s','2s','3s','1p','2p','3p'])});

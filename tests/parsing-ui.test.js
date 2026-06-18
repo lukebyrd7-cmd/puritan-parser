@@ -80,3 +80,115 @@ test('dedicated parsing filters match family and language-specific details', () 
   assert.equal(app.matchesParsingFilters(hebrewNoun, { family: 'nominals', details: { state: 'a', number: 's' } }), true);
   assert.equal(app.matchesParsingFilters(hebrewVerb, { family: 'verbs', details: { stem: 'qal', form: 'perf', person: '3ms' } }), true);
 });
+
+test('Greek number parsing controls only expose singular and plural', () => {
+  const app = loadAppParsingHelpers();
+  const greekNoun = { parse: 'N-ASM', lang: 'greek', pos: 'noun' };
+  const greekParticiple = { parse: 'V-PAP-NSM', lang: 'greek', pos: 'verb' };
+
+  const greekNominalNumberSpec = app.parsingFilterSpecs('greek', 'nominals').find(f => f.id === 'number');
+  assert.deepEqual(JSON.parse(JSON.stringify(greekNominalNumberSpec.options)), ['s', 'p']);
+
+  const nounNumberField = app.getParsingFields(greekNoun).find(f => f.id === 'number');
+  assert.deepEqual(JSON.parse(JSON.stringify(nounNumberField.opts.map(o => o.value))), ['s', 'p']);
+
+  const participleNumberField = app.getParsingFields(greekParticiple).find(f => f.id === 'number');
+  assert.deepEqual(JSON.parse(JSON.stringify(participleNumberField.opts.map(o => o.value))), ['s', 'p']);
+  assert.equal(app.formatParsingValue('number', 'd'), 'dual');
+});
+
+test('Hebrew number filters keep dual where appropriate and Hebrew details match', () => {
+  const app = loadAppParsingHelpers();
+  const hebrewNoun = { word: 'יָדַיִם', lang: 'hebrew', pos: 'noun', parse: 'N-FDA' };
+
+  const hebrewNominalNumberSpec = app.parsingFilterSpecs('hebrew', 'nominals').find(f => f.id === 'number');
+  assert.deepEqual(JSON.parse(JSON.stringify(hebrewNominalNumberSpec.options)), ['s', 'p', 'd']);
+
+  const nounNumberField = app.getParsingFields(hebrewNoun).find(f => f.id === 'number');
+  assert.deepEqual(JSON.parse(JSON.stringify(nounNumberField.opts.map(o => o.value))), ['s', 'p', 'd']);
+  assert.equal(app.matchesParsingFilters(hebrewNoun, { family: 'nominals', details: { number: 'd', state: 'a' } }), true);
+});
+
+test('language-specific parsing details do not leak across languages', () => {
+  const app = loadAppParsingHelpers();
+  const greekNoun = { word: 'λόγον', lang: 'greek', pos: 'noun', parse: 'N-ASM' };
+  const hebrewNoun = { word: 'בֵּן', lang: 'hebrew', pos: 'noun', parse: 'N-MSA' };
+
+  assert.equal(app.matchesParsingFilters(hebrewNoun, { family: 'nominals', details: { case: 'a', state: 'a' } }), true);
+  assert.equal(app.matchesParsingFilters(greekNoun, { family: 'nominals', details: { state: 'a', case: 'a' } }), true);
+  assert.equal(app.matchesParsingFilters(hebrewNoun, { family: 'nominals', details: { case: 'n', state: 'a' } }), true);
+});
+
+test('switching languages clears parsing detail selections', () => {
+  const app = loadAppParsingHelpers();
+
+  vm.runInContext(`
+    renderList = () => {};
+    updateDueBadge = () => {};
+    updatePosOptions = () => {};
+    state.parsingFilters = { family: 'nominals', details: { case: 'a', number: 'p' } };
+    setLang('hebrew');
+  `, app);
+
+  const filters = vm.runInContext('JSON.parse(JSON.stringify(state.parsingFilters))', app);
+  assert.deepEqual(JSON.parse(JSON.stringify(filters)), { family: 'nominals', details: {} });
+});
+
+test('parsing filter UI rebuilds with language-specific titles and groups', () => {
+  const app = loadAppParsingHelpers();
+
+  const result = vm.runInContext(`
+    const titleEl = { textContent: '' };
+    const familyEl = { value: 'nominals' };
+    const detailEl = { innerHTML: '' };
+    document.querySelector = selector => {
+      if(selector === '.parsing-filters-title') return titleEl;
+      if(selector === '#parsingFamilySelect') return familyEl;
+      if(selector === '#parsingDetailFilters') return detailEl;
+      return null;
+    };
+    document.querySelectorAll = selector => selector === '.parsing-filter-select' ? [] : [];
+    state.lang = 'hebrew';
+    state.parsingFilters = { family: 'nominals', details: { case: 'a' } };
+    updateParsingFilterOptions();
+    JSON.stringify({ title: titleEl.textContent, html: detailEl.innerHTML, filters: state.parsingFilters });
+  `, app);
+
+  const parsed = JSON.parse(result);
+  assert.equal(parsed.title, 'Hebrew Parsing Filters');
+  assert.match(parsed.html, /Hebrew Nominal Filters/);
+  assert.doesNotMatch(parsed.html, /Case/);
+  assert.match(parsed.html, /State/);
+  assert.deepEqual(parsed.filters, { family: 'nominals', details: {} });
+});
+
+
+test('parsing filter UI renders visible controls after selecting a drill family', () => {
+  const app = loadAppParsingHelpers();
+
+  const result = vm.runInContext(`
+    const titleEl = { textContent: '' };
+    const familyEl = { value: 'verbs' };
+    const detailEl = { innerHTML: '' };
+    document.querySelector = selector => {
+      if(selector === '.parsing-filters-title') return titleEl;
+      if(selector === '#parsingFamilySelect') return familyEl;
+      if(selector === '#parsingDetailFilters') return detailEl;
+      return null;
+    };
+    document.querySelectorAll = selector => selector === '.parsing-filter-select' ? [] : [];
+    state.lang = 'greek';
+    state.parsingFilters = { family: 'verbs', details: {} };
+    updateParsingFilterOptions();
+    JSON.stringify({ title: titleEl.textContent, html: detailEl.innerHTML });
+  `, app);
+
+  const parsed = JSON.parse(result);
+  assert.equal(parsed.title, 'Greek Parsing Filters');
+  assert.match(parsed.html, /Greek Verb Filters/);
+  assert.match(parsed.html, /Tense/);
+  assert.match(parsed.html, /Voice/);
+  assert.match(parsed.html, /Mood/);
+  assert.match(parsed.html, /Person\/Number/);
+  assert.equal((parsed.html.match(/parsing-filter-select/g) || []).length, 4);
+});
