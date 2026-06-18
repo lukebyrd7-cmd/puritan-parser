@@ -87,14 +87,11 @@
         <input id="freqMax" type="number" class="input" value="9999" min="1" max="99999" placeholder="max" title="Max frequency" />
       </div>
     </div>
-    <div class="filter-bar-group grammar-filter-group">
-      <span class="filter-label">Grammar</span>
-      <div id="grammarFilterControls" class="grammar-filter-controls">
-        <select id="grammarPosSelect" class="input grammar-select">
-          <option value="all">All parts of speech</option>
-        </select>
-        <div id="grammarFeatureFilters" class="grammar-feature-filters"></div>
-      </div>
+    <div class="filter-bar-group" id="filterPosGroup">
+      <span class="filter-label">Part of speech</span>
+      <select id="posFilterSelect" class="input grammar-select">
+        <option value="all">All parts of speech</option>
+      </select>
     </div>
     <!-- Due only toggle -->
     <div class="filter-bar-group">
@@ -241,6 +238,18 @@
           </div>
           <button class="btn btn-primary" id="startParsing">▶ Start</button>
           <button class="btn btn-ghost btn-sm hidden" id="endParsing">✕ End</button>
+        </div>
+        <div class="parsing-filters-panel" aria-label="Parsing filters">
+          <div class="parsing-filters-title">Parsing Filters</div>
+          <label class="parsing-filter-field">
+            <span class="filter-label">Drill family</span>
+            <select id="parsingFamilySelect" class="input grammar-select">
+              <option value="all">All</option>
+              <option value="nominals">Nominals</option>
+              <option value="verbs">Verbs</option>
+            </select>
+          </label>
+          <div id="parsingDetailFilters" class="parsing-detail-filters"></div>
         </div>
         <!-- Word forms lemma picker (hidden unless wordforms mode) -->
         <div id="lemmaPicker" class="hidden" style="margin-top:12px">
@@ -444,6 +453,6 @@ const svgFallback = `<svg xmlns="http://www.w3.org/2000/svg" width="38" height="
 </script>
 
 <script src="src/parser-core.js"></script>
-<script src="app.js?v=grammar-multi-filters"></script>
+<script src="app.js?v=parsing-filters"></script>
 </body>
 </html>
