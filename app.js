@@ -31,7 +31,7 @@ let state = {
   data: { greek: [], hebrew: [] },
   filtered: [],
   prefs: { ...DEFAULTS },
-  filters: { query: '', minFreq: 1, maxFreq: 9999, dueOnly: false, grammar: 'all' },
+  filters: { query: '', minFreq: 1, maxFreq: 9999, dueOnly: false, grammar: { pos: 'all', details: {} } },
   session: { queue: [], idx: 0, mode: 'due', flipped: false, reviewed: 0, forgotten: 0, total: 0, missedWords: [] },
   dashboard: { streak: 0, lastStudied: '', recent: [], heatmap: {} },
   currentView: 'list'
@@ -244,7 +244,7 @@ function readFiltersFromDOM(){
   state.filters.minFreq = Number($('#freqMin')?.value)||1;
   state.filters.maxFreq = Number($('#freqMax')?.value)||9999;
   state.filters.dueOnly = $('#dueOnlyToggle')?.checked||false;
-  state.filters.grammar = $('#grammarSelect')?.value||'all';
+  state.filters.grammar = readGrammarFiltersFromDOM();
 }
 function applyFreqFilter(list){
   const { minFreq, maxFreq, dueOnly, grammar } = state.filters;
@@ -255,20 +255,70 @@ function applyFreqFilter(list){
     if(freq < minFreq) return false;
     if(freq > maxFreq) return false;
     if(dueOnly && it.due > today) return false;
-    if(ParserCore.matchesGrammarCategory && !ParserCore.matchesGrammarCategory(it, grammar, state.lang)) return false;
+    if(!matchesGrammarFilters(it, grammar)) return false;
     return true;
   });
 }
+function readGrammarFiltersFromDOM(){
+  const pos = $('#grammarPosSelect')?.value || 'all';
+  const details = {};
+  $$('.grammar-feature-select').forEach(sel => {
+    if(sel.value && sel.value !== 'all') details[sel.dataset.group] = sel.value;
+  });
+  return { pos, details };
+}
+
+function normalizeGrammarFilter(grammar){
+  if(!grammar || grammar === 'all') return { pos: 'all', details: {} };
+  if(typeof grammar === 'string') return grammar.startsWith('pos:') || ['nominals','verbs'].includes(grammar)
+    ? { pos: grammar, details: {} }
+    : { pos: 'all', details: { legacy: grammar } };
+  return { pos: grammar.pos || 'all', details: grammar.details || {} };
+}
+
+function matchesGrammarFilters(item, grammar){
+  if(!ParserCore.matchesGrammarCategory) return true;
+  const filters = normalizeGrammarFilter(grammar);
+  if(filters.pos !== 'all' && !ParserCore.matchesGrammarCategory(item, filters.pos, state.lang)) return false;
+  return Object.values(filters.details).every(categoryId => ParserCore.matchesGrammarCategory(item, categoryId, state.lang));
+}
+
+function grammarCategoryItemsForSelection(posCategory){
+  const list = getCurrentList();
+  if(!ParserCore.matchesGrammarCategory || !posCategory || posCategory === 'all') return list;
+  return list.filter(item => ParserCore.matchesGrammarCategory(item, posCategory, state.lang));
+}
+
 function updateGrammarOptions(){
-  const sel = $('#grammarSelect'); if(!sel || !ParserCore.grammarCategories) return;
-  const current = sel.value || 'all';
-  const cats = ParserCore.grammarCategories(getCurrentList(), state.lang)
-    .filter(cat => cat.count >= 2)
-    .slice(0, 40);
-  sel.innerHTML = '<option value="all">All grammar</option>' +
-    cats.map(cat => `<option value="${escHtml(cat.id)}">${escHtml(cat.label)} (${cat.count})</option>`).join('');
-  sel.value = cats.some(cat => cat.id===current) ? current : 'all';
-  state.filters.grammar = sel.value;
+  const posSelect = $('#grammarPosSelect');
+  const featureWrap = $('#grammarFeatureFilters');
+  if(!posSelect || !featureWrap || !ParserCore.grammarCategories) return;
+
+  const current = normalizeGrammarFilter(state.filters.grammar || readGrammarFiltersFromDOM());
+  const allCats = ParserCore.grammarCategories(getCurrentList(), state.lang).filter(cat => cat.count >= 2);
+  const posCats = allCats.filter(cat => (cat.group || '') === 'Part of speech');
+  posSelect.innerHTML = '<option value="all">All parts of speech</option>' +
+    posCats.map(cat => `<option value="${escHtml(cat.id)}">${escHtml(cat.label)} (${cat.count})</option>`).join('');
+  posSelect.value = posCats.some(cat => cat.id === current.pos) ? current.pos : 'all';
+
+  const scopedCats = ParserCore.grammarCategories(grammarCategoryItemsForSelection(posSelect.value), state.lang)
+    .filter(cat => cat.count >= 2 && !['Major categories', 'Part of speech', 'Other'].includes(cat.group || ''));
+  const groups = scopedCats.reduce((acc, cat) => {
+    const group = cat.group || 'Other';
+    if(!acc.has(group)) acc.set(group, []);
+    acc.get(group).push(cat);
+    return acc;
+  }, new Map());
+
+  featureWrap.innerHTML = Array.from(groups.entries()).map(([group, groupCats]) => {
+    const selected = current.details?.[group] || 'all';
+    const options = [`<option value="all">Any ${group.toLowerCase()}</option>`]
+      .concat(groupCats.map(cat => `<option value="${escHtml(cat.id)}"${cat.id === selected ? ' selected' : ''}>${escHtml(cat.label)} (${cat.count})</option>`));
+    return `<select class="input grammar-select grammar-feature-select" data-group="${escHtml(group)}" aria-label="${escHtml(group)} filter">${options.join('')}</select>`;
+  }).join('');
+
+  state.filters.grammar = readGrammarFiltersFromDOM();
+  $$('.grammar-feature-select').forEach(sel => sel.addEventListener('change', () => { readFiltersFromDOM(); renderList(); renderLemmaPicker(); }));
 }
 function parseSummary(item){
   if(!ParserCore.decodeParse) return item.parse || '—';
@@ -345,7 +395,7 @@ function renderList(){
     const freq = it.freq||0;
     if(freq < minFreq || freq > maxFreq) return false;
     if(dueOnly && it.due > today) return false;
-    if(ParserCore.matchesGrammarCategory && !ParserCore.matchesGrammarCategory(it, grammar, state.lang)) return false;
+    if(!matchesGrammarFilters(it, grammar)) return false;
     if(!query) return true;
     return `${it.word||''} ${it.lemma||''} ${it.gloss||''} ${it.pos||''} ${it.parse||''} ${parseSummary(it)}`.toLowerCase().includes(query);
   });
@@ -786,81 +836,132 @@ function renderParsingQuestion(){
   });
 }
 
+const PARSING_LABELS = {
+  case: { n:'nominative', a:'accusative', g:'genitive', d:'dative', v:'vocative' },
+  number: { s:'singular', p:'plural', d:'dual' },
+  gender: { m:'masculine', f:'feminine', n:'neuter', c:'common' },
+  tense: { pres:'present', impf:'imperfect', fut:'future', aor:'aorist', perf:'perfect', plup:'pluperfect' },
+  voice: { act:'active', mid:'middle', pas:'passive', mp:'middle/passive' },
+  mood: { ind:'indicative', subj:'subjunctive', opt:'optative', imp:'imperative', inf:'infinitive', ptc:'participle' },
+  stem: { qal:'Qal', nifal:'Nifal', piel:'Piel', pual:'Pual', hifil:'Hifil', hofal:'Hofal', hitpael:'Hitpael' },
+  form: { perf:'perfect', impf:'imperfect', wayyiqtol:'wayyiqtol', imp:'imperative', inf:'infinitive', ptc:'participle' },
+  person: { '1s':'1st person singular', '2s':'2nd person singular', '3s':'3rd person singular', '1p':'1st person plural', '2p':'2nd person plural', '3p':'3rd person plural', '1cs':'1st person common singular', '2ms':'2nd person masculine singular', '2fs':'2nd person feminine singular', '3ms':'3rd person masculine singular', '3fs':'3rd person feminine singular', '1cp':'1st person common plural', '2mp':'2nd person masculine plural', '2fp':'2nd person feminine plural', '3mp':'3rd person masculine plural', '3fp':'3rd person feminine plural' }
+};
+
+function parsingOption(fieldId, value, label){
+  return { value, label: label || PARSING_LABELS[fieldId]?.[value] || value };
+}
+
+function parsingOptions(fieldId, values){
+  return values.map(value => parsingOption(fieldId, value));
+}
+
+function normalizeParsingCode(type, code){
+  const lower = String(code || '').toLowerCase();
+  const maps = {
+    tense: { p:'pres', i:'impf', f:'fut', a:'aor', r:'perf', l:'plup', x:'perf' },
+    voice: { a:'act', m:'mid', p:'pas', n:'mp' },
+    mood: { i:'ind', s:'subj', o:'opt', m:'imp', n:'inf', p:'ptc', d:'imp' }
+  };
+  return maps[type]?.[lower] || lower;
+}
+
 function getParsingFields(qn){
   const p = (qn.parse||'').toLowerCase();
   const lang = (qn.lang||state.lang||'greek').toLowerCase();
   const bits = p.split('-').filter(Boolean);
   const compactGreekVerb = lang==='greek' && bits[0]==='v' && /^[a-z]{3}$/.test(bits[1]||'');
-  const compactMoodCode = compactGreekVerb ? bits[1][2] : '';
-  const isNoun = p.startsWith('n-') || (qn.pos||'').toLowerCase().startsWith('n');
-  if(isNoun){
+  const morphGntGreekVerb = lang==='greek' && bits[0]==='v' && /^[123-][a-z-]{3}$/.test(bits[1]||'');
+  const compactMoodCode = compactGreekVerb ? bits[1][2] : (morphGntGreekVerb ? bits[1][3] : '');
+  const partOfSpeech = bits[0] || (qn.pos||'').toLowerCase().slice(0,1);
+  const isNominal = ['n','a','t','p','adj','pron'].includes(partOfSpeech) || ['noun','adjective','article','pronoun'].some(pos => (qn.pos||'').toLowerCase().startsWith(pos));
+  if(isNominal){
     const fields = [];
     if(lang==='greek'){
-      fields.push({id:'case', label:'Case', type:'select', opts:[
-        {value:'n', label:'nom'}, {value:'a', label:'acc'}, {value:'g', label:'gen'}, {value:'d', label:'dat'}, {value:'v', label:'voc'}
-      ]});
-      fields.push({id:'number', label:'Number', type:'select', opts:[{value:'s', label:'sg'}, {value:'p', label:'pl'}]});
-      fields.push({id:'gender', label:'Gender', type:'select', opts:[{value:'m', label:'m'}, {value:'f', label:'f'}, {value:'n', label:'n'}]});
+      fields.push({id:'case', label:'Case', type:'select', opts: parsingOptions('case', ['n','a','g','d','v'])});
+      fields.push({id:'number', label:'Number', type:'select', opts: parsingOptions('number', ['s','p','d'])});
+      fields.push({id:'gender', label:'Gender', type:'select', opts: parsingOptions('gender', ['m','f','n','c'])});
     } else {
-      fields.push({id:'gender', label:'Gender', type:'select', opts:[{value:'m', label:'m'}, {value:'f', label:'f'}, {value:'c', label:'common'}]});
-      fields.push({id:'number', label:'Number', type:'select', opts:[{value:'s', label:'sg'}, {value:'p', label:'pl'}, {value:'d', label:'dual'}]});
+      fields.push({id:'gender', label:'Gender', type:'select', opts: parsingOptions('gender', ['m','f','c'])});
+      fields.push({id:'number', label:'Number', type:'select', opts: parsingOptions('number', ['s','p','d'])});
     }
     return fields;
   } else {
     if(lang==='hebrew'){
       return [
-        {id:'stem', label:'Stem', type:'select', opts:['qal','nifal','piel','pual','hifil','hofal','hitpael']},
-        {id:'form', label:'Form', type:'select', opts:['perf','impf','wayyiqtol','imp','inf','ptc']},
-        {id:'person', label:'Person/Gender/Num', type:'select', opts:['1cs','2ms','2fs','3ms','3fs','1cp','2mp','2fp','3mp','3fp']}
+        {id:'stem', label:'Stem', type:'select', opts: parsingOptions('stem', ['qal','nifal','piel','pual','hifil','hofal','hitpael'])},
+        {id:'form', label:'Form', type:'select', opts: parsingOptions('form', ['perf','impf','wayyiqtol','imp','inf','ptc'])},
+        {id:'person', label:'Person/Gender/Num', type:'select', opts: parsingOptions('person', ['1cs','2ms','2fs','3ms','3fs','1cp','2mp','2fp','3mp','3fp'])}
       ];
     }
     const fields = [
-      {id:'tense', label:'Tense', type:'select', opts:['pres','impf','fut','aor','perf','plup']},
-      {id:'voice', label:'Voice', type:'select', opts:['act','mid','pas']}
+      {id:'tense', label:'Tense', type:'select', opts: parsingOptions('tense', ['pres','impf','fut','aor','perf','plup'])},
+      {id:'voice', label:'Voice', type:'select', opts: parsingOptions('voice', ['act','mid','pas','mp'])}
     ];
-    const hasMood = compactGreekVerb || bits.some(x=>['ind','subj','opt','imp','inf','ptc'].includes(x));
-    if(hasMood) fields.push({id:'mood', label:'Mood', type:'select', opts:['ind','subj','opt','imp','inf','ptc']});
+    const hasMood = compactGreekVerb || morphGntGreekVerb || bits.some(x=>['ind','subj','opt','imp','inf','ptc'].includes(x));
+    if(hasMood) fields.push({id:'mood', label:'Mood', type:'select', opts: parsingOptions('mood', ['ind','subj','opt','imp','inf','ptc'])});
     if(compactMoodCode==='p'){
-      fields.push({id:'case', label:'Case', type:'select', opts:[
-        {value:'n', label:'nom'}, {value:'a', label:'acc'}, {value:'g', label:'gen'}, {value:'d', label:'dat'}, {value:'v', label:'voc'}
-      ]});
-      fields.push({id:'number', label:'Number', type:'select', opts:[{value:'s', label:'sg'}, {value:'p', label:'pl'}]});
-      fields.push({id:'gender', label:'Gender', type:'select', opts:[{value:'m', label:'m'}, {value:'f', label:'f'}, {value:'n', label:'n'}]});
+      fields.push({id:'case', label:'Case', type:'select', opts: parsingOptions('case', ['n','a','g','d','v'])});
+      fields.push({id:'number', label:'Number', type:'select', opts: parsingOptions('number', ['s','p','d'])});
+      fields.push({id:'gender', label:'Gender', type:'select', opts: parsingOptions('gender', ['m','f','n','c'])});
     } else if(compactMoodCode!=='n'){
-      fields.push({id:'person', label:'Person/Num', type:'select', opts:['1s','2s','3s','1p','2p','3p']});
+      fields.push({id:'person', label:'Person/Num', type:'select', opts: parsingOptions('person', ['1s','2s','3s','1p','2p','3p'])});
     }
     return fields;
   }
 }
 
-function parseHasSelection(qn, fieldId, val){
+function getExpectedParsingValue(qn, fieldId){
   const bits = (qn.parse||'').toLowerCase().split('-').filter(Boolean);
   const lang = (qn.lang||state.lang||'greek').toLowerCase();
   const compactGreekVerb = lang==='greek' && bits[0]==='v' && /^[a-z]{3}$/.test(bits[1]||'');
-  if(compactGreekVerb && fieldId==='tense') return {pres:'p', impf:'i', fut:'f', aor:'a', perf:'r', plup:'l'}[val] === bits[1][0];
-  if(compactGreekVerb && fieldId==='voice') return {act:'a', mid:'m', pas:'p'}[val] === bits[1][1];
-  if(compactGreekVerb && fieldId==='mood') return {ind:'i', subj:'s', opt:'o', imp:'m', inf:'n', ptc:'p'}[val] === bits[1][2];
-  if(compactGreekVerb && fieldId==='case') return bits[2]?.[0]===val;
-  if(compactGreekVerb && fieldId==='number') return bits[2]?.[1]===val;
-  if(compactGreekVerb && fieldId==='gender') return bits[2]?.[2]===val;
-  if(fieldId==='case') return bits[1]?.[0]===val;
-  if(fieldId==='number'){
-    if(lang==='hebrew') return bits.some(bit => bit.includes(val));
-    return bits[1]?.[1]===val;
+  const morphGntGreekVerb = lang==='greek' && bits[0]==='v' && /^[123-][a-z-]{3}$/.test(bits[1]||'');
+  if(compactGreekVerb){
+    if(fieldId==='tense') return normalizeParsingCode('tense', bits[1][0]);
+    if(fieldId==='voice') return normalizeParsingCode('voice', bits[1][1]);
+    if(fieldId==='mood') return normalizeParsingCode('mood', bits[1][2]);
+    if(fieldId==='case') return bits[2]?.[0] || '';
+    if(fieldId==='number') return bits[2]?.[1] || '';
+    if(fieldId==='gender') return bits[2]?.[2] || '';
   }
-  if(fieldId==='gender'){
-    if(lang==='hebrew') return bits.some(bit => bit.includes(val));
-    return bits[1]?.[2]===val;
+  if(morphGntGreekVerb){
+    if(fieldId==='tense') return normalizeParsingCode('tense', bits[1][1]);
+    if(fieldId==='voice') return normalizeParsingCode('voice', bits[1][2]);
+    if(fieldId==='mood') return normalizeParsingCode('mood', bits[1][3]);
+    if(fieldId==='person') return `${bits[1][0]}${bits[2]?.[0] || ''}`.replace(/^-/, '');
+    if(fieldId==='case') return bits[2]?.[0] || '';
+    if(fieldId==='number') return bits[2]?.[1] || '';
+    if(fieldId==='gender') return bits[2]?.[2] || '';
   }
-  if(fieldId==='person') return bits.some(bit => bit===val);
-  return bits.includes(val);
+  if(lang==='hebrew'){
+    if(fieldId==='stem') return bits[1] || '';
+    if(fieldId==='form') return bits[2] || '';
+    if(fieldId==='person') return bits[3] || '';
+    if(fieldId==='gender') return bits[1]?.[0] || '';
+    if(fieldId==='number') return bits[1]?.[1] || '';
+  }
+  if(fieldId==='case') return bits[1]?.[0] || '';
+  if(fieldId==='number') return bits[1]?.[1] || '';
+  if(fieldId==='gender') return bits[1]?.[2] || '';
+  if(fieldId==='person') return bits.find(bit => /^[123][sp]$/.test(bit)) || '';
+  if(fieldId==='tense') return bits[1] || '';
+  if(fieldId==='voice') return bits[2] || '';
+  if(fieldId==='mood') return bits[3] || '';
+  return '';
+}
+
+function parseHasSelection(qn, fieldId, val){
+  return getExpectedParsingValue(qn, fieldId) === val;
+}
+
+function formatParsingValue(fieldId, val){
+  return PARSING_LABELS[fieldId]?.[val] || val || '—';
 }
 
 function checkParsingAnswer(reveal=false){
   const idx = parsingSession.idx;
   const qn = parsingSession.questions[idx];
   if(!qn) return;
-  const p = (qn.parse||'').toLowerCase();
   const fields = getParsingFields(qn);
   let correct=0; let total=0; const lines=[];
   fields.forEach(f=>{
@@ -868,7 +969,10 @@ function checkParsingAnswer(reveal=false){
     const val = el.value; total++;
     const ok = parseHasSelection(qn, f.id, val);
     if(ok) correct++;
-    lines.push({ ok, text: ok ? `✓ ${f.label}: ${val}` : `✗ ${f.label}: you said "${val}" — ${parseSummary(qn)}` });
+    const expected = getExpectedParsingValue(qn, f.id);
+    const said = formatParsingValue(f.id, val);
+    const answer = formatParsingValue(f.id, expected);
+    lines.push({ ok, text: ok ? `✓ ${f.label}: ${said}` : `✗ ${f.label}: you said ${said}; correct is ${answer}` });
   });
   pendingParsingResult = { grammarCorrect: correct===total, correct, total };
 
@@ -1138,7 +1242,7 @@ function wireEvents(){
   $('#freqMin')?.addEventListener('input', ()=>{ readFiltersFromDOM(); renderList(); });
   $('#freqMax')?.addEventListener('input', ()=>{ readFiltersFromDOM(); renderList(); });
   $('#dueOnlyToggle')?.addEventListener('change', ()=>{ readFiltersFromDOM(); renderList(); });
-  $('#grammarSelect')?.addEventListener('change', ()=>{ readFiltersFromDOM(); renderList(); renderLemmaPicker(); });
+  $('#grammarPosSelect')?.addEventListener('change', ()=>{ readFiltersFromDOM(); updateGrammarOptions(); renderList(); renderLemmaPicker(); });
   $('#sortSelect')?.addEventListener('change', ()=>renderList());
 
   // Flashcard

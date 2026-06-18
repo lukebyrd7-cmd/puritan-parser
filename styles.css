@@ -177,6 +177,9 @@ select.input { cursor: pointer; }
 .due-toggle-wrap { display: flex; align-items: center; gap: 5px; cursor: pointer; }
 .due-toggle-wrap input[type="checkbox"] { cursor: pointer; accent-color: var(--accent); }
 .filter-entries { font-size: 12px; color: var(--muted); margin-left: auto; white-space: nowrap; }
+.grammar-filter-group { align-items: flex-start; }
+.grammar-filter-controls { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.grammar-feature-filters { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
 .grammar-select { min-width: 160px; }
 
 /* ===== PANELS ===== */

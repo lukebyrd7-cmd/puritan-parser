@@ -215,24 +215,68 @@
     return { raw, family: 'indeclinable', label, details: [], summary: label };
   }
 
+  const GRAMMAR_DETAIL_GROUPS = [
+    { group: 'Case', prefix: 'Case', values: new Set(Object.values(CASES)) },
+    { group: 'Number', prefix: 'Number', values: new Set(Object.values(NUMBERS)) },
+    { group: 'Gender', prefix: 'Gender', values: new Set(Object.values(GENDERS)) },
+    { group: 'Tense', prefix: 'Tense', values: new Set(Object.values(GREEK_TENSES).concat(Object.values(GREEK_COMPACT_TENSES))) },
+    { group: 'Voice', prefix: 'Voice', values: new Set(Object.values(GREEK_VOICES).concat(Object.values(GREEK_COMPACT_VOICES))) },
+    { group: 'Mood', prefix: 'Mood', values: new Set(Object.values(GREEK_MOODS).concat(Object.values(GREEK_COMPACT_MOODS))) },
+    { group: 'Hebrew stem', prefix: 'Stem', values: new Set(Object.values(HEBREW_STEMS)) },
+    { group: 'Hebrew form', prefix: 'Form', values: new Set(Object.values(HEBREW_FORMS)) }
+  ];
+
+  const GRAMMAR_GROUP_ORDER = {
+    'Major categories': 0,
+    'Case': 1,
+    'Number': 2,
+    'Gender': 3,
+    'Tense': 4,
+    'Voice': 5,
+    'Mood': 6,
+    'Hebrew stem': 7,
+    'Hebrew form': 8,
+    'Part of speech': 9,
+    'Other': 10
+  };
+
+  function grammarDetailMeta(detail, lang) {
+    const language = norm(lang).toLowerCase();
+    const groups = language === 'hebrew'
+      ? GRAMMAR_DETAIL_GROUPS.filter(group => ['Hebrew stem', 'Hebrew form', 'Gender', 'Number'].includes(group.group))
+      : GRAMMAR_DETAIL_GROUPS.filter(group => !group.group.startsWith('Hebrew'));
+    const match = groups.find(group => group.values.has(detail));
+    if (!match) return { group: 'Other', label: detail };
+    return { group: match.group, label: `${match.prefix}: ${detail}` };
+  }
+
   function grammarCategories(items, lang) {
     const counts = new Map();
+    const add = (id, label, group = 'Other') => {
+      const prev = counts.get(id);
+      counts.set(id, { id, label, group, count: (prev?.count || 0) + 1 });
+    };
     items.forEach(item => {
       const dec = decodeParse(item.parse, lang || item.lang);
-      const tokens = tokenList(item.parse);
-      const add = (id, label) => counts.set(id, { id, label, count: (counts.get(id)?.count || 0) + 1 });
+      if (item.pos) add(`pos:${String(item.pos).toLowerCase()}`, `Part of speech: ${item.pos}`, 'Part of speech');
       if (dec.family === 'nominal') {
-        add('nominals', 'All nominals');
-        dec.details.forEach(detail => add(`detail:${detail}`, detail));
+        add('nominals', 'All nominals', 'Major categories');
+        dec.details.forEach(detail => {
+          const meta = grammarDetailMeta(detail, lang || item.lang);
+          add(`detail:${detail}`, meta.label, meta.group);
+        });
       } else if (dec.family === 'verb') {
-        add('verbs', 'All verbs');
-        dec.details.forEach(detail => add(`detail:${detail}`, detail));
-      } else if (item.pos) {
-        add(`pos:${String(item.pos).toLowerCase()}`, item.pos);
+        add('verbs', 'All verbs', 'Major categories');
+        dec.details.forEach(detail => {
+          const meta = grammarDetailMeta(detail, lang || item.lang);
+          add(`detail:${detail}`, meta.label, meta.group);
+        });
       }
-      tokens.forEach(token => add(`token:${token}`, token.toUpperCase()));
     });
-    return Array.from(counts.values()).sort((a, b) => b.count - a.count || a.label.localeCompare(b.label));
+    return Array.from(counts.values()).sort((a, b) => {
+      const groupDiff = (GRAMMAR_GROUP_ORDER[a.group] ?? 99) - (GRAMMAR_GROUP_ORDER[b.group] ?? 99);
+      return groupDiff || b.count - a.count || a.label.localeCompare(b.label);
+    });
   }
 
   function matchesGrammarCategory(item, categoryId, lang) {

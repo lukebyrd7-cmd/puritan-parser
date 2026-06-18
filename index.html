@@ -87,11 +87,14 @@
         <input id="freqMax" type="number" class="input" value="9999" min="1" max="99999" placeholder="max" title="Max frequency" />
       </div>
     </div>
-    <div class="filter-bar-group">
+    <div class="filter-bar-group grammar-filter-group">
       <span class="filter-label">Grammar</span>
-      <select id="grammarSelect" class="input grammar-select">
-        <option value="all">All grammar</option>
-      </select>
+      <div id="grammarFilterControls" class="grammar-filter-controls">
+        <select id="grammarPosSelect" class="input grammar-select">
+          <option value="all">All parts of speech</option>
+        </select>
+        <div id="grammarFeatureFilters" class="grammar-feature-filters"></div>
+      </div>
     </div>
     <!-- Due only toggle -->
     <div class="filter-bar-group">
@@ -441,6 +444,6 @@ const svgFallback = `<svg xmlns="http://www.w3.org/2000/svg" width="38" height="
 </script>
 
 <script src="src/parser-core.js"></script>
-<script src="app.js?v=self-grade-parsing"></script>
+<script src="app.js?v=grammar-multi-filters"></script>
 </body>
 </html>
