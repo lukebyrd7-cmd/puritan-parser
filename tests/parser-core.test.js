@@ -44,9 +44,14 @@ test('builds and matches grammar categories', () => {
     { word: 'λόγος', lang: 'greek', pos: 'noun', parse: 'N-NSM' },
     { word: 'λέγω', lang: 'greek', pos: 'verb', parse: 'V-PRES-ACT-1S' }
   ];
-  const cats = grammarCategories(rows, 'greek').map(cat => cat.id);
+  const categories = grammarCategories(rows, 'greek');
+  const cats = categories.map(cat => cat.id);
   assert.ok(cats.includes('nominals'));
   assert.ok(cats.includes('verbs'));
+  assert.ok(categories.some(cat => cat.id === 'pos:noun' && cat.label === 'Part of speech: noun'));
+  assert.ok(categories.some(cat => cat.id === 'pos:verb' && cat.label === 'Part of speech: verb'));
+  assert.ok(categories.some(cat => cat.id === 'detail:nominative' && cat.label === 'Case: nominative' && cat.group === 'Case'));
+  assert.equal(cats.some(id => id.startsWith('token:')), false);
   assert.equal(matchesGrammarCategory(rows[0], 'detail:nominative', 'greek'), true);
   assert.equal(matchesGrammarCategory(rows[1], 'detail:nominative', 'greek'), false);
 });
