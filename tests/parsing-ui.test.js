@@ -17,7 +17,13 @@ function loadAppParsingHelpers() {
     localStorage: { getItem: () => null, setItem() {} }
   };
   vm.createContext(context);
-  vm.runInContext(fs.readFileSync('app.js', 'utf8').replace(/\ninit\(\);\s*$/, '\n'), context);
+  [
+    'src/app-state.js',
+    'src/ui/dom.js',
+    'src/core/filters.js',
+    'src/features/vocab/index.js',
+    'src/features/parsing/index.js'
+  ].forEach(file => vm.runInContext(fs.readFileSync(file, 'utf8').replace(/\ninit\(\);\s*$/, '\n'), context));
   return context;
 }
 
