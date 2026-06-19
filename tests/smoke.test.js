@@ -21,3 +21,23 @@ test('smoke: flashcards, parsing, dashboard, settings, and import/export control
     assert.match(html, new RegExp(`id="${id}"`));
   });
 });
+
+test('smoke: service worker precaches every startup module from src/main.js', () => {
+  const main = fs.readFileSync('src/main.js', 'utf8');
+  const sw = fs.readFileSync('sw.js', 'utf8');
+  const startupScripts = [...main.matchAll(/'([^']+\.js)'/g)].map(match => `./${match[1]}`);
+  const missing = startupScripts.filter(script => !sw.includes(`'${script}'`));
+  assert.deepEqual(missing, []);
+});
+
+test('smoke: service worker keeps large JSON out of the install precache', () => {
+  const sw = fs.readFileSync('sw.js', 'utf8');
+  assert.doesNotMatch(sw, /'\.\/vocab_all\.json'/);
+  assert.match(sw, /url\.pathname\.endsWith\('\.json'\)/);
+  assert.match(sw, /cache\.put\(evt\.request, copy\)/);
+});
+
+test('smoke: Vercel rewrites deep links to the app shell', () => {
+  const vercel = JSON.parse(fs.readFileSync('vercel.json', 'utf8'));
+  assert.deepEqual(vercel.rewrites, [{ source: '/(.*)', destination: '/index.html' }]);
+});
