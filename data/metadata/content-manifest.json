@@ -9,10 +9,10 @@
       "type": "vocabulary",
       "path": "vocab_all.json",
       "version": "0.1.0",
-      "source": "The Puritan Parser seed vocabulary",
-      "sourceUrl": "",
-      "license": "Project-local seed data; verify any upstream source before expansion.",
-      "attribution": "The Puritan Parser contributors",
+      "source": "The Puritan Parser seed vocabulary; MorphGNT SBLGNT-derived forms; contributor-authored high-frequency Greek gloss normalization",
+      "sourceUrl": "https://github.com/morphgnt/sblgnt",
+      "license": "Project-local seed data with MorphGNT/SBLGNT-derived Greek vocabulary metadata where noted; high-frequency Greek gloss normalization is contributor-authored from existing project glosses and public-domain/common lexical knowledge. Do not copy proprietary lexicon wording.",
+      "attribution": "The Puritan Parser contributors; MorphGNT/SBLGNT contributors for source Greek morphology where noted.",
       "loadStrategy": "startup-small"
     },
     {
