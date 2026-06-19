@@ -76,15 +76,15 @@
 
   const HEBREW_STEMS = {
     qal: 'Qal',
-    nifal: 'Nifal',
+    nifal: 'Niphal',
     niphal: 'Niphal',
     piel: 'Piel',
     pual: 'Pual',
-    hifil: 'Hifil',
+    hifil: 'Hiphil',
     hiphil: 'Hiphil',
-    hofal: 'Hofal',
+    hofal: 'Hophal',
     hophal: 'Hophal',
-    hitpael: 'Hitpael',
+    hitpael: 'Hithpael',
     hishtafel: 'Hishtafel',
     poel: 'Poel',
     polal: 'Polal',
@@ -219,6 +219,7 @@
     { group: 'Case', prefix: 'Case', values: new Set(Object.values(CASES)) },
     { group: 'Number', prefix: 'Number', values: new Set(Object.values(NUMBERS)) },
     { group: 'Gender', prefix: 'Gender', values: new Set(Object.values(GENDERS)) },
+    { group: 'State', prefix: 'State', values: new Set(['absolute', 'construct', 'determined']) },
     { group: 'Tense', prefix: 'Tense', values: new Set(Object.values(GREEK_TENSES).concat(Object.values(GREEK_COMPACT_TENSES))) },
     { group: 'Voice', prefix: 'Voice', values: new Set(Object.values(GREEK_VOICES).concat(Object.values(GREEK_COMPACT_VOICES))) },
     { group: 'Mood', prefix: 'Mood', values: new Set(Object.values(GREEK_MOODS).concat(Object.values(GREEK_COMPACT_MOODS))) },
@@ -234,16 +235,17 @@
     'Tense': 4,
     'Voice': 5,
     'Mood': 6,
-    'Hebrew stem': 7,
-    'Hebrew form': 8,
-    'Part of speech': 9,
-    'Other': 10
+    'State': 7,
+    'Hebrew stem': 8,
+    'Hebrew form': 9,
+    'Part of speech': 10,
+    'Other': 11
   };
 
   function grammarDetailMeta(detail, lang) {
     const language = norm(lang).toLowerCase();
     const groups = language === 'hebrew'
-      ? GRAMMAR_DETAIL_GROUPS.filter(group => ['Hebrew stem', 'Hebrew form', 'Gender', 'Number'].includes(group.group))
+      ? GRAMMAR_DETAIL_GROUPS.filter(group => ['Hebrew stem', 'Hebrew form', 'Gender', 'Number', 'State'].includes(group.group))
       : GRAMMAR_DETAIL_GROUPS.filter(group => !group.group.startsWith('Hebrew'));
     const match = groups.find(group => group.values.has(detail));
     if (!match) return { group: 'Other', label: detail };

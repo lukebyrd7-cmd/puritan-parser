@@ -227,9 +227,14 @@
             <span class="small muted">Mode</span>
             <select id="parsingMode" class="input">
               <option value="mixed">Mixed</option>
-              <option value="nouns">Nouns</option>
+              <option value="nouns">Nominals</option>
               <option value="verbs">Verbs</option>
               <option value="wordforms">Word Forms</option>
+              <option value="weak">Review weak areas</option>
+              <option value="misses">Review today's misses</option>
+              <option value="participles">Drill participles</option>
+              <option value="construct">Drill construct nouns</option>
+              <option value="aorists">Drill aorists</option>
             </select>
           </div>
           <div style="display:flex;gap:6px;align-items:center" id="parsingCountWrap">
@@ -250,6 +255,7 @@
             </select>
           </label>
           <div id="parsingDetailFilters" class="parsing-detail-filters"></div>
+          <div class="small muted" id="parsingMatchCount" style="margin-top:8px">0 parseable forms match these filters</div>
         </div>
         <!-- Word forms lemma picker (hidden unless wordforms mode) -->
         <div id="lemmaPicker" class="hidden" style="margin-top:12px">

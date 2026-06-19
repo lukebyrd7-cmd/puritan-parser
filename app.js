@@ -13,6 +13,7 @@ const ParserCore = window.PuritanParserCore || {};
 const LIST_RENDER_LIMIT = 500;
 const GREEK_NUMBER_OPTIONS = ['s','p'];
 const HEBREW_NUMBER_OPTIONS = ['s','p','d'];
+const HEBREW_STEM_ALIASES = { nifal:'niphal', niphal:'niphal', hifil:'hiphil', hiphil:'hiphil', hofal:'hophal', hophal:'hophal', hitpael:'hithpael', hithpael:'hithpael' };
 
 const DEFAULTS = {
   accent: '#4e8f6e',
@@ -86,7 +87,9 @@ function saveVocab(lang){
         interval: it.interval,
         repetitions: it.repetitions,
         due: it.due,
-        history: it.history
+        history: it.history,
+        parsing: it.parsing,
+        vocab: it.vocab
       };
     });
     localStorage.setItem(lang==='greek'?LS_VOCAB_GREEK:LS_VOCAB_HEBREW, JSON.stringify(compact));
@@ -105,7 +108,7 @@ function applyStoredVocab(lang){
       if(!saved || typeof saved!=='object') return;
       const target = saved.id ? byId.get(saved.id) : null;
       if(target){
-        ['ease','interval','repetitions','due','history'].forEach(key=>{
+        ['ease','interval','repetitions','due','history','parsing','vocab'].forEach(key=>{
           if(saved[key] !== undefined) target[key] = saved[key];
         });
       } else if(saved.source==='Imported' && saved.word && saved.gloss){
@@ -126,6 +129,8 @@ function ensureSRS(item){
   if(typeof item.repetitions !== 'number') item.repetitions = 0;
   if(!item.due) item.due = todayISO();
   if(!Array.isArray(item.history)) item.history = [];
+  if(!item.parsing) item.parsing = { attempts: 0, correct: 0, streak: 0, misses: {}, todayMisses: [] };
+  if(!item.vocab) item.vocab = { attempts: 0, correct: 0 };
   if(!item.id) item.id = `${item.lang||'x'}-${uid()}`;
   return item;
 }
@@ -312,7 +317,7 @@ function parsingFilterSpecs(lang, family){
   if(family === 'verbs'){
     return language === 'hebrew'
       ? [
-        {id:'stem', label:'Stem', options:['qal','nifal','piel','pual','hifil','hofal','hitpael']},
+        {id:'stem', label:'Stem', options:['qal','niphal','piel','pual','hiphil','hophal','hithpael']},
         {id:'form', label:'Form', options:['perf','impf','wayyiqtol','imp','inf','ptc']},
         {id:'person', label:'Person/Gender/Number', options:['1cs','2ms','2fs','3ms','3fs','1cp','2mp','2fp','3mp','3fp']}
       ]
@@ -353,7 +358,8 @@ function updateParsingFilterOptions(){
   }).join('');
   detailWrap.innerHTML = (groupTitle ? `<div class="parsing-filter-group-title">${escHtml(groupTitle)}</div>` : '') + controls;
   state.parsingFilters = readParsingFiltersFromDOM();
-  $$('.parsing-filter-select').forEach(sel => sel.addEventListener('change', () => { state.parsingFilters = readParsingFiltersFromDOM(); renderLemmaPicker(); }));
+  updateParsingMatchCount();
+  $$('.parsing-filter-select').forEach(sel => sel.addEventListener('change', () => { state.parsingFilters = readParsingFiltersFromDOM(); cleanParsingFiltersForMode(); updateParsingFilterOptions(); renderLemmaPicker(); updateParsingMatchCount(); }));
 }
 
 function parsingFamily(item){
@@ -406,7 +412,7 @@ function showView(viewId){
 
   if(viewId==='dashboardView') renderDashboard();
   if(viewId==='listView') renderList();
-  if(viewId==='parsingView') { updateParsingFilterOptions(); renderLemmaPicker(); }
+  if(viewId==='parsingView') { updateParsingModeUI(); renderLemmaPicker(); }
 
   const fl = $('#footerLang');
   if(fl) fl.textContent = `${state.lang==='greek'?'Greek (GNT)':'Hebrew'} — ${getCurrentList().length} words loaded`;
@@ -416,7 +422,7 @@ function showView(viewId){
 function setLang(lang){
   const previousLang = state.lang;
   state.lang = lang;
-  if(previousLang !== lang) state.parsingFilters = { family: state.parsingFilters?.family || 'all', details: {} };
+  if(previousLang !== lang) { selectedLemma = null; state.parsingFilters = { family: parsingModeFamily() || state.parsingFilters?.family || 'all', details: {} }; }
   $$('[data-lang]').forEach(b=>b.classList.toggle('active', b.dataset.lang===lang));
   updatePosOptions();
   updateParsingFilterOptions();
@@ -747,11 +753,48 @@ function recordReview(quality){
 }
 
 /* ---------- PARSING PRACTICE ---------- */
+function parsingModeFamily(mode = $('#parsingMode')?.value || 'mixed'){
+  if(mode === 'nouns' || mode === 'construct') return 'nominals';
+  if(mode === 'verbs' || ['participles','aorists'].includes(mode)) return 'verbs';
+  return null;
+}
+function cleanParsingFiltersForMode(mode = $('#parsingMode')?.value || 'mixed'){
+  const forced = parsingModeFamily(mode);
+  const current = state.parsingFilters || { family:'all', details:{} };
+  const family = forced || (['all','nominals','verbs'].includes(current.family) ? current.family : 'all');
+  const valid = new Set(parsingFilterSpecs(state.lang, family).map(spec => spec.id));
+  const details = {};
+  Object.entries(current.details || {}).forEach(([key, value]) => { if(valid.has(key)) details[key] = value; });
+  if(mode === 'construct') details.state = 'c';
+  if(mode === 'participles') details.mood = 'ptc';
+  if(mode === 'aorists') details.tense = 'aor';
+  state.parsingFilters = { family, details };
+}
+function parsingPool(){
+  cleanParsingFiltersForMode();
+  let pool = applyRangeDueFilter(getCurrentList()).filter(isParseDrillable).filter(item => matchesParsingFilters(item));
+  const mode = $('#parsingMode')?.value || 'mixed';
+  const today = todayISO();
+  if(mode === 'weak') pool = pool.filter(isWeakParsingItem);
+  if(mode === 'misses') pool = pool.filter(it => (it.parsing?.todayMisses || []).includes(today));
+  return pool;
+}
+function updateParsingMatchCount(){
+  const el = $('#parsingMatchCount'); if(!el) return;
+  const count = parsingPool().length;
+  el.textContent = `${count} parseable form${count===1?'':'s'} match these filters`;
+}
 function updateParsingModeUI(){
   const mode = $('#parsingMode')?.value||'mixed';
+  cleanParsingFiltersForMode(mode);
   const isWordForms = mode==='wordforms';
+  const forced = parsingModeFamily(mode);
   $('#parsingCountWrap')?.classList.toggle('hidden', isWordForms);
   $('#lemmaPicker')?.classList.toggle('hidden', !isWordForms);
+  const familySelect = $('#parsingFamilySelect');
+  if(familySelect) familySelect.disabled = !!forced && !['wordforms','mixed'].includes(mode);
+  updateParsingFilterOptions();
+  updateParsingMatchCount();
   if(isWordForms) renderLemmaPicker();
 }
 
@@ -759,13 +802,14 @@ function renderLemmaPicker(){
   readFiltersFromDOM();
   const search = ($('#lemmaSearch')?.value||'').toLowerCase();
   state.parsingFilters = readParsingFiltersFromDOM();
-  const pool = applyRangeDueFilter(getCurrentList()).filter(isParseDrillable).filter(item => matchesParsingFilters(item));
+  const pool = parsingPool();
   // Group by lemma
   const lemmaMap = {};
   pool.forEach(it=>{
     const l = it.lemma||it.word||'';
-    if(!lemmaMap[l]) lemmaMap[l]=0;
-    lemmaMap[l]++;
+    if(!lemmaMap[l]) lemmaMap[l]={ total:0, unmastered:0 };
+    lemmaMap[l].total++;
+    if((it.parsing?.streak || 0) < 2) lemmaMap[l].unmastered++;
   });
   const lemmas = Object.entries(lemmaMap)
     .filter(([l])=>!search||l.toLowerCase().includes(search))
@@ -776,9 +820,9 @@ function renderLemmaPicker(){
     ll.innerHTML = `<div class="lemma-item"><span class="muted small">No parseable lemmas found</span></div>`;
     return;
   }
-  ll.innerHTML = lemmas.map(([l,cnt])=>
+  ll.innerHTML = lemmas.map(([l,stats])=>
     `<div class="lemma-item${selectedLemma===l?' selected':''}" data-lemma="${escHtml(l)}">`+
-    `<span>${escHtml(l)}</span><span class="lemma-count">${cnt} form${cnt!==1?'s':''}</span></div>`
+    `<span>${escHtml(l)}</span><span class="lemma-count">${stats.total} form${stats.total!==1?'s':''}${stats.unmastered ? ` · ${stats.unmastered} not mastered` : ' · mastered'}</span></div>`
   ).join('');
   $$('#lemmaList .lemma-item').forEach(el=>{
     el.addEventListener('click',()=>{
@@ -797,7 +841,7 @@ function startParsing(){
   if(mode==='wordforms'){
     if(!selectedLemma){ toast('Please select a lemma first.','danger'); return; }
     state.parsingFilters = readParsingFiltersFromDOM();
-    const pool = applyRangeDueFilter(getCurrentList()).filter(it=>isParseDrillable(it) && matchesParsingFilters(it) && (it.lemma||it.word||'')=== selectedLemma);
+    const pool = parsingPool().filter(it=>(it.lemma||it.word||'')=== selectedLemma);
     if(!pool.length){
       toast(`No parseable forms found for "${selectedLemma}".`,'danger'); return;
     }
@@ -812,9 +856,7 @@ function startParsing(){
 
   const count = Number($('#parsingCount')?.value)||10;
   state.parsingFilters = readParsingFiltersFromDOM();
-  let pool = applyRangeDueFilter(getCurrentList()).filter(isParseDrillable).filter(item => matchesParsingFilters(item));
-  if(mode==='nouns') pool=pool.filter(it=>parsingFamily(it)==='nominal');
-  else if(mode==='verbs') pool=pool.filter(it=>parsingFamily(it)==='verb');
+  let pool = parsingPool();
   if(!pool.length){
     toast('No parseable words found. Words need a "parse" field in your vocab JSON (e.g. "parse":"N-NSM").','danger'); return;
   }
@@ -903,7 +945,7 @@ const PARSING_LABELS = {
   tense: { pres:'present', impf:'imperfect', fut:'future', aor:'aorist', perf:'perfect', plup:'pluperfect' },
   voice: { act:'active', mid:'middle', pas:'passive', mp:'middle/passive' },
   mood: { ind:'indicative', subj:'subjunctive', opt:'optative', imp:'imperative', inf:'infinitive', ptc:'participle' },
-  stem: { qal:'Qal', nifal:'Nifal', piel:'Piel', pual:'Pual', hifil:'Hifil', hofal:'Hofal', hitpael:'Hitpael' },
+  stem: { qal:'Qal', nifal:'Niphal', niphal:'Niphal', piel:'Piel', pual:'Pual', hifil:'Hiphil', hiphil:'Hiphil', hofal:'Hophal', hophal:'Hophal', hitpael:'Hithpael', hithpael:'Hithpael' },
   form: { perf:'perfect', impf:'imperfect', wayyiqtol:'wayyiqtol', imp:'imperative', inf:'infinitive', ptc:'participle' },
   state: { a:'absolute', c:'construct', d:'determined' },
   person: { '1s':'1st person singular', '2s':'2nd person singular', '3s':'3rd person singular', '1p':'1st person plural', '2p':'2nd person plural', '3p':'3rd person plural', '1cs':'1st person common singular', '2ms':'2nd person masculine singular', '2fs':'2nd person feminine singular', '3ms':'3rd person masculine singular', '3fs':'3rd person feminine singular', '1cp':'1st person common plural', '2mp':'2nd person masculine plural', '2fp':'2nd person feminine plural', '3mp':'3rd person masculine plural', '3fp':'3rd person feminine plural' }
@@ -919,6 +961,7 @@ function parsingOptions(fieldId, values){
 
 function normalizeParsingCode(type, code){
   const lower = String(code || '').toLowerCase();
+  if(type==='stem') return HEBREW_STEM_ALIASES[lower] || lower;
   const maps = {
     tense: { p:'pres', i:'impf', f:'fut', a:'aor', r:'perf', l:'plup', x:'perf' },
     voice: { a:'act', m:'mid', p:'pas', n:'mp' },
@@ -945,12 +988,13 @@ function getParsingFields(qn){
     } else {
       fields.push({id:'gender', label:'Gender', type:'select', opts: parsingOptions('gender', ['m','f','c'])});
       fields.push({id:'number', label:'Number', type:'select', opts: parsingOptions('number', HEBREW_NUMBER_OPTIONS)});
+      fields.push({id:'state', label:'State', type:'select', opts: parsingOptions('state', ['a','c','d'])});
     }
     return fields;
   } else {
     if(lang==='hebrew'){
       return [
-        {id:'stem', label:'Stem', type:'select', opts: parsingOptions('stem', ['qal','nifal','piel','pual','hifil','hofal','hitpael'])},
+        {id:'stem', label:'Stem', type:'select', opts: parsingOptions('stem', ['qal','niphal','piel','pual','hiphil','hophal','hithpael'])},
         {id:'form', label:'Form', type:'select', opts: parsingOptions('form', ['perf','impf','wayyiqtol','imp','inf','ptc'])},
         {id:'person', label:'Person/Gender/Num', type:'select', opts: parsingOptions('person', ['1cs','2ms','2fs','3ms','3fs','1cp','2mp','2fp','3mp','3fp'])}
       ];
@@ -995,7 +1039,7 @@ function getExpectedParsingValue(qn, fieldId){
     if(fieldId==='gender') return bits[2]?.[2] || '';
   }
   if(lang==='hebrew'){
-    if(fieldId==='stem') return bits[1] || '';
+    if(fieldId==='stem') return normalizeParsingCode('stem', bits[1] || '');
     if(fieldId==='form') return bits[2] || '';
     if(fieldId==='person') return bits[3] || '';
     if(fieldId==='gender') return bits[1]?.[0] || '';
@@ -1013,12 +1057,76 @@ function getExpectedParsingValue(qn, fieldId){
 }
 
 function parseHasSelection(qn, fieldId, val){
-  return getExpectedParsingValue(qn, fieldId) === val;
+  const expected = getExpectedParsingValue(qn, fieldId);
+  const actual = fieldId === 'stem' ? normalizeParsingCode('stem', val) : val;
+  return expected === actual;
 }
 
 function formatParsingValue(fieldId, val){
   return PARSING_LABELS[fieldId]?.[val] || val || '—';
 }
+
+
+function parsingWeakCategories(qn){
+  const cats = [];
+  const lang = (qn.lang||state.lang||'greek').toLowerCase();
+  const fields = getParsingFields(qn);
+  const val = id => getExpectedParsingValue(qn, id);
+  if(lang === 'greek'){
+    if(val('mood') === 'ptc') cats.push('participles');
+    if(val('tense') === 'aor') cats.push('aorists');
+    if(val('mood') === 'subj') cats.push('subjunctives');
+    if(val('case') === 'g') cats.push('genitives');
+    if(val('case') === 'd') cats.push('datives');
+  } else {
+    if(val('state') === 'c') cats.push('construct state');
+    if(val('stem') === 'hiphil') cats.push('Hiphil');
+    if(val('stem') === 'piel') cats.push('Piel');
+    if(val('form') === 'impf') cats.push('imperfects');
+  }
+  fields.forEach(f => cats.push(`${f.label}: ${formatParsingValue(f.id, val(f.id))}`));
+  return cats.filter(Boolean);
+}
+function isWeakParsingItem(item){
+  const p = item.parsing || {};
+  const missCount = Object.values(p.misses || {}).reduce((sum, n) => sum + Number(n || 0), 0);
+  return missCount > 0 || Number(p.streak || 0) < 2;
+}
+function recordParsingReview(item, grammarCorrect, lemmaKnown){
+  ensureSRS(item);
+  item.parsing.attempts = (item.parsing.attempts || 0) + 1;
+  item.vocab.attempts = (item.vocab.attempts || 0) + 1;
+  if(grammarCorrect) item.parsing.correct = (item.parsing.correct || 0) + 1;
+  if(lemmaKnown) item.vocab.correct = (item.vocab.correct || 0) + 1;
+  item.parsing.streak = grammarCorrect ? (item.parsing.streak || 0) + 1 : 0;
+  if(!grammarCorrect){
+    const today = todayISO();
+    item.parsing.todayMisses = Array.from(new Set([...(item.parsing.todayMisses || []).filter(d => d === today), today]));
+    item.parsing.misses = item.parsing.misses || {};
+    parsingWeakCategories(item).forEach(cat => { item.parsing.misses[cat] = (item.parsing.misses[cat] || 0) + 1; });
+  }
+  const quality = grammarCorrect && lemmaKnown ? 4 : grammarCorrect ? 3 : 2;
+  scheduleUpdate(item, quality);
+  item.history[item.history.length - 1].type = 'parsing';
+  item.history[item.history.length - 1].grammarCorrect = !!grammarCorrect;
+  item.history[item.history.length - 1].lemmaKnown = !!lemmaKnown;
+  saveVocab(item.lang || state.lang);
+  recordReview(quality);
+  updateDueBadge();
+}
+function parsingExplanation(qn, fields = getParsingFields(qn)){
+  const bits = String(qn.word || '').slice(-3);
+  const lines = fields.map(f => {
+    const value = formatParsingValue(f.id, getExpectedParsingValue(qn, f.id));
+    if(f.id === 'state') return `${value} state is marked by the nominal state code in this form.`;
+    if(f.id === 'stem') return `${value} is the verbal stem/binyan encoded in the parse.`;
+    if(f.id === 'form') return `${value} is the Hebrew verbal form encoded in the parse.`;
+    if(f.id === 'case' || f.id === 'number' || f.id === 'gender') return `${studentLabel(f.label)} is ${value}; the ending${bits ? ` (${bits})` : ''} and parse code point to it.`;
+    return `${studentLabel(f.label)} is ${value} because that slot of the parse identifies it.`;
+  });
+  return lines.slice(0, 5);
+}
+function correctParsingSummary(qn){ return getParsingFields(qn).map(f => formatParsingValue(f.id, getExpectedParsingValue(qn, f.id))).filter(Boolean).map(studentLabel).join(' '); }
 
 function checkParsingAnswer(reveal=false){
   const idx = parsingSession.idx;
@@ -1042,10 +1150,12 @@ function checkParsingAnswer(reveal=false){
   const allRight = correct===total;
   res.className = 'parsing-result';
   res.innerHTML = `<div style="font-weight:700;margin-bottom:6px">${allRight?'Grammar looks right':'Grammar: '+correct+'/'+total+' correct'}</div>`
+    + `<div><strong>Correct:</strong> ${escHtml(correctParsingSummary(qn))}</div>`
     + `<div class="small muted" style="margin-bottom:6px">${escHtml(parseSummary(qn))}</div>`
     + `<div>Lemma: <span class="serif" style="font-size:16px">${escHtml(qn.lemma||'—')}</span></div>`
     + (qn.gloss ? `<div>Gloss: ${escHtml(qn.gloss)}</div>` : '')
     + lines.map(l=>`<div class="parsing-result-line ${l.ok?'ok':'err'}">${escHtml(l.text)}</div>`).join('')
+    + (!allRight ? `<div style="font-weight:700;margin-top:8px">Explanation:</div>${parsingExplanation(qn, fields).map(line=>`<div class="small muted">${escHtml(line)}</div>`).join('')}` : '')
     + `<div class="self-grade">
         <div class="small muted">Did you know the lemma?</div>
         <button class="btn btn-primary btn-sm" id="lemmaKnownBtn">I knew it</button>
@@ -1065,7 +1175,14 @@ function finishParsingAnswer(lemmaKnown){
   if(!pendingParsingResult) return;
   const allRight = pendingParsingResult.grammarCorrect && lemmaKnown;
   if(allRight) parsingSession.correct++;
+  const answered = parsingSession.questions[idx];
+  recordParsingReview(answered, pendingParsingResult.grammarCorrect, lemmaKnown);
   parsingSession.results[idx] = allRight;
+  if(parsingSession.wordformsLemma && !allRight){
+    parsingSession.questions.push(answered);
+    parsingSession.results.push(undefined);
+    parsingSession.total++;
+  }
   parsingSession.idx++;
   pendingParsingResult = null;
 
@@ -1106,9 +1223,12 @@ function revealParsingAnswer(){
   const res = $('#parsingResult'); if(!res) return;
   res.className = 'parsing-result';
   res.innerHTML = `<div style="font-weight:700;margin-bottom:6px">Answer: <span class="mono">${escHtml(qn.parse||'—')}</span></div>
+    <div><strong>Correct:</strong> ${escHtml(correctParsingSummary(qn))}</div>
     <div class="small muted" style="margin-bottom:6px">${escHtml(parseSummary(qn))}</div>
     <div>Lemma: <span class="serif" style="font-size:16px">${escHtml(qn.lemma||'—')}</span></div>
     <div>Gloss: ${escHtml(qn.gloss||'—')}</div>
+    <div style="font-weight:700;margin-top:8px">Explanation:</div>
+    ${parsingExplanation(qn).map(line=>`<div class="small muted">${escHtml(line)}</div>`).join('')}
     <div class="self-grade">
       <button class="btn btn-primary btn-sm" id="markRevealedBtn">Got it</button>
       <button class="btn btn-ghost btn-sm" id="markMissedRevealedBtn">Missed it</button>
@@ -1302,11 +1422,11 @@ function wireEvents(){
   // Shared filter bar inputs
   const debouncedRender = debounce(()=>renderList(),150);
   $('#searchInput')?.addEventListener('input', debouncedRender);
-  $('#freqMin')?.addEventListener('input', ()=>{ readFiltersFromDOM(); renderList(); });
-  $('#freqMax')?.addEventListener('input', ()=>{ readFiltersFromDOM(); renderList(); });
-  $('#dueOnlyToggle')?.addEventListener('change', ()=>{ readFiltersFromDOM(); renderList(); });
+  $('#freqMin')?.addEventListener('input', ()=>{ readFiltersFromDOM(); renderList(); if(state.currentView==='parsingView'){ renderLemmaPicker(); updateParsingMatchCount(); } });
+  $('#freqMax')?.addEventListener('input', ()=>{ readFiltersFromDOM(); renderList(); if(state.currentView==='parsingView'){ renderLemmaPicker(); updateParsingMatchCount(); } });
+  $('#dueOnlyToggle')?.addEventListener('change', ()=>{ readFiltersFromDOM(); renderList(); if(state.currentView==='parsingView'){ renderLemmaPicker(); updateParsingMatchCount(); } });
   $('#posFilterSelect')?.addEventListener('change', ()=>{ readFiltersFromDOM(); renderList(); });
-  $('#parsingFamilySelect')?.addEventListener('change', ()=>{ state.parsingFilters = readParsingFiltersFromDOM(); updateParsingFilterOptions(); renderLemmaPicker(); });
+  $('#parsingFamilySelect')?.addEventListener('change', ()=>{ state.parsingFilters = readParsingFiltersFromDOM(); cleanParsingFiltersForMode(); updateParsingFilterOptions(); renderLemmaPicker(); updateParsingMatchCount(); });
   $('#sortSelect')?.addEventListener('change', ()=>renderList());
 
   // Flashcard
