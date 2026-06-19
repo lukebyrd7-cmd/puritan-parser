@@ -2,7 +2,7 @@
 async function init(){
   loadPrefs();
   loadDashboard();
-  const lastLang = localStorage.getItem('pp_last_lang');
+  const lastLang = getLastLanguage();
   if(lastLang) state.lang = lastLang;
   applyTheme(state.prefs.theme||'light');
   setAccent(state.prefs.accent||DEFAULTS.accent);

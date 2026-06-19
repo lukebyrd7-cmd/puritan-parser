@@ -90,7 +90,7 @@ function wireEvents(){
   });
   $('#clearAll').addEventListener('click',()=>{
     if(!confirm('Delete ALL local data? This cannot be undone.')) return;
-    [LS_VOCAB_GREEK,LS_VOCAB_HEBREW,LS_PREFS,LS_DASHBOARD].forEach(k=>localStorage.removeItem(k));
+    clearUserStorage();
     location.reload();
   });
 
