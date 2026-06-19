@@ -185,3 +185,64 @@ The Node test suite uses `node --test` and covers infrastructure and core behavi
 - Parsing UI tests load browser modules in a VM and exercise parsing helpers.
 
 Infrastructure changes should include tests in `tests/`, and smoke checks should continue to cover app load, Greek/Hebrew switching, word list rendering, flashcards, parsing, dashboard, settings save, and import/export behavior.
+
+## Content/Data Pipeline
+
+Phase 5 prepares the app for content-heavy features without shipping large datasets or new feature behavior.
+
+### Content directories
+
+Future static content has a stable home under `data/`:
+
+- `data/vocab/` for expanded vocabulary source files when they outgrow the current seed file.
+- `data/glosses/` for lexicon/gloss datasets.
+- `data/grammar/` for grammar indexes and lesson payloads.
+- `data/bible/` for licensed Greek and Hebrew Bible book files.
+- `data/indexes/` for vocabulary, gloss, grammar, and Bible search indexes.
+- `data/metadata/` for small manifests and attribution metadata that are safe to load with the app shell.
+
+Shared helpers live in `src/core/content/`. `content-metadata.js` normalizes and validates source, license, attribution, version, notes, and load-strategy fields. `content-loader.js` resolves safe relative paths and exposes lazy helpers such as `contentLoader.loadById()`, `loadGlossData()`, `loadGrammarIndex()`, `loadBibleBook()`, `loadSearchIndex()`, and `getContentMetadata()`.
+
+### Content manifest
+
+`data/metadata/content-manifest.json` describes available or planned content files. It stores metadata only; it must not embed Bible text, grammar lessons, or large gloss records. Each item should include:
+
+- `id`
+- `language`
+- `type`
+- `path`
+- `version`
+- `source` and optional `sourceUrl`
+- `license`
+- `attribution`
+- `loadStrategy`
+
+The manifest may include placeholders for future imports, but a placeholder is not permission to add content. Before importing a real dataset, verify the source, license, attribution text, and version/date.
+
+### Lazy-loading rule
+
+Large content must not be loaded at startup and must not be added to `src/main.js` or the service-worker precache list. Bible books, grammar lessons, expanded glosses, and search indexes should be listed in the manifest and loaded only when a feature requests them through `contentLoader.loadById()` or one of the domain-specific helper methods.
+
+### Attribution and copyright rules
+
+Every imported content file should have a manifest record that identifies its source name, source URL when available, license, attribution text, version/date, and notes. Do not add copyrighted Bible text, lexicon data, or grammar material without permission or a compatible license. Source text and derived search indexes should carry enough IDs to trace results back to their manifest records.
+
+### Search index plan
+
+Search indexes belong in `data/indexes/` and should be split by domain when they become large:
+
+- vocabulary search
+- gloss search
+- grammar search
+- Bible search
+
+The expected index shape is documented in `data/indexes/README.md`. Index entries should remain compact, reference source content IDs, and be lazy-loaded through the content loader instead of bundled into the app shell.
+
+### Offline/PWA caching plan
+
+`sw.js` precaches the application shell and small metadata such as the content manifest. It should not precache large Bible, grammar, gloss, or search-index files. JSON files use network-first runtime caching, so future large content is cached only after a user-facing feature requests it.
+
+### Import/export future-proofing
+
+Import/export currently focuses on vocabulary records. Future persisted exports should remain local-first and versioned through the storage/migration layer. The export envelope can grow to include user progress, preferences, notes, custom glosses, and profile data, but static source content should stay separate from user data and should not be duplicated into user backups unless explicitly required.
+

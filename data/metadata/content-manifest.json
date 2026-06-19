@@ -1,0 +1,91 @@
+{
+  "schemaVersion": 1,
+  "generated": "2026-06-19",
+  "description": "Manifest for small, discoverable content metadata. Large content files are described here and lazy-loaded on demand; they are not bundled into startup code.",
+  "items": [
+    {
+      "id": "core-vocabulary",
+      "language": "greek-hebrew",
+      "type": "vocabulary",
+      "path": "vocab_all.json",
+      "version": "0.1.0",
+      "source": "The Puritan Parser seed vocabulary",
+      "sourceUrl": "",
+      "license": "Project-local seed data; verify any upstream source before expansion.",
+      "attribution": "The Puritan Parser contributors",
+      "loadStrategy": "startup-small"
+    },
+    {
+      "id": "future-greek-glosses",
+      "language": "greek",
+      "type": "glosses",
+      "path": "data/glosses/greek-glosses.sample.json",
+      "version": "placeholder",
+      "source": "Placeholder only",
+      "sourceUrl": "",
+      "license": "TBD before import",
+      "attribution": "Do not add gloss data until source rights are verified.",
+      "loadStrategy": "lazy"
+    },
+    {
+      "id": "future-hebrew-glosses",
+      "language": "hebrew",
+      "type": "glosses",
+      "path": "data/glosses/hebrew-glosses.sample.json",
+      "version": "placeholder",
+      "source": "Placeholder only",
+      "sourceUrl": "",
+      "license": "TBD before import",
+      "attribution": "Do not add gloss data until source rights are verified.",
+      "loadStrategy": "lazy"
+    },
+    {
+      "id": "future-grammar-index",
+      "language": "greek-hebrew",
+      "type": "grammar",
+      "path": "data/grammar/grammar-index.sample.json",
+      "version": "placeholder",
+      "source": "Placeholder only",
+      "sourceUrl": "",
+      "license": "TBD before import",
+      "attribution": "No grammar lessons are included in this manifest entry.",
+      "loadStrategy": "lazy"
+    },
+    {
+      "id": "future-greek-bible",
+      "language": "greek",
+      "type": "bible",
+      "path": "data/bible/greek/books/{book}.json",
+      "version": "placeholder",
+      "source": "Placeholder only",
+      "sourceUrl": "",
+      "license": "TBD before import",
+      "attribution": "Do not add copyrighted Bible text without permission.",
+      "loadStrategy": "lazy"
+    },
+    {
+      "id": "future-hebrew-bible",
+      "language": "hebrew",
+      "type": "bible",
+      "path": "data/bible/hebrew/books/{book}.json",
+      "version": "placeholder",
+      "source": "Placeholder only",
+      "sourceUrl": "",
+      "license": "TBD before import",
+      "attribution": "Do not add copyrighted Bible text without permission.",
+      "loadStrategy": "lazy"
+    },
+    {
+      "id": "future-search-indexes",
+      "language": "greek-hebrew",
+      "type": "search-index",
+      "path": "data/indexes/search-index-manifest.sample.json",
+      "version": "placeholder",
+      "source": "Placeholder only",
+      "sourceUrl": "",
+      "license": "TBD before import",
+      "attribution": "Index entries should carry source IDs back to content manifest records.",
+      "loadStrategy": "lazy"
+    }
+  ]
+}
