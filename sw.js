@@ -1,6 +1,6 @@
 // Service worker for the static Puritan Parser app.
 // Keep this file next to index.html so navigator.serviceWorker.register('./sw.js') works.
-const CACHE = 'puritan-parser-v5';
+const CACHE = 'puritan-parser-v6';
 const FILES = [
   './',
   './index.html',
@@ -10,7 +10,12 @@ const FILES = [
   './src/app-state.js',
   './src/ui/dom.js',
   './src/ui/toast.js',
-  './src/core/storage.js',
+  './src/core/storage/storage.js',
+  './src/core/storage/vocab-storage.js',
+  './src/core/storage/prefs-storage.js',
+  './src/core/storage/dashboard-storage.js',
+  './src/core/source-data/vocab-source.js',
+  './src/core/source-data/parser-source.js',
   './src/core/srs.js',
   './src/core/sample-data.js',
   './src/core/data-loader.js',
@@ -24,6 +29,7 @@ const FILES = [
   './src/features/settings/index.js',
   './src/features/settings/events.js',
   './src/bootstrap.js',
+  './data/metadata/content-manifest.json',
   './vocab_all.json',
   './logo.png',
   './icon-192.png',
@@ -48,6 +54,9 @@ self.addEventListener('activate', (evt) => {
 
 self.addEventListener('fetch', (evt) => {
   const url = new URL(evt.request.url);
+  // JSON content uses network-first runtime caching. Future large Bible, grammar,
+  // gloss, and search-index files must not be added to FILES; they should be
+  // cached here only after a feature lazy-loads them on demand.
   if (url.pathname.endsWith('.json')) {
     evt.respondWith(
       fetch(evt.request).then(r => {

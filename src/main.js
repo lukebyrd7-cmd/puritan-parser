@@ -23,6 +23,8 @@ const PURITAN_PARSER_SCRIPTS = [
   'src/core/sample-data.js',
   'src/core/source-data/vocab-source.js',
   'src/core/source-data/parser-source.js',
+  'src/core/content/content-metadata.js',
+  'src/core/content/content-loader.js',
   'src/core/data-loader.js',
   'src/ui/theme.js',
   'src/core/filters.js',
