@@ -1,39 +1,22 @@
 /* ---------- Data Loading ---------- */
-async function tryFetchJson(path){
-  try {
-    const r = await fetch(path, {cache:'no-store'});
-    if(!r.ok) throw new Error('not ok');
-    const j = await r.json();
-    if(!Array.isArray(j)) throw new Error('not array');
-    return j;
-  } catch(e){ return null; }
-}
+async function tryFetchJson(path){ return fetchSourceJson(path); }
 async function loadData(){
-  const all = await tryFetchJson(FILE_ALL);
-  if(all && all.length){
-    const g = all.filter(x=>(x.lang||'greek').toLowerCase()==='greek');
-    const h = all.filter(x=>(x.lang||'greek').toLowerCase()==='hebrew');
-    state.data.greek = g.map(it=>{ it.lang='greek'; return ensureSRS(it); });
-    state.data.hebrew = h.map(it=>{ it.lang='hebrew'; return ensureSRS(it); });
+  const sources = await loadVocabularySources();
+  if(sources.greek && sources.hebrew){
+    state.data.greek = sources.greek.map(ensureSRS);
+    state.data.hebrew = sources.hebrew.map(ensureSRS);
     applyStoredVocab('greek'); applyStoredVocab('hebrew');
     return;
   }
-  const gf = await tryFetchJson(FILE_GREEK);
-  const hf = await tryFetchJson(FILE_HEBREW);
   ['greek','hebrew'].forEach(lang=>{
-    const file = lang==='greek' ? gf : hf;
-    const lsKey = lang==='greek' ? LS_VOCAB_GREEK : LS_VOCAB_HEBREW;
+    const sourceItems = sources[lang];
     const sample = lang==='greek' ? SAMPLE_GREEK : SAMPLE_HEBREW;
-    if(file && file.length){
-      state.data[lang] = file.map(it=>{ it.lang=lang; return ensureSRS(it); });
+    if(sourceItems && sourceItems.length){
+      state.data[lang] = sourceItems.map(ensureSRS);
       applyStoredVocab(lang);
     } else {
-      try {
-        const raw = localStorage.getItem(lsKey);
-        state.data[lang] = raw ? JSON.parse(raw) : sample.map(it=>ensureSRS(Object.assign({lang},it)));
-      } catch(e){
-        state.data[lang] = sample.map(it=>ensureSRS(Object.assign({lang},it)));
-      }
+      const stored = getUserProgress(lang);
+      state.data[lang] = stored.length ? stored.map(it=>ensureSRS(createWordEntry(Object.assign({lang}, it)))) : sample.map(it=>ensureSRS(createWordEntry(Object.assign({lang}, it))));
     }
   });
 }
@@ -56,7 +39,7 @@ async function importDataFile(file){
     const invalid = checks.filter(x=>x.errors.length);
     const valid = items.filter((_, idx)=>!checks[idx].errors.length).map(item=>{
       const lang = String(item.lang||'greek').toLowerCase();
-      return ensureSRS(Object.assign({}, item, { lang, source: item.source || 'Imported' }));
+      return ensureSRS(createWordEntry(Object.assign({}, item, { lang, source: item.source || 'Imported' })));
     });
     if(!valid.length){
       if(preview){ preview.textContent = invalid.length ? `No valid entries found. First error: row ${invalid[0].index+1} ${invalid[0].errors.join(', ')}` : 'No entries found.'; preview.classList.remove('hidden'); }

@@ -34,7 +34,7 @@ function setLang(lang){
   updatePosOptions();
   updateParsingFilterOptions();
   renderList(); updateDueBadge();
-  localStorage.setItem('pp_last_lang', lang);
+  if(typeof saveLastLanguage === 'function') saveLastLanguage(lang);
 }
 function getCurrentList(){ return state.data[state.lang]||[]; }
 
