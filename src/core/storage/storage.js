@@ -17,7 +17,26 @@ function readStorageJson(key, fallback = null){
     return raw ? JSON.parse(raw) : fallback;
   } catch(e){ return fallback; }
 }
+function storageKindForKey(key){
+  if(key === StorageKeys.prefs) return 'prefs';
+  if(key === StorageKeys.dashboard) return 'dashboard';
+  if(key === StorageKeys.vocab.greek || key === StorageKeys.vocab.hebrew) return 'vocab';
+  return null;
+}
+function migrateStoredJson(key, fallback = null){
+  const kind = storageKindForKey(key);
+  const raw = readStorageJson(key, fallback);
+  if(!kind || typeof PuritanParserMigrationRunner === 'undefined') return raw;
+  const migrated = PuritanParserMigrationRunner.migratePayload(raw, kind);
+  writeStorageJson(key, migrated);
+  return PuritanParserMigrationRunner.unwrapPersistedData(migrated, kind);
+}
 function writeStorageJson(key, value){ activeStorageAdapter.set(key, JSON.stringify(value)); }
+function writeVersionedStorageJson(key, value){
+  const kind = storageKindForKey(key);
+  if(!kind || typeof PuritanParserMigrationRunner === 'undefined') return writeStorageJson(key, value);
+  writeStorageJson(key, PuritanParserMigrationRunner.migratePayload(value, kind));
+}
 function removeStorageKey(key){ activeStorageAdapter.remove(key); }
 function clearUserStorage(){
   [StorageKeys.vocab.greek, StorageKeys.vocab.hebrew, StorageKeys.prefs, StorageKeys.dashboard, StorageKeys.lastLang].forEach(removeStorageKey);

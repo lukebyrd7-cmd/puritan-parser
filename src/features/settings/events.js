@@ -8,8 +8,9 @@ function wireEvents(){
 
   // View nav tabs
   $$('.nav-tab').forEach(t=>t.addEventListener('click',()=>{
-    const v = t.dataset.view+'View';
-    showView(v);
+    const path = '/' + (t.dataset.view === 'flashcards' ? 'flashcards' : t.dataset.view);
+    if(typeof navigateTo === 'function') navigateTo(path);
+    else showView((t.dataset.view === 'flashcards' ? 'flash' : t.dataset.view)+'View');
   }));
 
   // Shared filter bar inputs

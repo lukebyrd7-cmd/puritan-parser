@@ -17,10 +17,10 @@ function hasProgressData(it){
   return (it.repetitions||0)>0 || (it.interval||0)>0 || (it.history||[]).length || it.due!==todayISO() || Math.abs((it.ease||initialEase)-initialEase)>0.001;
 }
 function getUserProgress(lang){
-  const stored = readStorageJson(StorageKeys.vocab[lang], []);
+  const stored = migrateStoredJson(StorageKeys.vocab[lang], []);
   return Array.isArray(stored) ? stored : [];
 }
-function saveUserProgress(lang, items){ writeStorageJson(StorageKeys.vocab[lang], items); }
+function saveUserProgress(lang, items){ writeVersionedStorageJson(StorageKeys.vocab[lang], items); }
 function saveVocab(lang){
   try {
     const compact = (state.data[lang]||[]).filter(it=>hasProgressData(it) || it.source==='Imported').map(compactProgressItem);

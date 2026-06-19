@@ -1,13 +1,16 @@
 /* ---------- View Controller ---------- */
-function showView(viewId){
-  const views = ['listView','flashView','parsingView','dashboardView','settingsView'];
+function showView(viewId, options = {}){
+  const views = Object.values(typeof ROUTES !== 'undefined' ? ROUTES : {}).map(route => route.viewId);
+  if(!views.length) views.push('listView','flashView','parsingView','dashboardView','settingsView');
   views.forEach(id=>{ const el=document.getElementById(id); if(el) el.classList.toggle('hidden', id!==viewId); });
-  $$('.nav-tab').forEach(t=>t.classList.toggle('active', t.dataset.view===viewId.replace('View','')));
+  $$('.nav-tab').forEach(t=>t.classList.toggle('active', t.dataset.view===viewId.replace('View','') || (typeof ROUTES !== 'undefined' && ROUTES[routeForView(viewId)]?.nav === t.dataset.view)));
   state.currentView = viewId;
+
+  if(!options.skipHistory && typeof routeForView === 'function') navigateTo(routeForView(viewId));
 
   // Show/hide filter bar and its sub-elements
   const filterBar = $('#sharedFilterBar');
-  const noFilterViews = ['dashboardView','settingsView'];
+  const noFilterViews = ['dashboardView','settingsView','grammarView','bibleView','profileView'];
   if(filterBar) filterBar.classList.toggle('hidden', noFilterViews.includes(viewId));
   // search only on list
   const sg = $('#filterSearchGroup'); if(sg) sg.classList.toggle('hidden', viewId!=='listView');

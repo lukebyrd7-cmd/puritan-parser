@@ -10,7 +10,7 @@ async function init(){
   wireEvents();
   syncSettingsUI();
   setLang(state.lang);
-  showView('listView');
+  if(typeof initRouter === 'function') initRouter(); else showView('listView');
   updateDueBadge();
   if(state.prefs.cardFontSize){
     document.documentElement.style.setProperty('--fc-word-size', state.prefs.cardFontSize+'px');
