@@ -1,0 +1,43 @@
+const test = require('node:test');
+const assert = require('node:assert/strict');
+const { auditGlosses, formatReport, validationErrors } = require('../scripts/gloss-audit');
+
+test('gloss audit reports Greek and Hebrew counts', () => {
+  const reports = auditGlosses([
+    { lang: 'greek', id: 'gk-1', gloss: 'word', primaryGloss: 'word', alternateGlosses: ['speech'] },
+    { lang: 'hebrew', id: 'hb-1', gloss: 'beginning', primaryGloss: 'beginning' },
+    { lang: 'hebrew', id: 'hb-2', gloss: 'created', primaryGloss: 'created', alternateGlosses: [] }
+  ]);
+
+  assert.equal(reports.greek.totalEntries, 1);
+  assert.equal(reports.greek.withAlternateGlosses.length, 1);
+  assert.equal(reports.hebrew.totalEntries, 2);
+  assert.equal(reports.hebrew.missingGloss.length, 0);
+
+  const text = formatReport(reports);
+  assert.match(text, /Greek:/);
+  assert.match(text, /\* total entries: 1/);
+  assert.match(text, /Hebrew:/);
+  assert.match(text, /\* duplicate IDs: 0/);
+});
+
+test('gloss audit fails validation errors and keeps warnings non-fatal', () => {
+  const reports = auditGlosses([
+    { lang: 'greek', id: '', gloss: 'ok', primaryGloss: 'ok' },
+    { lang: 'greek', id: 'dup', gloss: '', primaryGloss: 'ok' },
+    { lang: 'greek', id: 'dup', gloss: 'ok', primaryGloss: '' },
+    { lang: 'greek', id: 'bad-alt', gloss: 'ok', primaryGloss: 'ok', alternateGlosses: 'not an array' },
+    { lang: 'hebrew', id: 'warn-only', gloss: 'ok ', primaryGloss: 'this primary gloss is intentionally longer than forty characters', alternateGlosses: Array(13).fill('alt') }
+  ]);
+
+  assert.deepEqual(validationErrors(reports), [
+    'greek: blank IDs (1)',
+    'greek: duplicate IDs (1)',
+    'greek: blank gloss (1)',
+    'greek: blank primaryGloss (1)',
+    'greek: alternateGlosses not arrays (1)'
+  ]);
+  assert.equal(reports.hebrew.suspiciouslyLongPrimaryGlosses.length, 1);
+  assert.equal(reports.hebrew.unusuallyLargeAlternateGlosses.length, 1);
+  assert.equal(reports.hebrew.suspiciousFormatting.length, 1);
+});

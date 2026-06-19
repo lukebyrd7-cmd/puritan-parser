@@ -267,3 +267,9 @@ Display code uses this fallback order: `customGloss`, then `primaryGloss`, then 
 Future Greek and Hebrew gloss expansions should be added as lazy-loaded content files such as `data/glosses/greek-glosses.json` and `data/glosses/hebrew-glosses.json`, referenced from the content manifest rather than imported into startup modules or the service-worker precache. Large gloss datasets must remain out of this repository unless their source, license, attribution, and version/date are verified.
 
 Gloss attribution fields are optional source metadata: `glossSource`, `glossSourceUrl`, `glossLicense`, and `glossAttribution`. Cards and list rows should keep attribution quiet; the word detail modal or an about/data note is the right place to show source and license details.
+
+## Gloss audit process
+
+Run `npm run gloss:audit` before opening a vocabulary gloss update PR. The audit reads `vocab_all.json` and prints separate Greek and Hebrew summaries for total entries, missing `gloss`, missing `primaryGloss`, entries with `alternateGlosses`, duplicate IDs, malformed `alternateGlosses`, suspiciously long `primaryGloss` values, unusually large alternate gloss arrays, and suspicious formatting.
+
+The audit exits with a non-zero status for validation errors that should block gloss data changes: blank IDs, duplicate IDs, blank `gloss`, blank `primaryGloss`, and `alternateGlosses` values that are not arrays. Warnings such as `primaryGloss` values longer than 40 characters, unusually large alternate gloss arrays, and suspicious spacing or trailing separators are reported for manual review but do not add validation errors. For incremental data work, keep gloss updates small, run the audit, and review the report before committing.
