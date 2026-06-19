@@ -10,6 +10,7 @@ const PURITAN_PARSER_SCRIPTS = [
   'src/ui/dom.js',
   'src/ui/toast.js',
   'src/models/word-entry.js',
+  'src/models/gloss.js',
   'src/models/user-progress.js',
   'src/models/parse-data.js',
   'src/models/review-history.js',

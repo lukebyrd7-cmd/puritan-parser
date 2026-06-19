@@ -312,7 +312,7 @@
     const errors = [];
     if (!item || typeof item !== 'object') errors.push('must be an object');
     if (!norm(item?.word)) errors.push('word is required');
-    if (!norm(item?.gloss)) errors.push('gloss is required');
+    if (!norm(item?.gloss) && !norm(item?.primaryGloss)) errors.push('gloss is required');
     if (!['greek', 'hebrew'].includes(norm(item?.lang).toLowerCase())) errors.push('lang must be greek or hebrew');
     return { index, errors };
   }

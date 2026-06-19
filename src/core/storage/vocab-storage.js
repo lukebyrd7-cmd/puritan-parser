@@ -9,12 +9,13 @@ function compactProgressItem(it){
     due: it.due,
     history: it.history,
     parsing: it.parsing,
-    vocab: it.vocab
+    vocab: it.vocab,
+    customGloss: it.customGloss
   });
 }
 function hasProgressData(it){
   const initialEase = state.prefs.initialEase || 2.5;
-  return (it.repetitions||0)>0 || (it.interval||0)>0 || (it.history||[]).length || it.due!==todayISO() || Math.abs((it.ease||initialEase)-initialEase)>0.001;
+  return (it.repetitions||0)>0 || (it.interval||0)>0 || (it.history||[]).length || it.due!==todayISO() || Math.abs((it.ease||initialEase)-initialEase)>0.001 || !!String(it.customGloss||'').trim();
 }
 function getUserProgress(lang){
   const stored = migrateStoredJson(StorageKeys.vocab[lang], []);
@@ -35,7 +36,7 @@ function applyStoredVocab(lang){
       if(!saved || typeof saved!=='object') return;
       const target = saved.id ? byId.get(saved.id) : null;
       if(target){
-        ['ease','interval','repetitions','due','history','parsing','vocab'].forEach(key=>{ if(saved[key] !== undefined) target[key] = saved[key]; });
+        ['ease','interval','repetitions','due','history','parsing','vocab','customGloss'].forEach(key=>{ if(saved[key] !== undefined) target[key] = saved[key]; });
       } else if(saved.source==='Imported' && saved.word && saved.gloss){
         state.data[lang].push(ensureSRS(createWordEntry(Object.assign({lang, source:'Imported'}, saved))));
       }
