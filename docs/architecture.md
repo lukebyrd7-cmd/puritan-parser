@@ -242,6 +242,14 @@ The expected index shape is documented in `data/indexes/README.md`. Index entrie
 
 `sw.js` precaches the application shell and small metadata such as the content manifest. It should not precache large Bible, grammar, gloss, or search-index files. JSON files use network-first runtime caching, so future large content is cached only after a user-facing feature requests it.
 
+## Foundation Complete
+
+The app shell cache in `sw.js` must include `index.html`, styling, icons, the small content manifest, and every browser startup module listed by `src/main.js`, including migrations, router, model helpers, content helpers, and storage modules. Large JSON content such as expanded vocabulary, future Bible books, grammar payloads, gloss datasets, and search indexes must stay out of the install precache.
+
+Static hosts must rewrite deep links back to `index.html` so browser-history routes such as `/parsing`, `/grammar`, and `/profile` refresh without server 404s. Vercel uses `vercel.json` for this catch-all app-shell rewrite while the client router preserves `pushState`, `popstate`, and back-button behavior.
+
+JSON content continues to use service-worker network-first runtime caching. This keeps startup metadata small, lets requested JSON work offline after it has been fetched once, and prevents future large content files from being cached during service-worker installation.
+
 ### Import/export future-proofing
 
 Import/export currently focuses on vocabulary records. Future persisted exports should remain local-first and versioned through the storage/migration layer. The export envelope can grow to include user progress, preferences, notes, custom glosses, and profile data, but static source content should stay separate from user data and should not be duplicated into user backups unless explicitly required.
