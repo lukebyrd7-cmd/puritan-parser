@@ -2,9 +2,20 @@
 function openWordModal(item){
   if(!item) return;
   $('#modalWord').textContent = item.word||'—';
-  $('#modalGloss').textContent = item.gloss||'—';
+  const displayGloss = typeof getDisplayGloss === 'function' ? getDisplayGloss(item) : (item.gloss||'—');
+  $('#modalGloss').textContent = displayGloss;
   const decoded = parseSummary(item);
-  const rows = [
+  const alternates = typeof normalizeAlternateGlosses === 'function' ? normalizeAlternateGlosses(item.alternateGlosses) : (Array.isArray(item.alternateGlosses) ? item.alternateGlosses : []);
+  const glossRows = [
+    ['Primary gloss', item.primaryGloss || item.gloss || '—'],
+    ['Alternate glosses', alternates.length ? alternates.join('; ') : '—'],
+    ['Custom gloss', item.customGloss || '—'],
+    ['Gloss source', item.glossSource || '—'],
+    ['Gloss license', item.glossLicense || '—'],
+    ['Gloss attribution', item.glossAttribution || '—']
+  ];
+  if(item.glossSourceUrl) glossRows.push(['Gloss source URL', item.glossSourceUrl]);
+  const rows = glossRows.concat([
     ['POS', item.pos||'—'],
     ['Parse', item.parse||'—'],
     ['Frequency', item.freq||0],
@@ -13,7 +24,7 @@ function openWordModal(item){
     ['Interval', item.interval ? `${item.interval} day${item.interval!==1?'s':''}` : '—'],
     ['Repetitions', item.repetitions||0],
     ['Mastery', computeMastery(item)+'%'],
-  ];
+  ]);
   $('#modalRows').innerHTML = `<div class="parse-explain">${escHtml(decoded)}</div>`+
     rows.map(([l,v])=>`<div class="modal-row"><span class="modal-row-label">${l}</span><span>${escHtml(String(v))}</span></div>`).join('');
 
@@ -28,6 +39,23 @@ function openWordModal(item){
   } else {
     histEl.innerHTML = `<div class="modal-history-title">Review History</div><div class="small muted">No reviews yet</div>`;
   }
+
+  const customInput = $('#customGlossInput');
+  if(customInput) customInput.value = item.customGloss || '';
+  $('#saveCustomGlossBtn').onclick = ()=>{
+    item.customGloss = (customInput?.value || '').trim();
+    saveVocab(item.lang||state.lang);
+    openWordModal(item);
+    renderList();
+    toast('Custom gloss saved.','success');
+  };
+  $('#clearCustomGlossBtn').onclick = ()=>{
+    delete item.customGloss;
+    saveVocab(item.lang||state.lang);
+    openWordModal(item);
+    renderList();
+    toast('Custom gloss cleared.','success');
+  };
 
   // Reset button
   $('#modalResetBtn').onclick = ()=>{

@@ -399,7 +399,7 @@ function checkParsingAnswer(reveal=false){
     + `<div><strong>Correct:</strong> ${escHtml(correctParsingSummary(qn))}</div>`
     + `<div class="small muted" style="margin-bottom:6px">${escHtml(parseSummary(qn))}</div>`
     + `<div>Lemma: <span class="serif" style="font-size:16px">${escHtml(qn.lemma||'—')}</span></div>`
-    + (qn.gloss ? `<div>Gloss: ${escHtml(qn.gloss)}</div>` : '')
+    + ((typeof hasAnyGloss === 'function' ? hasAnyGloss(qn) : qn.gloss) ? `<div>Gloss: ${escHtml(typeof getDisplayGloss === 'function' ? getDisplayGloss(qn) : qn.gloss)}</div>` : '')
     + lines.map(l=>`<div class="parsing-result-line ${l.ok?'ok':'err'}">${escHtml(l.text)}</div>`).join('')
     + (!allRight ? `<div style="font-weight:700;margin-top:8px">Explanation:</div>${parsingExplanation(qn, fields).map(line=>`<div class="small muted">${escHtml(line)}</div>`).join('')}` : '')
     + `<div class="self-grade">
@@ -472,7 +472,7 @@ function revealParsingAnswer(){
     <div><strong>Correct:</strong> ${escHtml(correctParsingSummary(qn))}</div>
     <div class="small muted" style="margin-bottom:6px">${escHtml(parseSummary(qn))}</div>
     <div>Lemma: <span class="serif" style="font-size:16px">${escHtml(qn.lemma||'—')}</span></div>
-    <div>Gloss: ${escHtml(qn.gloss||'—')}</div>
+    <div>Gloss: ${escHtml(typeof getDisplayGloss === 'function' ? getDisplayGloss(qn) : (qn.gloss||'—'))}</div>
     <div style="font-weight:700;margin-top:8px">Explanation:</div>
     ${parsingExplanation(qn).map(line=>`<div class="small muted">${escHtml(line)}</div>`).join('')}
     <div class="self-grade">

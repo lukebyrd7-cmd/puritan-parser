@@ -50,14 +50,15 @@ function renderFlashCard(){
   if(!q.length){ showSessionComplete(); return; }
   const cur = q[0];
   const dir = $('#cardDirection')?.value||'word2gloss';
+  const displayGloss = typeof getDisplayGloss === 'function' ? getDisplayGloss(cur) : (cur.gloss||'—');
 
   if(dir==='word2gloss'){
     $('#fcWord').textContent = cur.word||'—';
     $('#fcWordBack').textContent = cur.word||'—';
-    $('#fcGloss').textContent = cur.gloss||'—';
+    $('#fcGloss').textContent = displayGloss;
   } else {
-    $('#fcWord').textContent = cur.gloss||'—';
-    $('#fcWordBack').textContent = cur.gloss||'—';
+    $('#fcWord').textContent = displayGloss;
+    $('#fcWordBack').textContent = displayGloss;
     $('#fcGloss').textContent = cur.word||'—';
   }
 
@@ -142,7 +143,7 @@ function showSessionComplete(){
     if(missed.length){
       const unique = [...new Map(missed.map(w=>[w.id||w.word,w])).values()];
       ml.innerHTML = `<div class="session-missed-title">Words to focus on (${unique.length})</div>`+
-        unique.map(w=>`<div class="session-missed-item"><span class="session-missed-word">${escHtml(w.word||'')}</span><span class="muted small">${escHtml(w.gloss||'')}</span></div>`).join('');
+        unique.map(w=>`<div class="session-missed-item"><span class="session-missed-word">${escHtml(w.word||'')}</span><span class="muted small">${escHtml(typeof getDisplayGloss === 'function' ? getDisplayGloss(w) : (w.gloss||''))}</span></div>`).join('');
       ml.classList.remove('hidden');
     } else {
       ml.classList.add('hidden');

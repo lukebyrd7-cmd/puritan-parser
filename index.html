@@ -32,6 +32,14 @@
       <div class="modal-word" id="modalWord">—</div>
       <div class="modal-gloss" id="modalGloss">—</div>
       <div id="modalRows"></div>
+      <div class="modal-custom-gloss" style="margin-top:14px">
+        <label class="small muted" for="customGlossInput">Custom gloss</label>
+        <div style="display:flex;gap:8px;margin-top:6px;flex-wrap:wrap">
+          <input class="input" id="customGlossInput" placeholder="Add your own memory gloss…" style="flex:1;min-width:180px" />
+          <button class="btn btn-primary btn-sm" id="saveCustomGlossBtn">Save custom gloss</button>
+          <button class="btn btn-ghost btn-sm" id="clearCustomGlossBtn">Clear custom gloss</button>
+        </div>
+      </div>
       <div class="modal-history" id="modalHistory"></div>
       <div style="display:flex;gap:8px;margin-top:16px;flex-wrap:wrap">
         <button class="btn btn-ghost btn-sm" id="modalResetBtn">↺ Reset this word</button>

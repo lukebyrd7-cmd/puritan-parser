@@ -254,3 +254,16 @@ JSON content continues to use service-worker network-first runtime caching. This
 
 Import/export currently focuses on vocabulary records. Future persisted exports should remain local-first and versioned through the storage/migration layer. The export envelope can grow to include user progress, preferences, notes, custom glosses, and profile data, but static source content should stay separate from user data and should not be duplicated into user backups unless explicitly required.
 
+
+### Gloss Architecture
+
+Gloss data now has two layers:
+
+- **Source glosses** live on vocabulary/content records. `primaryGloss` is the preferred application gloss, `alternateGlosses` stores optional extra English glosses for search/detail views, and the legacy `gloss` field remains for backward compatibility.
+- **User custom glosses** live with migration-safe vocabulary progress data as `customGloss`. They are not stored in the main vocabulary source files because they are user memory aids, not source content.
+
+Display code uses this fallback order: `customGloss`, then `primaryGloss`, then the legacy `gloss`, then `"(missing gloss)"`. Search indexes the word, lemma, transliteration when present, primary gloss, alternate glosses, legacy gloss, and custom gloss so that English searches continue to work across old and new data.
+
+Future Greek and Hebrew gloss expansions should be added as lazy-loaded content files such as `data/glosses/greek-glosses.json` and `data/glosses/hebrew-glosses.json`, referenced from the content manifest rather than imported into startup modules or the service-worker precache. Large gloss datasets must remain out of this repository unless their source, license, attribution, and version/date are verified.
+
+Gloss attribution fields are optional source metadata: `glossSource`, `glossSourceUrl`, `glossLicense`, and `glossAttribution`. Cards and list rows should keep attribution quiet; the word detail modal or an about/data note is the right place to show source and license details.

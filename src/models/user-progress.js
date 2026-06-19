@@ -10,6 +10,7 @@ function createUserProgress(attrs = {}){
     due: attrs.due || todayISO(),
     history: Array.isArray(attrs.history) ? attrs.history : [],
     parsing: attrs.parsing || undefined,
-    vocab: attrs.vocab || undefined
+    vocab: attrs.vocab || undefined,
+    customGloss: attrs.customGloss || undefined
   };
 }

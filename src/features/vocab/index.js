@@ -70,7 +70,8 @@ function renderList(){
     if(dueOnly && it.due > today) return false;
     if(!matchesPosFilter(it, pos)) return false;
     if(!query) return true;
-    return `${it.word||''} ${it.lemma||''} ${it.gloss||''} ${it.pos||''} ${it.parse||''} ${parseSummary(it)}`.toLowerCase().includes(query);
+    const searchText = typeof glossSearchText === 'function' ? glossSearchText(it) : `${it.word||''} ${it.lemma||''} ${it.gloss||''}`.toLowerCase();
+    return `${searchText} ${it.pos||''} ${it.parse||''} ${parseSummary(it)}`.toLowerCase().includes(query);
   });
   list.sort((a,b)=>{
     if(sort==='freq-desc') return (b.freq||0)-(a.freq||0);
@@ -98,7 +99,7 @@ function renderList(){
     const posColor = {noun:'#246b9c',verb:'#8a2b2b',adj:'#d97706',prep:'#475569',adv:'#2a9d8f'}[(it.pos||'').toLowerCase().slice(0,4)]||'#6b7280';
     return `<tr data-idx="${i}" style="cursor:pointer">
       <td class="word-cell">${escHtml(it.word||'')}${isDue?'<span style="color:var(--accent);font-size:10px;margin-left:4px">●</span>':''}</td>
-      <td class="gloss-cell">${escHtml(it.gloss||'')}</td>
+      <td class="gloss-cell">${escHtml(typeof getDisplayGloss === 'function' ? getDisplayGloss(it) : (it.gloss||''))}</td>
       <td><span class="pos-tag" style="color:${posColor}">${escHtml(it.pos||'—')}</span></td>
       <td class="muted small">${escHtml(String(it.freq||0))}</td>
       <td class="muted small">${escHtml(it.due||'—')}</td>

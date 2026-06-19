@@ -140,5 +140,5 @@ function isParseDrillable(item){
   return family === 'nominal' || family === 'verb';
 }
 function hasGloss(item){
-  return !!String(item?.gloss||'').trim();
+  return typeof hasAnyGloss === 'function' ? hasAnyGloss(item) : !!String(item?.gloss||'').trim();
 }
