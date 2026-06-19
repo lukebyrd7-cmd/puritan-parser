@@ -124,3 +124,64 @@ User data includes:
 - [ ] Settings open and save.
 - [ ] Import/export still works.
 - [ ] Existing progress remains available through the storage layer.
+
+## Phase 3/4 infrastructure
+
+### Routing system
+
+`src/core/router.js` registers all app routes in one `ROUTES` map. Navigation should call `navigateTo('/route')` or register a new route in that map rather than manually hiding and showing screens. The router maps browser paths to view IDs, supports `history.pushState`, responds to `popstate`, and normalizes unknown deep links back to `/list`.
+
+Current routes are:
+
+- `/list`
+- `/flashcards`
+- `/parsing`
+- `/dashboard`
+- `/settings`
+- `/grammar`
+- `/bible`
+- `/profile`
+
+Grammar, Bible, and Profile are placeholders only. They reserve routing and view architecture for future work without adding content, source text, login, cloud sync, or profile behavior.
+
+### Schema versioning
+
+All persisted user-data records are now versioned with `schemaVersion`. Versioned envelopes keep the actual payload under a named key:
+
+```json
+{ "schemaVersion": 1, "preferences": {} }
+{ "schemaVersion": 1, "progress": [] }
+```
+
+The migration modules are:
+
+- `src/core/migrations/migrations.js`: declares `CURRENT_SCHEMA_VERSION`, payload keys, and version-specific migration functions.
+- `src/core/migrations/migration-runner.js`: wraps unversioned legacy payloads as schema version `0`, applies migrations in order, and unwraps migrated payloads for app code.
+
+The storage layer runs migrations on reads and writes the migrated envelope back to localStorage. Missing schema versions must be treated as version `0`; old user data must never be wiped just because a migration exists.
+
+### Migration process
+
+When persisted data changes shape:
+
+1. Increment `CURRENT_SCHEMA_VERSION`.
+2. Add a new idempotent migration function keyed by the new version number.
+3. Preserve unknown fields unless there is a deliberate, documented reason to transform them.
+4. Keep migrations safe to run more than once.
+5. Add tests that cover legacy input and the new versioned output.
+
+Future profile data, achievements, notes, parsing statistics, and Bible-related settings should be introduced through migrations when they affect persisted user data.
+
+### Testing structure
+
+The Node test suite uses `node --test` and covers infrastructure and core behavior without requiring a browser build step:
+
+- Parser tests validate Greek and Hebrew parse-code decoding plus import validation.
+- Filter tests validate frequency, due, part-of-speech, and parsing-specific filters.
+- Storage/migration tests validate load/save behavior and legacy-data migration.
+- SRS tests validate interval and ease changes.
+- Routing tests validate route-to-view selection and browser-history path changes.
+- Import/export tests validate payload round trips through the normalizer.
+- Parsing UI tests load browser modules in a VM and exercise parsing helpers.
+
+Infrastructure changes should include tests in `tests/`, and smoke checks should continue to cover app load, Greek/Hebrew switching, word list rendering, flashcards, parsing, dashboard, settings save, and import/export behavior.

@@ -4,6 +4,8 @@
 
 const PURITAN_PARSER_SCRIPTS = [
   'src/core/parser-core.js',
+  'src/core/migrations/migrations.js',
+  'src/core/migrations/migration-runner.js',
   'src/app-state.js',
   'src/ui/dom.js',
   'src/ui/toast.js',
@@ -24,6 +26,7 @@ const PURITAN_PARSER_SCRIPTS = [
   'src/core/data-loader.js',
   'src/ui/theme.js',
   'src/core/filters.js',
+  'src/core/router.js',
   'src/features/vocab/index.js',
   'src/ui/modal.js',
   'src/features/flashcards/index.js',
