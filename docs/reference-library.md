@@ -45,3 +45,28 @@ Search is local and fast. It indexes titles, ids, categories, summaries, body te
 6. Add examples as `{ word, reference, translation }`.
 7. Add `related` ids only when targets exist.
 8. Add tests in `tests/reference-library.test.js` for new required coverage.
+
+
+## v3.5.2 Paradigm-First Grammar Architecture
+
+The Grammar view is organized as a study companion rather than a long article index. The home surface prioritizes user-controlled Favorites, automatic Recent pages, Paradigms, Cheat Sheets, the Parsing Decoder, and compact Greek/Hebrew reference entry points. Cards and segmented controls keep lookup paths short on mobile.
+
+### Paradigm architecture
+
+Paradigm pages are static reference topics in `src/features/grammar/reference-data.js`. Greek paradigms include λύω, λόγος, and καλός; Hebrew paradigm sheets include Qal, Niphal, Piel, Pual, Hiphil, Hophal, and Hitpael with representative כתב forms. Long sheets are split with `paradigmTabs` so users can jump directly to sections such as Aorist, Perfect, Infinitives, Participles, Recognition, or Examples. No morphology generator is used.
+
+### Favorites
+
+Favorites are entirely user-controlled. The app starts with no predefined favorites. Any grammar topic can be starred from its topic page, removed with the same control, and shown in the Favorites area at the top of Grammar Home. Data is local-only and stored under the existing localStorage pattern; there are no accounts or sync.
+
+### Recent pages
+
+Recent pages are tracked automatically whenever a grammar topic is opened. The list is de-duplicated, newest-first, and capped at approximately fifteen entries so it remains useful without becoming another long list. Data is local-only.
+
+### Parsing Decoder
+
+The Parsing Decoder is a static lookup helper, not an AI feature and not a parsing engine. It recognizes common examples such as `V-PAI-3S`, `V-AAI-1P`, `N-GSM`, `A-NSF`, `Qal Perfect 3ms`, and `Hiphil Imperfect 2mp`, then returns a breakdown, recognition tips, example forms, and links to related paradigms or cheat sheets.
+
+### Navigation model
+
+Grammar pages render breadcrumbs such as `Grammar → Paradigms → Hiphil` and `Grammar → Paradigms → λύω`. Cross-links connect decoder results to paradigms, paradigms to cheat sheets, Greek verb pages to tense/voice/mood topics, and Hebrew stem pages to related stems. Search indexes titles, examples, references, recognition tips, chart labels, principal parts, paradigm forms, and cheat-sheet content.

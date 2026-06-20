@@ -582,3 +582,13 @@ button:focus-visible, input:focus-visible, select:focus-visible {
 .reference-chart[class*="reference-color-"] { border-left-color: var(--reference-color, var(--accent)); }
 .reference-chart[class*="reference-color-"] h3 { color: var(--reference-color, var(--text)); }
 @media (max-width: 600px) { .reference-principal-parts { grid-template-columns: 1fr 1fr; } .reference-table { font-size: 13px; } }
+.reference-card-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(135px, 1fr)); gap: 8px; margin: 8px 0 14px; }
+.reference-card { text-align: left; border: 1px solid var(--border); background: var(--surface); color: var(--text); border-radius: var(--radius-sm); padding: 10px; cursor: pointer; display: grid; gap: 2px; }
+.reference-card:hover, .reference-card.active { border-color: var(--accent); background: var(--surface-2); }
+.reference-top-grid .reference-card { font-weight: 800; min-height: 54px; align-content: center; }
+.reference-breadcrumbs { color: var(--muted); font-size: 12px; margin-bottom: 8px; }
+.reference-star { float: right; border: 1px solid var(--border); border-radius: 999px; background: var(--surface-2); color: var(--text); padding: 6px 10px; cursor: pointer; }
+.reference-tabs { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 6px; }
+.reference-tab { border: 1px solid var(--border); border-radius: 999px; background: var(--surface-2); color: var(--text); padding: 7px 10px; cursor: pointer; white-space: nowrap; }
+.reference-tab.active, .reference-tab:hover { border-color: var(--accent); color: var(--accent); }
+@media (max-width: 600px) { .reference-card-grid { grid-template-columns: 1fr 1fr; } .reference-star { float: none; margin-bottom: 8px; } }
