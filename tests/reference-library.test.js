@@ -128,3 +128,42 @@ test('app shell exposes v3.5.2 grammar navigation hooks', () => {
   assert.match(ui, /reference-breadcrumbs/);
   assert.match(ui, /reference-tab/);
 });
+
+test('v3.5.2 cache visibility assets are version-bumped', () => {
+  const sw = fs.readFileSync('sw.js', 'utf8');
+  const html = fs.readFileSync('index.html', 'utf8');
+  assert.match(sw, /const CACHE = 'puritan-parser-v10'/);
+  assert.doesNotMatch(sw, /puritan-parser-v9/);
+  assert.match(html, /src="src\/main\.js\?v=v3\.5\.2-cache-bust"/);
+});
+
+test('Greek reference search is accent-insensitive while accented search still works', () => {
+  assert.equal(library.searchReferenceTopics('λυω', 'greek').some(t => t.id === 'greek-lyo-paradigm'), true);
+  assert.equal(library.searchReferenceTopics('λύω', 'greek').some(t => t.id === 'greek-lyo-paradigm'), true);
+  assert.equal(library.searchReferenceTopics('λογος', 'greek').some(t => t.id === 'greek-logos-paradigm'), true);
+  assert.equal(library.searchReferenceTopics('λόγος', 'greek').some(t => t.id === 'greek-logos-paradigm'), true);
+});
+
+test('Parsing Decoder is a searchable reference topic that routes to decoder UI', () => {
+  const topic = library.getReferenceTopic('grammar-parsing-decoder');
+  assert.ok(topic);
+  assert.equal(library.searchReferenceTopics('Parsing Decoder', 'greek').some(t => t.id === 'grammar-parsing-decoder'), true);
+  assert.equal(library.searchReferenceTopics('grammar-parsing-decoder', 'greek').some(t => t.id === 'grammar-parsing-decoder'), true);
+  const ui = fs.readFileSync(path.join(__dirname, '../src/features/grammar/index.js'), 'utf8');
+  assert.match(ui, /topicId==='grammar-parsing-decoder'\) return renderParsingDecoder\(\)/);
+  assert.match(ui, /btn\.dataset\.topicId==='grammar-parsing-decoder' \? renderParsingDecoder\(\)/);
+});
+
+test('scoped $$ helper usage is supported', () => {
+  const dom = fs.readFileSync(path.join(__dirname, '../src/ui/dom.js'), 'utf8');
+  assert.match(dom, /const \$\$ = \(selector, root = document\) => Array\.from\(root\.querySelectorAll\(selector\)\)/);
+  const ui = fs.readFileSync(path.join(__dirname, '../src/features/grammar/index.js'), 'utf8');
+  assert.match(ui, /\$\$\('\.reference-topic-btn,\.reference-card', list\)/);
+});
+
+test('Grammar Home contains expected v3.5.2 navigation markers', () => {
+  const ui = fs.readFileSync(path.join(__dirname, '../src/features/grammar/index.js'), 'utf8');
+  for (const marker of ['Favorites', 'Recent', 'Paradigms', 'Cheat Sheets', 'Parsing Decoder']) {
+    assert.match(ui, new RegExp(marker));
+  }
+});
