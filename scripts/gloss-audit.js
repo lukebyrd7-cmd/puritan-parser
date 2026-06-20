@@ -28,7 +28,8 @@ function createLangReport(lang, entries) {
     malformedAlternateGlosses: [],
     suspiciouslyLongPrimaryGlosses: [],
     unusuallyLargeAlternateGlosses: [],
-    suspiciousFormatting: []
+    suspiciousFormatting: [],
+    coveragePercent: 0
   };
 
   entries.forEach((entry, index) => {
@@ -73,6 +74,8 @@ function createLangReport(lang, entries) {
     }
   });
 
+  report.coveragePercent = report.totalEntries ? Number((((report.totalEntries - report.missingPrimaryGloss.length) / report.totalEntries) * 100).toFixed(2)) : 100;
+
   report.duplicateIds = Array.from(ids.entries())
     .filter(([, seen]) => seen.length > 1)
     .map(([id, seen]) => `${id} (${seen.length})`);
@@ -113,7 +116,9 @@ function formatReport(reports) {
     lines.push(`${name}:`);
     lines.push(`* total entries: ${report.totalEntries}`);
     lines.push(`* missing gloss: ${report.missingGloss.length}${formatSamples(report.missingGloss)}`);
+    lines.push(`* entries with primaryGloss: ${report.totalEntries - report.missingPrimaryGloss.length}`);
     lines.push(`* missing primaryGloss: ${report.missingPrimaryGloss.length}${formatSamples(report.missingPrimaryGloss)}`);
+    lines.push(`* primaryGloss coverage: ${report.coveragePercent.toFixed(2)}%`);
     lines.push(`* entries with alternateGlosses: ${report.withAlternateGlosses.length}`);
     lines.push(`* duplicate IDs: ${report.duplicateIds.length}${formatSamples(report.duplicateIds)}`);
     lines.push(`* malformed alternateGlosses: ${report.malformedAlternateGlosses.length}${formatSamples(report.malformedAlternateGlosses)}`);

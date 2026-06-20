@@ -30,20 +30,21 @@ test('getDisplayGloss uses custom, primary, legacy gloss, and missing fallback o
 });
 
 test('customGloss overrides primaryGloss and clearing restores primary/app gloss', () => {
-  const word = { primaryGloss: 'love', gloss: 'beloved', customGloss: 'charity' };
-  assert.equal(GlossModel.getDisplayGloss(word), 'charity');
+  const word = { lang: 'hebrew', primaryGloss: 'word', gloss: 'matter', customGloss: 'thing' };
+  assert.equal(GlossModel.getDisplayGloss(word), 'thing');
   delete word.customGloss;
-  assert.equal(GlossModel.getDisplayGloss(word), 'love');
+  assert.equal(GlossModel.getDisplayGloss(word), 'word');
   delete word.primaryGloss;
-  assert.equal(GlossModel.getDisplayGloss(word), 'beloved');
+  assert.equal(GlossModel.getDisplayGloss(word), 'matter');
 });
 
 test('gloss search text includes primary, alternate, and custom glosses', () => {
-  const word = { word: 'ἀγάπη', lemma: 'ἀγάπη', transliteration: 'agape', primaryGloss: 'love', alternateGlosses: ['affection', 'charity'], gloss: 'legacy', customGloss: 'covenant kindness' };
+  const word = { word: 'דָּבָר', lemma: 'דבר', lexicalForm: 'דָּבָר', primaryGloss: 'word', alternateGlosses: ['matter', 'thing'], gloss: 'legacy', customGloss: 'covenant speech' };
   const text = GlossModel.glossSearchText(word);
-  assert.match(text, /love/);
-  assert.match(text, /charity/);
-  assert.match(text, /covenant kindness/);
+  assert.match(text, /דבר/);
+  assert.match(text, /word/);
+  assert.match(text, /thing/);
+  assert.match(text, /covenant speech/);
 });
 
 test('export/import storage path preserves custom glosses as user progress', () => {
