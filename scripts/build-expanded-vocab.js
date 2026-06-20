@@ -6,6 +6,7 @@ const SOURCE_DIR = path.join(ROOT, 'data', 'source');
 const GREEK_DIR = path.join(SOURCE_DIR, 'morphgnt-sblgnt');
 const HEBREW_DIR = path.join(SOURCE_DIR, 'morphhb-wlc');
 const VOCAB_PATH = path.join(ROOT, 'vocab_all.json');
+const HEBREW_GLOSS_PATH = path.join(ROOT, 'data', 'glosses', 'hebrew-glosses.json');
 
 const GREEK_POS = {
   'A-': 'adj',
@@ -80,6 +81,14 @@ function createGlossFields(item = {}) {
   };
 }
 
+function loadHebrewGlossSource(file = HEBREW_GLOSS_PATH) {
+  if (!fs.existsSync(file)) return new Map();
+  const source = readJson(file);
+  return new Map(Object.entries(source).map(([lemma, fields]) => [
+    `hebrew\u0001${lemma}`,
+    createGlossFields(fields)
+  ]).filter(([, fields]) => fields.primaryGloss || fields.gloss));
+}
 
 function cleanGreekText(value) {
   return String(value || '').replace(/[.,;··⸂⸃⸀]/g, '').trim();
@@ -207,7 +216,7 @@ function parseHebrewFiles() {
   return Array.from(counts.values());
 }
 
-function mergeWithExisting(expanded, existing) {
+function mergeWithExisting(expanded, existing, lemmaGlosses = loadHebrewGlossSource()) {
   const glossByLangLemma = new Map();
   const exact = new Map();
   for (const item of existing) {
@@ -220,7 +229,10 @@ function mergeWithExisting(expanded, existing) {
   const byKey = new Map();
   for (const item of expanded) {
     const key = `${item.lang}\u0001${item.word}\u0001${item.lemma}\u0001${item.parse}`;
-    const fields = exact.get(key) || glossByLangLemma.get(`${item.lang}\u0001${item.lemma}`) || createGlossFields(item);
+    const langLemmaKey = `${item.lang}\u0001${item.lemma}`;
+    const fields = item.lang === 'hebrew' && lemmaGlosses.has(langLemmaKey)
+      ? lemmaGlosses.get(langLemmaKey)
+      : exact.get(key) || glossByLangLemma.get(langLemmaKey) || createGlossFields(item);
     Object.assign(item, fields);
     byKey.set(key, item);
   }
@@ -254,4 +266,13 @@ function main() {
   console.log(`Wrote ${merged.length} entries to vocab_all.json`, byLang);
 }
 
-main();
+if (require.main === module) {
+  main();
+}
+
+module.exports = {
+  createGlossFields,
+  loadHebrewGlossSource,
+  mergeWithExisting,
+  normalizeAlternateGlosses
+};

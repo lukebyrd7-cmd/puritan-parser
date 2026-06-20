@@ -11,7 +11,7 @@ const {
 const entries = [
   { id:'g1', lang:'greek', word:'λόγος', lemma:'λόγος', primaryGloss:'word', alternateGlosses:['message'], freq:10, due:'2026-01-02', parse:'N-NSM', pos:'noun' },
   { id:'g2', lang:'greek', word:'λόγον', lemma:'λόγος', gloss:'word', alternateGlosses:['account'], freq:5, due:'2026-01-01', parse:'N-ASM', pos:'noun' },
-  { id:'h1', lang:'hebrew', word:'דָּבָר', lemma:'λόγος', primaryGloss:'thing', freq:7, due:'2026-01-03', parse:'N-MSA', pos:'noun' }
+  { id:'h1', lang:'hebrew', word:'דָּבָר', lemma:'λόγος', primaryGloss:'thing', alternateGlosses:['matter'], freq:7, due:'2026-01-03', parse:'N-MSA', pos:'noun' }
 ];
 
 test('groups study entries by lang + lemma and preserves contained forms', () => {
@@ -68,4 +68,15 @@ test('flashcards can consume lemma study entries and resolve original review tar
   assert.equal(greek.word, 'λόγος');
   assert.equal(greek.gloss, 'word');
   assert.deepEqual(getStudyEntryOriginals(greek).map(entry => entry.id).sort(), ['g1', 'g2']);
+});
+
+
+test('search and flashcard study entries use Hebrew gloss source fields', () => {
+  const hebrew = getStudyEntries(entries, 'lemma').find(entry => entry.lang === 'hebrew');
+  assert.equal(hebrew.gloss, 'thing');
+  assert.equal(hebrew.primaryGloss, 'thing');
+  assert.ok(hebrew.alternateGlosses.includes('matter'));
+  const text = getStudyEntrySearchText(hebrew);
+  assert.match(text, /thing/);
+  assert.match(text, /matter/);
 });
