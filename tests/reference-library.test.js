@@ -1,6 +1,7 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
+const path = require('node:path');
 
 const library = require('../src/features/grammar/reference-data');
 
@@ -94,4 +95,36 @@ test('app shell includes reference controls and startup modules', () => {
   assert.match(html, /id="referencePage"/);
   assert.match(main, /src\/features\/grammar\/reference-data\.js/);
   assert.match(main, /src\/features\/grammar\/index\.js/);
+});
+
+test('v3.5.2 full paradigm tabs and decoder entries are available', () => {
+  const lyo = library.getReferenceTopic('greek-lyo-paradigm');
+  assert.ok(lyo.paradigmTabs.find(t => t.label === 'Aorist').charts.some(c => c.label === 'Aorist Passive'));
+  assert.ok(lyo.paradigmTabs.find(t => t.label === 'Participle'));
+  assert.deepEqual(library.getReferenceTopic('greek-logos-paradigm').charts[0].rows.map(r => r[0]), ['Nom','Gen','Dat','Acc']);
+  for (const stem of ['qal','niphal','piel','pual','hiphil','hophal','hitpael']) {
+    const topic = library.getReferenceTopic(`hebrew-${stem}`);
+    assert.ok(topic.paradigmTabs.find(t => t.label === 'Perfect'));
+    assert.ok(topic.paradigmTabs.find(t => t.label === 'Infinitives'));
+    assert.equal(topic.paradigmTabs.find(t => t.label === 'Perfect').charts[0].columns.includes('3ms'), true);
+  }
+  assert.equal(library.decodeParsing('V-AAI-1P').examples.includes('ἐλύσαμεν'), true);
+  assert.equal(library.decodeParsing('Hiphil Imperfect 2mp').related.includes('hebrew-hiphil'), true);
+});
+
+test('v3.5.2 search includes paradigm forms and cheat sheets', () => {
+  assert.equal(library.searchReferenceTopics('θη', 'greek').some(t => t.id === 'greek-lyo-paradigm'), true);
+  assert.equal(library.searchReferenceTopics('ουσι', 'greek').some(t => t.id === 'greek-lyo-paradigm'), true);
+  assert.equal(library.searchReferenceTopics('Hiphil', 'hebrew').some(t => t.id === 'hebrew-hiphil'), true);
+  assert.equal(library.searchReferenceTopics('Qal', 'hebrew').some(t => t.id === 'hebrew-qal'), true);
+  assert.equal(library.searchReferenceTopics('λόγος', 'greek').some(t => t.id === 'greek-logos-paradigm'), true);
+});
+
+test('app shell exposes v3.5.2 grammar navigation hooks', () => {
+  const ui = fs.readFileSync(path.join(__dirname, '../src/features/grammar/index.js'), 'utf8');
+  assert.match(ui, /GRAMMAR_FAVORITES_KEY/);
+  assert.match(ui, /GRAMMAR_RECENTS_KEY/);
+  assert.match(ui, /renderParsingDecoder/);
+  assert.match(ui, /reference-breadcrumbs/);
+  assert.match(ui, /reference-tab/);
 });
