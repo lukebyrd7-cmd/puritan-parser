@@ -53,6 +53,34 @@ function readJson(file) {
   return JSON.parse(fs.readFileSync(file, 'utf8'));
 }
 
+function nonEmpty(value) {
+  return typeof value === 'string' && value.trim() ? value.trim() : '';
+}
+
+function normalizeAlternateGlosses(value) {
+  if (Array.isArray(value)) return value.map(nonEmpty).filter(Boolean);
+  const text = nonEmpty(value);
+  return text ? text.split(/[,;|]/).map(nonEmpty).filter(Boolean) : [];
+}
+
+function createGlossFields(item = {}) {
+  const legacyParts = normalizeAlternateGlosses(item.gloss);
+  const primaryGloss = nonEmpty(item.primaryGloss) || legacyParts[0] || nonEmpty(item.gloss);
+  const alternateGlosses = normalizeAlternateGlosses(item.alternateGlosses).length
+    ? normalizeAlternateGlosses(item.alternateGlosses)
+    : legacyParts.slice(1);
+  return {
+    gloss: nonEmpty(item.gloss) || [primaryGloss, ...alternateGlosses].filter(Boolean).join(', '),
+    primaryGloss,
+    alternateGlosses,
+    glossSource: nonEmpty(item.glossSource),
+    glossSourceUrl: nonEmpty(item.glossSourceUrl),
+    glossLicense: nonEmpty(item.glossLicense),
+    glossAttribution: nonEmpty(item.glossAttribution)
+  };
+}
+
+
 function cleanGreekText(value) {
   return String(value || '').replace(/[.,;··⸂⸃⸀]/g, '').trim();
 }
@@ -183,21 +211,22 @@ function mergeWithExisting(expanded, existing) {
   const glossByLangLemma = new Map();
   const exact = new Map();
   for (const item of existing) {
-    const gloss = String(item.gloss || '').trim();
-    if (!gloss) continue;
-    glossByLangLemma.set(`${item.lang}\u0001${item.lemma}`, gloss);
-    exact.set(`${item.lang}\u0001${item.word}\u0001${item.lemma}\u0001${item.parse}`, gloss);
+    const fields = createGlossFields(item);
+    if (!fields.primaryGloss && !fields.gloss) continue;
+    glossByLangLemma.set(`${item.lang}\u0001${item.lemma}`, fields);
+    exact.set(`${item.lang}\u0001${item.word}\u0001${item.lemma}\u0001${item.parse}`, fields);
   }
 
   const byKey = new Map();
   for (const item of expanded) {
     const key = `${item.lang}\u0001${item.word}\u0001${item.lemma}\u0001${item.parse}`;
-    item.gloss = exact.get(key) || glossByLangLemma.get(`${item.lang}\u0001${item.lemma}`) || '';
+    const fields = exact.get(key) || glossByLangLemma.get(`${item.lang}\u0001${item.lemma}`) || createGlossFields(item);
+    Object.assign(item, fields);
     byKey.set(key, item);
   }
   for (const item of existing) {
     const key = `${item.lang}\u0001${item.word}\u0001${item.lemma}\u0001${item.parse}`;
-    if (!byKey.has(key)) byKey.set(key, Object.assign({ source: 'Seed vocabulary' }, item));
+    if (!byKey.has(key)) byKey.set(key, Object.assign({ source: 'Seed vocabulary' }, item, createGlossFields(item)));
   }
 
   const rows = Array.from(byKey.values()).sort((a, b) =>
