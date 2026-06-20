@@ -1,6 +1,6 @@
 # Hebrew gloss audit
 
-This audit documents v3.3.1d Hebrew high-frequency gloss coverage. Hebrew source morphology, lemma grouping, lexical forms, parsing, and runtime search/flashcard architecture remain unchanged.
+This audit documents v3.3.1e Hebrew high-frequency gloss coverage. Hebrew source morphology, lemma grouping, lexical forms, parsing, and runtime search/flashcard architecture remain unchanged.
 
 ## Source approach
 
@@ -18,21 +18,21 @@ During `npm run data:build`, `scripts/build-expanded-vocab.js` loads this source
 
 Greek gloss expansion was small enough to review as direct vocabulary data. Hebrew vocabulary contains many more generated form rows, so directly populating `vocab_all.json` creates oversized generated diffs and makes source review difficult. The Hebrew source file keeps reviewed gloss decisions small, durable, and lemma-centered while allowing the build step to expand them into generated vocabulary data when needed.
 
-## v3.3.1d frequency 25-49 coverage
+## v3.3.1e frequency 10-24 coverage
 
-v3.3.1d expands the source file from the v3.3.1c high-frequency set to every Hebrew lemma whose aggregate frequency in the checked-in vocabulary is between 25 and 49 inclusive. The frequency ≥50 bands remain fully covered. The checked-in generated rows are intentionally not mass-edited; coverage below reports the result after applying the lemma source map in the same way the build process applies it.
+v3.3.1e expands the source file from the v3.3.1d high-frequency set to every Hebrew lemma whose aggregate frequency in the checked-in vocabulary is between 10 and 24 inclusive. The frequency ≥25 bands remain fully covered. The checked-in generated rows are intentionally not mass-edited; coverage below reports the result after applying the lemma source map in the same way the build process applies it.
 
 Generated from the current checked-in `vocab_all.json` plus `data/glosses/hebrew-glosses.json` after applying Hebrew source glosses by exact lemma:
 
 | Metric | Count |
 | --- | ---: |
-| Hebrew source lemmas | 1,569 |
+| Hebrew source lemmas | 2,730 |
 | Total Hebrew entries | 56,803 |
-| Hebrew entries affected by source glosses | 36,374 |
+| Hebrew entries affected by source glosses | 44,664 |
 | Total Hebrew lemmas | 9,152 |
-| Hebrew lemmas with glosses after source merge | 1,578 |
-| Overall Hebrew entry coverage after source merge | 64.04% |
-| Overall Hebrew lemma coverage after source merge | 17.24% |
+| Hebrew lemmas with glosses after source merge | 2,731 |
+| Overall Hebrew entry coverage after source merge | 78.63% |
+| Overall Hebrew lemma coverage after source merge | 29.84% |
 
 ## Coverage by frequency band
 
@@ -43,7 +43,7 @@ Generated from the current checked-in `vocab_all.json` plus `data/glosses/hebrew
 | 100-499 | 446 | 446 | 100.00% |
 | 50-99 | 348 | 348 | 100.00% |
 | 25-49 | 587 | 587 | 100.00% |
-| 10-24 | 8 | 1,161 | 0.69% |
+| 10-24 | 1,161 | 1,161 | 100.00% |
 | 5-9 | 1 | 1,216 | 0.08% |
 | 1-4 | 0 | 5,206 | 0.00% |
 
@@ -57,4 +57,4 @@ Generated from the current checked-in `vocab_all.json` plus `data/glosses/hebrew
 
 ## Recommended next frequency band
 
-The next maintainable expansion target is the 10-24 band: 1,153 of 1,161 lemmas in that band remain without glosses after v3.3.1d. Remaining lower bands are 5-9 (1,215 of 1,216 unglossed) and 1-4 (5,206 of 5,206 unglossed).
+The next maintainable expansion target is the 5-9 band: 1,215 of 1,216 lemmas in that band remain without glosses after v3.3.1e. The remaining lower band is 1-4 (5,206 of 5,206 unglossed).
