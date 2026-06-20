@@ -1,3 +1,9 @@
+function displayHeadwordForEntry(entry){
+  if(typeof getDisplayHeadword === 'function') return getDisplayHeadword(entry);
+  const clean = value => typeof value === 'string' ? value.trim() : '';
+  return clean(entry?.lexicalForm) || clean(entry?.lemma) || clean(entry?.word) || '';
+}
+
 /* ---------- FLASHCARD SESSION ---------- */
 
 function formatFlashcardParseMeta(item){
@@ -68,15 +74,16 @@ function renderFlashCard(){
   const cur = q[0];
   const dir = $('#cardDirection')?.value||'word2gloss';
   const displayGloss = typeof getDisplayGloss === 'function' ? getDisplayGloss(cur) : (cur.gloss||'—');
+  const displayHeadword = displayHeadwordForEntry(cur) || '—';
 
   if(dir==='word2gloss'){
-    $('#fcWord').textContent = cur.word||'—';
-    $('#fcWordBack').textContent = cur.word||'—';
+    $('#fcWord').textContent = displayHeadword;
+    $('#fcWordBack').textContent = displayHeadword;
     $('#fcGloss').textContent = displayGloss;
   } else {
     $('#fcWord').textContent = displayGloss;
     $('#fcWordBack').textContent = displayGloss;
-    $('#fcGloss').textContent = cur.word||'—';
+    $('#fcGloss').textContent = displayHeadword;
   }
 
   const ph = $('#fcPosHint');
@@ -162,7 +169,7 @@ function showSessionComplete(){
     if(missed.length){
       const unique = [...new Map(missed.map(w=>[w.id||w.word,w])).values()];
       ml.innerHTML = `<div class="session-missed-title">Words to focus on (${unique.length})</div>`+
-        unique.map(w=>`<div class="session-missed-item"><span class="session-missed-word">${escHtml(w.word||w.lemma||'')}</span><span class="muted small">${escHtml(typeof getDisplayGloss === 'function' ? getDisplayGloss(w) : (w.gloss||''))}</span></div>`).join('');
+        unique.map(w=>`<div class="session-missed-item"><span class="session-missed-word">${escHtml(displayHeadwordForEntry(w))}</span><span class="muted small">${escHtml(typeof getDisplayGloss === 'function' ? getDisplayGloss(w) : (w.gloss||''))}</span></div>`).join('');
       ml.classList.remove('hidden');
     } else {
       ml.classList.add('hidden');

@@ -5,6 +5,7 @@ function createWordEntry(attrs = {}){
     lang: attrs.lang || 'greek',
     word: attrs.word || '',
     lemma: attrs.lemma || '',
+    lexicalForm: attrs.lexicalForm || '',
     gloss: attrs.gloss || '',
     primaryGloss: attrs.primaryGloss || '',
     alternateGlosses: Array.isArray(attrs.alternateGlosses) ? attrs.alternateGlosses : [],
@@ -20,3 +21,10 @@ function createWordEntry(attrs = {}){
     ...attrs
   };
 }
+
+function getDisplayHeadword(entry = {}){
+  const clean = value => typeof value === 'string' ? value.trim() : '';
+  return clean(entry.lexicalForm) || clean(entry.lemma) || clean(entry.word) || '';
+}
+
+if (typeof module === 'object' && module.exports) module.exports = { createWordEntry, getDisplayHeadword };

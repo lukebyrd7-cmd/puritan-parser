@@ -1,3 +1,9 @@
+function displayHeadwordForEntry(entry){
+  if(typeof getDisplayHeadword === 'function') return getDisplayHeadword(entry);
+  const clean = value => typeof value === 'string' ? value.trim() : '';
+  return clean(entry?.lexicalForm) || clean(entry?.lemma) || clean(entry?.word) || '';
+}
+
 /* ---------- View Controller ---------- */
 function showView(viewId, options = {}){
   const views = Object.values(typeof ROUTES !== 'undefined' ? ROUTES : {}).map(route => route.viewId);
@@ -79,7 +85,7 @@ function renderList(){
     if(sort==='freq-asc') return (a.freq||0)-(b.freq||0);
     if(sort==='due-asc') return (a.due||'9999').localeCompare(b.due||'9999');
     if(sort==='mastery-asc') return computeMastery(a)-computeMastery(b);
-    if(sort==='word-az') return (a.word||a.lemma||'').localeCompare(b.word||b.lemma||'');
+    if(sort==='word-az') return displayHeadwordForEntry(a).localeCompare(displayHeadwordForEntry(b));
     return 0;
   });
   state.filtered = list;
@@ -99,7 +105,7 @@ function renderList(){
     const isDue = it.due<=today;
     const posColor = {noun:'#246b9c',verb:'#8a2b2b',adj:'#d97706',prep:'#475569',adv:'#2a9d8f'}[(it.pos||'').toLowerCase().slice(0,4)]||'#6b7280';
     return `<tr data-idx="${i}" style="cursor:pointer">
-      <td class="word-cell">${escHtml(it.word||'')}${isDue?'<span style="color:var(--accent);font-size:10px;margin-left:4px">●</span>':''}</td>
+      <td class="word-cell">${escHtml(displayHeadwordForEntry(it))}${isDue?'<span style="color:var(--accent);font-size:10px;margin-left:4px">●</span>':''}</td>
       <td class="gloss-cell">${escHtml(typeof getDisplayGloss === 'function' ? getDisplayGloss(it) : (it.gloss||''))}</td>
       <td><span class="pos-tag" style="color:${posColor}">${escHtml(it.pos||'—')}</span></td>
       <td class="muted small">${escHtml(String(it.freq||0))}</td>

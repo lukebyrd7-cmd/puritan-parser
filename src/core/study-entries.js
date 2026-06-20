@@ -20,6 +20,10 @@
     if(typeof root.getSourceGloss === 'function') return root.getSourceGloss(entry);
     return clean(entry?.primaryGloss) || clean(entry?.gloss);
   }
+  function displayHeadword(entry){
+    if(typeof root.getDisplayHeadword === 'function') return root.getDisplayHeadword(entry);
+    return clean(entry?.lexicalForm) || clean(entry?.lemma) || clean(entry?.word);
+  }
   function groupKey(entry){
     const lang = clean(entry?.lang).toLowerCase() || 'unknown';
     const lemma = clean(entry?.lemma) || clean(entry?.word) || '(unlemmatized)';
@@ -64,6 +68,7 @@
     const alternateGlosses = unique(originals.flatMap(entry => [
       sourceGloss(entry), clean(entry?.gloss), clean(entry?.customGloss), ...normalizeGlosses(entry?.alternateGlosses)
     ])).filter(gloss => gloss !== primaryGloss);
+    const lexicalForm = clean(representative?.lexicalForm) || originals.map(entry => clean(entry?.lexicalForm)).find(Boolean) || '';
     const forms = unique(originals.map(entry => entry?.word));
     const freq = aggregateLemmaFrequency(originals);
     return {
@@ -72,6 +77,7 @@
       lang,
       lemma,
       word: lemma,
+      lexicalForm,
       representativeForm: clean(representative?.word) || lemma,
       primaryGloss,
       alternateGlosses,
@@ -106,11 +112,11 @@
   function getStudyEntryOriginals(entry){ return isLemmaStudyEntry(entry) ? (entry.originalEntries || []) : [entry].filter(Boolean); }
   function getStudyEntrySearchText(entry = {}){
     if(isLemmaStudyEntry(entry)){
-      return [entry.lemma, entry.primaryGloss, ...(entry.alternateGlosses||[]), ...(entry.forms||[]), entry.representativeForm, entry.pos]
+      return [displayHeadword(entry), entry.lemma, entry.lexicalForm, entry.primaryGloss, ...(entry.alternateGlosses||[]), ...(entry.forms||[]), entry.representativeForm, entry.pos]
         .map(clean).filter(Boolean).join(' ').toLowerCase();
     }
     if(typeof root.glossSearchText === 'function') return root.glossSearchText(entry);
-    return [entry.word, entry.lemma, entry.gloss, entry.primaryGloss, ...(normalizeGlosses(entry.alternateGlosses))].map(clean).filter(Boolean).join(' ').toLowerCase();
+    return [displayHeadword(entry), entry.word, entry.lemma, entry.lexicalForm, entry.gloss, entry.primaryGloss, ...(normalizeGlosses(entry.alternateGlosses))].map(clean).filter(Boolean).join(' ').toLowerCase();
   }
   return { groupEntriesByLemma, getStudyEntries, isLemmaStudyEntry, getStudyEntryOriginals, getStudyEntrySearchText, aggregateLemmaFrequency };
 });
