@@ -1,72 +1,81 @@
-# Grammar & Reference Library (v3.5.1)
+# Reference Library / Grammar Handbook
 
-The Reference / Grammar library is a data-driven study companion for Greek and Hebrew. It remains a static reference system: it does not add drills, Bible reader behavior, AI explanations, audio, new parsing engines, lexical normalization, accounts, sync, or external APIs.
+The Grammar section is a static, language-aware reference handbook for Biblical Greek and Hebrew. It is intentionally not a morphology generator: every paradigm, decoder entry, recognition clue, and cross-link is authored as durable reference data.
 
-## Content model
+## Language-aware behavior
 
-Reference topics live in `src/features/grammar/reference-data.js` as plain JavaScript objects. Core fields are:
+Grammar follows the global app language mode. If the learner is using Greek, Grammar opens on the Greek paradigm handbook; if the learner is using Hebrew, it opens on the Hebrew paradigm handbook. The Grammar sidebar still includes a compact manual Greek/Hebrew switch for comparison work, but users do not have to choose the language twice.
 
-- `id`, `language`, `title`, `category`, `summary`, and `body` for stable routing, grouping, and readable article content.
-- `charts`: table data with `label`, `columns`, `rows`, optional `heading`, optional `note`, and optional `color`.
-- `recognitionTips`: student-focused pattern-recognition bullets.
-- `examples`: biblical or representative examples with `word`, `reference`, `translation`, and optional `note`.
-- `related`: topic ids for internal cross-links.
-- `principalParts`: Greek verb principal parts when relevant.
-- `stemRelationships`: Hebrew root/stem comparison data with `root`, `stems`, and explanatory bullets.
-- `frequency`: simple educational labels such as “Indicative mood ≈ most finite verbs.”
-- `featureLinks`: lightweight hook objects with `label`, `type`, and `target` for future “See words with this feature” or vocabulary integrations.
+## Navigation model
 
-## Chart structure
+The home layout is card-based and paradigm-first:
 
-Charts are static tables. Keep each chart small enough to scan on mobile, prefer concise labels, and place qualifications in `note` rather than in oversized cells. Color categories use the existing reference UI classes:
+1. Paradigms
+2. Cheat Sheets
+3. Parsing Decoder
+4. Favorites
+5. Recent
+6. Quick Jumps
+7. Reference
 
-- Greek tense: blue; voice: green; mood: purple.
-- Hebrew Qal: blue; Niphal: green; Piel: orange; Pual: amber; Hiphil: red; Hophal: gray; Hitpael: teal.
+Long article lists are avoided. Paradigm pages use tabs and breadcrumbs so users can jump directly to high-value lookups such as Greek aorist passive, Greek participles, Qal perfect, Niphal imperfect, or Hiphil participles.
 
-## Paradigm pages
+## Greek paradigm structure
 
-Paradigm pages are reference articles, not morphology generators. Greek includes representative pages for `λύω`, `λόγος`, and `καλός`. Hebrew includes static pages for Qal, Niphal, Piel, Pual, Hiphil, Hophal, and Hitpael, with perfect, imperfect, imperative, infinitive construct, infinitive absolute, and participle rows.
+The Greek paradigm center prioritizes four anchor paradigms:
 
-## Cross-links and feature hooks
+- `λύω` for regular omega-verb forms
+- `λόγος` for second-declension masculine nouns
+- `καλός` for 2-1-2 adjectives
+- Greek articles
 
-Use `related` for internal grammar navigation. Use `featureLinks` only as lightweight future-facing hooks; they should not require a drill engine, Bible reader, or vocabulary integration to exist.
+The `λύω` page is organized by tense-form tabs:
 
-## Search behavior
+- Present
+- Imperfect
+- Future
+- Aorist
+- Perfect
+- Pluperfect
+- Non-finite
 
-Search is local and fast. It indexes titles, ids, categories, summaries, body text, examples, recognition tips, chart labels and cells, principal parts, references, frequency metadata, feature links, stem relationships, and related-topic labels.
+Within those tabs, charts are grouped by voice and mood. Finite forms use six-person charts where applicable, and non-finite forms provide static infinitive and participle reference charts.
 
-## Adding future topics
+## Hebrew paradigm structure
 
-1. Add a topic object to `referenceTopics` in `src/features/grammar/reference-data.js`.
-2. Choose a stable id such as `greek-participles` or `hebrew-construct-chain`.
-3. Keep paragraphs concise and student-friendly.
-4. Put paradigms and summaries in `charts`; avoid hard-coded UI tables.
-5. Add `recognitionTips` for practical pattern recognition.
-6. Add examples as `{ word, reference, translation }`.
-7. Add `related` ids only when targets exist.
-8. Add tests in `tests/reference-library.test.js` for new required coverage.
+The Hebrew paradigm center provides dedicated cards for the seven major stems:
 
+- Qal
+- Niphal
+- Piel
+- Pual
+- Hiphil
+- Hophal
+- Hitpael
 
-## v3.5.2 Paradigm-First Grammar Architecture
+Each stem page uses form-type tabs:
 
-The Grammar view is organized as a study companion rather than a long article index. The home surface prioritizes user-controlled Favorites, automatic Recent pages, Paradigms, Cheat Sheets, the Parsing Decoder, and compact Greek/Hebrew reference entry points. Cards and segmented controls keep lookup paths short on mobile.
+- Perfect
+- Imperfect
+- Imperative
+- Infinitive Construct
+- Infinitive Absolute
+- Participles
 
-### Paradigm architecture
+Finite forms use the standard ten-person layout: 3ms, 3fs, 2ms, 2fs, 1cs, 3mp, 3fp, 2mp, 2fp, and 1cp. Imperatives show 2ms, 2fs, 2mp, and 2fp. Participles show masculine singular, feminine singular, masculine plural, and feminine plural.
 
-Paradigm pages are static reference topics in `src/features/grammar/reference-data.js`. Greek paradigms include λύω, λόγος, and καλός; Hebrew paradigm sheets include Qal, Niphal, Piel, Pual, Hiphil, Hophal, and Hitpael with representative כתב forms. Long sheets are split with `paradigmTabs` so users can jump directly to sections such as Aorist, Perfect, Infinitives, Participles, Recognition, or Examples. No morphology generator is used.
+## Cheat sheets and decoder
 
-### Favorites
+Greek cheat sheets focus on verb endings, noun endings, and common parsing clues. Hebrew cheat sheets focus on prefixes, suffixes, stem markers, and wayyiqtol recognition. The Parsing Decoder contains static mappings for common labels such as `V-PAI-3S`, `V-API-3S`, `N-GSM`, `A-NSF`, `Qal Perfect 3ms`, and `Hiphil Imperfect 2mp`, with breakdowns, recognition tips, examples, and related paradigm links.
 
-Favorites are entirely user-controlled. The app starts with no predefined favorites. Any grammar topic can be starred from its topic page, removed with the same control, and shown in the Favorites area at the top of Grammar Home. Data is local-only and stored under the existing localStorage pattern; there are no accounts or sync.
+## Search
 
-### Recent pages
+Search indexes topic IDs, titles, categories, summaries, recognition tips, principal parts, chart labels, chart cells, examples, related-topic labels, and stem relationships. Greek search is accent-insensitive, so queries such as `λυω` and `λογος` find `λύω` and `λόγος`.
 
-Recent pages are tracked automatically whenever a grammar topic is opened. The list is de-duplicated, newest-first, and capped at approximately fifteen entries so it remains useful without becoming another long list. Data is local-only.
+## Static content philosophy
 
-### Parsing Decoder
+The Grammar section deliberately stores static reference charts. It does not generate forms, alter parser logic, change vocabulary data, or add AI explanations. This keeps the handbook fast, predictable, testable, and easy to review.
 
-The Parsing Decoder is a static lookup helper, not an AI feature and not a parsing engine. It recognizes common examples such as `V-PAI-3S`, `V-AAI-1P`, `N-GSM`, `A-NSF`, `Qal Perfect 3ms`, and `Hiphil Imperfect 2mp`, then returns a breakdown, recognition tips, example forms, and links to related paradigms or cheat sheets.
+## Future expansion
 
-### Navigation model
-
-Grammar pages render breadcrumbs such as `Grammar → Paradigms → Hiphil` and `Grammar → Paradigms → λύω`. Cross-links connect decoder results to paradigms, paradigms to cheat sheets, Greek verb pages to tense/voice/mood topics, and Hebrew stem pages to related stems. Search indexes titles, examples, references, recognition tips, chart labels, principal parts, paradigm forms, and cheat-sheet content.
+Future additions should preserve the same model: add authored charts, targeted recognition clues, concise examples, and explicit related links. New paradigms should be tabbed by the most useful lookup dimension and should avoid long scrolling pages.
