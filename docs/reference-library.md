@@ -1,51 +1,47 @@
-# Grammar & Reference Library (v3.5)
+# Grammar & Reference Library (v3.5.1)
 
-The v3.5 Reference / Grammar library adds concise, searchable grammar reference pages for Greek and Hebrew without changing the vocabulary, flashcard, parsing, settings, or source-data pipelines.
-
-## Scope
-
-This library is a first-pass reference aid, not a full grammar textbook. It intentionally does not add drills, Bible reader behavior, account/sync features, audio, AI explanations, new parsing engines, large external datasets, Hebrew headword normalization, or source-data rewrites.
+The Reference / Grammar library is a data-driven study companion for Greek and Hebrew. It remains a static reference system: it does not add drills, Bible reader behavior, AI explanations, audio, new parsing engines, lexical normalization, accounts, sync, or external APIs.
 
 ## Content model
 
-Reference topics live in `src/features/grammar/reference-data.js` as simple JavaScript data. Each topic supports:
+Reference topics live in `src/features/grammar/reference-data.js` as plain JavaScript objects. Core fields are:
 
-- `id`: stable internal identifier used for links.
-- `language`: `greek` or `hebrew`.
-- `title`: display title.
-- `category`: grouping label shown in the topic list.
-- `summary`: short overview for the page header and search.
-- `body`: concise explanatory paragraphs.
-- `charts`: one or more tables with `label`, `columns`, and `rows`.
-- `examples`: short examples with explanatory notes.
+- `id`, `language`, `title`, `category`, `summary`, and `body` for stable routing, grouping, and readable article content.
+- `charts`: table data with `label`, `columns`, `rows`, optional `heading`, optional `note`, and optional `color`.
+- `recognitionTips`: student-focused pattern-recognition bullets.
+- `examples`: biblical or representative examples with `word`, `reference`, `translation`, and optional `note`.
 - `related`: topic ids for internal cross-links.
+- `principalParts`: Greek verb principal parts when relevant.
+- `stemRelationships`: Hebrew root/stem comparison data with `root`, `stems`, and explanatory bullets.
+- `frequency`: simple educational labels such as “Indicative mood ≈ most finite verbs.”
+- `featureLinks`: lightweight hook objects with `label`, `type`, and `target` for future “See words with this feature” or vocabulary integrations.
 
-The same module exposes helper functions for the UI and tests:
+## Chart structure
 
-- `referenceTopics`
-- `getReferenceTopic(id)`
-- `searchReferenceTopics(query, language)`
-- `topicLabel(id)`
+Charts are static tables. Keep each chart small enough to scan on mobile, prefer concise labels, and place qualifications in `note` rather than in oversized cells. Color categories use the existing reference UI classes:
 
-## UI location
+- Greek tense: blue; voice: green; mood: purple.
+- Hebrew Qal: blue; Niphal: green; Piel: orange; Pual: amber; Hiphil: red; Hophal: gray; Hitpael: teal.
 
-The app shell contains the Reference / Grammar view in `index.html`. Rendering behavior lives in `src/features/grammar/index.js`, which reads the data module, renders a searchable topic list, renders the selected page, and wires related-topic buttons.
+## Paradigm pages
 
-The library is loaded during startup through `src/main.js` and initialized from `src/bootstrap.js`. The service worker precache includes the reference modules so the feature remains available offline after app install.
+Paradigm pages are reference articles, not morphology generators. Greek includes representative pages for `λύω`, `λόγος`, and `καλός`. Hebrew includes static pages for Qal, Niphal, Piel, Pual, Hiphil, Hophal, and Hitpael, with perfect, imperfect, imperative, infinitive construct, infinitive absolute, and participle rows.
+
+## Cross-links and feature hooks
+
+Use `related` for internal grammar navigation. Use `featureLinks` only as lightweight future-facing hooks; they should not require a drill engine, Bible reader, or vocabulary integration to exist.
 
 ## Search behavior
 
-Reference search is intentionally local and lightweight. It searches across both languages by default, with an optional language filter. Searchable fields include titles, categories, summaries, body text, chart labels, chart cells, examples, and related-topic labels.
+Search is local and fast. It indexes titles, ids, categories, summaries, body text, examples, recognition tips, chart labels and cells, principal parts, references, frequency metadata, feature links, stem relationships, and related-topic labels.
 
 ## Adding future topics
 
-1. Add a new topic object to `referenceTopics` in `src/features/grammar/reference-data.js`.
-2. Choose a stable `id` such as `greek-participles` or `hebrew-construct-chain`.
-3. Keep `body` paragraphs concise and student-friendly.
-4. Use `charts` for paradigms or summaries rather than embedding tables in UI code.
-5. Add related topic ids only when the target topic exists.
-6. Add or update tests in `tests/reference-library.test.js` for new required coverage.
-
-## Future enhancements
-
-Potential future work includes deeper syntax pages, vocabulary cross-links from word details into related reference pages, printable reference sheets, richer category grouping, and optional diagrams. These should remain modular and should not merge parsing logic with reference-study content.
+1. Add a topic object to `referenceTopics` in `src/features/grammar/reference-data.js`.
+2. Choose a stable id such as `greek-participles` or `hebrew-construct-chain`.
+3. Keep paragraphs concise and student-friendly.
+4. Put paradigms and summaries in `charts`; avoid hard-coded UI tables.
+5. Add `recognitionTips` for practical pattern recognition.
+6. Add examples as `{ word, reference, translation }`.
+7. Add `related` ids only when targets exist.
+8. Add tests in `tests/reference-library.test.js` for new required coverage.
