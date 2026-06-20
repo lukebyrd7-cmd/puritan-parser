@@ -295,3 +295,8 @@ The morphology sources remain language-specific because MorphGNT and MorphHB use
 Gloss source records may provide `primaryGloss`, `alternateGlosses`, `glossSource`, `glossSourceUrl`, `glossLicense`, and `glossAttribution`. The build preserves vocabulary morphology and runtime fields such as `word`, `lemma`, `parse`, `freq`, `lang`, `lexicalForm`, and `customGloss`; only source gloss metadata is supplied from the lemma-keyed gloss files. At runtime, flashcards, search, vocabulary lists, study mode, and custom gloss overrides continue to read the merged `vocab_all.json` records rather than loading a Greek- or Hebrew-specific gloss system.
 
 Future languages should follow the same pattern: add a morphology parser that produces normalized vocabulary rows, add a compact `data/glosses/<language>-glosses.json` file keyed by lemma, register that file in the shared gloss-source map, and let the existing `lang + lemma` merge apply source gloss metadata.
+
+## v3.5 Grammar & Reference Library
+
+The Reference / Grammar library is a modular, local content feature for concise Greek and Hebrew grammar pages. Topic data lives in `src/features/grammar/reference-data.js`, rendering lives in `src/features/grammar/index.js`, and the app shell provides the `grammarView` route. See `docs/reference-library.md` for the content model, scope boundaries, search behavior, and instructions for adding topics.
+
