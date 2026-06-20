@@ -43,6 +43,18 @@
     const vals = entries.map(e => Number(e?.repetitions)||0);
     return vals.length ? Math.min(...vals) : 0;
   }
+  function explicitLemmaFrequency(entry){
+    return [entry?.lemmaFreq, entry?.lemmaFrequency, entry?.frequencyLemma]
+      .map(value => Number(value))
+      .find(value => Number.isFinite(value) && value > 0);
+  }
+  function aggregateLemmaFrequency(entries){
+    const explicit = entries.map(explicitLemmaFrequency).filter(value => value !== undefined);
+    if(explicit.length) return Math.max(...explicit);
+    const representative = bestRepresentative(entries);
+    // Form rows may represent multiple inflections of one lemma, so summing them can overcount the lemma's actual corpus frequency.
+    return Number(representative?.freq) || 0;
+  }
   function createLemmaStudyEntry(entries){
     const originals = entries.slice();
     const representative = bestRepresentative(originals);
@@ -53,7 +65,7 @@
       sourceGloss(entry), clean(entry?.gloss), clean(entry?.customGloss), ...normalizeGlosses(entry?.alternateGlosses)
     ])).filter(gloss => gloss !== primaryGloss);
     const forms = unique(originals.map(entry => entry?.word));
-    const freq = originals.reduce((sum, entry) => sum + (Number(entry?.freq)||0), 0) || (Number(representative?.freq)||0);
+    const freq = aggregateLemmaFrequency(originals);
     return {
       id: `lemma:${lang}:${lemma}`,
       studyEntryType: 'lemma',
@@ -100,5 +112,5 @@
     if(typeof root.glossSearchText === 'function') return root.glossSearchText(entry);
     return [entry.word, entry.lemma, entry.gloss, entry.primaryGloss, ...(normalizeGlosses(entry.alternateGlosses))].map(clean).filter(Boolean).join(' ').toLowerCase();
   }
-  return { groupEntriesByLemma, getStudyEntries, isLemmaStudyEntry, getStudyEntryOriginals, getStudyEntrySearchText };
+  return { groupEntriesByLemma, getStudyEntries, isLemmaStudyEntry, getStudyEntryOriginals, getStudyEntrySearchText, aggregateLemmaFrequency };
 });
