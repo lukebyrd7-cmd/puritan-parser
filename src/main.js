@@ -29,6 +29,7 @@ const PURITAN_PARSER_SCRIPTS = [
   'src/core/data-loader.js',
   'src/ui/theme.js',
   'src/core/filters.js',
+  'src/core/study-entries.js',
   'src/core/router.js',
   'src/features/vocab/index.js',
   'src/ui/modal.js',

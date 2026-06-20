@@ -376,6 +376,15 @@
           </div>
 
           <div class="settings-section">
+            <div class="settings-label">Study Mode</div>
+            <select id="studyModeSetting" class="input" style="max-width:220px">
+              <option value="lemma">Lemma Study</option>
+              <option value="form">Form Study</option>
+            </select>
+            <p class="small muted" style="margin-top:6px">Lemma Study groups forms with the same lemma and language for vocabulary and flashcards. Parsing drills always use individual forms.</p>
+          </div>
+
+          <div class="settings-section">
             <div class="settings-label">Card Font Size</div>
             <div style="display:flex;gap:8px;align-items:center">
               <input id="fontSizeSlider" type="range" min="36" max="72" value="54" style="width:120px" />

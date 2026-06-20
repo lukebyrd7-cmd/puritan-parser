@@ -25,7 +25,8 @@ const DEFAULTS = {
   newPerDay: 20,
   cardFontSize: 54,
   showPosHint: false,
-  autoNextCard: false
+  autoNextCard: false,
+  studyMode: 'lemma'
 };
 
 /* ---------- State ---------- */

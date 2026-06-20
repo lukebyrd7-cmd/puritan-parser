@@ -25,7 +25,7 @@ function showView(viewId, options = {}){
   if(viewId==='parsingView') { updateParsingModeUI(); renderLemmaPicker(); }
 
   const fl = $('#footerLang');
-  if(fl) fl.textContent = `${state.lang==='greek'?'Greek (GNT)':'Hebrew'} — ${getCurrentList().length} words loaded`;
+  if(fl) fl.textContent = `${state.lang==='greek'?'Greek (GNT)':'Hebrew'} — ${getCurrentStudyList().length} study entries (${getCurrentList().length} forms) loaded`;
 }
 
 /* ---------- Language ---------- */
@@ -40,11 +40,12 @@ function setLang(lang){
   if(typeof saveLastLanguage === 'function') saveLastLanguage(lang);
 }
 function getCurrentList(){ return state.data[state.lang]||[]; }
+function getCurrentStudyList(){ return typeof getStudyEntries === 'function' ? getStudyEntries(getCurrentList(), state.prefs.studyMode || 'lemma') : getCurrentList(); }
 
 /* ---------- Due badge ---------- */
 function updateDueBadge(){
   const today = todayISO();
-  const due = getCurrentList().filter(it=>it.due<=today).length;
+  const due = getCurrentStudyList().filter(it=>it.due<=today).length;
   const db = $('#dueBadge'); if(db){ db.textContent = `Due: ${due}`; db.style.display=due?'':'none'; }
   const sb = $('#streakBadge'); if(sb) sb.textContent = `🔥 ${state.dashboard.streak||0}`;
 }
@@ -63,14 +64,14 @@ function renderList(){
   const { query, minFreq, maxFreq, dueOnly, pos } = state.filters;
   const sort = $('#sortSelect')?.value||'freq-desc';
   const today = todayISO();
-  let list = getCurrentList().filter(it=>{
+  let list = getCurrentStudyList().filter(it=>{
     if(!it) return false;
     const freq = it.freq||0;
     if(freq < minFreq || freq > maxFreq) return false;
     if(dueOnly && it.due > today) return false;
     if(!matchesPosFilter(it, pos)) return false;
     if(!query) return true;
-    const searchText = typeof glossSearchText === 'function' ? glossSearchText(it) : `${it.word||''} ${it.lemma||''} ${it.gloss||''}`.toLowerCase();
+    const searchText = typeof getStudyEntrySearchText === 'function' ? getStudyEntrySearchText(it) : (typeof glossSearchText === 'function' ? glossSearchText(it) : `${it.word||''} ${it.lemma||''} ${it.gloss||''}`.toLowerCase());
     return `${searchText} ${it.pos||''} ${it.parse||''} ${parseSummary(it)}`.toLowerCase().includes(query);
   });
   list.sort((a,b)=>{
@@ -78,7 +79,7 @@ function renderList(){
     if(sort==='freq-asc') return (a.freq||0)-(b.freq||0);
     if(sort==='due-asc') return (a.due||'9999').localeCompare(b.due||'9999');
     if(sort==='mastery-asc') return computeMastery(a)-computeMastery(b);
-    if(sort==='word-az') return (a.word||'').localeCompare(b.word||'');
+    if(sort==='word-az') return (a.word||a.lemma||'').localeCompare(b.word||b.lemma||'');
     return 0;
   });
   state.filtered = list;

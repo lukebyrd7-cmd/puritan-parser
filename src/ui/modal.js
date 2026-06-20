@@ -1,6 +1,8 @@
 /* ---------- WORD DETAIL MODAL ---------- */
 function openWordModal(item){
   if(!item) return;
+  const storageItem = item.representativeEntry || item;
+  const originalItems = typeof getStudyEntryOriginals === 'function' ? getStudyEntryOriginals(item) : [item];
   $('#modalWord').textContent = item.word||'—';
   const displayGloss = typeof getDisplayGloss === 'function' ? getDisplayGloss(item) : (item.gloss||'—');
   $('#modalGloss').textContent = displayGloss;
@@ -9,7 +11,7 @@ function openWordModal(item){
   const glossRows = [
     ['Primary gloss', item.primaryGloss || item.gloss || '—'],
     ['Alternate glosses', alternates.length ? alternates.join('; ') : '—'],
-    ['Custom gloss', item.customGloss || '—'],
+    ['Custom gloss', item.customGloss || storageItem.customGloss || '—'],
     ['Gloss source', item.glossSource || '—'],
     ['Gloss license', item.glossLicense || '—'],
     ['Gloss attribution', item.glossAttribution || '—']
@@ -25,6 +27,7 @@ function openWordModal(item){
     ['Repetitions', item.repetitions||0],
     ['Mastery', computeMastery(item)+'%'],
   ]);
+  if(item.studyEntryType === 'lemma') rows.splice(8, 0, ['Forms', (item.forms || []).join(', ') || '—'], ['Representative form', item.representativeForm || '—']);
   $('#modalRows').innerHTML = `<div class="parse-explain">${escHtml(decoded)}</div>`+
     rows.map(([l,v])=>`<div class="modal-row"><span class="modal-row-label">${l}</span><span>${escHtml(String(v))}</span></div>`).join('');
 
@@ -41,15 +44,17 @@ function openWordModal(item){
   }
 
   const customInput = $('#customGlossInput');
-  if(customInput) customInput.value = item.customGloss || '';
+  if(customInput) customInput.value = item.customGloss || storageItem.customGloss || '';
   $('#saveCustomGlossBtn').onclick = ()=>{
-    item.customGloss = (customInput?.value || '').trim();
+    storageItem.customGloss = (customInput?.value || '').trim();
+    item.customGloss = storageItem.customGloss;
     saveVocab(item.lang||state.lang);
     openWordModal(item);
     renderList();
     toast('Custom gloss saved.','success');
   };
   $('#clearCustomGlossBtn').onclick = ()=>{
+    delete storageItem.customGloss;
     delete item.customGloss;
     saveVocab(item.lang||state.lang);
     openWordModal(item);
@@ -60,9 +65,11 @@ function openWordModal(item){
   // Reset button
   $('#modalResetBtn').onclick = ()=>{
     if(!confirm(`Reset SRS data for "${item.word}"?`)) return;
-    item.ease = state.prefs.initialEase||2.5;
-    item.interval = 0; item.repetitions = 0;
-    item.due = todayISO(); item.history = [];
+    originalItems.forEach(original => {
+      original.ease = state.prefs.initialEase||2.5;
+      original.interval = 0; original.repetitions = 0;
+      original.due = todayISO(); original.history = [];
+    });
     saveVocab(item.lang||state.lang);
     closeWordModal();
     renderList();

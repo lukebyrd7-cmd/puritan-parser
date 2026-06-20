@@ -167,3 +167,29 @@ test('parsing filter UI rebuilds with language-specific titles and groups', () =
   assert.match(parsed.html, /State/);
   assert.deepEqual(parsed.filters, { family: 'nominals', details: {} });
 });
+
+test('parsing pool receives raw form entries even when lemma study mode is enabled', () => {
+  const app = loadAppParsingHelpers();
+
+  const result = vm.runInContext(`
+    state.prefs.studyMode = 'lemma';
+    state.lang = 'greek';
+    state.filters = { query: '', minFreq: 1, maxFreq: 9999, dueOnly: false, pos: 'all' };
+    state.data.greek = [
+      { word: 'λόγος', lemma: 'λόγος', lang: 'greek', pos: 'noun', parse: 'N-NSM', freq: 10, due: '2000-01-01', parsing: { streak: 0 } },
+      { word: 'λόγον', lemma: 'λόγος', lang: 'greek', pos: 'noun', parse: 'N-ASM', freq: 9, due: '2000-01-01', parsing: { streak: 0 } }
+    ];
+    document.querySelector = selector => {
+      if(selector === '#parsingMode') return { value: 'mixed' };
+      if(selector === '#posFilterSelect') return { value: 'all' };
+      if(selector === '#freqMin') return { value: '1' };
+      if(selector === '#freqMax') return { value: '9999' };
+      if(selector === '#dueOnlyToggle') return { checked: false };
+      if(selector === '#parsingFamilySelect') return { value: 'all' };
+      return null;
+    };
+    JSON.stringify(parsingPool().map(entry => entry.word));
+  `, app);
+
+  assert.deepEqual(JSON.parse(result), ['λόγος', 'λόγον']);
+});
