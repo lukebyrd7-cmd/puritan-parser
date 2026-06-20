@@ -1,4 +1,20 @@
 /* ---------- FLASHCARD SESSION ---------- */
+
+function formatFlashcardParseMeta(item){
+  const parse = item?.parse || '';
+  if(!parse) return '';
+  if(ParserCore && typeof ParserCore.decodeParse === 'function'){
+    const decoded = ParserCore.decodeParse(parse, item?.lang);
+    if(decoded?.summary && decoded.summary !== parse){
+      const detailParts = decoded.details || [];
+      const details = decoded.family === 'verb' && detailParts.length > 1
+        ? [detailParts.slice(0, -1).join(' '), detailParts.at(-1)].filter(Boolean).join(', ')
+        : detailParts.join(', ');
+      return details ? `${decoded.label}: ${details}` : decoded.summary;
+    }
+  }
+  return parse;
+}
 function startFlash(){
   readFiltersFromDOM();
   const mode = $('#studyMode')?.value||'due';
@@ -69,7 +85,8 @@ function renderFlashCard(){
   const mr = $('#fcMetaRow'); if(mr){
     mr.innerHTML='';
     if(cur.pos){ const s=document.createElement('span'); s.className='fc-parse-tag'; s.textContent=cur.pos; mr.appendChild(s); }
-    if(cur.parse){ const s=document.createElement('span'); s.className='fc-parse-tag'; s.textContent=cur.parse; mr.appendChild(s); }
+    const parseMeta = formatFlashcardParseMeta(cur);
+    if(parseMeta){ const s=document.createElement('span'); s.className='fc-parse-tag'; s.textContent=parseMeta; mr.appendChild(s); }
     if(cur.freq){ const s=document.createElement('span'); s.className='fc-parse-tag'; s.textContent=`freq ${cur.freq}`; mr.appendChild(s); }
   }
   buildRatingButtons();
