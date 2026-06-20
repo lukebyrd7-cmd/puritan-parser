@@ -6,6 +6,13 @@ const DEFAULT_VOCAB_PATH = path.join(ROOT, 'vocab_all.json');
 const LANGS = ['greek', 'hebrew'];
 const LONG_PRIMARY_GLOSS_LIMIT = 40;
 const LARGE_ALTERNATE_GLOSSES_LIMIT = 12;
+const FREQUENCY_BANDS = [
+  { label: '1000+', min: 1000 },
+  { label: '500-999', min: 500, max: 999 },
+  { label: '100-499', min: 100, max: 499 },
+  { label: '1-99', min: 1, max: 99 },
+  { label: '0/unknown', min: 0, max: 0 }
+];
 
 function isBlank(value) {
   return typeof value !== 'string' || value.trim() === '';
@@ -29,7 +36,10 @@ function createLangReport(lang, entries) {
     suspiciouslyLongPrimaryGlosses: [],
     unusuallyLargeAlternateGlosses: [],
     suspiciousFormatting: [],
-    coveragePercent: 0
+    coveragePercent: 0,
+    entriesWithGlosses: 0,
+    lemmaCoverage: { totalLemmas: 0, lemmasWithGlosses: 0, coveragePercent: 0 },
+    frequencyBands: []
   };
 
   entries.forEach((entry, index) => {
@@ -74,7 +84,35 @@ function createLangReport(lang, entries) {
     }
   });
 
-  report.coveragePercent = report.totalEntries ? Number((((report.totalEntries - report.missingPrimaryGloss.length) / report.totalEntries) * 100).toFixed(2)) : 100;
+  report.entriesWithGlosses = report.totalEntries - report.missingPrimaryGloss.length;
+  report.coveragePercent = report.totalEntries ? Number(((report.entriesWithGlosses / report.totalEntries) * 100).toFixed(2)) : 100;
+
+  const lemmas = new Map();
+  entries.forEach(entry => {
+    const lemma = typeof entry?.lemma === 'string' && entry.lemma.trim() ? entry.lemma.trim() : entry?.word || '';
+    if (!lemma) return;
+    const current = lemmas.get(lemma) || { freq: 0, hasGloss: false };
+    current.freq += Number(entry?.freq) || 0;
+    current.hasGloss = current.hasGloss || !isBlank(entry?.primaryGloss);
+    lemmas.set(lemma, current);
+  });
+  const lemmaValues = Array.from(lemmas.values());
+  const lemmasWithGlosses = lemmaValues.filter(lemma => lemma.hasGloss).length;
+  report.lemmaCoverage = {
+    totalLemmas: lemmaValues.length,
+    lemmasWithGlosses,
+    coveragePercent: lemmaValues.length ? Number(((lemmasWithGlosses / lemmaValues.length) * 100).toFixed(2)) : 100
+  };
+  report.frequencyBands = FREQUENCY_BANDS.map(band => {
+    const inBand = lemmaValues.filter(lemma => lemma.freq >= band.min && (band.max === undefined || lemma.freq <= band.max));
+    const covered = inBand.filter(lemma => lemma.hasGloss).length;
+    return {
+      band: band.label,
+      totalLemmas: inBand.length,
+      lemmasWithGlosses: covered,
+      coveragePercent: inBand.length ? Number(((covered / inBand.length) * 100).toFixed(2)) : 100
+    };
+  });
 
   report.duplicateIds = Array.from(ids.entries())
     .filter(([, seen]) => seen.length > 1)
@@ -119,6 +157,8 @@ function formatReport(reports) {
     lines.push(`* entries with primaryGloss: ${report.totalEntries - report.missingPrimaryGloss.length}`);
     lines.push(`* missing primaryGloss: ${report.missingPrimaryGloss.length}${formatSamples(report.missingPrimaryGloss)}`);
     lines.push(`* primaryGloss coverage: ${report.coveragePercent.toFixed(2)}%`);
+    lines.push(`* lemma coverage: ${report.lemmaCoverage.lemmasWithGlosses}/${report.lemmaCoverage.totalLemmas} (${report.lemmaCoverage.coveragePercent.toFixed(2)}%)`);
+    lines.push(`* coverage by frequency band: ${report.frequencyBands.map(band => `${band.band}: ${band.lemmasWithGlosses}/${band.totalLemmas} (${band.coveragePercent.toFixed(2)}%)`).join('; ')}`);
     lines.push(`* entries with alternateGlosses: ${report.withAlternateGlosses.length}`);
     lines.push(`* duplicate IDs: ${report.duplicateIds.length}${formatSamples(report.duplicateIds)}`);
     lines.push(`* malformed alternateGlosses: ${report.malformedAlternateGlosses.length}${formatSamples(report.malformedAlternateGlosses)}`);

@@ -5,19 +5,26 @@ const { auditGlosses, formatReport, validationErrors } = require('../scripts/glo
 test('gloss audit reports Greek and Hebrew counts', () => {
   const reports = auditGlosses([
     { lang: 'greek', id: 'gk-1', gloss: 'word', primaryGloss: 'word', alternateGlosses: ['speech'] },
-    { lang: 'hebrew', id: 'hb-1', gloss: 'beginning', primaryGloss: 'beginning' },
-    { lang: 'hebrew', id: 'hb-2', gloss: 'created', primaryGloss: 'created', alternateGlosses: [] }
+    { lang: 'hebrew', id: 'hb-1', lemma: 'ראשית', gloss: 'beginning', primaryGloss: 'beginning', freq: 1000 },
+    { lang: 'hebrew', id: 'hb-2', lemma: 'ברא', gloss: 'created', primaryGloss: 'created', alternateGlosses: [], freq: 50 },
+    { lang: 'hebrew', id: 'hb-3', lemma: 'ארץ', gloss: '', primaryGloss: '', alternateGlosses: [], freq: 500 }
   ]);
 
   assert.equal(reports.greek.totalEntries, 1);
   assert.equal(reports.greek.withAlternateGlosses.length, 1);
-  assert.equal(reports.hebrew.totalEntries, 2);
-  assert.equal(reports.hebrew.missingGloss.length, 0);
+  assert.equal(reports.hebrew.totalEntries, 3);
+  assert.equal(reports.hebrew.missingGloss.length, 1);
+  assert.equal(reports.hebrew.entriesWithGlosses, 2);
+  assert.deepEqual(reports.hebrew.lemmaCoverage, { totalLemmas: 3, lemmasWithGlosses: 2, coveragePercent: 66.67 });
+  assert.equal(reports.hebrew.frequencyBands.find(band => band.band === '1000+').lemmasWithGlosses, 1);
+  assert.equal(reports.hebrew.frequencyBands.find(band => band.band === '500-999').totalLemmas, 1);
 
   const text = formatReport(reports);
   assert.match(text, /Greek:/);
   assert.match(text, /\* total entries: 1/);
   assert.match(text, /Hebrew:/);
+  assert.match(text, /\* lemma coverage: 2\/3 \(66\.67%\)/);
+  assert.match(text, /\* coverage by frequency band:/);
   assert.match(text, /\* duplicate IDs: 0/);
 });
 
