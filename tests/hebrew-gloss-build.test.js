@@ -57,7 +57,7 @@ test('Hebrew source does not change parsing behavior or non-Hebrew glosses', () 
 });
 
 
-test('Hebrew gloss source covers every lemma with aggregate frequency at least 100', () => {
+test('Hebrew gloss source covers every lemma with aggregate frequency at least 50', () => {
   const vocab = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'vocab_all.json'), 'utf8'));
   const glosses = loadHebrewGlossSource();
   const lemmaFreq = new Map();
@@ -66,7 +66,7 @@ test('Hebrew gloss source covers every lemma with aggregate frequency at least 1
     lemmaFreq.set(lemma, (lemmaFreq.get(lemma) || 0) + (Number(entry.freq) || 0));
   });
   const missingHighFrequency = Array.from(lemmaFreq.entries())
-    .filter(([, freq]) => freq >= 100)
+    .filter(([, freq]) => freq >= 50)
     .filter(([lemma]) => !glosses.has(`hebrew\u0001${lemma}`))
     .map(([lemma, freq]) => `${lemma} (${freq})`);
 
