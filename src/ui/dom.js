@@ -1,6 +1,6 @@
 /* ---------- Utilities ---------- */
 const $ = s => document.querySelector(s);
-const $$ = s => Array.from(document.querySelectorAll(s));
+const $$ = (selector, root = document) => Array.from(root.querySelectorAll(selector));
 const escHtml = s => String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 function todayISO(offsetDays=0){
   const d = new Date(); d.setDate(d.getDate()+offsetDays); return d.toISOString().slice(0,10);
