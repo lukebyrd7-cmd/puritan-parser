@@ -3,7 +3,8 @@ function startFlash(){
   readFiltersFromDOM();
   const mode = $('#studyMode')?.value||'due';
   const today = todayISO();
-  let pool = applyFreqFilter(getCurrentList()).filter(hasGloss);
+  const rawPool = applyFreqFilter(getCurrentList());
+  let pool = (typeof getStudyEntries === 'function' ? getStudyEntries(rawPool, state.prefs.studyMode || 'lemma') : rawPool).filter(hasGloss);
   if(mode==='due') pool = pool.filter(it=>it.due<=today);
   else if(mode==='new') pool = pool.filter(it=>!it.repetitions||it.repetitions===0);
   else if(mode==='weak' && ParserCore.isWeakCard) pool = pool.filter(ParserCore.isWeakCard);
@@ -68,10 +69,28 @@ function renderFlashCard(){
   const mr = $('#fcMetaRow'); if(mr){
     mr.innerHTML='';
     if(cur.pos){ const s=document.createElement('span'); s.className='fc-parse-tag'; s.textContent=cur.pos; mr.appendChild(s); }
-    if(cur.parse){ const s=document.createElement('span'); s.className='fc-parse-tag'; s.textContent=cur.parse; mr.appendChild(s); }
+    if(cur.parse){ const s=document.createElement('span'); s.className='fc-parse-tag'; s.textContent=formatFlashcardParseMeta(cur); mr.appendChild(s); }
     if(cur.freq){ const s=document.createElement('span'); s.className='fc-parse-tag'; s.textContent=`freq ${cur.freq}`; mr.appendChild(s); }
   }
   buildRatingButtons();
+}
+
+
+function formatFlashcardParseMeta(item){
+  if(!item?.parse) return '';
+  if(typeof ParserCore !== 'undefined' && ParserCore.decodeParse){
+    const decoded = ParserCore.decodeParse(item.parse, item.lang || state.lang);
+    if(decoded?.summary){
+      const [familyPart, ...detailParts] = decoded.summary.split(', ');
+      const family = familyPart || 'Parse';
+      const personIndex = detailParts.findIndex(part => /^\d/.test(part));
+      const grammarParts = personIndex >= 0 ? detailParts.slice(0, personIndex) : detailParts;
+      const trailingParts = personIndex >= 0 ? detailParts.slice(personIndex) : [];
+      const details = [grammarParts.join(' '), trailingParts.join(', ')].filter(Boolean).join(', ');
+      return details ? `${family}: ${details}` : family;
+    }
+  }
+  return item.parse;
 }
 
 function buildRatingButtons(){
@@ -105,7 +124,8 @@ function onRate(quality){
   const q = state.session.queue;
   if(!q.length) return;
   const cur = q[0];
-  scheduleUpdate(cur, quality);
+  const reviewTargets = typeof getStudyEntryOriginals === 'function' ? getStudyEntryOriginals(cur) : [cur];
+  reviewTargets.forEach(item => scheduleUpdate(item, quality));
   saveVocab(cur.lang||state.lang);
   if(quality<3){
     state.session.forgotten++;
@@ -143,7 +163,7 @@ function showSessionComplete(){
     if(missed.length){
       const unique = [...new Map(missed.map(w=>[w.id||w.word,w])).values()];
       ml.innerHTML = `<div class="session-missed-title">Words to focus on (${unique.length})</div>`+
-        unique.map(w=>`<div class="session-missed-item"><span class="session-missed-word">${escHtml(w.word||'')}</span><span class="muted small">${escHtml(typeof getDisplayGloss === 'function' ? getDisplayGloss(w) : (w.gloss||''))}</span></div>`).join('');
+        unique.map(w=>`<div class="session-missed-item"><span class="session-missed-word">${escHtml(w.word||w.lemma||'')}</span><span class="muted small">${escHtml(typeof getDisplayGloss === 'function' ? getDisplayGloss(w) : (w.gloss||''))}</span></div>`).join('');
       ml.classList.remove('hidden');
     } else {
       ml.classList.add('hidden');

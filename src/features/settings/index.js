@@ -11,6 +11,7 @@ function syncSettingsUI(){
   sc('#useSM2', p.useSM2!==false);
   sc('#showPosHint', !!p.showPosHint);
   sc('#autoNextCard', !!p.autoNextCard);
+  sv('#studyModeSetting', p.studyMode || 'lemma');
   $('#fontSizeLabel').textContent = (p.cardFontSize||54)+'px';
   applyTheme(p.theme||'light');
   renderAccentButtons();

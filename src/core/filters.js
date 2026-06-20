@@ -140,5 +140,6 @@ function isParseDrillable(item){
   return family === 'nominal' || family === 'verb';
 }
 function hasGloss(item){
+  if(item?.studyEntryType === 'lemma') return !!String(item.primaryGloss || item.gloss || '').trim();
   return typeof hasAnyGloss === 'function' ? hasAnyGloss(item) : !!String(item?.gloss||'').trim();
 }

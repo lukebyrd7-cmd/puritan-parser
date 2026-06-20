@@ -68,6 +68,14 @@ function wireEvents(){
     });
   });
 
+
+  $('#studyModeSetting')?.addEventListener('change', e=>{
+    state.prefs.studyMode = e.target.value === 'form' ? 'form' : 'lemma';
+    savePrefs();
+    renderList();
+    updateDueBadge();
+  });
+
   const fss=$('#fontSizeSlider');
   if(fss) fss.addEventListener('input',()=>{
     const v=Number(fss.value);
