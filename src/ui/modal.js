@@ -1,14 +1,24 @@
+function displayHeadwordForEntry(entry){
+  if(typeof getDisplayHeadword === 'function') return getDisplayHeadword(entry);
+  const clean = value => typeof value === 'string' ? value.trim() : '';
+  return clean(entry?.lexicalForm) || clean(entry?.lemma) || clean(entry?.word) || '';
+}
+
 /* ---------- WORD DETAIL MODAL ---------- */
 function openWordModal(item){
   if(!item) return;
   const storageItem = item.representativeEntry || item;
   const originalItems = typeof getStudyEntryOriginals === 'function' ? getStudyEntryOriginals(item) : [item];
-  $('#modalWord').textContent = item.word||'—';
+  const displayHeadword = displayHeadwordForEntry(item) || '—';
+  $('#modalWord').textContent = displayHeadword;
   const displayGloss = typeof getDisplayGloss === 'function' ? getDisplayGloss(item) : (item.gloss||'—');
   $('#modalGloss').textContent = displayGloss;
   const decoded = parseSummary(item);
   const alternates = typeof normalizeAlternateGlosses === 'function' ? normalizeAlternateGlosses(item.alternateGlosses) : (Array.isArray(item.alternateGlosses) ? item.alternateGlosses : []);
   const glossRows = [
+    ['Lexical form', item.lexicalForm || '—'],
+    ['Lemma', item.lemma || '—'],
+    ['Word form', item.word || '—'],
     ['Primary gloss', item.primaryGloss || item.gloss || '—'],
     ['Alternate glosses', alternates.length ? alternates.join('; ') : '—'],
     ['Custom gloss', item.customGloss || storageItem.customGloss || '—'],
@@ -27,7 +37,7 @@ function openWordModal(item){
     ['Repetitions', item.repetitions||0],
     ['Mastery', computeMastery(item)+'%'],
   ]);
-  if(item.studyEntryType === 'lemma') rows.splice(8, 0, ['Forms', (item.forms || []).join(', ') || '—'], ['Representative form', item.representativeForm || '—']);
+  if(item.studyEntryType === 'lemma') rows.splice(glossRows.length, 0, ['Forms', (item.forms || []).join(', ') || '—'], ['Representative form', item.representativeForm || '—']);
   $('#modalRows').innerHTML = `<div class="parse-explain">${escHtml(decoded)}</div>`+
     rows.map(([l,v])=>`<div class="modal-row"><span class="modal-row-label">${l}</span><span>${escHtml(String(v))}</span></div>`).join('');
 
@@ -64,7 +74,7 @@ function openWordModal(item){
 
   // Reset button
   $('#modalResetBtn').onclick = ()=>{
-    if(!confirm(`Reset SRS data for "${item.word}"?`)) return;
+    if(!confirm(`Reset SRS data for "${displayHeadword}"?`)) return;
     originalItems.forEach(original => {
       original.ease = state.prefs.initialEase||2.5;
       original.interval = 0; original.repetitions = 0;

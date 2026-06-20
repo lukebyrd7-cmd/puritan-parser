@@ -26,7 +26,7 @@
   function getDisplayGloss(word = {}){ return nonEmpty(word.customGloss) || getSourceGloss(word) || '(missing gloss)'; }
   function glossSearchText(word = {}){
     return [
-      word.word, word.lemma, word.transliteration, word.primaryGloss,
+      word.word, word.lemma, word.lexicalForm, word.transliteration, word.primaryGloss,
       ...normalizeAlternateGlosses(word.alternateGlosses), word.gloss, word.customGloss
     ].map(value => nonEmpty(value)).filter(Boolean).join(' ').toLowerCase();
   }
