@@ -264,7 +264,7 @@ Gloss data now has two layers:
 
 Display code uses this fallback order: `customGloss`, then `primaryGloss`, then the legacy `gloss`, then `"(missing gloss)"`. Search indexes the word, lemma, transliteration when present, primary gloss, alternate glosses, legacy gloss, and custom gloss so that English searches continue to work across old and new data.
 
-Future Greek and Hebrew gloss expansions should be added as lazy-loaded content files such as `data/glosses/greek-glosses.json` and `data/glosses/hebrew-glosses.json`, referenced from the content manifest rather than imported into startup modules or the service-worker precache. Large gloss datasets must remain out of this repository unless their source, license, attribution, and version/date are verified.
+Greek and Hebrew source glosses are maintained as build-time lemma-keyed files in `data/glosses/greek-glosses.json` and `data/glosses/hebrew-glosses.json`; runtime code consumes the merged `vocab_all.json` output rather than loading language-specific gloss modules. Large future gloss datasets should remain out of startup modules and the service-worker precache unless their source, license, attribution, and version/date are verified.
 
 Gloss attribution fields are optional source metadata: `glossSource`, `glossSourceUrl`, `glossLicense`, and `glossAttribution`. Cards and list rows should keep attribution quiet; the word detail modal or an about/data note is the right place to show source and license details.
 
@@ -273,3 +273,25 @@ Gloss attribution fields are optional source metadata: `glossSource`, `glossSour
 Run `npm run gloss:audit` before opening a vocabulary gloss update PR. The audit reads `vocab_all.json` and prints separate Greek and Hebrew summaries for total entries, missing `gloss`, missing `primaryGloss`, entries with `alternateGlosses`, duplicate IDs, malformed `alternateGlosses`, suspiciously long `primaryGloss` values, unusually large alternate gloss arrays, and suspicious formatting.
 
 The audit exits with a non-zero status for validation errors that should block gloss data changes: blank IDs, duplicate IDs, blank `gloss`, blank `primaryGloss`, and `alternateGlosses` values that are not arrays. Warnings such as `primaryGloss` values longer than 40 characters, unusually large alternate gloss arrays, and suspicious spacing or trailing separators are reported for manual review but do not add validation errors. For incremental data work, keep gloss updates small, run the audit, and review the report before committing.
+
+## Vocabulary and gloss build pipeline
+
+Greek and Hebrew vocabulary now use the same source-data architecture:
+
+```text
+source morphology
++
+lemma-keyed gloss source
+↓
+build merge
+↓
+vocab_all.json
+↓
+runtime
+```
+
+The morphology sources remain language-specific because MorphGNT and MorphHB use different file formats and parse-code conventions. Gloss metadata is language-agnostic after morphology parsing: `scripts/build-expanded-vocab.js` loads compact lemma-keyed JSON records from `data/glosses/greek-glosses.json` and `data/glosses/hebrew-glosses.json`, keys each record by `lang + lemma`, and applies those fields to generated vocabulary rows during the build merge.
+
+Gloss source records may provide `primaryGloss`, `alternateGlosses`, `glossSource`, `glossSourceUrl`, `glossLicense`, and `glossAttribution`. The build preserves vocabulary morphology and runtime fields such as `word`, `lemma`, `parse`, `freq`, `lang`, `lexicalForm`, and `customGloss`; only source gloss metadata is supplied from the lemma-keyed gloss files. At runtime, flashcards, search, vocabulary lists, study mode, and custom gloss overrides continue to read the merged `vocab_all.json` records rather than loading a Greek- or Hebrew-specific gloss system.
+
+Future languages should follow the same pattern: add a morphology parser that produces normalized vocabulary rows, add a compact `data/glosses/<language>-glosses.json` file keyed by lemma, register that file in the shared gloss-source map, and let the existing `lang + lemma` merge apply source gloss metadata.
