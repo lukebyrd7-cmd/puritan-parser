@@ -55,3 +55,20 @@ test('Hebrew source does not change parsing behavior or non-Hebrew glosses', () 
   assert.equal(merged.find(entry => entry.lang === 'hebrew').primaryGloss, 'Hebrew only');
   assert.equal(merged.find(entry => entry.lang === 'hebrew').parse, 'N-MSA');
 });
+
+
+test('Hebrew gloss source covers every lemma with aggregate frequency at least 100', () => {
+  const vocab = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'vocab_all.json'), 'utf8'));
+  const glosses = loadHebrewGlossSource();
+  const lemmaFreq = new Map();
+  vocab.filter(entry => entry.lang === 'hebrew').forEach(entry => {
+    const lemma = typeof entry.lemma === 'string' && entry.lemma.trim() ? entry.lemma.trim() : entry.word;
+    lemmaFreq.set(lemma, (lemmaFreq.get(lemma) || 0) + (Number(entry.freq) || 0));
+  });
+  const missingHighFrequency = Array.from(lemmaFreq.entries())
+    .filter(([, freq]) => freq >= 100)
+    .filter(([lemma]) => !glosses.has(`hebrew\u0001${lemma}`))
+    .map(([lemma, freq]) => `${lemma} (${freq})`);
+
+  assert.deepEqual(missingHighFrequency, []);
+});

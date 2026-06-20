@@ -1,10 +1,10 @@
 # Hebrew gloss audit
 
-This audit documents v3.3.1a Hebrew gloss source infrastructure. Hebrew source morphology, lemma grouping, lexical forms, parsing, and runtime search/flashcard architecture remain unchanged.
+This audit documents v3.3.1b Hebrew high-frequency gloss coverage. Hebrew source morphology, lemma grouping, lexical forms, parsing, and runtime search/flashcard architecture remain unchanged.
 
-## v3.3.1a source approach
+## Source approach
 
-Hebrew glosses now live in `data/glosses/hebrew-glosses.json` as compact lemma-keyed records. Each record may provide:
+Hebrew glosses live in `data/glosses/hebrew-glosses.json` as compact lemma-keyed records. Each record may provide:
 
 - `primaryGloss`
 - `alternateGlosses`
@@ -18,27 +18,36 @@ During `npm run data:build`, `scripts/build-expanded-vocab.js` loads this source
 
 Greek gloss expansion was small enough to review as direct vocabulary data. Hebrew vocabulary contains many more generated form rows, so directly populating `vocab_all.json` creates oversized generated diffs and makes source review difficult. The Hebrew source file keeps reviewed gloss decisions small, durable, and lemma-centered while allowing the build step to expand them into generated vocabulary data when needed.
 
-## Pilot coverage
+## v3.3.1b frequency ≥100 coverage
 
-The initial pilot includes 60 high-frequency Hebrew lemmas, including exact OSHB lemma keys where the generated vocabulary currently emits numeric lemma identifiers. It is intentionally infrastructure-focused rather than coverage-focused.
+v3.3.1b expands the source file from the v3.3.1a pilot to every Hebrew lemma whose aggregate frequency in the checked-in vocabulary is at least 100. The checked-in generated rows are intentionally not mass-edited; coverage below reports the result after applying the lemma source map in the same way the build process applies it.
 
-Generated from the current checked-in `vocab_all.json` plus the pilot source with `node --test` and `npm run gloss:audit -- --no-fail`:
+Generated from the current checked-in `vocab_all.json` plus `data/glosses/hebrew-glosses.json` after applying Hebrew source glosses by exact lemma:
 
 | Metric | Count |
 | --- | ---: |
-| Pilot source lemmas | 60 |
+| Hebrew source lemmas | 634 |
 | Total Hebrew entries | 56,803 |
-| Hebrew entries with checked-in `primaryGloss` | 253 |
-| Hebrew entries covered after applying pilot source | 3,272 |
+| Hebrew entries affected by source glosses | 21,419 |
 | Total Hebrew lemmas | 9,152 |
-| Hebrew lemmas with checked-in glosses | 251 |
-| Hebrew lemmas covered after applying pilot source | 281 |
-| Checked-in Hebrew lemma coverage | 2.74% |
-| Hebrew lemma coverage after applying pilot source | 3.07% |
+| Hebrew lemmas with glosses after source merge | 678 |
+| Overall Hebrew entry coverage after source merge | 37.71% |
+| Overall Hebrew lemma coverage after source merge | 7.41% |
 
-> Note: `vocab_all.json` is intentionally not mass-edited in this PR. Coverage increases from the pilot source are realized when maintainers run `npm run data:build` and choose to commit generated vocabulary updates in a separate, reviewable data refresh.
+## Coverage by frequency band
 
-## Future gloss additions
+| Frequency band | Lemmas with glosses | Total lemmas | Coverage |
+| --- | ---: | ---: | ---: |
+| 1000+ | 89 | 89 | 100.00% |
+| 500-999 | 99 | 99 | 100.00% |
+| 100-499 | 446 | 446 | 100.00% |
+| 50-99 | 23 | 348 | 6.61% |
+| 25-49 | 12 | 587 | 2.04% |
+| 10-24 | 8 | 1,161 | 0.69% |
+| 5-9 | 1 | 1,216 | 0.08% |
+| 1-4 | 0 | 5,206 | 0.00% |
+
+## Maintenance notes
 
 1. Add or edit Hebrew glosses in `data/glosses/hebrew-glosses.json`, keyed by the exact Hebrew lemma emitted by the source-data build.
 2. Keep records compact: one `primaryGloss`, a short `alternateGlosses` array, and explicit source/license/attribution metadata.
@@ -48,4 +57,4 @@ Generated from the current checked-in `vocab_all.json` plus the pilot source wit
 
 ## Recommended next frequency band
 
-Expand the remaining Hebrew lemmas with aggregate frequency `1000+`, then proceed to the `500-999` band. This keeps review effort focused on the forms students are most likely to encounter.
+The next maintainable expansion target is the remaining 50-99 band: 325 of 348 lemmas in that band remain without source glosses after v3.3.1b.
