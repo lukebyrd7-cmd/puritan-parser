@@ -99,13 +99,13 @@ test('app shell includes reference controls and startup modules', () => {
 
 test('v3.5.2 full paradigm tabs and decoder entries are available', () => {
   const lyo = library.getReferenceTopic('greek-lyo-paradigm');
-  assert.ok(lyo.paradigmTabs.find(t => t.label === 'Aorist').charts.some(c => c.label === 'Aorist Passive'));
-  assert.ok(lyo.paradigmTabs.find(t => t.label === 'Participle'));
-  assert.deepEqual(library.getReferenceTopic('greek-logos-paradigm').charts[0].rows.map(r => r[0]), ['Nom','Gen','Dat','Acc']);
+  assert.ok(lyo.paradigmTabs.find(t => t.label === 'Aorist').charts.some(c => c.label === 'Aorist Passive Indicative'));
+  assert.ok(lyo.paradigmTabs.find(t => t.label === 'Non-finite'));
+  assert.deepEqual(library.getReferenceTopic('greek-logos-paradigm').charts[0].rows.map(r => r[0]), ['Nominative','Genitive','Dative','Accusative','Vocative']);
   for (const stem of ['qal','niphal','piel','pual','hiphil','hophal','hitpael']) {
     const topic = library.getReferenceTopic(`hebrew-${stem}`);
     assert.ok(topic.paradigmTabs.find(t => t.label === 'Perfect'));
-    assert.ok(topic.paradigmTabs.find(t => t.label === 'Infinitives'));
+    assert.ok(topic.paradigmTabs.find(t => t.label === 'Infinitive Construct'));
     assert.equal(topic.paradigmTabs.find(t => t.label === 'Perfect').charts[0].columns.includes('3ms'), true);
   }
   assert.equal(library.decodeParsing('V-AAI-1P').examples.includes('ἐλύσαμεν'), true);
@@ -132,9 +132,9 @@ test('app shell exposes v3.5.2 grammar navigation hooks', () => {
 test('v3.5.2 cache visibility assets are version-bumped', () => {
   const sw = fs.readFileSync('sw.js', 'utf8');
   const html = fs.readFileSync('index.html', 'utf8');
-  assert.match(sw, /const CACHE = 'puritan-parser-v10'/);
-  assert.doesNotMatch(sw, /puritan-parser-v9/);
-  assert.match(html, /src="src\/main\.js\?v=v3\.5\.2-cache-bust"/);
+  assert.match(sw, /const CACHE = 'puritan-parser-v11'/);
+  assert.doesNotMatch(sw, /puritan-parser-v10/);
+  assert.match(html, /src="src\/main\.js\?v=v3\.5\.3-cache-bust"/);
 });
 
 test('Greek reference search is accent-insensitive while accented search still works', () => {
@@ -166,4 +166,28 @@ test('Grammar Home contains expected v3.5.2 navigation markers', () => {
   for (const marker of ['Favorites', 'Recent', 'Paradigms', 'Cheat Sheets', 'Parsing Decoder']) {
     assert.match(ui, new RegExp(marker));
   }
+});
+
+
+test('v3.5.3 language-aware grammar and comprehensive paradigm tabs are available', () => {
+  const lyo = library.getReferenceTopic('greek-lyo-paradigm');
+  assert.deepEqual(lyo.paradigmTabs.map(t => t.label).slice(0, 7), ['Present','Imperfect','Future','Aorist','Perfect','Pluperfect','Non-finite']);
+  assert.ok(lyo.paradigmTabs.find(t => t.label === 'Present').charts.some(c => c.label === 'Present Active Subjunctive'));
+  assert.ok(lyo.paradigmTabs.find(t => t.label === 'Aorist').charts.some(c => c.label === 'Aorist Passive Participle'));
+  assert.ok(lyo.paradigmTabs.find(t => t.label === 'Pluperfect').charts.some(c => c.label === 'Pluperfect Middle/Passive Indicative'));
+  for (const stem of ['qal','niphal','piel','pual','hiphil','hophal','hitpael']) {
+    const labels = library.getReferenceTopic(`hebrew-${stem}`).paradigmTabs.map(t => t.label);
+    assert.deepEqual(labels.slice(0, 6), ['Perfect','Imperfect','Imperative','Infinitive Construct','Infinitive Absolute','Participles']);
+  }
+  assert.equal(library.decodeParsing('V-API-3S').related.includes('greek-lyo-paradigm'), true);
+});
+
+test('v3.5.3 grammar UI removes emoji cards and follows app language', () => {
+  const ui = fs.readFileSync(path.join(__dirname, '../src/features/grammar/index.js'), 'utf8');
+  assert.match(ui, /appGrammarLanguage/);
+  assert.match(ui, /setReferenceLanguage\(appGrammarLanguage\(\)\)/);
+  assert.match(ui, /defaultReferenceTopicId\(language\)/);
+  assert.doesNotMatch(ui, /📚|📝|🔍|⭐|🕒/);
+  const html = fs.readFileSync(path.join(__dirname, '../index.html'), 'utf8');
+  assert.doesNotMatch(html, /Search reference.*🔍/);
 });
