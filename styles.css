@@ -538,3 +538,27 @@ button:focus-visible, input:focus-visible, select:focus-visible {
 @media (min-width: 1000px) {
   .main-grid { display: grid; grid-template-columns: 1fr 300px; gap: 14px; align-items: start; }
 }
+
+/* ===== REFERENCE / GRAMMAR LIBRARY ===== */
+.reference-shell { display: grid; gap: 14px; align-items: start; }
+.reference-sidebar, .reference-page { min-width: 0; }
+.reference-controls { display: flex; gap: 8px; flex-wrap: wrap; margin: 12px 0; }
+.reference-controls .input { flex: 1 1 180px; }
+.reference-topic-list { display: grid; gap: 8px; max-height: 70vh; overflow: auto; padding-right: 2px; }
+.reference-topic-btn { text-align: left; border: 1px solid var(--border); background: var(--surface); color: var(--text); border-radius: var(--radius-sm); padding: 9px 10px; cursor: pointer; display: grid; gap: 2px; }
+.reference-topic-btn:hover, .reference-topic-btn.active { border-color: var(--accent); background: var(--surface-2); }
+.reference-topic-btn span { font-weight: 700; }
+.reference-topic-btn small { color: var(--muted); text-transform: capitalize; }
+.reference-kicker { color: var(--muted); text-transform: uppercase; letter-spacing: .08em; font-size: 11px; font-weight: 700; }
+.reference-article h2 { font-family: var(--font-serif); font-size: 30px; margin: 4px 0 8px; color: var(--text); }
+.reference-summary { font-size: 16px; color: var(--text-2); font-weight: 600; }
+.reference-section { margin-top: 18px; }
+.reference-section h3 { font-size: 15px; margin-bottom: 8px; color: var(--text); }
+.reference-table td, .reference-table th { white-space: normal; }
+.reference-examples { display: grid; gap: 8px; padding-left: 18px; }
+.reference-example-text { font-family: var(--font-serif); font-size: 20px; font-weight: 700; display: block; color: var(--text); }
+.reference-related { display: flex; gap: 8px; flex-wrap: wrap; }
+.reference-link { border: 1px solid var(--border); background: var(--surface-2); color: var(--text); border-radius: 999px; padding: 6px 10px; cursor: pointer; }
+.reference-link:hover { border-color: var(--accent); color: var(--accent); }
+@media (min-width: 900px) { .reference-shell { grid-template-columns: 320px 1fr; } }
+@media (max-width: 600px) { .reference-topic-list { max-height: 260px; } .reference-article h2 { font-size: 24px; } }
