@@ -6,7 +6,12 @@ const SOURCE_DIR = path.join(ROOT, 'data', 'source');
 const GREEK_DIR = path.join(SOURCE_DIR, 'morphgnt-sblgnt');
 const HEBREW_DIR = path.join(SOURCE_DIR, 'morphhb-wlc');
 const VOCAB_PATH = path.join(ROOT, 'vocab_all.json');
-const HEBREW_GLOSS_PATH = path.join(ROOT, 'data', 'glosses', 'hebrew-glosses.json');
+const GLOSS_DIR = path.join(ROOT, 'data', 'glosses');
+const GLOSS_SOURCE_PATHS = {
+  greek: path.join(GLOSS_DIR, 'greek-glosses.json'),
+  hebrew: path.join(GLOSS_DIR, 'hebrew-glosses.json')
+};
+const HEBREW_GLOSS_PATH = GLOSS_SOURCE_PATHS.hebrew;
 
 const GREEK_POS = {
   'A-': 'adj',
@@ -81,13 +86,25 @@ function createGlossFields(item = {}) {
   };
 }
 
-function loadHebrewGlossSource(file = HEBREW_GLOSS_PATH) {
-  if (!fs.existsSync(file)) return new Map();
+function loadGlossSource(lang, file = GLOSS_SOURCE_PATHS[lang]) {
+  if (!file || !fs.existsSync(file)) return new Map();
   const source = readJson(file);
   return new Map(Object.entries(source).map(([lemma, fields]) => [
-    `hebrew\u0001${lemma}`,
+    `${lang}\u0001${lemma}`,
     createGlossFields(fields)
   ]).filter(([, fields]) => fields.primaryGloss || fields.gloss));
+}
+
+function loadGlossSources(sources = GLOSS_SOURCE_PATHS) {
+  const merged = new Map();
+  for (const [lang, file] of Object.entries(sources)) {
+    for (const [key, fields] of loadGlossSource(lang, file)) merged.set(key, fields);
+  }
+  return merged;
+}
+
+function loadHebrewGlossSource(file = HEBREW_GLOSS_PATH) {
+  return loadGlossSource('hebrew', file);
 }
 
 function cleanGreekText(value) {
@@ -216,7 +233,7 @@ function parseHebrewFiles() {
   return Array.from(counts.values());
 }
 
-function mergeWithExisting(expanded, existing, lemmaGlosses = loadHebrewGlossSource()) {
+function mergeWithExisting(expanded, existing, lemmaGlosses = loadGlossSources()) {
   const glossByLangLemma = new Map();
   const exact = new Map();
   for (const item of existing) {
@@ -230,7 +247,7 @@ function mergeWithExisting(expanded, existing, lemmaGlosses = loadHebrewGlossSou
   for (const item of expanded) {
     const key = `${item.lang}\u0001${item.word}\u0001${item.lemma}\u0001${item.parse}`;
     const langLemmaKey = `${item.lang}\u0001${item.lemma}`;
-    const fields = item.lang === 'hebrew' && lemmaGlosses.has(langLemmaKey)
+    const fields = lemmaGlosses.has(langLemmaKey)
       ? lemmaGlosses.get(langLemmaKey)
       : exact.get(key) || glossByLangLemma.get(langLemmaKey) || createGlossFields(item);
     Object.assign(item, fields);
@@ -272,6 +289,8 @@ if (require.main === module) {
 
 module.exports = {
   createGlossFields,
+  loadGlossSource,
+  loadGlossSources,
   loadHebrewGlossSource,
   mergeWithExisting,
   normalizeAlternateGlosses
