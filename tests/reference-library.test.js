@@ -100,7 +100,7 @@ test('app shell includes reference controls and startup modules', () => {
 test('v3.5.2 full paradigm tabs and decoder entries are available', () => {
   const lyo = library.getReferenceTopic('greek-lyo-paradigm');
   assert.ok(lyo.paradigmTabs.find(t => t.label === 'Aorist').charts.some(c => c.label === 'Aorist Passive Indicative'));
-  assert.ok(lyo.paradigmTabs.find(t => t.label === 'Non-finite'));
+  assert.ok(lyo.paradigmTabs.find(t => t.label === 'Infinitives & Participles'));
   assert.deepEqual(library.getReferenceTopic('greek-logos-paradigm').charts[0].rows.map(r => r[0]), ['Nominative','Genitive','Dative','Accusative','Vocative']);
   for (const stem of ['qal','niphal','piel','pual','hiphil','hophal','hitpael']) {
     const topic = library.getReferenceTopic(`hebrew-${stem}`);
@@ -124,7 +124,7 @@ test('app shell exposes v3.5.2 grammar navigation hooks', () => {
   const ui = fs.readFileSync(path.join(__dirname, '../src/features/grammar/index.js'), 'utf8');
   assert.match(ui, /GRAMMAR_FAVORITES_KEY/);
   assert.match(ui, /GRAMMAR_RECENTS_KEY/);
-  assert.match(ui, /renderParsingDecoder/);
+  assert.match(ui, /renderParsingGuide/);
   assert.match(ui, /reference-breadcrumbs/);
   assert.match(ui, /reference-tab/);
 });
@@ -144,14 +144,14 @@ test('Greek reference search is accent-insensitive while accented search still w
   assert.equal(library.searchReferenceTopics('λόγος', 'greek').some(t => t.id === 'greek-logos-paradigm'), true);
 });
 
-test('Parsing Decoder is a searchable reference topic that routes to decoder UI', () => {
+test('Parsing Guide is a searchable reference topic that routes to guide UI', () => {
   const topic = library.getReferenceTopic('grammar-parsing-decoder');
   assert.ok(topic);
-  assert.equal(library.searchReferenceTopics('Parsing Decoder', 'greek').some(t => t.id === 'grammar-parsing-decoder'), true);
+  assert.equal(library.searchReferenceTopics('Parsing Guide', 'greek').some(t => t.id === 'grammar-parsing-decoder'), true);
   assert.equal(library.searchReferenceTopics('grammar-parsing-decoder', 'greek').some(t => t.id === 'grammar-parsing-decoder'), true);
   const ui = fs.readFileSync(path.join(__dirname, '../src/features/grammar/index.js'), 'utf8');
-  assert.match(ui, /topicId==='grammar-parsing-decoder'\) return renderParsingDecoder\(\)/);
-  assert.match(ui, /btn\.dataset\.topicId==='grammar-parsing-decoder' \? renderParsingDecoder\(\)/);
+  assert.match(ui, /topicId==='grammar-parsing-decoder'\) return renderParsingGuide\(\)/);
+  assert.match(ui, /btn\.dataset\.topicId==='grammar-parsing-decoder' \? renderParsingGuide\(\)/);
 });
 
 test('scoped $$ helper usage is supported', () => {
@@ -163,7 +163,7 @@ test('scoped $$ helper usage is supported', () => {
 
 test('Grammar Home contains expected v3.5.2 navigation markers', () => {
   const ui = fs.readFileSync(path.join(__dirname, '../src/features/grammar/index.js'), 'utf8');
-  for (const marker of ['Favorites', 'Recent', 'Start Here', 'Supporting Reference', 'Parsing Decoder']) {
+  for (const marker of ['Favorites', 'Recently Viewed', 'Start Here', 'Supporting Reference', 'Parsing Guide']) {
     assert.match(ui, new RegExp(marker));
   }
 });
@@ -171,7 +171,7 @@ test('Grammar Home contains expected v3.5.2 navigation markers', () => {
 
 test('v3.5.3 language-aware grammar and comprehensive paradigm tabs are available', () => {
   const lyo = library.getReferenceTopic('greek-lyo-paradigm');
-  assert.deepEqual(lyo.paradigmTabs.map(t => t.label).slice(0, 7), ['Present','Imperfect','Future','Aorist','Perfect','Pluperfect','Non-finite']);
+  assert.deepEqual(lyo.paradigmTabs.map(t => t.label).slice(0, 7), ['Present','Imperfect','Future','Aorist','Perfect','Pluperfect','Infinitives & Participles']);
   assert.ok(lyo.paradigmTabs.find(t => t.label === 'Present').charts.some(c => c.label === 'Present Active Subjunctive'));
   assert.ok(lyo.paradigmTabs.find(t => t.label === 'Aorist').charts.some(c => c.label === 'Aorist Passive Participle'));
   assert.ok(lyo.paradigmTabs.find(t => t.label === 'Pluperfect').charts.some(c => c.label === 'Pluperfect Middle/Passive Indicative'));
@@ -233,7 +233,7 @@ test('v3.5.4 Hebrew dual, construct, suffix, and weak verb references are presen
   assert.ok(library.getReferenceTopic('hebrew-weak-verbs').charts[0].rows.some(r => r[0] === 'I-נ'));
 });
 
-test('v3.5.4 search covers new handbook refinements and future hooks', () => {
+test('v3.5.4 search covers new handbook refinements and hidden future hooks', () => {
   assert.equal(library.searchReferenceTopics('case endings', 'greek').some(t => t.id === 'greek-case-functions' || t.id === 'greek-first-declension-endings'), true);
   assert.equal(library.searchReferenceTopics('participles', 'greek').some(t => t.id === 'greek-participles'), true);
   assert.equal(library.searchReferenceTopics('contract verbs', 'greek').some(t => t.id === 'greek-contract-verbs'), true);
@@ -242,8 +242,8 @@ test('v3.5.4 search covers new handbook refinements and future hooks', () => {
   assert.equal(library.searchReferenceTopics('construct chains', 'hebrew').some(t => t.id === 'hebrew-construct-chains'), true);
   assert.equal(library.searchReferenceTopics('pronominal suffixes', 'hebrew').some(t => t.id === 'hebrew-pronominal-suffixes'), true);
   assert.equal(library.searchReferenceTopics('weak verbs', 'hebrew').some(t => t.id === 'hebrew-weak-verbs'), true);
-  assert.equal(library.searchReferenceTopics('μι verbs', 'greek').some(t => t.id === 'greek-mi-verbs-hook'), true);
-  assert.equal(library.searchReferenceTopics('irregular verbs', 'greek').some(t => t.id === 'greek-irregular-verbs-hook'), true);
+  assert.equal(library.searchReferenceTopics('μι verbs', 'greek').some(t => t.id === 'greek-mi-verbs-hook'), false);
+  assert.equal(library.searchReferenceTopics('irregular verbs', 'greek').some(t => t.id === 'greek-irregular-verbs-hook'), false);
 });
 
 test('v3.5.4 cross-links resolve for shared explanations and new references', () => {
@@ -277,7 +277,7 @@ function renderGrammarHomeFor(language, favorites = [], recents = []) {
 
 test('v3.5.4b rendered Greek Grammar Home uses category-first top-level cards', () => {
   const home = renderGrammarHomeFor('greek');
-  for (const label of ['Verb Paradigms','Noun Paradigms','Adjective Paradigms','Article Paradigms','Pronoun Paradigms','Case Endings','Participles','Contract Verbs','Greek Cheat Sheets','Parsing Decoder']) {
+  for (const label of ['Verb Paradigms','Noun Paradigms','Adjective Paradigms','Article Paradigms','Pronoun Paradigms','Case Endings','Participles','Contract Verbs','Greek Cheat Sheets','Parsing Guide']) {
     assert.match(home, new RegExp(`>${label}<`), `${label} missing from rendered Greek home`);
   }
   assert.doesNotMatch(home, />λύω paradigm</i);
@@ -295,7 +295,7 @@ test('v3.5.4b rendered Greek Case Endings section exposes declension and ending 
 
 test('v3.5.4b rendered Hebrew Grammar Home uses useful category cards', () => {
   const home = renderGrammarHomeFor('hebrew');
-  for (const label of ['Qal Paradigms','Niphal Paradigms','Piel Paradigms','Pual Paradigms','Hiphil Paradigms','Hophal Paradigms','Hitpael Paradigms','Dual Forms','Pronominal Suffixes','Construct Chains','Weak Verb Overview','Hebrew Cheat Sheets','Parsing Decoder']) {
+  for (const label of ['Qal Paradigms','Niphal Paradigms','Piel Paradigms','Pual Paradigms','Hiphil Paradigms','Hophal Paradigms','Hitpael Paradigms','Dual Forms','Pronominal Suffixes','Construct Chains','Weak Verb Overview','Hebrew Cheat Sheets','Parsing Guide']) {
     assert.match(home, new RegExp(`>${label}<`), `${label} missing from rendered Hebrew home`);
   }
 });
@@ -314,7 +314,7 @@ test('v3.5.4b search finds category-first Greek and Hebrew topics', () => {
 test('v3.5.4b favorites and recent pages render on Grammar Home', () => {
   const home = renderGrammarHomeFor('greek', ['greek-case-endings'], ['greek-participles']);
   assert.match(home, /<h3>Favorites<\/h3>[\s\S]*>Case Endings</);
-  assert.match(home, /<h3>Recent<\/h3>[\s\S]*>Participles</);
+  assert.match(home, /<h3>Recently Viewed<\/h3>[\s\S]*>Participles</);
   assert.match(fs.readFileSync(path.join(__dirname, '../src/features/grammar/index.js'), 'utf8'), /Star any page to build your frequently consulted grammar shelf/);
   assert.match(fs.readFileSync(path.join(__dirname, '../src/features/grammar/index.js'), 'utf8'), /Recently viewed grammar pages appear here automatically/);
 });

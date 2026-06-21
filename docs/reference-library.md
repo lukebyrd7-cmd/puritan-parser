@@ -58,8 +58,8 @@ The home layout is card-based and optimized for rapid lookup:
 1. Favorites
 2. Paradigms
 3. Cheat Sheets
-4. Parsing Decoder
-5. Recent
+4. Parsing Guide
+5. Recently Viewed
 6. Quick Jumps
 7. Reference
 
@@ -112,7 +112,7 @@ Search is expected to find high-value reader queries such as:
 
 ## Future hooks
 
-The reference data includes lightweight future hooks for Greek `μι` verbs and irregular verbs. These hooks reserve navigation and search targets without adding incomplete morphology or generated paradigms.
+The reference data keeps lightweight internal future hooks for Greek `μι` verbs and irregular verbs, but unfinished topics are not exposed in navigation or search.
 
 ## Static-content boundaries
 
