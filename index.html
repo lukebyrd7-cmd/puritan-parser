@@ -69,12 +69,12 @@
       <button class="lang-btn" data-lang="hebrew" id="btnHebrew" role="tab">Hebrew</button>
     </div>
     <div class="view-nav" id="viewNav">
-      <button class="nav-tab active" data-view="list">Word List</button>
+      <button class="nav-tab active" data-view="list">Vocabulary</button>
       <button class="nav-tab" data-view="flashcards">Flashcards</button>
       <button class="nav-tab" data-view="parsing">Parsing</button>
-      <button class="nav-tab" data-view="dashboard">Dashboard</button>
       <button class="nav-tab" data-view="grammar">Grammar</button>
-      <button class="nav-tab" data-view="bible">Bible</button>
+      <button class="nav-tab" data-view="reader">Reader</button>
+      <button class="nav-tab" data-view="dashboard">Dashboard</button>
       <button class="nav-tab" data-view="profile">Profile</button>
     </div>
     <div class="topbar-right">
@@ -486,12 +486,8 @@
       </div>
     </div>
 
-    <div id="bibleView" class="hidden fade-in">
-      <div class="panel empty-state">
-        <div class="empty-icon">📖</div>
-        <p style="font-size:15px;font-weight:600;color:var(--text);margin-bottom:6px">Bible</p>
-        <p>Bible-related settings and study tools will be added in a future release.</p>
-      </div>
+    <div id="readerView" class="hidden fade-in">
+      <div id="readerShell" class="reader-shell"></div>
     </div>
 
     <div id="profileView" class="hidden fade-in">

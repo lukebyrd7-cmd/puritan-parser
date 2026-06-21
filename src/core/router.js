@@ -6,7 +6,7 @@ const ROUTES = {
   '/dashboard': { viewId: 'dashboardView', nav: 'dashboard' },
   '/settings': { viewId: 'settingsView', nav: 'settings' },
   '/grammar': { viewId: 'grammarView', nav: 'grammar' },
-  '/bible': { viewId: 'bibleView', nav: 'bible' },
+  '/reader': { viewId: 'readerView', nav: 'reader' },
   '/profile': { viewId: 'profileView', nav: 'profile' }
 };
 

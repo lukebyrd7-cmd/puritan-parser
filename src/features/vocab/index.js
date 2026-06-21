@@ -16,7 +16,7 @@ function showView(viewId, options = {}){
 
   // Show/hide filter bar and its sub-elements
   const filterBar = $('#sharedFilterBar');
-  const noFilterViews = ['dashboardView','settingsView','grammarView','bibleView','profileView'];
+  const noFilterViews = ['dashboardView','settingsView','grammarView','readerView','profileView'];
   if(filterBar) filterBar.classList.toggle('hidden', noFilterViews.includes(viewId));
   // search only on list
   const sg = $('#filterSearchGroup'); if(sg) sg.classList.toggle('hidden', viewId!=='listView');
@@ -29,6 +29,7 @@ function showView(viewId, options = {}){
   if(viewId==='dashboardView') renderDashboard();
   if(viewId==='listView') renderList();
   if(viewId==='parsingView') { updateParsingModeUI(); renderLemmaPicker(); }
+  if(viewId==='readerView' && typeof initReader === 'function') initReader();
 
   const fl = $('#footerLang');
   if(fl) fl.textContent = `${state.lang==='greek'?'Greek (GNT)':'Hebrew'} — ${getCurrentStudyList().length} study entries (${getCurrentList().length} forms) loaded`;
