@@ -191,3 +191,65 @@ test('v3.5.3 grammar UI removes emoji cards and follows app language', () => {
   const html = fs.readFileSync(path.join(__dirname, '../index.html'), 'utf8');
   assert.doesNotMatch(html, /Search reference.*🔍/);
 });
+
+test('v3.5.4 category-based paradigm pages and favorites guidance are visible', () => {
+  assert.equal(library.getReferenceTopic('greek-lyo-paradigm').title, 'Verb Paradigms');
+  assert.equal(library.getReferenceTopic('greek-logos-paradigm').category, 'Noun Paradigms');
+  assert.equal(library.getReferenceTopic('greek-kalos-paradigm').category, 'Adjective Paradigms');
+  assert.equal(library.getReferenceTopic('greek-articles').category, 'Article Paradigms');
+  assert.equal(library.getReferenceTopic('greek-pronouns').category, 'Pronoun Paradigms');
+  for (const stem of ['qal','niphal','piel','pual','hiphil','hophal','hitpael']) {
+    assert.match(library.getReferenceTopic(`hebrew-${stem}`).category, /Paradigms$/);
+  }
+  const ui = fs.readFileSync(path.join(__dirname, '../src/features/grammar/index.js'), 'utf8');
+  assert.match(ui, /Star any page to build your frequently consulted grammar shelf/);
+  assert.match(ui, /'Favorites', favs/);
+  assert.match(ui, /reference-star/);
+});
+
+test('v3.5.4 Greek case ending, pronoun, participle, and contract verb references are present', () => {
+  for (const id of ['greek-first-declension-endings','greek-second-declension-endings','greek-third-declension-basics','greek-article-endings','greek-adjective-endings','greek-pronoun-endings','greek-case-functions','greek-participles','greek-contract-verbs']) {
+    const topic = library.getReferenceTopic(id);
+    assert.ok(topic, `${id} missing`);
+    assert.ok(topic.charts.length > 0, `${id} missing charts`);
+  }
+  assert.ok(library.getReferenceTopic('greek-first-declension-endings').charts[0].rows.some(r => r[0] === 'Vocative'));
+  assert.ok(library.getReferenceTopic('greek-pronouns').charts.some(c => c.label === 'Demonstrative pronouns'));
+  assert.ok(library.getReferenceTopic('greek-pronouns').charts.some(c => c.label === 'Relative pronoun'));
+  assert.ok(library.getReferenceTopic('greek-pronouns').charts.some(c => c.label === 'Interrogative pronoun'));
+  assert.ok(library.getReferenceTopic('greek-participles').charts[0].rows.some(r => r[0] === 'Perfect middle/passive'));
+  assert.ok(library.getReferenceTopic('greek-contract-verbs').charts[0].rows.some(r => r[0] === 'Alpha contract'));
+});
+
+test('v3.5.4 Hebrew dual, construct, suffix, and weak verb references are present', () => {
+  for (const id of ['hebrew-dual-forms','hebrew-pronominal-suffixes','hebrew-construct-chains','hebrew-weak-verbs']) {
+    const topic = library.getReferenceTopic(id);
+    assert.ok(topic, `${id} missing`);
+    assert.ok(topic.charts.length > 0, `${id} missing charts`);
+  }
+  assert.ok(library.getReferenceTopic('hebrew-dual-forms').charts[0].rows.some(r => r.includes('Dual')));
+  assert.ok(library.getReferenceTopic('hebrew-pronominal-suffixes').charts[0].rows.some(r => r.includes('3ms')));
+  assert.ok(library.getReferenceTopic('hebrew-construct-chains').charts[0].rows.some(r => r.includes('Construct state')));
+  assert.ok(library.getReferenceTopic('hebrew-weak-verbs').charts[0].rows.some(r => r[0] === 'I-נ'));
+});
+
+test('v3.5.4 search covers new handbook refinements and future hooks', () => {
+  assert.equal(library.searchReferenceTopics('case endings', 'greek').some(t => t.id === 'greek-case-functions' || t.id === 'greek-first-declension-endings'), true);
+  assert.equal(library.searchReferenceTopics('participles', 'greek').some(t => t.id === 'greek-participles'), true);
+  assert.equal(library.searchReferenceTopics('contract verbs', 'greek').some(t => t.id === 'greek-contract-verbs'), true);
+  assert.equal(library.searchReferenceTopics('demonstrative pronouns', 'greek').some(t => t.id === 'greek-pronouns'), true);
+  assert.equal(library.searchReferenceTopics('dual forms', 'hebrew').some(t => t.id === 'hebrew-dual-forms'), true);
+  assert.equal(library.searchReferenceTopics('construct chains', 'hebrew').some(t => t.id === 'hebrew-construct-chains'), true);
+  assert.equal(library.searchReferenceTopics('pronominal suffixes', 'hebrew').some(t => t.id === 'hebrew-pronominal-suffixes'), true);
+  assert.equal(library.searchReferenceTopics('weak verbs', 'hebrew').some(t => t.id === 'hebrew-weak-verbs'), true);
+  assert.equal(library.searchReferenceTopics('μι verbs', 'greek').some(t => t.id === 'greek-mi-verbs-hook'), true);
+  assert.equal(library.searchReferenceTopics('irregular verbs', 'greek').some(t => t.id === 'greek-irregular-verbs-hook'), true);
+});
+
+test('v3.5.4 cross-links resolve for shared explanations and new references', () => {
+  for (const id of ['greek-participles','greek-contract-verbs','hebrew-pronominal-suffixes','hebrew-construct-chains','hebrew-dual-forms','grammar-parsing-ambiguity']) {
+    const topic = library.getReferenceTopic(id);
+    assert.ok(topic.related.length > 0, `${id} missing cross-links`);
+    for (const relatedId of topic.related) assert.ok(library.getReferenceTopic(relatedId), `${id} broken link ${relatedId}`);
+  }
+});
