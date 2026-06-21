@@ -132,9 +132,9 @@ test('app shell exposes v3.5.2 grammar navigation hooks', () => {
 test('v3.5.2 cache visibility assets are version-bumped', () => {
   const sw = fs.readFileSync('sw.js', 'utf8');
   const html = fs.readFileSync('index.html', 'utf8');
-  assert.match(sw, /const CACHE = 'puritan-parser-v11'/);
-  assert.doesNotMatch(sw, /puritan-parser-v10/);
-  assert.match(html, /src="src\/main\.js\?v=v3\.5\.3-cache-bust"/);
+  assert.match(sw, /const CACHE = 'puritan-parser-v12'/);
+  assert.doesNotMatch(sw, /puritan-parser-v11/);
+  assert.match(html, /src="src\/main\.js\?v=v3\.5\.4b-cache-bust"/);
 });
 
 test('Greek reference search is accent-insensitive while accented search still works', () => {
@@ -163,7 +163,7 @@ test('scoped $$ helper usage is supported', () => {
 
 test('Grammar Home contains expected v3.5.2 navigation markers', () => {
   const ui = fs.readFileSync(path.join(__dirname, '../src/features/grammar/index.js'), 'utf8');
-  for (const marker of ['Favorites', 'Recent', 'Paradigms', 'Cheat Sheets', 'Parsing Decoder']) {
+  for (const marker of ['Favorites', 'Recent', 'Start Here', 'Supporting Reference', 'Parsing Decoder']) {
     assert.match(ui, new RegExp(marker));
   }
 });
@@ -252,4 +252,77 @@ test('v3.5.4 cross-links resolve for shared explanations and new references', ()
     assert.ok(topic.related.length > 0, `${id} missing cross-links`);
     for (const relatedId of topic.related) assert.ok(library.getReferenceTopic(relatedId), `${id} broken link ${relatedId}`);
   }
+});
+
+function renderGrammarHomeFor(language, favorites = [], recents = []) {
+  const vm = require('node:vm');
+  const ui = fs.readFileSync(path.join(__dirname, '../src/features/grammar/index.js'), 'utf8');
+  const store = {
+    pp_grammar_favorites_v1: JSON.stringify(favorites),
+    pp_grammar_recent_v1: JSON.stringify(recents)
+  };
+  const context = {
+    PuritanReferenceLibrary: library,
+    state: { lang: language },
+    document: {},
+    localStorage: { getItem: key => store[key] || null, setItem: (key, value) => { store[key] = value; } },
+    $: selector => selector === '#referenceLanguageFilter' ? { value: language } : null,
+    $$: () => [],
+    debounce: fn => fn
+  };
+  vm.createContext(context);
+  vm.runInContext(`${ui}; this.__renderedGrammarHome = renderGrammarHome();`, context);
+  return context.__renderedGrammarHome;
+}
+
+test('v3.5.4b rendered Greek Grammar Home uses category-first top-level cards', () => {
+  const home = renderGrammarHomeFor('greek');
+  for (const label of ['Verb Paradigms','Noun Paradigms','Adjective Paradigms','Article Paradigms','Pronoun Paradigms','Case Endings','Participles','Contract Verbs','Greek Cheat Sheets','Parsing Decoder']) {
+    assert.match(home, new RegExp(`>${label}<`), `${label} missing from rendered Greek home`);
+  }
+  assert.doesNotMatch(home, />λύω paradigm</i);
+  assert.doesNotMatch(home, />λόγος paradigm</i);
+  assert.doesNotMatch(home, />καλός paradigm</i);
+});
+
+test('v3.5.4b rendered Greek Case Endings section exposes declension and ending pages', () => {
+  const home = renderGrammarHomeFor('greek');
+  assert.match(home, /<h3>Case Endings<\/h3>/);
+  for (const label of ['First Declension','Second Declension','Third Declension Basics','Article Endings','Adjective Endings','Pronoun Endings']) {
+    assert.match(home, new RegExp(`>${label}<`), `${label} missing from Case Endings section`);
+  }
+});
+
+test('v3.5.4b rendered Hebrew Grammar Home uses useful category cards', () => {
+  const home = renderGrammarHomeFor('hebrew');
+  for (const label of ['Qal Paradigms','Niphal Paradigms','Piel Paradigms','Pual Paradigms','Hiphil Paradigms','Hophal Paradigms','Hitpael Paradigms','Dual Forms','Pronominal Suffixes','Construct Chains','Weak Verb Overview','Hebrew Cheat Sheets','Parsing Decoder']) {
+    assert.match(home, new RegExp(`>${label}<`), `${label} missing from rendered Hebrew home`);
+  }
+});
+
+test('v3.5.4b search finds category-first Greek and Hebrew topics', () => {
+  const expected = {
+    greek: ['case endings','first declension','second declension','third declension','article endings','adjective endings','pronoun endings','participles','contract verbs','verb paradigms','noun paradigms','adjective paradigms'],
+    hebrew: ['dual forms','pronominal suffixes','construct chains','weak verbs','Qal paradigms','Hiphil paradigms']
+  };
+  for (const query of expected.greek) assert.ok(library.searchReferenceTopics(query, 'greek').length, `No Greek result for ${query}`);
+  for (const query of expected.hebrew) assert.ok(library.searchReferenceTopics(query, 'hebrew').length, `No Hebrew result for ${query}`);
+  assert.equal(library.searchReferenceTopics('case endings', 'greek').some(t => t.id === 'greek-case-endings'), true);
+  assert.equal(library.searchReferenceTopics('first declension', 'greek').some(t => t.id === 'greek-first-declension-endings'), true);
+});
+
+test('v3.5.4b favorites and recent pages render on Grammar Home', () => {
+  const home = renderGrammarHomeFor('greek', ['greek-case-endings'], ['greek-participles']);
+  assert.match(home, /<h3>Favorites<\/h3>[\s\S]*>Case Endings</);
+  assert.match(home, /<h3>Recent<\/h3>[\s\S]*>Participles</);
+  assert.match(fs.readFileSync(path.join(__dirname, '../src/features/grammar/index.js'), 'utf8'), /Star any page to build your frequently consulted grammar shelf/);
+  assert.match(fs.readFileSync(path.join(__dirname, '../src/features/grammar/index.js'), 'utf8'), /Recently viewed grammar pages appear here automatically/);
+});
+
+test('v3.5.4b service worker cache version and app shell cache bust are bumped', () => {
+  const sw = fs.readFileSync('sw.js', 'utf8');
+  const html = fs.readFileSync('index.html', 'utf8');
+  assert.match(sw, /const CACHE = 'puritan-parser-v12'/);
+  assert.doesNotMatch(sw, /puritan-parser-v11/);
+  assert.match(html, /src="src\/main\.js\?v=v3\.5\.4b-cache-bust"/);
 });
