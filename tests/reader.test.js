@@ -68,3 +68,110 @@ test('chapter data lazy loads only requested chapters and uses cache', async () 
   assert.equal(reader.readerLoadCounts['greek/matthew/1'], 1);
   assert.equal(reader.readerLoadCounts['greek/matthew/2'] || 0, 0);
 });
+
+const fs = require('node:fs');
+const vm = require('node:vm');
+
+function makeElement(id = ''){
+  const classes = new Set();
+  return {
+    id,
+    dataset: {},
+    innerHTML: '',
+    textContent: '',
+    value: '',
+    disabled: false,
+    listeners: {},
+    classList: {
+      add: cls => classes.add(cls),
+      remove: cls => classes.delete(cls),
+      contains: cls => classes.has(cls),
+      toggle: (cls, force) => {
+        const shouldAdd = force === undefined ? !classes.has(cls) : Boolean(force);
+        if(shouldAdd) classes.add(cls); else classes.delete(cls);
+        return shouldAdd;
+      }
+    },
+    addEventListener(type, fn){ this.listeners[type] = fn; },
+    click(){ this.listeners.click?.({ target: this }); }
+  };
+}
+
+function createReaderStartupHarness(){
+  const ids = ['listView','flashView','parsingView','dashboardView','settingsView','grammarView','readerView','profileView','sharedFilterBar','filterSearchGroup','filterSortGroup','filterEntriesCount','filterPosGroup','footerLang'];
+  const elements = new Map(ids.map(id => [id, makeElement(id)]));
+  elements.get('readerView').classList.add('hidden');
+  const readerTab = makeElement('readerTab');
+  readerTab.dataset.view = 'reader';
+  const navTabs = [readerTab];
+  const document = {
+    getElementById: id => elements.get(id) || null,
+    querySelector: selector => selector.startsWith('#') ? (elements.get(selector.slice(1)) || null) : null,
+    querySelectorAll: selector => selector === '.nav-tab' ? navTabs : []
+  };
+  const context = {
+    console,
+    document,
+    window: { location: { pathname: '/list' }, addEventListener() {} },
+    history: {
+      pushState: (s, t, url) => { context.window.location.pathname = url; },
+      replaceState: (s, t, url) => { context.window.location.pathname = url; }
+    },
+    state: { currentView: 'listView', lang: 'greek', dashboard: {}, prefs: {}, data: { greek: [], hebrew: [] }, filters: {} },
+    selectedLemma: null,
+    parsingModeFamily: () => 'all',
+    readFiltersFromDOM: () => {},
+    renderDashboard: () => {},
+    renderList: () => {},
+    updateParsingModeUI: () => {},
+    renderLemmaPicker: () => {},
+    getCurrentStudyList: () => [],
+    getCurrentList: () => [],
+    initReaderCalls: 0,
+    module: undefined
+  };
+  context.$ = selector => document.querySelector(selector);
+  context.$$ = (selector, root = document) => Array.from(root.querySelectorAll(selector));
+  context.initReader = () => { context.initReaderCalls += 1; return Promise.resolve(); };
+  vm.createContext(context);
+  vm.runInContext(fs.readFileSync('src/core/router.js', 'utf8'), context, { filename: 'src/core/router.js' });
+  const vocabSource = fs.readFileSync('src/features/vocab/index.js', 'utf8');
+  vm.runInContext(vocabSource.slice(0, vocabSource.indexOf('/* ---------- Language ---------- */')), context, { filename: 'src/features/vocab/index.js' });
+  return { context, elements, readerTab };
+}
+
+test('Reader button opens Reader view and initializes successfully', () => {
+  const { context, elements, readerTab } = createReaderStartupHarness();
+  readerTab.addEventListener('click', () => context.navigateTo('/reader'));
+  readerTab.click();
+  assert.equal(context.window.location.pathname, '/reader');
+  assert.equal(context.state.currentView, 'readerView');
+  assert.equal(elements.get('readerView').classList.contains('hidden'), false);
+  assert.equal(elements.get('listView').classList.contains('hidden'), true);
+  assert.equal(context.initReaderCalls, 1);
+});
+
+test('Reader route can be entered directly and showView accepts reader nav id', () => {
+  const { context, elements } = createReaderStartupHarness();
+  context.window.location.pathname = '/reader';
+  context.initRouter();
+  assert.equal(context.state.currentView, 'readerView');
+  assert.equal(elements.get('readerView').classList.contains('hidden'), false);
+
+  context.showView('reader');
+  assert.equal(context.state.currentView, 'readerView');
+  assert.equal(context.routeForView('reader'), '/reader');
+});
+
+test('Reader render creates visible chapter controls and loaded chapter text', async () => {
+  let html = '';
+  const shell = { set innerHTML(value){ html = value; }, get innerHTML(){ return html; } };
+  global.$ = selector => selector === '#readerShell' ? shell : null;
+  global.$$ = () => [];
+  await reader.setReaderLocation({ language: 'greek', book: 'matthew', chapter: 1 });
+  assert.match(html, /id="readerBookSelect"/);
+  assert.match(html, /id="readerChapterSelect"/);
+  assert.match(html, /Matthew 1/);
+  assert.match(html, /Βίβλος γενέσεως/);
+  assert.equal(reader.readerState().error, '');
+});
