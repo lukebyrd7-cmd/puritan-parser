@@ -5,9 +5,20 @@ function displayHeadwordForEntry(entry){
 }
 
 /* ---------- View Controller ---------- */
+function normalizeViewId(viewId){
+  if(typeof viewId !== 'string') return 'listView';
+  if(document.getElementById(viewId)) return viewId;
+  if(typeof ROUTES !== 'undefined'){
+    const byNav = Object.values(ROUTES).find(route => route.nav === viewId);
+    if(byNav) return byNav.viewId;
+  }
+  const candidate = (viewId === 'flashcards' ? 'flash' : viewId) + 'View';
+  return document.getElementById(candidate) ? candidate : 'listView';
+}
 function showView(viewId, options = {}){
+  viewId = normalizeViewId(viewId);
   const views = Object.values(typeof ROUTES !== 'undefined' ? ROUTES : {}).map(route => route.viewId);
-  if(!views.length) views.push('listView','flashView','parsingView','dashboardView','settingsView');
+  if(!views.length) views.push('listView','flashView','parsingView','dashboardView','settingsView','grammarView','readerView','profileView');
   views.forEach(id=>{ const el=document.getElementById(id); if(el) el.classList.toggle('hidden', id!==viewId); });
   $$('.nav-tab').forEach(t=>t.classList.toggle('active', t.dataset.view===viewId.replace('View','') || (typeof ROUTES !== 'undefined' && ROUTES[routeForView(viewId)]?.nav === t.dataset.view)));
   state.currentView = viewId;

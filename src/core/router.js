@@ -11,7 +11,7 @@ const ROUTES = {
 };
 
 function routeForView(viewId){
-  const found = Object.entries(ROUTES).find(([, route]) => route.viewId === viewId);
+  const found = Object.entries(ROUTES).find(([, route]) => route.viewId === viewId || route.nav === viewId);
   return found ? found[0] : '/list';
 }
 function currentRoutePath(){ return window.location.pathname in ROUTES ? window.location.pathname : '/list'; }

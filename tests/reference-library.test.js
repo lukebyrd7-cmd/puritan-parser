@@ -132,9 +132,9 @@ test('app shell exposes v3.5.2 grammar navigation hooks', () => {
 test('v3.5.2 cache visibility assets are version-bumped', () => {
   const sw = fs.readFileSync('sw.js', 'utf8');
   const html = fs.readFileSync('index.html', 'utf8');
-  assert.match(sw, /const CACHE = 'puritan-parser-v12'/);
+  assert.match(sw, /const CACHE = 'puritan-parser-v13-reader-startup'/);
   assert.doesNotMatch(sw, /puritan-parser-v11/);
-  assert.match(html, /src="src\/main\.js\?v=v3\.5\.4b-cache-bust"/);
+  assert.match(html, /src="src\/main\.js\?v=v3\.6\.1-reader-startup"/);
 });
 
 test('Greek reference search is accent-insensitive while accented search still works', () => {
@@ -322,7 +322,7 @@ test('v3.5.4b favorites and recent pages render on Grammar Home', () => {
 test('v3.5.4b service worker cache version and app shell cache bust are bumped', () => {
   const sw = fs.readFileSync('sw.js', 'utf8');
   const html = fs.readFileSync('index.html', 'utf8');
-  assert.match(sw, /const CACHE = 'puritan-parser-v12'/);
+  assert.match(sw, /const CACHE = 'puritan-parser-v13-reader-startup'/);
   assert.doesNotMatch(sw, /puritan-parser-v11/);
-  assert.match(html, /src="src\/main\.js\?v=v3\.5\.4b-cache-bust"/);
+  assert.match(html, /src="src\/main\.js\?v=v3\.6\.1-reader-startup"/);
 });
