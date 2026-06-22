@@ -1,4 +1,4 @@
-# Reader Architecture (v3.6.1c Matthew Reader Data)
+# Reader Architecture (v3.6.1d Mark Reader Data)
 
 The Reader is a reading-first shell for the Greek New Testament. It intentionally avoids interlinear display, word popups, glosses, parsing panels, notes, highlighting, commentary, AI, accounts, sync, and Hebrew reading.
 
@@ -16,7 +16,7 @@ greek: {
   dataRoot: 'data/greek',
   books: [
     { id: 'matthew', name: 'Matthew', chapters: 28 },
-    { id: 'mark', name: 'Mark', chapters: 1 }
+    { id: 'mark', name: 'Mark', chapters: 16 }
   ]
 }
 ```
@@ -38,7 +38,7 @@ npm run reader:generate -- --book mark --no-search-index
 node scripts/generate-reader-data.js --source-root data/source --output-root data/greek --book matthew
 ```
 
-v3.6.1c populates Matthew completely by running `npm run reader:generate -- --book matthew` after placing MorphGNT SBLGNT source data at `data/source/morphgnt-sblgnt/61-Mt-morphgnt.txt`. Future imports should run the generator for manageable book batches and review the resulting JSON separately.
+v3.6.1c populated Matthew completely by running `npm run reader:generate -- --book matthew` after placing MorphGNT SBLGNT source data at `data/source/morphgnt-sblgnt/61-Mt-morphgnt.txt`. v3.6.1d adds Mark by placing MorphGNT SBLGNT source data at `data/source/morphgnt-sblgnt/62-Mk-morphgnt.txt` and regenerating the Reader data for both currently supported books with `node scripts/generate-reader-data.js --book matthew --book mark`. Regenerating both books keeps `data/greek/manifest.json` and `data/greek/search-index.json` aligned with the complete Reader corpus. Future imports should run the generator for manageable book batches and review the resulting JSON separately.
 
 ## Chapter schema
 
@@ -107,6 +107,17 @@ node scripts/audit-reader-data.js --data-root data/greek --expected expected-rea
 ```
 
 The audit accepts both the generated `verses` schema and the older MVP paragraph sample shape so it can validate current sample data while future generated data is introduced.
+
+## v3.6.1d Mark audit results
+
+Mark is generated from MorphGNT SBLGNT into `data/greek/mark/1.json` through `data/greek/mark/16.json`. The v3.6.1d audit reports 16 Mark chapters with these verse counts:
+
+| Book | Chapter count | Verse counts |
+| --- | ---: | --- |
+| Mark | 16 | 1:45, 2:28, 3:35, 4:41, 5:43, 6:56, 7:36, 8:38, 9:48, 10:52, 11:32, 12:44, 13:37, 14:72, 15:46, 16:20 |
+| Matthew | 28 | 1:25, 2:23, 3:17, 4:25, 5:48, 6:34, 7:29, 8:34, 9:38, 10:42, 11:30, 12:50, 13:58, 14:36, 15:39, 16:28, 17:26, 18:34, 19:30, 20:34, 21:46, 22:46, 23:38, 24:51, 25:46, 26:75, 27:66, 28:20 |
+
+Known limitation: the audit reports verse-number gaps where the SBLGNT/MorphGNT source omits verses present in some later verse traditions: Mark 7:16, Mark 9:44, Mark 9:46, Mark 11:26, Mark 15:28, Matthew 17:21, Matthew 18:11, and Matthew 23:14. These are source omissions, not generated empty verses; the Reader pipeline does not invent missing verse text or token metadata.
 
 ## Lazy loading philosophy
 

@@ -35,6 +35,31 @@ test('book navigation crosses from Matthew to Mark', async () => {
   assert.deepEqual(reader.getAdjacentReaderLocation(1), { language: 'greek', book: 'mark', chapter: 1 });
 });
 
+test('Mark appears in the book selector with all 16 chapters', async () => {
+  let html = '';
+  const shell = { set innerHTML(value){ html = value; }, get innerHTML(){ return html; } };
+  global.$ = selector => selector === '#readerShell' ? shell : null;
+  global.$$ = () => [];
+  await reader.setReaderLocation({ language: 'greek', book: 'mark', chapter: 1 });
+  assert.match(html, /<option value="mark" selected>Mark<\/option>/);
+  const chapterOptions = [...html.matchAll(/<option value="(\d+)"/g)].map(match => Number(match[1]));
+  assert.deepEqual(chapterOptions, Array.from({ length: 16 }, (_, i) => i + 1));
+});
+
+test('Mark 1 and Mark 16 load from generated chapter data', async () => {
+  const mark1 = await reader.loadReaderChapter('greek', 'mark', 1);
+  assert.equal(mark1.bookName, 'Mark');
+  assert.equal(mark1.chapter, 1);
+  assert.equal(mark1.verses[0].verse, 1);
+  assert.match(reader.renderReaderChapter(mark1), /Ἀρχὴ τοῦ εὐαγγελίου/);
+
+  const mark16 = await reader.loadReaderChapter('greek', 'mark', 16);
+  assert.equal(mark16.bookName, 'Mark');
+  assert.equal(mark16.chapter, 16);
+  assert.equal(mark16.verses.at(-1).verse, 20);
+  assert.match(reader.renderReaderChapter(mark16), /ἐκήρυξαν πανταχοῦ/);
+});
+
 test('chapter navigation moves previous and next within a book', async () => {
   await reader.setReaderLocation({ language: 'greek', book: 'matthew', chapter: 1 });
   assert.equal(reader.getAdjacentReaderLocation(1).chapter, 2);
@@ -59,6 +84,21 @@ test('search supports lemma, surface text, and verse references', async () => {
   assert.ok(surfaceResults.some(item => item.book === 'matthew' && item.chapter === 1));
   assert.deepEqual(reader.parseReaderReference('Matthew 1:18'), { language: 'greek', book: 'matthew', chapter: 1, verse: '18' });
   assert.deepEqual(reader.parseReaderReference('Matthew 5'), { language: 'greek', book: 'matthew', chapter: 5, verse: '' });
+});
+
+test('search finds Mark surface forms, lemmas, and references', async () => {
+  let html = '';
+  const resultBox = { set innerHTML(value){ html = value; }, get innerHTML(){ return html; } };
+  global.$ = selector => selector === '#readerSearchResults' ? resultBox : null;
+  global.$$ = () => [];
+  await reader.loadReaderManifest('greek');
+  const surfaceResults = await reader.runReaderSearch('εὐαγγέλιον');
+  assert.ok(surfaceResults.some(item => item.book === 'mark' && item.chapter === 1 && item.verse === 1));
+  const lemmaResults = await reader.runReaderSearch('βαπτίζω');
+  assert.ok(lemmaResults.some(item => item.book === 'mark'));
+  assert.deepEqual(reader.parseReaderReference('Mark 1:1'), { language: 'greek', book: 'mark', chapter: 1, verse: '1' });
+  assert.deepEqual(reader.parseReaderReference('Mark 16'), { language: 'greek', book: 'mark', chapter: 16, verse: '' });
+  assert.match(html, /Mark/);
 });
 
 test('chapter data lazy loads only requested chapters and uses cache', async () => {
@@ -200,6 +240,7 @@ test('Reader loads generated manifest and exposes Matthew 1-28 dynamically', asy
   reader.ReaderConfig.greek.books = [];
   await reader.loadReaderManifest('greek');
   assert.deepEqual(reader.getReaderBookChapters('greek', 'matthew'), Array.from({ length: 28 }, (_, i) => i + 1));
+  assert.deepEqual(reader.getReaderBookChapters('greek', 'mark'), Array.from({ length: 16 }, (_, i) => i + 1));
 });
 
 test('Reader runtime schema accepts generated chapter verse objects', async () => {
