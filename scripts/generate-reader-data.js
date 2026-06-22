@@ -68,7 +68,7 @@ function parseMorphGntLine(line) {
   if (parts.length < 4 || /^#/.test(parts[0])) return null;
   const { chapter, verse } = decodeReference(parts[0]);
   const surface = parts[3];
-  const lemma = parts[5] || parts[4] || '';
+  const lemma = parts.at(-1) || parts[5] || parts[4] || '';
   const parse = [parts[1], parts[2]].filter(Boolean).join(' ');
   return { chapter, verse, surface, lemma, parse };
 }

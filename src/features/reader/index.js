@@ -5,7 +5,7 @@ const ReaderConfig = {
     label: 'Greek New Testament',
     dataRoot: 'data/greek',
     books: [
-      { id: 'matthew', name: 'Matthew', chapters: 2 },
+      { id: 'matthew', name: 'Matthew', chapters: 28 },
       { id: 'mark', name: 'Mark', chapters: 1 }
     ]
   }
@@ -123,7 +123,8 @@ function renderReader(){
   if(readerState.focusVerse) setTimeout(() => document.getElementById(`readerVerse-${readerState.focusVerse}`)?.scrollIntoView({ block: 'center' }), 0);
 }
 function renderReaderChapter(data){
-  return `<h2>${escHtml(data.bookName)} ${data.chapter}</h2>` + (data.paragraphs || []).map(paragraph => `<p class="reader-paragraph">${paragraph.verses.map(verse => `<span class="reader-verse" id="readerVerse-${verse.number}"><sup>${verse.number}</sup>${escHtml(verse.text)}</span>`).join(' ')}</p>`).join('');
+  const paragraphs = data.paragraphs || [{ verses: (data.verses || []).map(verse => ({ number: verse.verse, text: verse.text })) }];
+  return `<h2>${escHtml(data.bookName)} ${data.chapter}</h2>` + paragraphs.map(paragraph => `<p class="reader-paragraph">${paragraph.verses.map(verse => `<span class="reader-verse" id="readerVerse-${verse.number}"><sup>${verse.number}</sup>${escHtml(verse.text)}</span>`).join(' ')}</p>`).join('');
 }
 function wireReaderControls(){
   $('#readerBookSelect')?.addEventListener('change', e => setReaderLocation({ language: readerState.language, book: e.target.value, chapter: 1 }));

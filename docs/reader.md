@@ -1,4 +1,4 @@
-# Reader Architecture (v3.6.1b Reader Data Generator Infrastructure)
+# Reader Architecture (v3.6.1c Matthew Reader Data)
 
 The Reader is a reading-first shell for the Greek New Testament. It intentionally avoids interlinear display, word popups, glosses, parsing panels, notes, highlighting, commentary, AI, accounts, sync, and Hebrew reading.
 
@@ -15,7 +15,7 @@ greek: {
   label: 'Greek New Testament',
   dataRoot: 'data/greek',
   books: [
-    { id: 'matthew', name: 'Matthew', chapters: 2 },
+    { id: 'matthew', name: 'Matthew', chapters: 28 },
     { id: 'mark', name: 'Mark', chapters: 1 }
   ]
 }
@@ -38,7 +38,7 @@ npm run reader:generate -- --book mark --no-search-index
 node scripts/generate-reader-data.js --source-root data/source --output-root data/greek --book matthew
 ```
 
-This infrastructure intentionally does not populate Matthew or the full New Testament in one PR. Future imports should run the generator for manageable book or chapter batches and review the resulting JSON separately.
+v3.6.1c populates Matthew completely by running `npm run reader:generate -- --book matthew` after placing MorphGNT SBLGNT source data at `data/source/morphgnt-sblgnt/61-Mt-morphgnt.txt`. Future imports should run the generator for manageable book batches and review the resulting JSON separately.
 
 ## Chapter schema
 
@@ -68,7 +68,7 @@ The standard generated chapter shape is:
 
 Required chapter fields are `book`, `chapter`, and `verses`. Required verse fields are `verse` and `text`. The `tokens` array is included only when source data supplies token information; token metadata should not be invented by the Reader pipeline.
 
-The existing MVP sample files still use a paragraph wrapper consumed by the current UI. The generator schema above is the canonical import format for future Reader data batches.
+The Reader UI supports this canonical generated `verses` schema, while the audit script still accepts the older paragraph wrapper for compatibility with any remaining sample data.
 
 ## Search index structure
 
@@ -118,6 +118,12 @@ The service worker keeps JSON files out of the install precache. JSON is cached 
 
 The Reader persists the last language, book, and chapter under `pp_reader_location`. Reopening the Reader restores that location and then lazy-loads only that chapter.
 
+## Matthew v3.6.1c audit results
+
+Matthew was generated from MorphGNT SBLGNT and contains 28 chapter files under `data/greek/matthew/`. The audit reports 28 Matthew chapters, with verse counts: 25, 23, 17, 25, 48, 34, 29, 34, 38, 42, 30, 50, 58, 36, 39, 28, 26, 34, 30, 34, 46, 46, 38, 51, 46, 75, 66, and 20. The SBLGNT source omits Matthew 17:21, 18:11, and 23:14, so the audit lists those as missing verse numbers rather than inventing text not present in the source. Mark 1 remains present as previously generated sample data, so `npm run reader:audit` reports both `mark` and `matthew`.
+
+Known limitations: this data includes Greek surface text and MorphGNT token metadata where available, but it does not add gloss display, parsing display, morphology-aware search, interlinear mode, commentary, notes, highlights, Hebrew Reader support, or AI features.
+
 ## Search
 
 Search is intentionally simple. Greek search supports:
@@ -126,13 +132,12 @@ Search is intentionally simple. Greek search supports:
 - lemma text matching;
 - direct verse references such as `Matthew 1:18`.
 
-Search reads `data/greek/search-index.json`, shows concise verse results, and clicking a result jumps to the result's chapter and verse. Advanced morphology-aware search is out of scope for v3.6.1b.
+Search reads `data/greek/search-index.json`, shows concise verse results, and clicking a result jumps to the result's chapter and verse. Advanced morphology-aware search is out of scope for v3.6.1c.
 
 ## Scope boundaries
 
 This milestone is data infrastructure only. Do not add:
 
-- full Matthew or full New Testament population;
 - interlinear mode;
 - word popups;
 - gloss display;
