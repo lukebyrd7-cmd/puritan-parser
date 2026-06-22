@@ -30,6 +30,8 @@ test('generator transforms MorphGNT source into reader chapter schema', () => {
   assert.equal(chapter.book, 'matthew');
   assert.equal(chapter.chapter, 1);
   assert.deepEqual(Object.keys(chapter.verses[0]).sort(), ['text', 'tokens', 'verse']);
+  const manifest = JSON.parse(fs.readFileSync(path.join(outputRoot, 'manifest.json'), 'utf8'));
+  assert.deepEqual(manifest.books, [{ id: 'matthew', name: 'Matthew', chapters: [1, 2] }]);
   assert.equal(chapter.verses[0].text, 'Βίβλος γενέσεως');
   assert.deepEqual(chapter.verses[0].tokens[0], { surface: 'Βίβλος', lemma: 'βίβλος', parse: 'N- ----NSF-' });
 });

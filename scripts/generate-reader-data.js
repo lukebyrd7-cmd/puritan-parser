@@ -111,6 +111,20 @@ function writeJson(filePath, data) {
   fs.writeFileSync(filePath, `${JSON.stringify(data, null, 2)}\n`);
 }
 
+function manifestFromChapters(chapters) {
+  const byBook = new Map();
+  for (const chapter of chapters) {
+    if (!byBook.has(chapter.book)) byBook.set(chapter.book, { id: chapter.book, name: chapter.bookName, chapters: [] });
+    byBook.get(chapter.book).chapters.push(chapter.chapter);
+  }
+  return {
+    schemaVersion: 1,
+    language: 'greek',
+    source: 'MorphGNT SBLGNT (data/source/morphgnt-sblgnt)',
+    books: [...byBook.values()].map(book => ({ ...book, chapters: [...new Set(book.chapters)].sort((a, b) => a - b) }))
+  };
+}
+
 function searchEntriesFromChapter(chapter) {
   return chapter.verses.map(verse => ({
     book: chapter.book,
@@ -132,6 +146,7 @@ function generateReaderData(options = {}) {
   });
   const chapters = files.flatMap(buildBookChapters);
   for (const chapter of chapters) writeJson(path.join(opts.outputRoot, chapter.book, `${chapter.chapter}.json`), chapter);
+  writeJson(path.join(opts.outputRoot, 'manifest.json'), manifestFromChapters(chapters));
   if (opts.searchIndex) writeJson(path.join(opts.outputRoot, 'search-index.json'), chapters.flatMap(searchEntriesFromChapter));
   return { source: 'MorphGNT SBLGNT', files: files.length, chapters: chapters.length, outputRoot: opts.outputRoot };
 }
@@ -148,4 +163,4 @@ function main() {
 }
 
 if (require.main === module) main();
-module.exports = { BOOKS, parseArgs, findMorphGntFiles, parseMorphGntLine, buildBookChapters, searchEntriesFromChapter, generateReaderData };
+module.exports = { BOOKS, parseArgs, findMorphGntFiles, parseMorphGntLine, buildBookChapters, manifestFromChapters, searchEntriesFromChapter, generateReaderData };
