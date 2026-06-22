@@ -31,15 +31,15 @@ test('reader loads a Greek chapter from the chapter-file structure', async () =>
 });
 
 test('book navigation crosses from Matthew to Mark', async () => {
-  await reader.setReaderLocation({ language: 'greek', book: 'matthew', chapter: 2 });
+  await reader.setReaderLocation({ language: 'greek', book: 'matthew', chapter: 28 });
   assert.deepEqual(reader.getAdjacentReaderLocation(1), { language: 'greek', book: 'mark', chapter: 1 });
 });
 
 test('chapter navigation moves previous and next within a book', async () => {
   await reader.setReaderLocation({ language: 'greek', book: 'matthew', chapter: 1 });
   assert.equal(reader.getAdjacentReaderLocation(1).chapter, 2);
-  await reader.setReaderLocation({ language: 'greek', book: 'matthew', chapter: 2 });
-  assert.equal(reader.getAdjacentReaderLocation(-1).chapter, 1);
+  await reader.setReaderLocation({ language: 'greek', book: 'matthew', chapter: 28 });
+  assert.equal(reader.getAdjacentReaderLocation(-1).chapter, 27);
 });
 
 test('last reader location persists', () => {
@@ -55,9 +55,10 @@ test('search supports lemma, surface text, and verse references', async () => {
   global.$$ = () => [];
   const lemmaResults = await reader.runReaderSearch('γεννάω');
   assert.ok(lemmaResults.some(item => item.book === 'matthew' && item.chapter === 1 && item.verse === 2));
-  const surfaceResults = await reader.runReaderSearch('εὐαγγελίου');
-  assert.ok(surfaceResults.some(item => item.book === 'mark' && item.chapter === 1));
+  const surfaceResults = await reader.runReaderSearch('βίβλος');
+  assert.ok(surfaceResults.some(item => item.book === 'matthew' && item.chapter === 1));
   assert.deepEqual(reader.parseReaderReference('Matthew 1:18'), { language: 'greek', book: 'matthew', chapter: 1, verse: '18' });
+  assert.deepEqual(reader.parseReaderReference('Matthew 5'), { language: 'greek', book: 'matthew', chapter: 5, verse: '' });
 });
 
 test('chapter data lazy loads only requested chapters and uses cache', async () => {
@@ -66,7 +67,7 @@ test('chapter data lazy loads only requested chapters and uses cache', async () 
   await reader.loadReaderChapter('greek', 'matthew', 1);
   await reader.loadReaderChapter('greek', 'matthew', 1);
   assert.equal(reader.readerLoadCounts['greek/matthew/1'], 1);
-  assert.equal(reader.readerLoadCounts['greek/matthew/2'] || 0, 0);
+  assert.equal(reader.readerLoadCounts['greek/matthew/28'] || 0, 0);
 });
 
 const fs = require('node:fs');
@@ -174,4 +175,22 @@ test('Reader render creates visible chapter controls and loaded chapter text', a
   assert.match(html, /Matthew 1/);
   assert.match(html, /Βίβλος γενέσεως/);
   assert.equal(reader.readerState().error, '');
+});
+
+test('Matthew 28 loads from generated chapter data', async () => {
+  const chapter = await reader.loadReaderChapter('greek', 'matthew', 28);
+  assert.equal(chapter.bookName, 'Matthew');
+  assert.equal(chapter.chapter, 28);
+  assert.equal(chapter.verses.at(-1).verse, 20);
+  assert.match(reader.renderReaderChapter(chapter), /πάντα τὰ ἔθνη/);
+});
+
+test('Matthew chapter selector contains all 28 chapters', async () => {
+  let html = '';
+  const shell = { set innerHTML(value){ html = value; }, get innerHTML(){ return html; } };
+  global.$ = selector => selector === '#readerShell' ? shell : null;
+  global.$$ = () => [];
+  await reader.setReaderLocation({ language: 'greek', book: 'matthew', chapter: 1 });
+  const chapterOptions = [...html.matchAll(/<option value="(\d+)"/g)].map(match => Number(match[1]));
+  assert.deepEqual(chapterOptions, Array.from({ length: 28 }, (_, i) => i + 1));
 });
