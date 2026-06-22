@@ -8,6 +8,8 @@
     "data:build": "node scripts/build-expanded-vocab.js",
     "data:refresh": "npm run data:download && npm run data:build",
     "test": "node --test",
-    "gloss:audit": "node scripts/gloss-audit.js"
+    "gloss:audit": "node scripts/gloss-audit.js",
+    "reader:generate": "node scripts/generate-reader-data.js",
+    "reader:audit": "node scripts/audit-reader-data.js"
   }
 }
