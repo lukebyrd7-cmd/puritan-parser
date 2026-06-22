@@ -194,3 +194,36 @@ test('Matthew chapter selector contains all 28 chapters', async () => {
   const chapterOptions = [...html.matchAll(/<option value="(\d+)"/g)].map(match => Number(match[1]));
   assert.deepEqual(chapterOptions, Array.from({ length: 28 }, (_, i) => i + 1));
 });
+
+test('Reader loads generated manifest and exposes Matthew 1-28 dynamically', async () => {
+  reader.readerManifestCache.clear();
+  reader.ReaderConfig.greek.books = [];
+  await reader.loadReaderManifest('greek');
+  assert.deepEqual(reader.getReaderBookChapters('greek', 'matthew'), Array.from({ length: 28 }, (_, i) => i + 1));
+});
+
+test('Reader runtime schema accepts generated chapter verse objects', async () => {
+  const chapter = await reader.loadReaderChapter('greek', 'matthew', 1);
+  assert.ok(Array.isArray(chapter.verses));
+  assert.deepEqual(Object.keys(chapter.verses[0]).sort(), ['text', 'tokens', 'verse']);
+  const html = reader.renderReaderChapter(chapter);
+  assert.match(html, /reader-chapter-heading/);
+  assert.match(html, /<sup>1<\/sup>Βίβλος γενέσεως/);
+});
+
+test('Reader fetches generated data paths and not sample reader data', async () => {
+  const paths = [];
+  const previousFetch = global.fetch;
+  global.fetch = async filePath => {
+    paths.push(filePath);
+    return previousFetch(filePath);
+  };
+  reader.readerManifestCache.clear();
+  reader.readerChapterCache.clear();
+  reader.ReaderConfig.greek.books = [];
+  await reader.setReaderLocation({ language: 'greek', book: 'matthew', chapter: 1 });
+  global.fetch = previousFetch;
+  assert.ok(paths.includes('data/greek/manifest.json'));
+  assert.ok(paths.includes('data/greek/matthew/1.json'));
+  assert.ok(paths.every(item => !String(item).includes('sample')));
+});

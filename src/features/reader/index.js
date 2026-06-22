@@ -4,11 +4,14 @@ const ReaderConfig = {
   greek: {
     label: 'Greek New Testament',
     dataRoot: 'data/greek',
-    books: [
-      { id: 'matthew', name: 'Matthew', chapters: 28 },
-      { id: 'mark', name: 'Mark', chapters: 1 }
-    ]
+    manifestPath: 'data/greek/manifest.json',
+    books: []
   }
+};
+const FallbackReaderBooks = {
+  greek: [
+    { id: 'matthew', name: 'Matthew', chapters: [1, 2] }
+  ]
 };
 
 let readerState = {
@@ -21,10 +24,19 @@ let readerState = {
   focusVerse: ''
 };
 const readerChapterCache = new Map();
+const readerManifestCache = new Map();
 const readerLoadCounts = {};
 
+function normalizeReaderBook(book){
+  const chapters = Array.isArray(book.chapters) ? book.chapters.map(Number).filter(Boolean).sort((a, b) => a - b) : Array.from({ length: Number(book.chapters) || 0 }, (_, i) => i + 1);
+  return { ...book, chapters, chapterCount: chapters.length };
+}
+function normalizeReaderManifest(manifest = {}){
+  const books = (manifest.books || []).map(normalizeReaderBook).filter(book => book.id && book.chapters.length);
+  return { ...manifest, books };
+}
 function getReaderConfig(language = readerState.language){ return ReaderConfig[language] || ReaderConfig.greek; }
-function getReaderBooks(language = readerState.language){ return getReaderConfig(language).books; }
+function getReaderBooks(language = readerState.language){ return getReaderConfig(language).books.length ? getReaderConfig(language).books : FallbackReaderBooks[language] || FallbackReaderBooks.greek; }
 function getReaderBook(language, bookId){ return getReaderBooks(language).find(book => book.id === bookId) || getReaderBooks(language)[0]; }
 function readerCacheKey(language, book, chapter){ return `${language}/${book}/${chapter}`; }
 function getReaderChapterPath(language, book, chapter){ return `${getReaderConfig(language).dataRoot}/${book}/${chapter}.json`; }
@@ -50,14 +62,28 @@ function loadReaderLocation(){
   if(!stored) return getReaderLocation();
   const language = ReaderConfig[stored.language] ? stored.language : 'greek';
   const book = getReaderBook(language, stored.book).id;
-  const max = getReaderBook(language, book).chapters;
-  return { language, book, chapter: clamp(Number(stored.chapter) || 1, 1, max) };
+  return { language, book, chapter: Number(stored.chapter) || 1 };
 }
 async function fetchReaderJson(path){
   if(typeof fetch !== 'function') throw new Error('Fetch is unavailable for reader data.');
   const response = await fetch(path);
   if(!response.ok) throw new Error(`Unable to load ${path}`);
   return response.json();
+}
+async function loadReaderManifest(language = readerState.language){
+  const config = getReaderConfig(language);
+  if(readerManifestCache.has(language)) return readerManifestCache.get(language);
+  const manifest = normalizeReaderManifest(await fetchReaderJson(config.manifestPath));
+  if(manifest.books.length) config.books = manifest.books;
+  readerManifestCache.set(language, manifest);
+  return manifest;
+}
+function getReaderBookChapters(language, bookId){ return getReaderBook(language, bookId)?.chapters || []; }
+function clampReaderChapter(language, book, chapter){
+  const chapters = getReaderBookChapters(language, book);
+  const requested = Number(chapter) || chapters[0] || 1;
+  if(chapters.includes(requested)) return requested;
+  return chapters.reduce((closest, current) => Math.abs(current - requested) < Math.abs(closest - requested) ? current : closest, chapters[0] || 1);
 }
 async function loadReaderChapter(language = readerState.language, book = readerState.book, chapter = readerState.chapter){
   const key = readerCacheKey(language, book, chapter);
@@ -70,9 +96,9 @@ async function loadReaderChapter(language = readerState.language, book = readerS
 }
 async function setReaderLocation(location = {}){
   const language = ReaderConfig[location.language || readerState.language] ? (location.language || readerState.language) : 'greek';
+  await loadReaderManifest(language);
   const book = getReaderBook(language, location.book || readerState.book).id;
-  const max = getReaderBook(language, book).chapters;
-  const chapter = clamp(Number(location.chapter) || 1, 1, max);
+  const chapter = clampReaderChapter(language, book, location.chapter || readerState.chapter);
   readerState = { ...readerState, language, book, chapter, loading: true, error: '', focusVerse: location.verse || '' };
   renderReader();
   try {
@@ -89,17 +115,20 @@ function getAdjacentReaderLocation(direction){
   const books = getReaderBooks(readerState.language);
   const idx = books.findIndex(book => book.id === readerState.book);
   const current = books[idx];
-  if(direction < 0 && readerState.chapter > 1) return { ...readerState, chapter: readerState.chapter - 1 };
-  if(direction > 0 && readerState.chapter < current.chapters) return { ...readerState, chapter: readerState.chapter + 1 };
+  if(direction < 0){
+    const previousChapter = current.chapters[current.chapters.indexOf(readerState.chapter) - 1];
+    if(previousChapter) return { ...readerState, chapter: previousChapter };
+  }
+  if(direction > 0 && current.chapters.includes(readerState.chapter + 1)) return { ...readerState, chapter: readerState.chapter + 1 };
   const nextBook = books[idx + direction];
   if(!nextBook) return null;
-  return { language: readerState.language, book: nextBook.id, chapter: direction > 0 ? 1 : nextBook.chapters };
+  return { language: readerState.language, book: nextBook.id, chapter: direction > 0 ? nextBook.chapters[0] : nextBook.chapters.at(-1) };
 }
 function renderReader(){
   const root = $('#readerShell'); if(!root) return;
   const book = getReaderBook(readerState.language, readerState.book);
   const books = getReaderBooks(readerState.language);
-  const chapters = Array.from({ length: book.chapters }, (_, i) => i + 1);
+  const chapters = getReaderBookChapters(readerState.language, readerState.book);
   const data = readerState.chapterData;
   root.innerHTML = `
     <section class="panel reader-controls" aria-label="Reader controls">
@@ -114,7 +143,7 @@ function renderReader(){
       <button class="btn btn-primary btn-sm" id="readerSearchBtn">Search</button>
       <div id="readerSearchResults" class="reader-search-results"></div>
     </section>
-    <article class="panel reader-text" lang="grc" aria-live="polite">
+    <article class="reader-text" lang="grc" aria-live="polite">
       ${readerState.loading ? '<div class="empty-state">Loading chapter…</div>' : ''}
       ${readerState.error ? `<div class="empty-state danger">${escHtml(readerState.error)}</div>` : ''}
       ${!readerState.loading && !readerState.error && data ? renderReaderChapter(data) : ''}
@@ -124,7 +153,7 @@ function renderReader(){
 }
 function renderReaderChapter(data){
   const paragraphs = data.paragraphs || [{ verses: (data.verses || []).map(verse => ({ number: verse.verse, text: verse.text })) }];
-  return `<h2>${escHtml(data.bookName)} ${data.chapter}</h2>` + paragraphs.map(paragraph => `<p class="reader-paragraph">${paragraph.verses.map(verse => `<span class="reader-verse" id="readerVerse-${verse.number}"><sup>${verse.number}</sup>${escHtml(verse.text)}</span>`).join(' ')}</p>`).join('');
+  return `<h2 class="reader-chapter-heading">${escHtml(data.bookName)} ${data.chapter}</h2>` + paragraphs.map(paragraph => `<p class="reader-paragraph">${paragraph.verses.map(verse => `<span class="reader-verse" id="readerVerse-${verse.number}"><sup>${verse.number}</sup>${escHtml(verse.text)}</span>`).join(' ')}</p>`).join('');
 }
 function wireReaderControls(){
   $('#readerBookSelect')?.addEventListener('change', e => setReaderLocation({ language: readerState.language, book: e.target.value, chapter: 1 }));
@@ -148,5 +177,5 @@ async function runReaderSearch(query){
   return results;
 }
 async function initReader(){ const loc = loadReaderLocation(); readerState = { ...readerState, ...loc }; await setReaderLocation(loc); }
-if(typeof window !== 'undefined') Object.assign(window, { ReaderConfig, readerState, readerChapterCache, readerLoadCounts, getReaderChapterPath, loadReaderChapter, setReaderLocation, getAdjacentReaderLocation, renderReader, initReader, runReaderSearch, loadReaderLocation, saveReaderLocation, parseReaderReference });
-if(typeof module !== 'undefined') module.exports = { ReaderConfig, readerState: () => readerState, readerChapterCache, readerLoadCounts, getReaderChapterPath, loadReaderChapter, setReaderLocation, getAdjacentReaderLocation, renderReaderChapter, runReaderSearch, loadReaderLocation, saveReaderLocation, parseReaderReference, normalizeReaderText };
+if(typeof window !== 'undefined') Object.assign(window, { ReaderConfig, readerState, readerChapterCache, readerManifestCache, readerLoadCounts, getReaderChapterPath, loadReaderManifest, loadReaderChapter, setReaderLocation, getAdjacentReaderLocation, renderReader, initReader, runReaderSearch, loadReaderLocation, saveReaderLocation, parseReaderReference });
+if(typeof module !== 'undefined') module.exports = { ReaderConfig, readerState: () => readerState, readerChapterCache, readerManifestCache, readerLoadCounts, getReaderChapterPath, loadReaderManifest, normalizeReaderManifest, getReaderBookChapters, loadReaderChapter, setReaderLocation, getAdjacentReaderLocation, renderReaderChapter, runReaderSearch, loadReaderLocation, saveReaderLocation, parseReaderReference, normalizeReaderText };
