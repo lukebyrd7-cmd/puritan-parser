@@ -17,16 +17,15 @@ test('smoke: Greek/Hebrew switching and word list controls are present', () => {
 });
 
 test('smoke: flashcards, parsing, dashboard, settings, and import/export controls are present', () => {
-  ['startFlashBtn', 'fcFlipToBack', 'startParsing', 'parsingSubmit', 'statsGrid', 'openSettings', 'wordPageBackToReader', 'exportData', 'importData'].forEach(id => {
+  ['startFlashBtn', 'fcFlipToBack', 'startParsing', 'parsingSubmit', 'statsGrid', 'openSettings', 'wordPageShell', 'exportData', 'importData'].forEach(id => {
     assert.match(html, new RegExp(`id="${id}"`));
   });
 });
 
-test('smoke: static Word Page content is present', () => {
-  assert.match(html, /λόγος/);
-  assert.match(html, /<dt>Gloss<\/dt>\s*<dd>word<\/dd>/);
-  assert.match(html, /<dt>Frequency<\/dt>\s*<dd>330×<\/dd>/);
-  assert.match(html, /Back to Reader/);
+test('smoke: dynamic Word Page shell is present', () => {
+  assert.match(html, /id="wordPageShell"/);
+  assert.doesNotMatch(html, /<dt>Gloss<\/dt>\s*<dd>word<\/dd>/);
+  assert.doesNotMatch(html, /<dt>Frequency<\/dt>\s*<dd>330×<\/dd>/);
 });
 
 test('smoke: service worker precaches every startup module from src/main.js', () => {

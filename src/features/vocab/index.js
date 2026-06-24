@@ -41,6 +41,7 @@ function showView(viewId, options = {}){
   if(viewId==='listView') renderList();
   if(viewId==='parsingView') { updateParsingModeUI(); renderLemmaPicker(); }
   if(viewId==='readerView' && typeof initReader === 'function') initReader();
+  if(viewId==='wordPageView' && typeof renderReaderWordPage === 'function') renderReaderWordPage();
 
   const fl = $('#footerLang');
   if(fl) fl.textContent = `${state.lang==='greek'?'Greek (GNT)':'Hebrew'} — ${getCurrentStudyList().length} study entries (${getCurrentList().length} forms) loaded`;

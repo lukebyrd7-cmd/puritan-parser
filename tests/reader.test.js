@@ -132,12 +132,14 @@ test('clicking a reader token opens and closes the popup', async () => {
   delete global.state;
 });
 
-test('clicking Open Word Page closes the popup and opens the static Word Page view', async () => {
+test('clicking Open Word Page closes the popup and opens a dynamic Word Page view', async () => {
   let popupHtml = '';
+  let wordPageHtml = '';
   let actionHandler;
+  let backHandler;
   let shownView = '';
   let toastMessage = '';
-  const root = {
+  const popupRoot = {
     set innerHTML(value){ popupHtml = value; },
     get innerHTML(){ return popupHtml; },
     querySelector: selector => {
@@ -147,11 +149,28 @@ test('clicking Open Word Page closes the popup and opens the static Word Page vi
     },
     querySelectorAll: () => []
   };
-  global.$ = (selector, scope) => scope?.querySelector ? scope.querySelector(selector) : (selector === '#readerWordPopupRoot' ? root : null);
-  global.$$ = () => [];
+  const wordRoot = {
+    set innerHTML(value){ wordPageHtml = value; },
+    get innerHTML(){ return wordPageHtml; },
+    querySelector: selector => {
+      if(selector === '#wordPageBackToReader') return { addEventListener(type, handler){ if(type === 'click') backHandler = handler; } };
+      return null;
+    },
+    querySelectorAll: selector => selector === '.reader-word-link' ? [{ dataset: { topicId: 'greek-nouns' }, addEventListener(){} }] : []
+  };
+  global.$ = (selector, scope) => {
+    if(scope?.querySelector) return scope.querySelector(selector);
+    if(selector === '#readerWordPopupRoot') return popupRoot;
+    if(selector === '#wordPageShell') return wordRoot;
+    return null;
+  };
+  global.$$ = (selector, scope) => scope?.querySelectorAll ? scope.querySelectorAll(selector) : [];
   global.toast = message => { toastMessage = message; };
   global.showView = viewId => { shownView = viewId; };
-  global.state = { data: { greek: [{ lang: 'greek', word: 'λόγος', lemma: 'λόγος', primaryGloss: 'word', gloss: 'word', freq: 1 }] } };
+  global.state = { data: { greek: [
+    { lang: 'greek', word: 'λόγος', lemma: 'λόγος', primaryGloss: 'word', alternateGlosses: ['message', 'account', 'matter'], gloss: 'word, message, account, matter', freq: 68 },
+    { lang: 'greek', word: 'ἀρχή', lemma: 'ἀρχή', primaryGloss: 'beginning', alternateGlosses: ['origin'], gloss: 'beginning, origin', freq: 55 }
+  ] } };
   await reader.openReaderTokenPopup({
     dataset: { surface: 'λόγος', lemma: 'λόγος', parse: 'N-NSM', bookName: 'John', chapter: '1', verse: '1' },
     focus(){}
@@ -162,6 +181,27 @@ test('clicking Open Word Page closes the popup and opens the static Word Page vi
   assert.equal(popupHtml, '');
   assert.equal(shownView, 'wordPageView');
   assert.equal(toastMessage, '');
+  assert.match(wordPageHtml, /<h1 id="wordPageTitle" class="word-page-headword">λόγος<\/h1>/);
+  assert.match(wordPageHtml, /word-page-pos">Noun<\/div>/);
+  assert.match(wordPageHtml, /word-page-primary-gloss">word<\/p>/);
+  assert.match(wordPageHtml, /Also translated as/);
+  assert.match(wordPageHtml, /message[\s\S]*account[\s\S]*matter/);
+  assert.match(wordPageHtml, /<dt>Frequency<\/dt><dd>68×<\/dd>/);
+  assert.match(wordPageHtml, /<dt>Reference<\/dt><dd>John 1:1<\/dd>/);
+  assert.match(wordPageHtml, /data-topic-id="greek-nouns"/);
+  assert.equal(typeof backHandler, 'function');
+  backHandler();
+  assert.equal(shownView, 'readerView');
+
+  await reader.openReaderTokenPopup({
+    dataset: { surface: 'ἀρχῇ', lemma: 'ἀρχή', parse: 'N-DSF', bookName: 'John', chapter: '1', verse: '1' },
+    focus(){}
+  });
+  actionHandler();
+  assert.match(wordPageHtml, /<h1 id="wordPageTitle" class="word-page-headword">ἀρχή<\/h1>/);
+  assert.match(wordPageHtml, /word-page-primary-gloss">beginning<\/p>/);
+  assert.match(wordPageHtml, /origin/);
+  assert.match(wordPageHtml, /<dt>Frequency<\/dt><dd>55×<\/dd>/);
   delete global.state;
   delete global.toast;
   delete global.showView;

@@ -22,7 +22,8 @@ let readerState = {
   loading: false,
   error: '',
   focusVerse: '',
-  activeToken: null
+  activeToken: null,
+  wordPageInfo: null
 };
 const readerChapterCache = new Map();
 const readerManifestCache = new Map();
@@ -187,6 +188,13 @@ function readerGrammarLinksForInfo(info = {}){
     .filter(([, id]) => !api?.getReferenceTopic || api.getReferenceTopic(id))
     .map(([label, topicId]) => ({ label, topicId }));
 }
+function readerPartOfSpeechForInfo(info = {}){
+  const parseExplanation = cleanReaderTokenValue(info.parseExplanation);
+  const rawParse = cleanReaderTokenValue(info.parse);
+  if(parseExplanation && parseExplanation !== rawParse) return parseExplanation.split(/[—-]/)[0].trim();
+  const labels = { noun: 'Noun', adjective: 'Adjective', verb: 'Verb', participle: 'Participle', article: 'Article' };
+  return labels[readerParseKind(info.parse, info.parseExplanation)] || '';
+}
 async function loadReaderManifest(language = readerState.language){
   const config = getReaderConfig(language);
   if(readerManifestCache.has(language)) return readerManifestCache.get(language);
@@ -327,8 +335,52 @@ function navigateReaderGrammarLink(topicId){
   if(typeof renderReferenceLibrary === 'function') setTimeout(() => renderReferenceLibrary(topicId), 0);
 }
 function openReaderWordPage(){
+  const info = readerState.activeToken?.info || readerState.wordPageInfo;
+  if(info?.lemma || info?.surface) readerState.wordPageInfo = { ...info };
   closeReaderWordPopup();
+  renderReaderWordPage();
   if(typeof showView === 'function') showView('wordPageView');
+}
+function renderReaderWordPage(){
+  const root = $('#wordPageShell'); if(!root) return;
+  const info = readerState.wordPageInfo || {};
+  const lemma = cleanReaderTokenValue(info.lemma || info.surface);
+  const primaryGloss = cleanReaderTokenValue(info.primaryGloss);
+  const alternateGlosses = Array.isArray(info.alternateGlosses) ? info.alternateGlosses.map(cleanReaderTokenValue).filter(Boolean) : [];
+  const partOfSpeech = readerPartOfSpeechForInfo(info);
+  const links = readerGrammarLinksForInfo(info);
+  const grammarHtml = links.length ? `
+        <section class="word-page-section" aria-labelledby="wordPageGrammarHeading">
+          <h2 id="wordPageGrammarHeading">Grammar</h2>
+          <div class="reader-word-links word-page-links" aria-label="Related grammar links">${links.map(link => `<button class="reader-word-link" type="button" data-topic-id="${escHtml(link.topicId)}">${escHtml(link.label)}</button>`).join('')}</div>
+        </section>` : '';
+  root.innerHTML = `
+    <section class="panel word-page-panel" aria-labelledby="wordPageTitle">
+      <div class="word-page-kicker">Word Page</div>
+      ${lemma ? `<h1 id="wordPageTitle" class="word-page-headword">${escHtml(lemma)}</h1>` : `<h1 id="wordPageTitle" class="word-page-headword word-page-empty-title">Choose a word</h1>`}
+      ${partOfSpeech ? `<div class="word-page-pos">${escHtml(partOfSpeech)}</div>` : ''}
+      ${lemma ? `
+        <section class="word-page-section" aria-labelledby="wordPageMeaningHeading">
+          <h2 id="wordPageMeaningHeading">Meaning</h2>
+          <p class="word-page-primary-gloss">${escHtml(primaryGloss || '-')}</p>
+          ${alternateGlosses.length ? `<div class="word-page-also"><div>Also translated as</div><p>${escHtml(alternateGlosses.join(' • '))}</p></div>` : ''}
+        </section>
+        <dl class="word-page-meta">
+          ${readerWordPageMeta('Frequency', info.frequency ? `${info.frequency}×` : '')}
+          ${readerWordPageMeta('Reference', info.reference)}
+        </dl>
+        ${grammarHtml}` : `<p class="word-page-empty">Open a word from the Reader to build this page.</p>`}
+      <button class="btn btn-primary" id="wordPageBackToReader">Back to Reader</button>
+    </section>`;
+  $('#wordPageBackToReader', root)?.addEventListener('click', () => {
+    if(typeof showView === 'function') showView('readerView');
+  });
+  $$('.reader-word-link', root).forEach(btn => btn.addEventListener('click', () => navigateReaderGrammarLink(btn.dataset.topicId)));
+}
+function readerWordPageMeta(label, value){
+  const clean = cleanReaderTokenValue(value);
+  if(!clean) return '';
+  return `<div><dt>${escHtml(label)}</dt><dd>${escHtml(clean)}</dd></div>`;
 }
 function renderReaderWordPopup(){
   const root = $('#readerWordPopupRoot'); if(!root) return;
@@ -386,5 +438,5 @@ async function runReaderSearch(query){
   return results;
 }
 async function initReader(){ const loc = loadReaderLocation(); readerState = { ...readerState, ...loc }; await setReaderLocation(loc); }
-if(typeof window !== 'undefined') Object.assign(window, { ReaderConfig, readerState, readerChapterCache, readerManifestCache, readerLoadCounts, getReaderChapterPath, loadReaderManifest, loadReaderChapter, setReaderLocation, getAdjacentReaderLocation, renderReader, renderReaderChapter, renderReaderVerse, renderReaderTokens, initReader, runReaderSearch, loadReaderLocation, saveReaderLocation, parseReaderReference, openReaderTokenPopup, closeReaderWordPopup, openReaderWordPage, lookupReaderWordInfo, explainReaderParse, readerGrammarLinksForInfo });
-if(typeof module !== 'undefined') module.exports = { ReaderConfig, readerState: () => readerState, readerChapterCache, readerManifestCache, readerLoadCounts, getReaderChapterPath, loadReaderManifest, normalizeReaderManifest, getReaderBookChapters, loadReaderChapter, setReaderLocation, getAdjacentReaderLocation, renderReaderChapter, renderReaderVerse, renderReaderTokens, runReaderSearch, loadReaderLocation, saveReaderLocation, parseReaderReference, normalizeReaderText, lookupReaderWordInfo, explainReaderParse, readerGrammarLinksForInfo, readerParseKind, openReaderTokenPopup, closeReaderWordPopup, openReaderWordPage };
+if(typeof window !== 'undefined') Object.assign(window, { ReaderConfig, readerState, readerChapterCache, readerManifestCache, readerLoadCounts, getReaderChapterPath, loadReaderManifest, loadReaderChapter, setReaderLocation, getAdjacentReaderLocation, renderReader, renderReaderChapter, renderReaderVerse, renderReaderTokens, initReader, runReaderSearch, loadReaderLocation, saveReaderLocation, parseReaderReference, openReaderTokenPopup, closeReaderWordPopup, openReaderWordPage, renderReaderWordPage, lookupReaderWordInfo, explainReaderParse, readerGrammarLinksForInfo, readerPartOfSpeechForInfo });
+if(typeof module !== 'undefined') module.exports = { ReaderConfig, readerState: () => readerState, readerChapterCache, readerManifestCache, readerLoadCounts, getReaderChapterPath, loadReaderManifest, normalizeReaderManifest, getReaderBookChapters, loadReaderChapter, setReaderLocation, getAdjacentReaderLocation, renderReaderChapter, renderReaderVerse, renderReaderTokens, runReaderSearch, loadReaderLocation, saveReaderLocation, parseReaderReference, normalizeReaderText, lookupReaderWordInfo, explainReaderParse, readerGrammarLinksForInfo, readerParseKind, readerPartOfSpeechForInfo, openReaderTokenPopup, closeReaderWordPopup, openReaderWordPage, renderReaderWordPage };

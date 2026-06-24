@@ -537,10 +537,10 @@ button:focus-visible, input:focus-visible, select:focus-visible {
 
 /* ===== WORD PAGE ===== */
 .word-page-panel {
-  max-width: 520px;
+  max-width: 620px;
   margin: 0 auto;
   display: grid;
-  gap: 16px;
+  gap: 18px;
 }
 .word-page-kicker {
   font-size: 11px;
@@ -554,6 +554,48 @@ button:focus-visible, input:focus-visible, select:focus-visible {
   font-size: 56px;
   line-height: 1;
   color: var(--text);
+}
+.word-page-empty-title { font-size: 42px; }
+.word-page-pos {
+  width: fit-content;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 5px 10px;
+  background: var(--surface);
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 800;
+}
+.word-page-section {
+  display: grid;
+  gap: 8px;
+}
+.word-page-section h2 {
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.word-page-primary-gloss {
+  font-family: var(--font-serif);
+  font-size: 30px;
+  font-weight: 700;
+  line-height: 1.15;
+  color: var(--text);
+}
+.word-page-also {
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.45;
+}
+.word-page-also div {
+  font-weight: 800;
+  margin-bottom: 2px;
+}
+.word-page-also p {
+  color: var(--text);
+  font-size: 15px;
 }
 .word-page-meta {
   display: grid;
@@ -579,6 +621,12 @@ button:focus-visible, input:focus-visible, select:focus-visible {
   font-size: 24px;
   font-weight: 700;
   color: var(--text);
+}
+.word-page-links { margin-top: 2px; }
+.word-page-empty {
+  color: var(--muted);
+  font-size: 15px;
+  line-height: 1.5;
 }
 
 @media (max-width: 480px) {
