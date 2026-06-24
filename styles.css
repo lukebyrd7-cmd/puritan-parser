@@ -537,17 +537,19 @@ button:focus-visible, input:focus-visible, select:focus-visible {
 
 /* ===== WORD PAGE ===== */
 .word-page-panel {
-  max-width: 620px;
+  max-width: 600px;
   margin: 0 auto;
   display: grid;
-  gap: 18px;
+  gap: 16px;
+  padding: 20px;
 }
-.word-page-kicker {
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--muted);
+.word-page-header {
+  display: flex;
+  gap: 12px;
+  align-items: baseline;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 12px;
 }
 .word-page-headword {
   font-family: var(--font-serif);
@@ -557,18 +559,19 @@ button:focus-visible, input:focus-visible, select:focus-visible {
 }
 .word-page-empty-title { font-size: 42px; }
 .word-page-pos {
+  flex: 0 0 auto;
   width: fit-content;
   border: 1px solid var(--border);
   border-radius: 999px;
-  padding: 5px 10px;
-  background: var(--surface);
+  padding: 4px 9px;
+  background: var(--surface-2);
   color: var(--muted);
   font-size: 12px;
   font-weight: 800;
 }
 .word-page-section {
   display: grid;
-  gap: 8px;
+  gap: 7px;
 }
 .word-page-section h2 {
   font-size: 12px;
@@ -579,7 +582,7 @@ button:focus-visible, input:focus-visible, select:focus-visible {
 }
 .word-page-primary-gloss {
   font-family: var(--font-serif);
-  font-size: 30px;
+  font-size: 28px;
   font-weight: 700;
   line-height: 1.15;
   color: var(--text);
@@ -591,7 +594,7 @@ button:focus-visible, input:focus-visible, select:focus-visible {
 }
 .word-page-also div {
   font-weight: 800;
-  margin-bottom: 2px;
+  margin-bottom: 1px;
 }
 .word-page-also p {
   color: var(--text);
@@ -600,10 +603,10 @@ button:focus-visible, input:focus-visible, select:focus-visible {
 .word-page-meta {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 10px;
+  gap: 8px;
 }
 .word-page-meta div {
-  padding: 12px;
+  padding: 10px 12px;
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   background: var(--surface);
@@ -616,9 +619,9 @@ button:focus-visible, input:focus-visible, select:focus-visible {
   color: var(--muted);
 }
 .word-page-meta dd {
-  margin-top: 4px;
+  margin-top: 2px;
   font-family: var(--font-serif);
-  font-size: 24px;
+  font-size: 22px;
   font-weight: 700;
   color: var(--text);
 }
@@ -631,6 +634,7 @@ button:focus-visible, input:focus-visible, select:focus-visible {
 
 @media (max-width: 480px) {
   .word-page-headword { font-size: 46px; }
+  .word-page-header { display: grid; gap: 8px; }
   .word-page-meta { grid-template-columns: 1fr; }
 }
 

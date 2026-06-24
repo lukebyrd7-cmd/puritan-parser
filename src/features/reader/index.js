@@ -169,11 +169,11 @@ function readerGrammarLinksForInfo(info = {}){
   const language = info.language === 'hebrew' ? 'hebrew' : 'greek';
   const byLanguage = {
     greek: {
-      noun: [['Nouns','greek-nouns']],
-      adjective: [['Adjectives','greek-adjectives']],
-      verb: [['Verbs','greek-verbs']],
-      participle: [['Verbs','greek-verbs']],
-      article: [['Nouns','greek-nouns']]
+      noun: [['Greek Nouns','greek-nouns']],
+      adjective: [['Greek Adjectives','greek-adjectives']],
+      verb: [['Greek Verbs','greek-verbs']],
+      participle: [['Greek Verbs','greek-verbs']],
+      article: [['Greek Nouns','greek-nouns']]
     },
     hebrew: {
       noun: [['Hebrew Nouns','hebrew-nouns']],
@@ -356,9 +356,10 @@ function renderReaderWordPage(){
         </section>` : '';
   root.innerHTML = `
     <section class="panel word-page-panel" aria-labelledby="wordPageTitle">
-      <div class="word-page-kicker">Word Page</div>
-      ${lemma ? `<h1 id="wordPageTitle" class="word-page-headword">${escHtml(lemma)}</h1>` : `<h1 id="wordPageTitle" class="word-page-headword word-page-empty-title">Choose a word</h1>`}
-      ${partOfSpeech ? `<div class="word-page-pos">${escHtml(partOfSpeech)}</div>` : ''}
+      <header class="word-page-header">
+        ${lemma ? `<h1 id="wordPageTitle" class="word-page-headword">${escHtml(lemma)}</h1>` : `<h1 id="wordPageTitle" class="word-page-headword word-page-empty-title">Choose a word</h1>`}
+        ${partOfSpeech ? `<div class="word-page-pos">${escHtml(partOfSpeech)}</div>` : ''}
+      </header>
       ${lemma ? `
         <section class="word-page-section" aria-labelledby="wordPageMeaningHeading">
           <h2 id="wordPageMeaningHeading">Meaning</h2>
@@ -367,7 +368,7 @@ function renderReaderWordPage(){
         </section>
         <dl class="word-page-meta">
           ${readerWordPageMeta('Frequency', info.frequency ? `${info.frequency}×` : '')}
-          ${readerWordPageMeta('Reference', info.reference)}
+          ${readerWordPageMeta('Current Reference', info.reference)}
         </dl>
         ${grammarHtml}` : `<p class="word-page-empty">Open a word from the Reader to build this page.</p>`}
       <button class="btn btn-primary" id="wordPageBackToReader">Back to Reader</button>

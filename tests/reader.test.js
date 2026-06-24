@@ -96,8 +96,11 @@ test('reader word lookup falls back gracefully when data is missing', async () =
 test('reader grammar links resolve to existing Greek topics by parse kind', () => {
   global.PuritanReferenceLibrary = { getReferenceTopic: id => ({ id }) };
   assert.deepEqual(reader.readerGrammarLinksForInfo({ parse: 'N-NSM', parseExplanation: 'Noun — nominative singular masculine' }).map(link => link.topicId), ['greek-nouns']);
+  assert.deepEqual(reader.readerGrammarLinksForInfo({ parse: 'N-NSM', parseExplanation: 'Noun — nominative singular masculine' }).map(link => link.label), ['Greek Nouns']);
   assert.deepEqual(reader.readerGrammarLinksForInfo({ parse: 'A-NSF', parseExplanation: 'Adjective — nominative singular feminine' }).map(link => link.topicId), ['greek-adjectives']);
+  assert.deepEqual(reader.readerGrammarLinksForInfo({ parse: 'A-NSF', parseExplanation: 'Adjective — nominative singular feminine' }).map(link => link.label), ['Greek Adjectives']);
   assert.deepEqual(reader.readerGrammarLinksForInfo({ parse: 'V-PAI-3S', parseExplanation: 'Verb — present active indicative 3rd singular' }).map(link => link.topicId), ['greek-verbs']);
+  assert.deepEqual(reader.readerGrammarLinksForInfo({ parse: 'V-PAI-3S', parseExplanation: 'Verb — present active indicative 3rd singular' }).map(link => link.label), ['Greek Verbs']);
   assert.deepEqual(reader.readerGrammarLinksForInfo({ parse: 'V-PAP-NSM', parseExplanation: 'Verb — present active participle nominative singular masculine' }).map(link => link.topicId), ['greek-verbs']);
   assert.deepEqual(reader.readerGrammarLinksForInfo({ parse: 'RA ----NSM-', parseExplanation: 'Article — nominative singular masculine' }).map(link => link.topicId), ['greek-nouns']);
   assert.deepEqual(reader.readerGrammarLinksForInfo({ language: 'hebrew', parse: 'Qal Perfect 3ms', parseExplanation: 'QAL PERFECT 3MS' }).map(link => link.topicId), ['hebrew-verbs']);
@@ -169,7 +172,8 @@ test('clicking Open Word Page closes the popup and opens a dynamic Word Page vie
   global.showView = viewId => { shownView = viewId; };
   global.state = { data: { greek: [
     { lang: 'greek', word: 'λόγος', lemma: 'λόγος', primaryGloss: 'word', alternateGlosses: ['message', 'account', 'matter'], gloss: 'word, message, account, matter', freq: 68 },
-    { lang: 'greek', word: 'ἀρχή', lemma: 'ἀρχή', primaryGloss: 'beginning', alternateGlosses: ['origin'], gloss: 'beginning, origin', freq: 55 }
+    { lang: 'greek', word: 'ἀρχή', lemma: 'ἀρχή', primaryGloss: 'beginning', alternateGlosses: ['origin'], gloss: 'beginning, origin', freq: 55 },
+    { lang: 'greek', word: 'μονόγλωσσον', lemma: 'μονόγλωσσον', primaryGloss: 'single gloss', alternateGlosses: [], gloss: 'single gloss', freq: 27 }
   ] } };
   await reader.openReaderTokenPopup({
     dataset: { surface: 'λόγος', lemma: 'λόγος', parse: 'N-NSM', bookName: 'John', chapter: '1', verse: '1' },
@@ -187,8 +191,10 @@ test('clicking Open Word Page closes the popup and opens a dynamic Word Page vie
   assert.match(wordPageHtml, /Also translated as/);
   assert.match(wordPageHtml, /message[\s\S]*account[\s\S]*matter/);
   assert.match(wordPageHtml, /<dt>Frequency<\/dt><dd>68×<\/dd>/);
-  assert.match(wordPageHtml, /<dt>Reference<\/dt><dd>John 1:1<\/dd>/);
+  assert.match(wordPageHtml, /<dt>Current Reference<\/dt><dd>John 1:1<\/dd>/);
   assert.match(wordPageHtml, /data-topic-id="greek-nouns"/);
+  assert.match(wordPageHtml, />Greek Nouns<\/button>/);
+  assert.doesNotMatch(wordPageHtml, /Word Page/);
   assert.equal(typeof backHandler, 'function');
   backHandler();
   assert.equal(shownView, 'readerView');
@@ -202,6 +208,14 @@ test('clicking Open Word Page closes the popup and opens a dynamic Word Page vie
   assert.match(wordPageHtml, /word-page-primary-gloss">beginning<\/p>/);
   assert.match(wordPageHtml, /origin/);
   assert.match(wordPageHtml, /<dt>Frequency<\/dt><dd>55×<\/dd>/);
+
+  await reader.openReaderTokenPopup({
+    dataset: { surface: 'μονόγλωσσον', lemma: 'μονόγλωσσον', parse: 'N-ASN', bookName: 'Matthew', chapter: '9', verse: '13' },
+    focus(){}
+  });
+  actionHandler();
+  assert.match(wordPageHtml, /word-page-primary-gloss">single gloss<\/p>/);
+  assert.doesNotMatch(wordPageHtml, /Also translated as/);
   delete global.state;
   delete global.toast;
   delete global.showView;
