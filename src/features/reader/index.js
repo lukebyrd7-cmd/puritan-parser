@@ -29,6 +29,7 @@ const readerChapterCache = new Map();
 const readerManifestCache = new Map();
 const readerLoadCounts = {};
 let readerGlossSourceCache = null;
+let readerSearchIndexCache = null;
 let readerPopupLastTrigger = null;
 
 function normalizeReaderBook(book){
@@ -88,6 +89,12 @@ async function loadReaderGlossSource(language = 'greek'){
   try { readerGlossSourceCache = await fetchReaderJson('data/glosses/greek-glosses.json'); }
   catch(e) { readerGlossSourceCache = {}; }
   return readerGlossSourceCache;
+}
+async function loadReaderSearchIndex(language = 'greek'){
+  if(language !== 'greek') return [];
+  if(readerSearchIndexCache) return readerSearchIndexCache;
+  readerSearchIndexCache = await fetchReaderJson('data/greek/search-index.json');
+  return readerSearchIndexCache;
 }
 function getReaderVocabulary(language = 'greek'){
   if(typeof state !== 'undefined' && Array.isArray(state.data?.[language])) return state.data[language];
@@ -195,6 +202,56 @@ function readerPartOfSpeechForInfo(info = {}){
   const labels = { noun: 'Noun', adjective: 'Adjective', verb: 'Verb', participle: 'Participle', article: 'Article' };
   return labels[readerParseKind(info.parse, info.parseExplanation)] || '';
 }
+function readerLemmaIndex(item = {}, lemma = ''){
+  const target = normalizeReaderText(lemma);
+  return (item.lemmas || []).findIndex(itemLemma => normalizeReaderText(itemLemma) === target);
+}
+function readerOccurrenceSnippet(item = {}, lemma = ''){
+  const surface = Array.isArray(item.surface) && item.surface.length ? item.surface : String(item.text || '').split(/\s+/).filter(Boolean);
+  if(!surface.length) return '';
+  const foundIndex = readerLemmaIndex(item, lemma);
+  const center = foundIndex >= 0 ? foundIndex : 0;
+  let start = Math.max(0, center - 3);
+  let end = Math.min(surface.length, center + 4);
+  while(end - start < 6 && (start > 0 || end < surface.length)){
+    if(start > 0) start -= 1;
+    if(end - start >= 6) break;
+    if(end < surface.length) end += 1;
+  }
+  const words = surface.slice(start, end).join(' ');
+  return `...${words}...`;
+}
+function readerOccurrenceReference(item = {}){
+  return `${item.bookName || ''} ${item.chapter}:${item.verse}`.trim();
+}
+function representativeReaderOccurrences(index = [], lemma = '', limit = 5){
+  const seen = new Set();
+  return index.filter(item => readerLemmaIndex(item, lemma) >= 0).reduce((items, item) => {
+    if(items.length >= limit) return items;
+    const key = `${item.book}:${item.chapter}:${item.verse}`;
+    if(seen.has(key)) return items;
+    seen.add(key);
+    items.push({
+      language: 'greek',
+      book: item.book,
+      bookName: item.bookName,
+      chapter: Number(item.chapter),
+      verse: String(item.verse || ''),
+      reference: readerOccurrenceReference(item),
+      snippet: readerOccurrenceSnippet(item, lemma)
+    });
+    return items;
+  }, []);
+}
+async function getReaderLemmaOccurrences(lemma, language = 'greek', limit = 5){
+  const cleanLemma = cleanReaderTokenValue(lemma);
+  if(!cleanLemma) return [];
+  try {
+    return representativeReaderOccurrences(await loadReaderSearchIndex(language), cleanLemma, limit);
+  } catch(e) {
+    return [];
+  }
+}
 async function loadReaderManifest(language = readerState.language){
   const config = getReaderConfig(language);
   if(readerManifestCache.has(language)) return readerManifestCache.get(language);
@@ -276,7 +333,7 @@ function renderReader(){
     <div id="readerWordPopupRoot"></div>`;
   wireReaderControls();
   renderReaderWordPopup();
-  if(readerState.focusVerse) setTimeout(() => document.getElementById(`readerVerse-${readerState.focusVerse}`)?.scrollIntoView({ block: 'center' }), 0);
+  if(readerState.focusVerse && typeof document !== 'undefined') setTimeout(() => document.getElementById(`readerVerse-${readerState.focusVerse}`)?.scrollIntoView({ block: 'center' }), 0);
 }
 function renderReaderChapter(data){
   const paragraphs = data.paragraphs || [{ verses: data.verses || [] }];
@@ -341,6 +398,51 @@ function openReaderWordPage(){
   renderReaderWordPage();
   if(typeof showView === 'function') showView('wordPageView');
 }
+async function openReaderContextOccurrence(location = {}){
+  const target = {
+    language: location.language || 'greek',
+    book: location.book,
+    chapter: Number(location.chapter) || 1,
+    verse: location.verse || ''
+  };
+  if(typeof showView === 'function') showView('readerView');
+  await setReaderLocation(target);
+}
+function renderReaderWordPageContextContent(occurrences = [], loading = false){
+  return loading
+    ? '<p class="word-page-context-empty">Loading references...</p>'
+    : occurrences.length
+      ? `<div class="word-page-context-list">${occurrences.map(item => `
+          <button class="word-page-context-link" type="button" data-language="${escReaderAttr(item.language || 'greek')}" data-book="${escReaderAttr(item.book || '')}" data-chapter="${escReaderAttr(item.chapter || '')}" data-verse="${escReaderAttr(item.verse || '')}">
+            <span>${escHtml(item.reference)}</span>
+            <q lang="grc">${escHtml(item.snippet)}</q>
+          </button>`).join('')}</div>`
+      : '<p class="word-page-context-empty">No reader references found yet.</p>';
+}
+function renderReaderWordPageContext(occurrences = [], loading = false){
+  return `
+        <section class="word-page-section word-page-context" aria-labelledby="wordPageContextHeading">
+          <h2 id="wordPageContextHeading">Read in Context</h2>
+          <div id="wordPageContextList">${renderReaderWordPageContextContent(occurrences, loading)}</div>
+        </section>`;
+}
+function attachReaderWordPageContextHandlers(root){
+  $$('.word-page-context-link', root).forEach(btn => btn.addEventListener('click', () => openReaderContextOccurrence({
+    language: btn.dataset.language || 'greek',
+    book: btn.dataset.book,
+    chapter: Number(btn.dataset.chapter),
+    verse: btn.dataset.verse || ''
+  })));
+}
+async function updateReaderWordPageContext(lemma, language = 'greek'){
+  const root = $('#wordPageShell'); if(!root || !lemma) return [];
+  const occurrences = await getReaderLemmaOccurrences(lemma, language, 5);
+  const mount = $('#wordPageContextList', root);
+  if(!mount) return occurrences;
+  mount.innerHTML = renderReaderWordPageContextContent(occurrences);
+  attachReaderWordPageContextHandlers(root);
+  return occurrences;
+}
 function renderReaderWordPage(){
   const root = $('#wordPageShell'); if(!root) return;
   const info = readerState.wordPageInfo || {};
@@ -370,13 +472,16 @@ function renderReaderWordPage(){
           ${readerWordPageMeta('Frequency', info.frequency ? `${info.frequency}×` : '')}
           ${readerWordPageMeta('Current Reference', info.reference)}
         </dl>
-        ${grammarHtml}` : `<p class="word-page-empty">Open a word from the Reader to build this page.</p>`}
+        ${grammarHtml}
+        ${renderReaderWordPageContext([], true)}` : `<p class="word-page-empty">Open a word from the Reader to build this page.</p>`}
       <button class="btn btn-primary" id="wordPageBackToReader">Back to Reader</button>
     </section>`;
   $('#wordPageBackToReader', root)?.addEventListener('click', () => {
     if(typeof showView === 'function') showView('readerView');
   });
   $$('.reader-word-link', root).forEach(btn => btn.addEventListener('click', () => navigateReaderGrammarLink(btn.dataset.topicId)));
+  attachReaderWordPageContextHandlers(root);
+  if(lemma) updateReaderWordPageContext(lemma, info.language || readerState.language);
 }
 function readerWordPageMeta(label, value){
   const clean = cleanReaderTokenValue(value);
@@ -432,12 +537,12 @@ async function runReaderSearch(query){
   const q = normalizeReaderText(query);
   if(q.length < 2){ box.innerHTML = '<div class="small muted">Enter at least 2 characters.</div>'; return []; }
   let index = [];
-  try { index = await fetchReaderJson('data/greek/search-index.json'); } catch(e) { box.innerHTML = '<div class="small muted">Search index unavailable.</div>'; return []; }
+  try { index = await loadReaderSearchIndex('greek'); } catch(e) { box.innerHTML = '<div class="small muted">Search index unavailable.</div>'; return []; }
   const results = index.filter(item => normalizeReaderText(`${item.text} ${item.lemmas?.join(' ')}`).includes(q)).slice(0, 20);
   box.innerHTML = results.length ? results.map(item => `<button class="reader-result" data-book="${item.book}" data-chapter="${item.chapter}" data-verse="${item.verse}"><strong>${escHtml(item.bookName)} ${item.chapter}:${item.verse}</strong> ${escHtml(item.text)}</button>`).join('') : '<div class="small muted">No verses found.</div>';
   $$('.reader-result', box).forEach(btn => btn.addEventListener('click', () => setReaderLocation({ language: 'greek', book: btn.dataset.book, chapter: Number(btn.dataset.chapter), verse: btn.dataset.verse })));
   return results;
 }
 async function initReader(){ const loc = loadReaderLocation(); readerState = { ...readerState, ...loc }; await setReaderLocation(loc); }
-if(typeof window !== 'undefined') Object.assign(window, { ReaderConfig, readerState, readerChapterCache, readerManifestCache, readerLoadCounts, getReaderChapterPath, loadReaderManifest, loadReaderChapter, setReaderLocation, getAdjacentReaderLocation, renderReader, renderReaderChapter, renderReaderVerse, renderReaderTokens, initReader, runReaderSearch, loadReaderLocation, saveReaderLocation, parseReaderReference, openReaderTokenPopup, closeReaderWordPopup, openReaderWordPage, renderReaderWordPage, lookupReaderWordInfo, explainReaderParse, readerGrammarLinksForInfo, readerPartOfSpeechForInfo });
-if(typeof module !== 'undefined') module.exports = { ReaderConfig, readerState: () => readerState, readerChapterCache, readerManifestCache, readerLoadCounts, getReaderChapterPath, loadReaderManifest, normalizeReaderManifest, getReaderBookChapters, loadReaderChapter, setReaderLocation, getAdjacentReaderLocation, renderReaderChapter, renderReaderVerse, renderReaderTokens, runReaderSearch, loadReaderLocation, saveReaderLocation, parseReaderReference, normalizeReaderText, lookupReaderWordInfo, explainReaderParse, readerGrammarLinksForInfo, readerParseKind, readerPartOfSpeechForInfo, openReaderTokenPopup, closeReaderWordPopup, openReaderWordPage, renderReaderWordPage };
+if(typeof window !== 'undefined') Object.assign(window, { ReaderConfig, readerState, readerChapterCache, readerManifestCache, readerLoadCounts, getReaderChapterPath, loadReaderManifest, loadReaderChapter, setReaderLocation, getAdjacentReaderLocation, renderReader, renderReaderChapter, renderReaderVerse, renderReaderTokens, initReader, runReaderSearch, loadReaderLocation, saveReaderLocation, parseReaderReference, openReaderTokenPopup, closeReaderWordPopup, openReaderWordPage, renderReaderWordPage, lookupReaderWordInfo, explainReaderParse, readerGrammarLinksForInfo, readerPartOfSpeechForInfo, getReaderLemmaOccurrences, openReaderContextOccurrence });
+if(typeof module !== 'undefined') module.exports = { ReaderConfig, readerState: () => readerState, readerChapterCache, readerManifestCache, readerLoadCounts, getReaderChapterPath, loadReaderManifest, normalizeReaderManifest, getReaderBookChapters, loadReaderChapter, setReaderLocation, getAdjacentReaderLocation, renderReaderChapter, renderReaderVerse, renderReaderTokens, runReaderSearch, loadReaderLocation, saveReaderLocation, parseReaderReference, normalizeReaderText, lookupReaderWordInfo, explainReaderParse, readerGrammarLinksForInfo, readerParseKind, readerPartOfSpeechForInfo, openReaderTokenPopup, closeReaderWordPopup, openReaderWordPage, renderReaderWordPage, loadReaderSearchIndex, representativeReaderOccurrences, getReaderLemmaOccurrences, readerOccurrenceSnippet, renderReaderWordPageContext, renderReaderWordPageContextContent, attachReaderWordPageContextHandlers, openReaderContextOccurrence };

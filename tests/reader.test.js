@@ -194,6 +194,7 @@ test('clicking Open Word Page closes the popup and opens a dynamic Word Page vie
   assert.match(wordPageHtml, /<dt>Current Reference<\/dt><dd>John 1:1<\/dd>/);
   assert.match(wordPageHtml, /data-topic-id="greek-nouns"/);
   assert.match(wordPageHtml, />Greek Nouns<\/button>/);
+  assert.match(wordPageHtml, /Read in Context/);
   assert.doesNotMatch(wordPageHtml, /Word Page/);
   assert.equal(typeof backHandler, 'function');
   backHandler();
@@ -218,6 +219,49 @@ test('clicking Open Word Page closes the popup and opens a dynamic Word Page vie
   assert.doesNotMatch(wordPageHtml, /Also translated as/);
   delete global.state;
   delete global.toast;
+  delete global.showView;
+});
+
+test('word page read in context selects up to five lemma occurrences with short snippets', async () => {
+  const occurrences = await reader.getReaderLemmaOccurrences('λόγος', 'greek', 5);
+  assert.ok(occurrences.length > 0);
+  assert.ok(occurrences.length <= 5);
+  assert.equal(new Set(occurrences.map(item => item.reference)).size, occurrences.length);
+  assert.ok(occurrences.every(item => item.reference.match(/^[1-3]?\s?[A-Za-z]+ \d+:\d+$/)));
+  assert.ok(occurrences.every(item => item.snippet.startsWith('...') && item.snippet.endsWith('...')));
+  assert.ok(occurrences.every(item => item.snippet.split(/\s+/).length <= 12));
+
+  const html = reader.renderReaderWordPageContext(occurrences);
+  assert.match(html, /Read in Context/);
+  assert.equal((html.match(/class="word-page-context-link"/g) || []).length, occurrences.length);
+  assert.doesNotMatch(html, /View All|pagination|filter|translation/i);
+});
+
+test('clicking a read in context occurrence opens Reader at that reference', async () => {
+  let shownView = '';
+  let readerHtml = '';
+  const button = {
+    dataset: { language: 'greek', book: 'john', chapter: '1', verse: '1' },
+    addEventListener(type, handler){ if(type === 'click') this.clickHandler = handler; }
+  };
+  const shell = {
+    set innerHTML(value){ readerHtml = value; },
+    get innerHTML(){ return readerHtml; }
+  };
+  global.showView = view => { shownView = view; };
+  global.$ = selector => selector === '#readerShell' ? shell : null;
+  global.$$ = (selector, root) => root && selector === '.word-page-context-link' ? [button] : [];
+
+  reader.attachReaderWordPageContextHandlers({});
+  assert.equal(typeof button.clickHandler, 'function');
+  await button.clickHandler();
+
+  assert.equal(shownView, 'readerView');
+  assert.equal(reader.readerState().book, 'john');
+  assert.equal(reader.readerState().chapter, 1);
+  assert.equal(reader.readerState().focusVerse, '1');
+  assert.match(readerHtml, /John 1/);
+  assert.match(readerHtml, /readerVerse-1/);
   delete global.showView;
 });
 

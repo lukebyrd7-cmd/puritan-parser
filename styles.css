@@ -626,6 +626,44 @@ button:focus-visible, input:focus-visible, select:focus-visible {
   color: var(--text);
 }
 .word-page-links { margin-top: 2px; }
+.word-page-context-list {
+  display: grid;
+  gap: 7px;
+}
+.word-page-context-link {
+  display: grid;
+  gap: 3px;
+  width: 100%;
+  text-align: left;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 9px 10px;
+  background: var(--surface);
+  color: var(--text);
+  cursor: pointer;
+}
+.word-page-context-link:hover,
+.word-page-context-link:focus-visible {
+  border-color: var(--accent);
+  outline: none;
+}
+.word-page-context-link span {
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 800;
+}
+.word-page-context-link q {
+  color: var(--text-2);
+  font-family: var(--font-serif);
+  font-size: 17px;
+  line-height: 1.35;
+  quotes: none;
+}
+.word-page-context-empty {
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.45;
+}
 .word-page-empty {
   color: var(--muted);
   font-size: 15px;
