@@ -1,0 +1,2183 @@
+{
+  "book": "1peter",
+  "bookName": "1 Peter",
+  "chapter": 1,
+  "source": "MorphGNT SBLGNT (data/source/morphgnt-sblgnt)",
+  "verses": [
+    {
+      "verse": 1,
+      "text": "Πέτρος ἀπόστολος Ἰησοῦ Χριστοῦ ἐκλεκτοῖς παρεπιδήμοις διασπορᾶς Πόντου, Γαλατίας, Καππαδοκίας, Ἀσίας, καὶ Βιθυνίας,",
+      "tokens": [
+        {
+          "surface": "Πέτρος",
+          "lemma": "Πέτρος",
+          "parse": "N- ----NSM-"
+        },
+        {
+          "surface": "ἀπόστολος",
+          "lemma": "ἀπόστολος",
+          "parse": "N- ----NSM-"
+        },
+        {
+          "surface": "Ἰησοῦ",
+          "lemma": "Ἰησοῦς",
+          "parse": "N- ----GSM-"
+        },
+        {
+          "surface": "Χριστοῦ",
+          "lemma": "Χριστός",
+          "parse": "N- ----GSM-"
+        },
+        {
+          "surface": "ἐκλεκτοῖς",
+          "lemma": "ἐκλεκτός",
+          "parse": "A- ----DPM-"
+        },
+        {
+          "surface": "παρεπιδήμοις",
+          "lemma": "παρεπίδημος",
+          "parse": "A- ----DPM-"
+        },
+        {
+          "surface": "διασπορᾶς",
+          "lemma": "διασπορά",
+          "parse": "N- ----GSF-"
+        },
+        {
+          "surface": "Πόντου,",
+          "lemma": "Πόντος",
+          "parse": "N- ----GSM-"
+        },
+        {
+          "surface": "Γαλατίας,",
+          "lemma": "Γαλατία",
+          "parse": "N- ----GSF-"
+        },
+        {
+          "surface": "Καππαδοκίας,",
+          "lemma": "Καππαδοκία",
+          "parse": "N- ----GSF-"
+        },
+        {
+          "surface": "Ἀσίας,",
+          "lemma": "Ἀσία",
+          "parse": "N- ----GSF-"
+        },
+        {
+          "surface": "καὶ",
+          "lemma": "καί",
+          "parse": "C- --------"
+        },
+        {
+          "surface": "Βιθυνίας,",
+          "lemma": "Βιθυνία",
+          "parse": "N- ----GSF-"
+        }
+      ]
+    },
+    {
+      "verse": 2,
+      "text": "κατὰ πρόγνωσιν θεοῦ πατρός, ἐν ἁγιασμῷ πνεύματος, εἰς ὑπακοὴν καὶ ῥαντισμὸν αἵματος Ἰησοῦ Χριστοῦ· χάρις ὑμῖν καὶ εἰρήνη πληθυνθείη.",
+      "tokens": [
+        {
+          "surface": "κατὰ",
+          "lemma": "κατά",
+          "parse": "P- --------"
+        },
+        {
+          "surface": "πρόγνωσιν",
+          "lemma": "πρόγνωσις",
+          "parse": "N- ----ASF-"
+        },
+        {
+          "surface": "θεοῦ",
+          "lemma": "θεός",
+          "parse": "N- ----GSM-"
+        },
+        {
+          "surface": "πατρός,",
+          "lemma": "πατήρ",
+          "parse": "N- ----GSM-"
+        },
+        {
+          "surface": "ἐν",
+          "lemma": "ἐν",
+          "parse": "P- --------"
+        },
+        {
+          "surface": "ἁγιασμῷ",
+          "lemma": "ἁγιασμός",
+          "parse": "N- ----DSM-"
+        },
+        {
+          "surface": "πνεύματος,",
+          "lemma": "πνεῦμα",
+          "parse": "N- ----GSN-"
+        },
+        {
+          "surface": "εἰς",
+          "lemma": "εἰς",
+          "parse": "P- --------"
+        },
+        {
+          "surface": "ὑπακοὴν",
+          "lemma": "ὑπακοή",
+          "parse": "N- ----ASF-"
+        },
+        {
+          "surface": "καὶ",
+          "lemma": "καί",
+          "parse": "C- --------"
+        },
+        {
+          "surface": "ῥαντισμὸν",
+          "lemma": "ῥαντισμός",
+          "parse": "N- ----ASM-"
+        },
+        {
+          "surface": "αἵματος",
+          "lemma": "αἷμα",
+          "parse": "N- ----GSN-"
+        },
+        {
+          "surface": "Ἰησοῦ",
+          "lemma": "Ἰησοῦς",
+          "parse": "N- ----GSM-"
+        },
+        {
+          "surface": "Χριστοῦ·",
+          "lemma": "Χριστός",
+          "parse": "N- ----GSM-"
+        },
+        {
+          "surface": "χάρις",
+          "lemma": "χάρις",
+          "parse": "N- ----NSF-"
+        },
+        {
+          "surface": "ὑμῖν",
+          "lemma": "σύ",
+          "parse": "RP ----DP--"
+        },
+        {
+          "surface": "καὶ",
+          "lemma": "καί",
+          "parse": "C- --------"
+        },
+        {
+          "surface": "εἰρήνη",
+          "lemma": "εἰρήνη",
+          "parse": "N- ----NSF-"
+        },
+        {
+          "surface": "πληθυνθείη.",
+          "lemma": "πληθύνω",
+          "parse": "V- 3APO-S--"
+        }
+      ]
+    },
+    {
+      "verse": 3,
+      "text": "Εὐλογητὸς ὁ θεὸς καὶ πατὴρ τοῦ κυρίου ἡμῶν Ἰησοῦ Χριστοῦ, ὁ κατὰ τὸ πολὺ αὐτοῦ ἔλεος ἀναγεννήσας ἡμᾶς εἰς ἐλπίδα ζῶσαν δι’ ἀναστάσεως Ἰησοῦ Χριστοῦ ἐκ νεκρῶν,",
+      "tokens": [
+        {
+          "surface": "Εὐλογητὸς",
+          "lemma": "εὐλογητός",
+          "parse": "A- ----NSM-"
+        },
+        {
+          "surface": "ὁ",
+          "lemma": "ὁ",
+          "parse": "RA ----NSM-"
+        },
+        {
+          "surface": "θεὸς",
+          "lemma": "θεός",
+          "parse": "N- ----NSM-"
+        },
+        {
+          "surface": "καὶ",
+          "lemma": "καί",
+          "parse": "C- --------"
+        },
+        {
+          "surface": "πατὴρ",
+          "lemma": "πατήρ",
+          "parse": "N- ----NSM-"
+        },
+        {
+          "surface": "τοῦ",
+          "lemma": "ὁ",
+          "parse": "RA ----GSM-"
+        },
+        {
+          "surface": "κυρίου",
+          "lemma": "κύριος",
+          "parse": "N- ----GSM-"
+        },
+        {
+          "surface": "ἡμῶν",
+          "lemma": "ἐγώ",
+          "parse": "RP ----GP--"
+        },
+        {
+          "surface": "Ἰησοῦ",
+          "lemma": "Ἰησοῦς",
+          "parse": "N- ----GSM-"
+        },
+        {
+          "surface": "Χριστοῦ,",
+          "lemma": "Χριστός",
+          "parse": "N- ----GSM-"
+        },
+        {
+          "surface": "ὁ",
+          "lemma": "ὁ",
+          "parse": "RA ----NSM-"
+        },
+        {
+          "surface": "κατὰ",
+          "lemma": "κατά",
+          "parse": "P- --------"
+        },
+        {
+          "surface": "τὸ",
+          "lemma": "ὁ",
+          "parse": "RA ----ASN-"
+        },
+        {
+          "surface": "πολὺ",
+          "lemma": "πολύς",
+          "parse": "A- ----ASN-"
+        },
+        {
+          "surface": "αὐτοῦ",
+          "lemma": "αὐτός",
+          "parse": "RP ----GSM-"
+        },
+        {
+          "surface": "ἔλεος",
+          "lemma": "ἔλεος",
+          "parse": "N- ----ASN-"
+        },
+        {
+          "surface": "ἀναγεννήσας",
+          "lemma": "ἀναγεννάω",
+          "parse": "V- -AAPNSM-"
+        },
+        {
+          "surface": "ἡμᾶς",
+          "lemma": "ἐγώ",
+          "parse": "RP ----AP--"
+        },
+        {
+          "surface": "εἰς",
+          "lemma": "εἰς",
+          "parse": "P- --------"
+        },
+        {
+          "surface": "ἐλπίδα",
+          "lemma": "ἐλπίς",
+          "parse": "N- ----ASF-"
+        },
+        {
+          "surface": "ζῶσαν",
+          "lemma": "ζάω",
+          "parse": "V- -PAPASF-"
+        },
+        {
+          "surface": "δι’",
+          "lemma": "διά",
+          "parse": "P- --------"
+        },
+        {
+          "surface": "ἀναστάσεως",
+          "lemma": "ἀνάστασις",
+          "parse": "N- ----GSF-"
+        },
+        {
+          "surface": "Ἰησοῦ",
+          "lemma": "Ἰησοῦς",
+          "parse": "N- ----GSM-"
+        },
+        {
+          "surface": "Χριστοῦ",
+          "lemma": "Χριστός",
+          "parse": "N- ----GSM-"
+        },
+        {
+          "surface": "ἐκ",
+          "lemma": "ἐκ",
+          "parse": "P- --------"
+        },
+        {
+          "surface": "νεκρῶν,",
+          "lemma": "νεκρός",
+          "parse": "A- ----GPM-"
+        }
+      ]
+    },
+    {
+      "verse": 4,
+      "text": "εἰς κληρονομίαν ἄφθαρτον καὶ ἀμίαντον καὶ ἀμάραντον, τετηρημένην ἐν οὐρανοῖς εἰς ὑμᾶς",
+      "tokens": [
+        {
+          "surface": "εἰς",
+          "lemma": "εἰς",
+          "parse": "P- --------"
+        },
+        {
+          "surface": "κληρονομίαν",
+          "lemma": "κληρονομία",
+          "parse": "N- ----ASF-"
+        },
+        {
+          "surface": "ἄφθαρτον",
+          "lemma": "ἄφθαρτος",
+          "parse": "A- ----ASF-"
+        },
+        {
+          "surface": "καὶ",
+          "lemma": "καί",
+          "parse": "C- --------"
+        },
+        {
+          "surface": "ἀμίαντον",
+          "lemma": "ἀμίαντος",
+          "parse": "A- ----ASF-"
+        },
+        {
+          "surface": "καὶ",
+          "lemma": "καί",
+          "parse": "C- --------"
+        },
+        {
+          "surface": "ἀμάραντον,",
+          "lemma": "ἀμάραντος",
+          "parse": "A- ----ASF-"
+        },
+        {
+          "surface": "τετηρημένην",
+          "lemma": "τηρέω",
+          "parse": "V- -XPPASF-"
+        },
+        {
+          "surface": "ἐν",
+          "lemma": "ἐν",
+          "parse": "P- --------"
+        },
+        {
+          "surface": "οὐρανοῖς",
+          "lemma": "οὐρανός",
+          "parse": "N- ----DPM-"
+        },
+        {
+          "surface": "εἰς",
+          "lemma": "εἰς",
+          "parse": "P- --------"
+        },
+        {
+          "surface": "ὑμᾶς",
+          "lemma": "σύ",
+          "parse": "RP ----AP--"
+        }
+      ]
+    },
+    {
+      "verse": 5,
+      "text": "τοὺς ἐν δυνάμει θεοῦ φρουρουμένους διὰ πίστεως εἰς σωτηρίαν ἑτοίμην ἀποκαλυφθῆναι ἐν καιρῷ ἐσχάτῳ.",
+      "tokens": [
+        {
+          "surface": "τοὺς",
+          "lemma": "ὁ",
+          "parse": "RA ----APM-"
+        },
+        {
+          "surface": "ἐν",
+          "lemma": "ἐν",
+          "parse": "P- --------"
+        },
+        {
+          "surface": "δυνάμει",
+          "lemma": "δύναμις",
+          "parse": "N- ----DSF-"
+        },
+        {
+          "surface": "θεοῦ",
+          "lemma": "θεός",
+          "parse": "N- ----GSM-"
+        },
+        {
+          "surface": "φρουρουμένους",
+          "lemma": "φρουρέω",
+          "parse": "V- -PPPAPM-"
+        },
+        {
+          "surface": "διὰ",
+          "lemma": "διά",
+          "parse": "P- --------"
+        },
+        {
+          "surface": "πίστεως",
+          "lemma": "πίστις",
+          "parse": "N- ----GSF-"
+        },
+        {
+          "surface": "εἰς",
+          "lemma": "εἰς",
+          "parse": "P- --------"
+        },
+        {
+          "surface": "σωτηρίαν",
+          "lemma": "σωτηρία",
+          "parse": "N- ----ASF-"
+        },
+        {
+          "surface": "ἑτοίμην",
+          "lemma": "ἕτοιμος",
+          "parse": "A- ----ASF-"
+        },
+        {
+          "surface": "ἀποκαλυφθῆναι",
+          "lemma": "ἀποκαλύπτω",
+          "parse": "V- -APN----"
+        },
+        {
+          "surface": "ἐν",
+          "lemma": "ἐν",
+          "parse": "P- --------"
+        },
+        {
+          "surface": "καιρῷ",
+          "lemma": "καιρός",
+          "parse": "N- ----DSM-"
+        },
+        {
+          "surface": "ἐσχάτῳ.",
+          "lemma": "ἔσχατος",
+          "parse": "A- ----DSM-"
+        }
+      ]
+    },
+    {
+      "verse": 6,
+      "text": "ἐν ᾧ ἀγαλλιᾶσθε, ὀλίγον ἄρτι εἰ ⸀δέον λυπηθέντες ἐν ποικίλοις πειρασμοῖς,",
+      "tokens": [
+        {
+          "surface": "ἐν",
+          "lemma": "ἐν",
+          "parse": "P- --------"
+        },
+        {
+          "surface": "ᾧ",
+          "lemma": "ὅς",
+          "parse": "RR ----DSM-"
+        },
+        {
+          "surface": "ἀγαλλιᾶσθε,",
+          "lemma": "ἀγαλλιάω",
+          "parse": "V- 2PMI-P--"
+        },
+        {
+          "surface": "ὀλίγον",
+          "lemma": "ὀλίγος",
+          "parse": "A- ----ASN-"
+        },
+        {
+          "surface": "ἄρτι",
+          "lemma": "ἄρτι",
+          "parse": "D- --------"
+        },
+        {
+          "surface": "εἰ",
+          "lemma": "εἰ",
+          "parse": "C- --------"
+        },
+        {
+          "surface": "⸀δέον",
+          "lemma": "δέω",
+          "parse": "V- -PAPNSN-"
+        },
+        {
+          "surface": "λυπηθέντες",
+          "lemma": "λυπέω",
+          "parse": "V- -APPNPM-"
+        },
+        {
+          "surface": "ἐν",
+          "lemma": "ἐν",
+          "parse": "P- --------"
+        },
+        {
+          "surface": "ποικίλοις",
+          "lemma": "ποικίλος",
+          "parse": "A- ----DPM-"
+        },
+        {
+          "surface": "πειρασμοῖς,",
+          "lemma": "πειρασμός",
+          "parse": "N- ----DPM-"
+        }
+      ]
+    },
+    {
+      "verse": 7,
+      "text": "ἵνα τὸ δοκίμιον ὑμῶν τῆς πίστεως ⸀πολυτιμότερον χρυσίου τοῦ ἀπολλυμένου διὰ πυρὸς δὲ δοκιμαζομένου εὑρεθῇ εἰς ἔπαινον καὶ ⸂δόξαν καὶ τιμὴν⸃ ἐν ἀποκαλύψει Ἰησοῦ Χριστοῦ.",
+      "tokens": [
+        {
+          "surface": "ἵνα",
+          "lemma": "ἵνα",
+          "parse": "C- --------"
+        },
+        {
+          "surface": "τὸ",
+          "lemma": "ὁ",
+          "parse": "RA ----NSN-"
+        },
+        {
+          "surface": "δοκίμιον",
+          "lemma": "δοκίμιον",
+          "parse": "N- ----NSN-"
+        },
+        {
+          "surface": "ὑμῶν",
+          "lemma": "σύ",
+          "parse": "RP ----GP--"
+        },
+        {
+          "surface": "τῆς",
+          "lemma": "ὁ",
+          "parse": "RA ----GSF-"
+        },
+        {
+          "surface": "πίστεως",
+          "lemma": "πίστις",
+          "parse": "N- ----GSF-"
+        },
+        {
+          "surface": "⸀πολυτιμότερον",
+          "lemma": "πολύτιμος",
+          "parse": "A- ----NSNC"
+        },
+        {
+          "surface": "χρυσίου",
+          "lemma": "χρυσίον",
+          "parse": "N- ----GSN-"
+        },
+        {
+          "surface": "τοῦ",
+          "lemma": "ὁ",
+          "parse": "RA ----GSN-"
+        },
+        {
+          "surface": "ἀπολλυμένου",
+          "lemma": "ἀπόλλυμι",
+          "parse": "V- -PMPGSN-"
+        },
+        {
+          "surface": "διὰ",
+          "lemma": "διά",
+          "parse": "P- --------"
+        },
+        {
+          "surface": "πυρὸς",
+          "lemma": "πῦρ",
+          "parse": "N- ----GSN-"
+        },
+        {
+          "surface": "δὲ",
+          "lemma": "δέ",
+          "parse": "C- --------"
+        },
+        {
+          "surface": "δοκιμαζομένου",
+          "lemma": "δοκιμάζω",
+          "parse": "V- -PPPGSN-"
+        },
+        {
+          "surface": "εὑρεθῇ",
+          "lemma": "εὑρίσκω",
+          "parse": "V- 3APS-S--"
+        },
+        {
+          "surface": "εἰς",
+          "lemma": "εἰς",
+          "parse": "P- --------"
+        },
+        {
+          "surface": "ἔπαινον",
+          "lemma": "ἔπαινος",
+          "parse": "N- ----ASM-"
+        },
+        {
+          "surface": "καὶ",
+          "lemma": "καί",
+          "parse": "C- --------"
+        },
+        {
+          "surface": "⸂δόξαν",
+          "lemma": "δόξα",
+          "parse": "N- ----ASF-"
+        },
+        {
+          "surface": "καὶ",
+          "lemma": "καί",
+          "parse": "C- --------"
+        },
+        {
+          "surface": "τιμὴν⸃",
+          "lemma": "τιμή",
+          "parse": "N- ----ASF-"
+        },
+        {
+          "surface": "ἐν",
+          "lemma": "ἐν",
+          "parse": "P- --------"
+        },
+        {
+          "surface": "ἀποκαλύψει",
+          "lemma": "ἀποκάλυψις",
+          "parse": "N- ----DSF-"
+        },
+        {
+          "surface": "Ἰησοῦ",
+          "lemma": "Ἰησοῦς",
+          "parse": "N- ----GSM-"
+        },
+        {
+          "surface": "Χριστοῦ.",
+          "lemma": "Χριστός",
+          "parse": "N- ----GSM-"
+        }
+      ]
+    },
+    {
+      "verse": 8,
+      "text": "ὃν οὐκ ⸀ἰδόντες ἀγαπᾶτε, εἰς ὃν ἄρτι μὴ ὁρῶντες πιστεύοντες δὲ ⸀ἀγαλλιᾶσθε χαρᾷ ἀνεκλαλήτῳ καὶ δεδοξασμένῃ,",
+      "tokens": [
+        {
+          "surface": "ὃν",
+          "lemma": "ὅς",
+          "parse": "RR ----ASM-"
+        },
+        {
+          "surface": "οὐκ",
+          "lemma": "οὐ",
+          "parse": "D- --------"
+        },
+        {
+          "surface": "⸀ἰδόντες",
+          "lemma": "ὁράω",
+          "parse": "V- -AAPNPM-"
+        },
+        {
+          "surface": "ἀγαπᾶτε,",
+          "lemma": "ἀγαπάω",
+          "parse": "V- 2PAI-P--"
+        },
+        {
+          "surface": "εἰς",
+          "lemma": "εἰς",
+          "parse": "P- --------"
+        },
+        {
+          "surface": "ὃν",
+          "lemma": "ὅς",
+          "parse": "RR ----ASM-"
+        },
+        {
+          "surface": "ἄρτι",
+          "lemma": "ἄρτι",
+          "parse": "D- --------"
+        },
+        {
+          "surface": "μὴ",
+          "lemma": "μή",
+          "parse": "D- --------"
+        },
+        {
+          "surface": "ὁρῶντες",
+          "lemma": "ὁράω",
+          "parse": "V- -PAPNPM-"
+        },
+        {
+          "surface": "πιστεύοντες",
+          "lemma": "πιστεύω",
+          "parse": "V- -PAPNPM-"
+        },
+        {
+          "surface": "δὲ",
+          "lemma": "δέ",
+          "parse": "C- --------"
+        },
+        {
+          "surface": "⸀ἀγαλλιᾶσθε",
+          "lemma": "ἀγαλλιάω",
+          "parse": "V- 2PMI-P--"
+        },
+        {
+          "surface": "χαρᾷ",
+          "lemma": "χαρά",
+          "parse": "N- ----DSF-"
+        },
+        {
+          "surface": "ἀνεκλαλήτῳ",
+          "lemma": "ἀνεκλάλητος",
+          "parse": "A- ----DSF-"
+        },
+        {
+          "surface": "καὶ",
+          "lemma": "καί",
+          "parse": "C- --------"
+        },
+        {
+          "surface": "δεδοξασμένῃ,",
+          "lemma": "δοξάζω",
+          "parse": "V- -XPPDSF-"
+        }
+      ]
+    },
+    {
+      "verse": 9,
+      "text": "κομιζόμενοι τὸ τέλος τῆς πίστεως ⸀ὑμῶν σωτηρίαν ψυχῶν.",
+      "tokens": [
+        {
+          "surface": "κομιζόμενοι",
+          "lemma": "κομίζω",
+          "parse": "V- -PMPNPM-"
+        },
+        {
+          "surface": "τὸ",
+          "lemma": "ὁ",
+          "parse": "RA ----ASN-"
+        },
+        {
+          "surface": "τέλος",
+          "lemma": "τέλος",
+          "parse": "N- ----ASN-"
+        },
+        {
+          "surface": "τῆς",
+          "lemma": "ὁ",
+          "parse": "RA ----GSF-"
+        },
+        {
+          "surface": "πίστεως",
+          "lemma": "πίστις",
+          "parse": "N- ----GSF-"
+        },
+        {
+          "surface": "⸀ὑμῶν",
+          "lemma": "σύ",
+          "parse": "RP ----GP--"
+        },
+        {
+          "surface": "σωτηρίαν",
+          "lemma": "σωτηρία",
+          "parse": "N- ----ASF-"
+        },
+        {
+          "surface": "ψυχῶν.",
+          "lemma": "ψυχή",
+          "parse": "N- ----GPF-"
+        }
+      ]
+    },
+    {
+      "verse": 10,
+      "text": "Περὶ ἧς σωτηρίας ἐξεζήτησαν καὶ ἐξηραύνησαν προφῆται οἱ περὶ τῆς εἰς ὑμᾶς χάριτος προφητεύσαντες,",
+      "tokens": [
+        {
+          "surface": "Περὶ",
+          "lemma": "περί",
+          "parse": "P- --------"
+        },
+        {
+          "surface": "ἧς",
+          "lemma": "ὅς",
+          "parse": "RR ----GSF-"
+        },
+        {
+          "surface": "σωτηρίας",
+          "lemma": "σωτηρία",
+          "parse": "N- ----GSF-"
+        },
+        {
+          "surface": "ἐξεζήτησαν",
+          "lemma": "ἐκζητέω",
+          "parse": "V- 3AAI-P--"
+        },
+        {
+          "surface": "καὶ",
+          "lemma": "καί",
+          "parse": "C- --------"
+        },
+        {
+          "surface": "ἐξηραύνησαν",
+          "lemma": "ἐξεραυνάω",
+          "parse": "V- 3AAI-P--"
+        },
+        {
+          "surface": "προφῆται",
+          "lemma": "προφήτης",
+          "parse": "N- ----NPM-"
+        },
+        {
+          "surface": "οἱ",
+          "lemma": "ὁ",
+          "parse": "RA ----NPM-"
+        },
+        {
+          "surface": "περὶ",
+          "lemma": "περί",
+          "parse": "P- --------"
+        },
+        {
+          "surface": "τῆς",
+          "lemma": "ὁ",
+          "parse": "RA ----GSF-"
+        },
+        {
+          "surface": "εἰς",
+          "lemma": "εἰς",
+          "parse": "P- --------"
+        },
+        {
+          "surface": "ὑμᾶς",
+          "lemma": "σύ",
+          "parse": "RP ----AP--"
+        },
+        {
+          "surface": "χάριτος",
+          "lemma": "χάρις",
+          "parse": "N- ----GSF-"
+        },
+        {
+          "surface": "προφητεύσαντες,",
+          "lemma": "προφητεύω",
+          "parse": "V- -AAPNPM-"
+        }
+      ]
+    },
+    {
+      "verse": 11,
+      "text": "ἐραυνῶντες εἰς τίνα ἢ ποῖον καιρὸν ἐδήλου τὸ ἐν αὐτοῖς πνεῦμα Χριστοῦ προμαρτυρόμενον τὰ εἰς Χριστὸν παθήματα καὶ τὰς μετὰ ταῦτα δόξας·",
+      "tokens": [
+        {
+          "surface": "ἐραυνῶντες",
+          "lemma": "ἐραυνάω",
+          "parse": "V- -PAPNPM-"
+        },
+        {
+          "surface": "εἰς",
+          "lemma": "εἰς",
+          "parse": "P- --------"
+        },
+        {
+          "surface": "τίνα",
+          "lemma": "τίς",
+          "parse": "RI ----ASM-"
+        },
+        {
+          "surface": "ἢ",
+          "lemma": "ἤ",
+          "parse": "C- --------"
+        },
+        {
+          "surface": "ποῖον",
+          "lemma": "ποῖος",
+          "parse": "RI ----ASM-"
+        },
+        {
+          "surface": "καιρὸν",
+          "lemma": "καιρός",
+          "parse": "N- ----ASM-"
+        },
+        {
+          "surface": "ἐδήλου",
+          "lemma": "δηλόω",
+          "parse": "V- 3IAI-S--"
+        },
+        {
+          "surface": "τὸ",
+          "lemma": "ὁ",
+          "parse": "RA ----NSN-"
+        },
+        {
+          "surface": "ἐν",
+          "lemma": "ἐν",
+          "parse": "P- --------"
+        },
+        {
+          "surface": "αὐτοῖς",
+          "lemma": "αὐτός",
+          "parse": "RP ----DPM-"
+        },
+        {
+          "surface": "πνεῦμα",
+          "lemma": "πνεῦμα",
+          "parse": "N- ----NSN-"
+        },
+        {
+          "surface": "Χριστοῦ",
+          "lemma": "Χριστός",
+          "parse": "N- ----GSM-"
+        },
+        {
+          "surface": "προμαρτυρόμενον",
+          "lemma": "προμαρτύρομαι",
+          "parse": "V- -PMPNSN-"
+        },
+        {
+          "surface": "τὰ",
+          "lemma": "ὁ",
+          "parse": "RA ----APN-"
+        },
+        {
+          "surface": "εἰς",
+          "lemma": "εἰς",
+          "parse": "P- --------"
+        },
+        {
+          "surface": "Χριστὸν",
+          "lemma": "Χριστός",
+          "parse": "N- ----ASM-"
+        },
+        {
+          "surface": "παθήματα",
+          "lemma": "πάθημα",
+          "parse": "N- ----APN-"
+        },
+        {
+          "surface": "καὶ",
+          "lemma": "καί",
+          "parse": "C- --------"
+        },
+        {
+          "surface": "τὰς",
+          "lemma": "ὁ",
+          "parse": "RA ----APF-"
+        },
+        {
+          "surface": "μετὰ",
+          "lemma": "μετά",
+          "parse": "P- --------"
+        },
+        {
+          "surface": "ταῦτα",
+          "lemma": "οὗτος",
+          "parse": "RD ----APN-"
+        },
+        {
+          "surface": "δόξας·",
+          "lemma": "δόξα",
+          "parse": "N- ----APF-"
+        }
+      ]
+    },
+    {
+      "verse": 12,
+      "text": "οἷς ἀπεκαλύφθη ὅτι οὐχ ἑαυτοῖς ὑμῖν δὲ διηκόνουν αὐτά, ἃ νῦν ἀνηγγέλη ὑμῖν διὰ τῶν εὐαγγελισαμένων ⸀ὑμᾶς πνεύματι ἁγίῳ ἀποσταλέντι ἀπ’ οὐρανοῦ, εἰς ἃ ἐπιθυμοῦσιν ἄγγελοι παρακύψαι.",
+      "tokens": [
+        {
+          "surface": "οἷς",
+          "lemma": "ὅς",
+          "parse": "RR ----DPM-"
+        },
+        {
+          "surface": "ἀπεκαλύφθη",
+          "lemma": "ἀποκαλύπτω",
+          "parse": "V- 3API-S--"
+        },
+        {
+          "surface": "ὅτι",
+          "lemma": "ὅτι",
+          "parse": "C- --------"
+        },
+        {
+          "surface": "οὐχ",
+          "lemma": "οὐ",
+          "parse": "D- --------"
+        },
+        {
+          "surface": "ἑαυτοῖς",
+          "lemma": "ἑαυτοῦ",
+          "parse": "RP ----DPM-"
+        },
+        {
+          "surface": "ὑμῖν",
+          "lemma": "σύ",
+          "parse": "RP ----DP--"
+        },
+        {
+          "surface": "δὲ",
+          "lemma": "δέ",
+          "parse": "C- --------"
+        },
+        {
+          "surface": "διηκόνουν",
+          "lemma": "διακονέω",
+          "parse": "V- 3IAI-P--"
+        },
+        {
+          "surface": "αὐτά,",
+          "lemma": "αὐτός",
+          "parse": "RP ----APN-"
+        },
+        {
+          "surface": "ἃ",
+          "lemma": "ὅς",
+          "parse": "RR ----NPN-"
+        },
+        {
+          "surface": "νῦν",
+          "lemma": "νῦν",
+          "parse": "D- --------"
+        },
+        {
+          "surface": "ἀνηγγέλη",
+          "lemma": "ἀναγγέλλω",
+          "parse": "V- 3API-S--"
+        },
+        {
+          "surface": "ὑμῖν",
+          "lemma": "σύ",
+          "parse": "RP ----DP--"
+        },
+        {
+          "surface": "διὰ",
+          "lemma": "διά",
+          "parse": "P- --------"
+        },
+        {
+          "surface": "τῶν",
+          "lemma": "ὁ",
+          "parse": "RA ----GPM-"
+        },
+        {
+          "surface": "εὐαγγελισαμένων",
+          "lemma": "εὐαγγελίζω",
+          "parse": "V- -AMPGPM-"
+        },
+        {
+          "surface": "⸀ὑμᾶς",
+          "lemma": "σύ",
+          "parse": "RP ----AP--"
+        },
+        {
+          "surface": "πνεύματι",
+          "lemma": "πνεῦμα",
+          "parse": "N- ----DSN-"
+        },
+        {
+          "surface": "ἁγίῳ",
+          "lemma": "ἅγιος",
+          "parse": "A- ----DSN-"
+        },
+        {
+          "surface": "ἀποσταλέντι",
+          "lemma": "ἀποστέλλω",
+          "parse": "V- -APPDSN-"
+        },
+        {
+          "surface": "ἀπ’",
+          "lemma": "ἀπό",
+          "parse": "P- --------"
+        },
+        {
+          "surface": "οὐρανοῦ,",
+          "lemma": "οὐρανός",
+          "parse": "N- ----GSM-"
+        },
+        {
+          "surface": "εἰς",
+          "lemma": "εἰς",
+          "parse": "P- --------"
+        },
+        {
+          "surface": "ἃ",
+          "lemma": "ὅς",
+          "parse": "RR ----APN-"
+        },
+        {
+          "surface": "ἐπιθυμοῦσιν",
+          "lemma": "ἐπιθυμέω",
+          "parse": "V- 3PAI-P--"
+        },
+        {
+          "surface": "ἄγγελοι",
+          "lemma": "ἄγγελος",
+          "parse": "N- ----NPM-"
+        },
+        {
+          "surface": "παρακύψαι.",
+          "lemma": "παρακύπτω",
+          "parse": "V- -AAN----"
+        }
+      ]
+    },
+    {
+      "verse": 13,
+      "text": "Διὸ ἀναζωσάμενοι τὰς ὀσφύας τῆς διανοίας ὑμῶν, νήφοντες τελείως, ἐλπίσατε ἐπὶ τὴν φερομένην ὑμῖν χάριν ἐν ἀποκαλύψει Ἰησοῦ Χριστοῦ.",
+      "tokens": [
+        {
+          "surface": "Διὸ",
+          "lemma": "διό",
+          "parse": "C- --------"
+        },
+        {
+          "surface": "ἀναζωσάμενοι",
+          "lemma": "ἀναζώννυμι",
+          "parse": "V- -AMPNPM-"
+        },
+        {
+          "surface": "τὰς",
+          "lemma": "ὁ",
+          "parse": "RA ----APF-"
+        },
+        {
+          "surface": "ὀσφύας",
+          "lemma": "ὀσφύς",
+          "parse": "N- ----APF-"
+        },
+        {
+          "surface": "τῆς",
+          "lemma": "ὁ",
+          "parse": "RA ----GSF-"
+        },
+        {
+          "surface": "διανοίας",
+          "lemma": "διάνοια",
+          "parse": "N- ----GSF-"
+        },
+        {
+          "surface": "ὑμῶν,",
+          "lemma": "σύ",
+          "parse": "RP ----GP--"
+        },
+        {
+          "surface": "νήφοντες",
+          "lemma": "νήφω",
+          "parse": "V- -PAPNPM-"
+        },
+        {
+          "surface": "τελείως,",
+          "lemma": "τελείως",
+          "parse": "D- --------"
+        },
+        {
+          "surface": "ἐλπίσατε",
+          "lemma": "ἐλπίζω",
+          "parse": "V- 2AAD-P--"
+        },
+        {
+          "surface": "ἐπὶ",
+          "lemma": "ἐπί",
+          "parse": "P- --------"
+        },
+        {
+          "surface": "τὴν",
+          "lemma": "ὁ",
+          "parse": "RA ----ASF-"
+        },
+        {
+          "surface": "φερομένην",
+          "lemma": "φέρω",
+          "parse": "V- -PPPASF-"
+        },
+        {
+          "surface": "ὑμῖν",
+          "lemma": "σύ",
+          "parse": "RP ----DP--"
+        },
+        {
+          "surface": "χάριν",
+          "lemma": "χάρις",
+          "parse": "N- ----ASF-"
+        },
+        {
+          "surface": "ἐν",
+          "lemma": "ἐν",
+          "parse": "P- --------"
+        },
+        {
+          "surface": "ἀποκαλύψει",
+          "lemma": "ἀποκάλυψις",
+          "parse": "N- ----DSF-"
+        },
+        {
+          "surface": "Ἰησοῦ",
+          "lemma": "Ἰησοῦς",
+          "parse": "N- ----GSM-"
+        },
+        {
+          "surface": "Χριστοῦ.",
+          "lemma": "Χριστός",
+          "parse": "N- ----GSM-"
+        }
+      ]
+    },
+    {
+      "verse": 14,
+      "text": "ὡς τέκνα ὑπακοῆς, μὴ συσχηματιζόμενοι ταῖς πρότερον ἐν τῇ ἀγνοίᾳ ὑμῶν ἐπιθυμίαις,",
+      "tokens": [
+        {
+          "surface": "ὡς",
+          "lemma": "ὡς",
+          "parse": "C- --------"
+        },
+        {
+          "surface": "τέκνα",
+          "lemma": "τέκνον",
+          "parse": "N- ----NPN-"
+        },
+        {
+          "surface": "ὑπακοῆς,",
+          "lemma": "ὑπακοή",
+          "parse": "N- ----GSF-"
+        },
+        {
+          "surface": "μὴ",
+          "lemma": "μή",
+          "parse": "D- --------"
+        },
+        {
+          "surface": "συσχηματιζόμενοι",
+          "lemma": "συσχηματίζομαι",
+          "parse": "V- -PMPNPM-"
+        },
+        {
+          "surface": "ταῖς",
+          "lemma": "ὁ",
+          "parse": "RA ----DPF-"
+        },
+        {
+          "surface": "πρότερον",
+          "lemma": "πρότερος",
+          "parse": "A- ----ASNC"
+        },
+        {
+          "surface": "ἐν",
+          "lemma": "ἐν",
+          "parse": "P- --------"
+        },
+        {
+          "surface": "τῇ",
+          "lemma": "ὁ",
+          "parse": "RA ----DSF-"
+        },
+        {
+          "surface": "ἀγνοίᾳ",
+          "lemma": "ἄγνοια",
+          "parse": "N- ----DSF-"
+        },
+        {
+          "surface": "ὑμῶν",
+          "lemma": "σύ",
+          "parse": "RP ----GP--"
+        },
+        {
+          "surface": "ἐπιθυμίαις,",
+          "lemma": "ἐπιθυμία",
+          "parse": "N- ----DPF-"
+        }
+      ]
+    },
+    {
+      "verse": 15,
+      "text": "ἀλλὰ κατὰ τὸν καλέσαντα ὑμᾶς ἅγιον καὶ αὐτοὶ ἅγιοι ἐν πάσῃ ἀναστροφῇ γενήθητε,",
+      "tokens": [
+        {
+          "surface": "ἀλλὰ",
+          "lemma": "ἀλλά",
+          "parse": "C- --------"
+        },
+        {
+          "surface": "κατὰ",
+          "lemma": "κατά",
+          "parse": "P- --------"
+        },
+        {
+          "surface": "τὸν",
+          "lemma": "ὁ",
+          "parse": "RA ----ASM-"
+        },
+        {
+          "surface": "καλέσαντα",
+          "lemma": "καλέω",
+          "parse": "V- -AAPASM-"
+        },
+        {
+          "surface": "ὑμᾶς",
+          "lemma": "σύ",
+          "parse": "RP ----AP--"
+        },
+        {
+          "surface": "ἅγιον",
+          "lemma": "ἅγιος",
+          "parse": "A- ----ASM-"
+        },
+        {
+          "surface": "καὶ",
+          "lemma": "καί",
+          "parse": "D- --------"
+        },
+        {
+          "surface": "αὐτοὶ",
+          "lemma": "αὐτός",
+          "parse": "RP ----NPM-"
+        },
+        {
+          "surface": "ἅγιοι",
+          "lemma": "ἅγιος",
+          "parse": "A- ----NPM-"
+        },
+        {
+          "surface": "ἐν",
+          "lemma": "ἐν",
+          "parse": "P- --------"
+        },
+        {
+          "surface": "πάσῃ",
+          "lemma": "πᾶς",
+          "parse": "A- ----DSF-"
+        },
+        {
+          "surface": "ἀναστροφῇ",
+          "lemma": "ἀναστροφή",
+          "parse": "N- ----DSF-"
+        },
+        {
+          "surface": "γενήθητε,",
+          "lemma": "γίνομαι",
+          "parse": "V- 2APD-P--"
+        }
+      ]
+    },
+    {
+      "verse": 16,
+      "text": "διότι γέγραπται ⸀ὅτι Ἅγιοι ⸀ἔσεσθε, ὅτι ἐγὼ ⸀ἅγιος.",
+      "tokens": [
+        {
+          "surface": "διότι",
+          "lemma": "διότι",
+          "parse": "C- --------"
+        },
+        {
+          "surface": "γέγραπται",
+          "lemma": "γράφω",
+          "parse": "V- 3XPI-S--"
+        },
+        {
+          "surface": "⸀ὅτι",
+          "lemma": "ὅτι",
+          "parse": "C- --------"
+        },
+        {
+          "surface": "Ἅγιοι",
+          "lemma": "ἅγιος",
+          "parse": "A- ----NPM-"
+        },
+        {
+          "surface": "⸀ἔσεσθε,",
+          "lemma": "εἰμί",
+          "parse": "V- 2FMI-P--"
+        },
+        {
+          "surface": "ὅτι",
+          "lemma": "ὅτι",
+          "parse": "C- --------"
+        },
+        {
+          "surface": "ἐγὼ",
+          "lemma": "ἐγώ",
+          "parse": "RP ----NS--"
+        },
+        {
+          "surface": "⸀ἅγιος.",
+          "lemma": "ἅγιος",
+          "parse": "A- ----NSM-"
+        }
+      ]
+    },
+    {
+      "verse": 17,
+      "text": "Καὶ εἰ πατέρα ἐπικαλεῖσθε τὸν ἀπροσωπολήμπτως κρίνοντα κατὰ τὸ ἑκάστου ἔργον, ἐν φόβῳ τὸν τῆς παροικίας ὑμῶν χρόνον ἀναστράφητε·",
+      "tokens": [
+        {
+          "surface": "Καὶ",
+          "lemma": "καί",
+          "parse": "C- --------"
+        },
+        {
+          "surface": "εἰ",
+          "lemma": "εἰ",
+          "parse": "C- --------"
+        },
+        {
+          "surface": "πατέρα",
+          "lemma": "πατήρ",
+          "parse": "N- ----ASM-"
+        },
+        {
+          "surface": "ἐπικαλεῖσθε",
+          "lemma": "ἐπικαλέω",
+          "parse": "V- 2PMI-P--"
+        },
+        {
+          "surface": "τὸν",
+          "lemma": "ὁ",
+          "parse": "RA ----ASM-"
+        },
+        {
+          "surface": "ἀπροσωπολήμπτως",
+          "lemma": "ἀπροσωπολήμπτως",
+          "parse": "D- --------"
+        },
+        {
+          "surface": "κρίνοντα",
+          "lemma": "κρίνω",
+          "parse": "V- -PAPASM-"
+        },
+        {
+          "surface": "κατὰ",
+          "lemma": "κατά",
+          "parse": "P- --------"
+        },
+        {
+          "surface": "τὸ",
+          "lemma": "ὁ",
+          "parse": "RA ----ASN-"
+        },
+        {
+          "surface": "ἑκάστου",
+          "lemma": "ἕκαστος",
+          "parse": "A- ----GSM-"
+        },
+        {
+          "surface": "ἔργον,",
+          "lemma": "ἔργον",
+          "parse": "N- ----ASN-"
+        },
+        {
+          "surface": "ἐν",
+          "lemma": "ἐν",
+          "parse": "P- --------"
+        },
+        {
+          "surface": "φόβῳ",
+          "lemma": "φόβος",
+          "parse": "N- ----DSM-"
+        },
+        {
+          "surface": "τὸν",
+          "lemma": "ὁ",
+          "parse": "RA ----ASM-"
+        },
+        {
+          "surface": "τῆς",
+          "lemma": "ὁ",
+          "parse": "RA ----GSF-"
+        },
+        {
+          "surface": "παροικίας",
+          "lemma": "παροικία",
+          "parse": "N- ----GSF-"
+        },
+        {
+          "surface": "ὑμῶν",
+          "lemma": "σύ",
+          "parse": "RP ----GP--"
+        },
+        {
+          "surface": "χρόνον",
+          "lemma": "χρόνος",
+          "parse": "N- ----ASM-"
+        },
+        {
+          "surface": "ἀναστράφητε·",
+          "lemma": "ἀναστρέφω",
+          "parse": "V- 2APD-P--"
+        }
+      ]
+    },
+    {
+      "verse": 18,
+      "text": "εἰδότες ὅτι οὐ φθαρτοῖς, ἀργυρίῳ ἢ χρυσίῳ, ἐλυτρώθητε ἐκ τῆς ματαίας ὑμῶν ἀναστροφῆς πατροπαραδότου,",
+      "tokens": [
+        {
+          "surface": "εἰδότες",
+          "lemma": "οἶδα",
+          "parse": "V- -XAPNPM-"
+        },
+        {
+          "surface": "ὅτι",
+          "lemma": "ὅτι",
+          "parse": "C- --------"
+        },
+        {
+          "surface": "οὐ",
+          "lemma": "οὐ",
+          "parse": "D- --------"
+        },
+        {
+          "surface": "φθαρτοῖς,",
+          "lemma": "φθαρτός",
+          "parse": "A- ----DPN-"
+        },
+        {
+          "surface": "ἀργυρίῳ",
+          "lemma": "ἀργύριον",
+          "parse": "N- ----DSN-"
+        },
+        {
+          "surface": "ἢ",
+          "lemma": "ἤ",
+          "parse": "C- --------"
+        },
+        {
+          "surface": "χρυσίῳ,",
+          "lemma": "χρυσίον",
+          "parse": "N- ----DSN-"
+        },
+        {
+          "surface": "ἐλυτρώθητε",
+          "lemma": "λυτρόομαι",
+          "parse": "V- 2API-P--"
+        },
+        {
+          "surface": "ἐκ",
+          "lemma": "ἐκ",
+          "parse": "P- --------"
+        },
+        {
+          "surface": "τῆς",
+          "lemma": "ὁ",
+          "parse": "RA ----GSF-"
+        },
+        {
+          "surface": "ματαίας",
+          "lemma": "μάταιος",
+          "parse": "A- ----GSF-"
+        },
+        {
+          "surface": "ὑμῶν",
+          "lemma": "σύ",
+          "parse": "RP ----GP--"
+        },
+        {
+          "surface": "ἀναστροφῆς",
+          "lemma": "ἀναστροφή",
+          "parse": "N- ----GSF-"
+        },
+        {
+          "surface": "πατροπαραδότου,",
+          "lemma": "πατροπαράδοτος",
+          "parse": "A- ----GSF-"
+        }
+      ]
+    },
+    {
+      "verse": 19,
+      "text": "ἀλλὰ τιμίῳ αἵματι ὡς ἀμνοῦ ἀμώμου καὶ ἀσπίλου Χριστοῦ,",
+      "tokens": [
+        {
+          "surface": "ἀλλὰ",
+          "lemma": "ἀλλά",
+          "parse": "C- --------"
+        },
+        {
+          "surface": "τιμίῳ",
+          "lemma": "τίμιος",
+          "parse": "A- ----DSN-"
+        },
+        {
+          "surface": "αἵματι",
+          "lemma": "αἷμα",
+          "parse": "N- ----DSN-"
+        },
+        {
+          "surface": "ὡς",
+          "lemma": "ὡς",
+          "parse": "C- --------"
+        },
+        {
+          "surface": "ἀμνοῦ",
+          "lemma": "ἀμνός",
+          "parse": "N- ----GSM-"
+        },
+        {
+          "surface": "ἀμώμου",
+          "lemma": "ἄμωμος",
+          "parse": "A- ----GSM-"
+        },
+        {
+          "surface": "καὶ",
+          "lemma": "καί",
+          "parse": "C- --------"
+        },
+        {
+          "surface": "ἀσπίλου",
+          "lemma": "ἄσπιλος",
+          "parse": "A- ----GSM-"
+        },
+        {
+          "surface": "Χριστοῦ,",
+          "lemma": "Χριστός",
+          "parse": "N- ----GSM-"
+        }
+      ]
+    },
+    {
+      "verse": 20,
+      "text": "προεγνωσμένου μὲν πρὸ καταβολῆς κόσμου, φανερωθέντος δὲ ἐπ’ ⸀ἐσχάτου τῶν χρόνων δι’ ὑμᾶς",
+      "tokens": [
+        {
+          "surface": "προεγνωσμένου",
+          "lemma": "προγινώσκω",
+          "parse": "V- -XPPGSM-"
+        },
+        {
+          "surface": "μὲν",
+          "lemma": "μέν",
+          "parse": "C- --------"
+        },
+        {
+          "surface": "πρὸ",
+          "lemma": "πρό",
+          "parse": "P- --------"
+        },
+        {
+          "surface": "καταβολῆς",
+          "lemma": "καταβολή",
+          "parse": "N- ----GSF-"
+        },
+        {
+          "surface": "κόσμου,",
+          "lemma": "κόσμος",
+          "parse": "N- ----GSM-"
+        },
+        {
+          "surface": "φανερωθέντος",
+          "lemma": "φανερόω",
+          "parse": "V- -APPGSM-"
+        },
+        {
+          "surface": "δὲ",
+          "lemma": "δέ",
+          "parse": "C- --------"
+        },
+        {
+          "surface": "ἐπ’",
+          "lemma": "ἐπί",
+          "parse": "P- --------"
+        },
+        {
+          "surface": "⸀ἐσχάτου",
+          "lemma": "ἔσχατος",
+          "parse": "A- ----GSM-"
+        },
+        {
+          "surface": "τῶν",
+          "lemma": "ὁ",
+          "parse": "RA ----GPM-"
+        },
+        {
+          "surface": "χρόνων",
+          "lemma": "χρόνος",
+          "parse": "N- ----GPM-"
+        },
+        {
+          "surface": "δι’",
+          "lemma": "διά",
+          "parse": "P- --------"
+        },
+        {
+          "surface": "ὑμᾶς",
+          "lemma": "σύ",
+          "parse": "RP ----AP--"
+        }
+      ]
+    },
+    {
+      "verse": 21,
+      "text": "τοὺς δι’ αὐτοῦ ⸀πιστοὺς εἰς θεὸν τὸν ἐγείραντα αὐτὸν ἐκ νεκρῶν καὶ δόξαν αὐτῷ δόντα, ὥστε τὴν πίστιν ὑμῶν καὶ ἐλπίδα εἶναι εἰς θεόν.",
+      "tokens": [
+        {
+          "surface": "τοὺς",
+          "lemma": "ὁ",
+          "parse": "RA ----APM-"
+        },
+        {
+          "surface": "δι’",
+          "lemma": "διά",
+          "parse": "P- --------"
+        },
+        {
+          "surface": "αὐτοῦ",
+          "lemma": "αὐτός",
+          "parse": "RP ----GSM-"
+        },
+        {
+          "surface": "⸀πιστοὺς",
+          "lemma": "πιστός",
+          "parse": "A- ----APM-"
+        },
+        {
+          "surface": "εἰς",
+          "lemma": "εἰς",
+          "parse": "P- --------"
+        },
+        {
+          "surface": "θεὸν",
+          "lemma": "θεός",
+          "parse": "N- ----ASM-"
+        },
+        {
+          "surface": "τὸν",
+          "lemma": "ὁ",
+          "parse": "RA ----ASM-"
+        },
+        {
+          "surface": "ἐγείραντα",
+          "lemma": "ἐγείρω",
+          "parse": "V- -AAPASM-"
+        },
+        {
+          "surface": "αὐτὸν",
+          "lemma": "αὐτός",
+          "parse": "RP ----ASM-"
+        },
+        {
+          "surface": "ἐκ",
+          "lemma": "ἐκ",
+          "parse": "P- --------"
+        },
+        {
+          "surface": "νεκρῶν",
+          "lemma": "νεκρός",
+          "parse": "A- ----GPM-"
+        },
+        {
+          "surface": "καὶ",
+          "lemma": "καί",
+          "parse": "C- --------"
+        },
+        {
+          "surface": "δόξαν",
+          "lemma": "δόξα",
+          "parse": "N- ----ASF-"
+        },
+        {
+          "surface": "αὐτῷ",
+          "lemma": "αὐτός",
+          "parse": "RP ----DSM-"
+        },
+        {
+          "surface": "δόντα,",
+          "lemma": "δίδωμι",
+          "parse": "V- -AAPASM-"
+        },
+        {
+          "surface": "ὥστε",
+          "lemma": "ὥστε",
+          "parse": "C- --------"
+        },
+        {
+          "surface": "τὴν",
+          "lemma": "ὁ",
+          "parse": "RA ----ASF-"
+        },
+        {
+          "surface": "πίστιν",
+          "lemma": "πίστις",
+          "parse": "N- ----ASF-"
+        },
+        {
+          "surface": "ὑμῶν",
+          "lemma": "σύ",
+          "parse": "RP ----GP--"
+        },
+        {
+          "surface": "καὶ",
+          "lemma": "καί",
+          "parse": "C- --------"
+        },
+        {
+          "surface": "ἐλπίδα",
+          "lemma": "ἐλπίς",
+          "parse": "N- ----ASF-"
+        },
+        {
+          "surface": "εἶναι",
+          "lemma": "εἰμί",
+          "parse": "V- -PAN----"
+        },
+        {
+          "surface": "εἰς",
+          "lemma": "εἰς",
+          "parse": "P- --------"
+        },
+        {
+          "surface": "θεόν.",
+          "lemma": "θεός",
+          "parse": "N- ----ASM-"
+        }
+      ]
+    },
+    {
+      "verse": 22,
+      "text": "Τὰς ψυχὰς ὑμῶν ἡγνικότες ἐν τῇ ὑπακοῇ τῆς ⸀ἀληθείας εἰς φιλαδελφίαν ἀνυπόκριτον ⸀ἐκ καρδίας ἀλλήλους ἀγαπήσατε ἐκτενῶς,",
+      "tokens": [
+        {
+          "surface": "Τὰς",
+          "lemma": "ὁ",
+          "parse": "RA ----APF-"
+        },
+        {
+          "surface": "ψυχὰς",
+          "lemma": "ψυχή",
+          "parse": "N- ----APF-"
+        },
+        {
+          "surface": "ὑμῶν",
+          "lemma": "σύ",
+          "parse": "RP ----GP--"
+        },
+        {
+          "surface": "ἡγνικότες",
+          "lemma": "ἁγνίζω",
+          "parse": "V- -XAPNPM-"
+        },
+        {
+          "surface": "ἐν",
+          "lemma": "ἐν",
+          "parse": "P- --------"
+        },
+        {
+          "surface": "τῇ",
+          "lemma": "ὁ",
+          "parse": "RA ----DSF-"
+        },
+        {
+          "surface": "ὑπακοῇ",
+          "lemma": "ὑπακοή",
+          "parse": "N- ----DSF-"
+        },
+        {
+          "surface": "τῆς",
+          "lemma": "ὁ",
+          "parse": "RA ----GSF-"
+        },
+        {
+          "surface": "⸀ἀληθείας",
+          "lemma": "ἀλήθεια",
+          "parse": "N- ----GSF-"
+        },
+        {
+          "surface": "εἰς",
+          "lemma": "εἰς",
+          "parse": "P- --------"
+        },
+        {
+          "surface": "φιλαδελφίαν",
+          "lemma": "φιλαδελφία",
+          "parse": "N- ----ASF-"
+        },
+        {
+          "surface": "ἀνυπόκριτον",
+          "lemma": "ἀνυπόκριτος",
+          "parse": "A- ----ASF-"
+        },
+        {
+          "surface": "⸀ἐκ",
+          "lemma": "ἐκ",
+          "parse": "P- --------"
+        },
+        {
+          "surface": "καρδίας",
+          "lemma": "καρδία",
+          "parse": "N- ----GSF-"
+        },
+        {
+          "surface": "ἀλλήλους",
+          "lemma": "ἀλλήλων",
+          "parse": "RP ----APM-"
+        },
+        {
+          "surface": "ἀγαπήσατε",
+          "lemma": "ἀγαπάω",
+          "parse": "V- 2AAD-P--"
+        },
+        {
+          "surface": "ἐκτενῶς,",
+          "lemma": "ἐκτενῶς",
+          "parse": "D- --------"
+        }
+      ]
+    },
+    {
+      "verse": 23,
+      "text": "ἀναγεγεννημένοι οὐκ ἐκ σπορᾶς φθαρτῆς ἀλλὰ ἀφθάρτου, διὰ λόγου ζῶντος θεοῦ καὶ ⸀μένοντος·",
+      "tokens": [
+        {
+          "surface": "ἀναγεγεννημένοι",
+          "lemma": "ἀναγεννάω",
+          "parse": "V- -XPPNPM-"
+        },
+        {
+          "surface": "οὐκ",
+          "lemma": "οὐ",
+          "parse": "D- --------"
+        },
+        {
+          "surface": "ἐκ",
+          "lemma": "ἐκ",
+          "parse": "P- --------"
+        },
+        {
+          "surface": "σπορᾶς",
+          "lemma": "σπορά",
+          "parse": "N- ----GSF-"
+        },
+        {
+          "surface": "φθαρτῆς",
+          "lemma": "φθαρτός",
+          "parse": "A- ----GSF-"
+        },
+        {
+          "surface": "ἀλλὰ",
+          "lemma": "ἀλλά",
+          "parse": "C- --------"
+        },
+        {
+          "surface": "ἀφθάρτου,",
+          "lemma": "ἄφθαρτος",
+          "parse": "A- ----GSF-"
+        },
+        {
+          "surface": "διὰ",
+          "lemma": "διά",
+          "parse": "P- --------"
+        },
+        {
+          "surface": "λόγου",
+          "lemma": "λόγος",
+          "parse": "N- ----GSM-"
+        },
+        {
+          "surface": "ζῶντος",
+          "lemma": "ζάω",
+          "parse": "V- -PAPGSM-"
+        },
+        {
+          "surface": "θεοῦ",
+          "lemma": "θεός",
+          "parse": "N- ----GSM-"
+        },
+        {
+          "surface": "καὶ",
+          "lemma": "καί",
+          "parse": "C- --------"
+        },
+        {
+          "surface": "⸀μένοντος·",
+          "lemma": "μένω",
+          "parse": "V- -PAPGSM-"
+        }
+      ]
+    },
+    {
+      "verse": 24,
+      "text": "διότι πᾶσα σὰρξ ὡς χόρτος, καὶ πᾶσα δόξα ⸀αὐτῆς ὡς ἄνθος χόρτου· ἐξηράνθη ὁ χόρτος, καὶ τὸ ⸀ἄνθος ἐξέπεσεν·",
+      "tokens": [
+        {
+          "surface": "διότι",
+          "lemma": "διότι",
+          "parse": "C- --------"
+        },
+        {
+          "surface": "πᾶσα",
+          "lemma": "πᾶς",
+          "parse": "A- ----NSF-"
+        },
+        {
+          "surface": "σὰρξ",
+          "lemma": "σάρξ",
+          "parse": "N- ----NSF-"
+        },
+        {
+          "surface": "ὡς",
+          "lemma": "ὡς",
+          "parse": "C- --------"
+        },
+        {
+          "surface": "χόρτος,",
+          "lemma": "χόρτος",
+          "parse": "N- ----NSM-"
+        },
+        {
+          "surface": "καὶ",
+          "lemma": "καί",
+          "parse": "C- --------"
+        },
+        {
+          "surface": "πᾶσα",
+          "lemma": "πᾶς",
+          "parse": "A- ----NSF-"
+        },
+        {
+          "surface": "δόξα",
+          "lemma": "δόξα",
+          "parse": "N- ----NSF-"
+        },
+        {
+          "surface": "⸀αὐτῆς",
+          "lemma": "αὐτός",
+          "parse": "RP ----GSF-"
+        },
+        {
+          "surface": "ὡς",
+          "lemma": "ὡς",
+          "parse": "C- --------"
+        },
+        {
+          "surface": "ἄνθος",
+          "lemma": "ἄνθος",
+          "parse": "N- ----NSN-"
+        },
+        {
+          "surface": "χόρτου·",
+          "lemma": "χόρτος",
+          "parse": "N- ----GSM-"
+        },
+        {
+          "surface": "ἐξηράνθη",
+          "lemma": "ξηραίνω",
+          "parse": "V- 3API-S--"
+        },
+        {
+          "surface": "ὁ",
+          "lemma": "ὁ",
+          "parse": "RA ----NSM-"
+        },
+        {
+          "surface": "χόρτος,",
+          "lemma": "χόρτος",
+          "parse": "N- ----NSM-"
+        },
+        {
+          "surface": "καὶ",
+          "lemma": "καί",
+          "parse": "C- --------"
+        },
+        {
+          "surface": "τὸ",
+          "lemma": "ὁ",
+          "parse": "RA ----NSN-"
+        },
+        {
+          "surface": "⸀ἄνθος",
+          "lemma": "ἄνθος",
+          "parse": "N- ----NSN-"
+        },
+        {
+          "surface": "ἐξέπεσεν·",
+          "lemma": "ἐκπίπτω",
+          "parse": "V- 3AAI-S--"
+        }
+      ]
+    },
+    {
+      "verse": 25,
+      "text": "τὸ δὲ ῥῆμα κυρίου μένει εἰς τὸν αἰῶνα. τοῦτο δέ ἐστιν τὸ ῥῆμα τὸ εὐαγγελισθὲν εἰς ὑμᾶς.",
+      "tokens": [
+        {
+          "surface": "τὸ",
+          "lemma": "ὁ",
+          "parse": "RA ----NSN-"
+        },
+        {
+          "surface": "δὲ",
+          "lemma": "δέ",
+          "parse": "C- --------"
+        },
+        {
+          "surface": "ῥῆμα",
+          "lemma": "ῥῆμα",
+          "parse": "N- ----NSN-"
+        },
+        {
+          "surface": "κυρίου",
+          "lemma": "κύριος",
+          "parse": "N- ----GSM-"
+        },
+        {
+          "surface": "μένει",
+          "lemma": "μένω",
+          "parse": "V- 3PAI-S--"
+        },
+        {
+          "surface": "εἰς",
+          "lemma": "εἰς",
+          "parse": "P- --------"
+        },
+        {
+          "surface": "τὸν",
+          "lemma": "ὁ",
+          "parse": "RA ----ASM-"
+        },
+        {
+          "surface": "αἰῶνα.",
+          "lemma": "αἰών",
+          "parse": "N- ----ASM-"
+        },
+        {
+          "surface": "τοῦτο",
+          "lemma": "οὗτος",
+          "parse": "RD ----NSN-"
+        },
+        {
+          "surface": "δέ",
+          "lemma": "δέ",
+          "parse": "C- --------"
+        },
+        {
+          "surface": "ἐστιν",
+          "lemma": "εἰμί",
+          "parse": "V- 3PAI-S--"
+        },
+        {
+          "surface": "τὸ",
+          "lemma": "ὁ",
+          "parse": "RA ----NSN-"
+        },
+        {
+          "surface": "ῥῆμα",
+          "lemma": "ῥῆμα",
+          "parse": "N- ----NSN-"
+        },
+        {
+          "surface": "τὸ",
+          "lemma": "ὁ",
+          "parse": "RA ----NSN-"
+        },
+        {
+          "surface": "εὐαγγελισθὲν",
+          "lemma": "εὐαγγελίζω",
+          "parse": "V- -APPNSN-"
+        },
+        {
+          "surface": "εἰς",
+          "lemma": "εἰς",
+          "parse": "P- --------"
+        },
+        {
+          "surface": "ὑμᾶς.",
+          "lemma": "σύ",
+          "parse": "RP ----AP--"
+        }
+      ]
+    }
+  ]
+}
