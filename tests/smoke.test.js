@@ -24,8 +24,8 @@ test('smoke: flashcards, parsing, dashboard, settings, and import/export control
 
 test('smoke: static Word Page content is present', () => {
   assert.match(html, /λόγος/);
-  assert.match(html, /word/);
-  assert.match(html, /330×/);
+  assert.match(html, /<dt>Gloss<\/dt>\s*<dd>word<\/dd>/);
+  assert.match(html, /<dt>Frequency<\/dt>\s*<dd>330×<\/dd>/);
   assert.match(html, /Back to Reader/);
 });
 

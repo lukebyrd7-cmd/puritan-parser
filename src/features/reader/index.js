@@ -326,10 +326,9 @@ function navigateReaderGrammarLink(topicId){
   else if(typeof showView === 'function') showView('grammarView');
   if(typeof renderReferenceLibrary === 'function') setTimeout(() => renderReferenceLibrary(topicId), 0);
 }
-function openReaderWordPagePlaceholder(){
+function openReaderWordPage(){
   closeReaderWordPopup();
-  if(typeof toast === 'function') toast('Word Pages coming soon');
-  else if(typeof alert === 'function') alert('Word Pages coming soon');
+  if(typeof showView === 'function') showView('wordPageView');
 }
 function renderReaderWordPopup(){
   const root = $('#readerWordPopupRoot'); if(!root) return;
@@ -365,7 +364,7 @@ function renderReaderWordPopup(){
   $('.reader-word-close', root)?.addEventListener('click', closeReaderWordPopup);
   $('[data-reader-popup-overlay]', root)?.addEventListener('click', event => { if(event.target?.dataset?.readerPopupOverlay !== undefined) closeReaderWordPopup(); });
   $$('.reader-word-link', root).forEach(btn => btn.addEventListener('click', () => navigateReaderGrammarLink(btn.dataset.topicId)));
-  $('.reader-word-page-action', root)?.addEventListener('click', openReaderWordPagePlaceholder);
+  $('.reader-word-page-action', root)?.addEventListener('click', openReaderWordPage);
   $('.reader-word-close', root)?.focus?.();
 }
 function readerPopupMeta(label, value){
@@ -387,5 +386,5 @@ async function runReaderSearch(query){
   return results;
 }
 async function initReader(){ const loc = loadReaderLocation(); readerState = { ...readerState, ...loc }; await setReaderLocation(loc); }
-if(typeof window !== 'undefined') Object.assign(window, { ReaderConfig, readerState, readerChapterCache, readerManifestCache, readerLoadCounts, getReaderChapterPath, loadReaderManifest, loadReaderChapter, setReaderLocation, getAdjacentReaderLocation, renderReader, renderReaderChapter, renderReaderVerse, renderReaderTokens, initReader, runReaderSearch, loadReaderLocation, saveReaderLocation, parseReaderReference, openReaderTokenPopup, closeReaderWordPopup, openReaderWordPagePlaceholder, lookupReaderWordInfo, explainReaderParse, readerGrammarLinksForInfo });
-if(typeof module !== 'undefined') module.exports = { ReaderConfig, readerState: () => readerState, readerChapterCache, readerManifestCache, readerLoadCounts, getReaderChapterPath, loadReaderManifest, normalizeReaderManifest, getReaderBookChapters, loadReaderChapter, setReaderLocation, getAdjacentReaderLocation, renderReaderChapter, renderReaderVerse, renderReaderTokens, runReaderSearch, loadReaderLocation, saveReaderLocation, parseReaderReference, normalizeReaderText, lookupReaderWordInfo, explainReaderParse, readerGrammarLinksForInfo, readerParseKind, openReaderTokenPopup, closeReaderWordPopup, openReaderWordPagePlaceholder };
+if(typeof window !== 'undefined') Object.assign(window, { ReaderConfig, readerState, readerChapterCache, readerManifestCache, readerLoadCounts, getReaderChapterPath, loadReaderManifest, loadReaderChapter, setReaderLocation, getAdjacentReaderLocation, renderReader, renderReaderChapter, renderReaderVerse, renderReaderTokens, initReader, runReaderSearch, loadReaderLocation, saveReaderLocation, parseReaderReference, openReaderTokenPopup, closeReaderWordPopup, openReaderWordPage, lookupReaderWordInfo, explainReaderParse, readerGrammarLinksForInfo });
+if(typeof module !== 'undefined') module.exports = { ReaderConfig, readerState: () => readerState, readerChapterCache, readerManifestCache, readerLoadCounts, getReaderChapterPath, loadReaderManifest, normalizeReaderManifest, getReaderBookChapters, loadReaderChapter, setReaderLocation, getAdjacentReaderLocation, renderReaderChapter, renderReaderVerse, renderReaderTokens, runReaderSearch, loadReaderLocation, saveReaderLocation, parseReaderReference, normalizeReaderText, lookupReaderWordInfo, explainReaderParse, readerGrammarLinksForInfo, readerParseKind, openReaderTokenPopup, closeReaderWordPopup, openReaderWordPage };

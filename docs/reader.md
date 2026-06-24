@@ -95,7 +95,7 @@ The popup also includes lightweight links into existing Grammar Handbook topics 
 | Participle | Participles, Verb Paradigms |
 | Article | Article Paradigms, Article Endings |
 
-The popup closes with its close button, outside click/tap, or Escape. Grammar links are the only popup actions that navigate away from Reader, and the Reader location remains persisted separately under `pp_reader_location`. The `Open Word Page` button is a future hook only: it closes the popup and announces `Word Pages coming soon`.
+The popup closes with its close button, outside click/tap, or Escape. Grammar links can navigate to the grammar reference, and `Open Word Page` closes the popup before opening the static Word Page view. The Reader location remains persisted separately under `pp_reader_location`.
 
 ## Search index structure
 

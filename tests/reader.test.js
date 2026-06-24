@@ -112,7 +112,7 @@ test('clicking a reader token opens and closes the popup', async () => {
     querySelector: selector => selector === '.reader-word-close' ? { addEventListener(){}, focus(){} } : null,
     querySelectorAll: () => []
   };
-  global.$ = selector => selector === '#readerWordPopupRoot' ? root : null;
+  global.$ = (selector, scope) => scope?.querySelector ? scope.querySelector(selector) : (selector === '#readerWordPopupRoot' ? root : null);
   global.$$ = () => [];
   global.state = { data: { greek: [{ lang: 'greek', word: 'λόγος', lemma: 'λόγος', primaryGloss: 'word', alternateGlosses: [], gloss: 'word', freq: 1 }] } };
   await reader.openReaderTokenPopup({
@@ -132,29 +132,39 @@ test('clicking a reader token opens and closes the popup', async () => {
   delete global.state;
 });
 
-test('Open Word Page closes the popup and announces the placeholder', async () => {
+test('clicking Open Word Page closes the popup and opens the static Word Page view', async () => {
   let popupHtml = '';
+  let actionHandler;
+  let shownView = '';
   let toastMessage = '';
   const root = {
     set innerHTML(value){ popupHtml = value; },
     get innerHTML(){ return popupHtml; },
-    querySelector: selector => selector === '.reader-word-close' ? { addEventListener(){}, focus(){} } : null,
+    querySelector: selector => {
+      if(selector === '.reader-word-close') return { addEventListener(){}, focus(){} };
+      if(selector === '.reader-word-page-action') return { addEventListener(type, handler){ if(type === 'click') actionHandler = handler; } };
+      return null;
+    },
     querySelectorAll: () => []
   };
-  global.$ = selector => selector === '#readerWordPopupRoot' ? root : null;
+  global.$ = (selector, scope) => scope?.querySelector ? scope.querySelector(selector) : (selector === '#readerWordPopupRoot' ? root : null);
   global.$$ = () => [];
   global.toast = message => { toastMessage = message; };
+  global.showView = viewId => { shownView = viewId; };
   global.state = { data: { greek: [{ lang: 'greek', word: 'λόγος', lemma: 'λόγος', primaryGloss: 'word', gloss: 'word', freq: 1 }] } };
   await reader.openReaderTokenPopup({
     dataset: { surface: 'λόγος', lemma: 'λόγος', parse: 'N-NSM', bookName: 'John', chapter: '1', verse: '1' },
     focus(){}
   });
   assert.match(popupHtml, /Open Word Page/);
-  reader.openReaderWordPagePlaceholder();
+  assert.equal(typeof actionHandler, 'function');
+  actionHandler();
   assert.equal(popupHtml, '');
-  assert.equal(toastMessage, 'Word Pages coming soon');
+  assert.equal(shownView, 'wordPageView');
+  assert.equal(toastMessage, '');
   delete global.state;
   delete global.toast;
+  delete global.showView;
 });
 
 test('book navigation crosses from Matthew to Mark', async () => {
