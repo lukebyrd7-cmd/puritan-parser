@@ -1,6 +1,6 @@
-# Reader Architecture (v3.6.1d Mark Reader Data)
+# Reader Architecture (v3.6.2a Reader Popup Refinement)
 
-The Reader is a reading-first shell for the Greek New Testament. It intentionally avoids interlinear display, word popups, glosses, parsing panels, notes, highlighting, commentary, AI, accounts, sync, and Hebrew reading.
+The Reader is a reading-first shell for the Greek New Testament. It intentionally avoids interlinear display, inline glosses, notes, highlighting, commentary, AI, accounts, sync, and Hebrew reading.
 
 ## UI placement
 
@@ -70,6 +70,33 @@ Required chapter fields are `book`, `chapter`, and `verses`. Required verse fiel
 
 The Reader UI supports this canonical generated `verses` schema, while the audit script still accepts the older paragraph wrapper for compatibility with any remaining sample data.
 
+## Word popup
+
+When a verse includes token metadata, the Reader renders each Greek token as a focusable inline button. The buttons preserve the reading flow and do not display glosses or parsing inline. If a verse has no usable token metadata, the Reader renders the verse as plain Greek text.
+
+Clicking or tapping a token opens a lightweight word popup. On small screens it behaves like a bottom sheet; on larger screens it appears as a compact dialog. The popup prioritizes quick reading help: surface form, primary gloss, student-friendly parsing meaning, frequency, reference, and related Grammar links. Alternate glosses are shown as a quiet supporting line when available.
+
+Gloss lookup uses existing local data only:
+
+- `data/glosses/greek-glosses.json` for lemma-level primary and alternate glosses;
+- loaded Greek vocabulary entries from `vocab_all.json` via app state for legacy gloss fallback and frequency.
+
+The lookup prefers exact Greek lemma matches, then falls back to accent-insensitive matching. Frequency is aggregated across matching vocabulary forms for the same lemma, which keeps lemma-mode totals such as λόγος at 330× without changing global vocabulary frequency calculations.
+
+Parsing explanations use the shared parser helper (`ParserCore.decodeParse`). The helper accepts compact classroom codes such as `N-NSM` and `V-PAI-3S`, and the padded MorphGNT-style codes stored in Reader chapter files such as `N- ----NSM-` and `V- 3IAI-S--`. When decoded, the popup shows prose like `Noun — nominative singular masculine` and keeps the raw parse code as small muted text near the bottom. If a code cannot be decoded, the popup shows only the raw code.
+
+The popup also includes lightweight links into existing Grammar Handbook topics where the parse kind supports it:
+
+| Token kind | Links |
+| --- | --- |
+| Noun | Noun Paradigms, Case Endings |
+| Adjective | Adjective Paradigms, Adjective Endings |
+| Verb | Verb Paradigms, Parsing Guide |
+| Participle | Participles, Verb Paradigms |
+| Article | Article Paradigms, Article Endings |
+
+The popup closes with its close button, outside click/tap, or Escape. Grammar links are the only popup actions that navigate away from Reader, and the Reader location remains persisted separately under `pp_reader_location`. The `Open Word Page` button is a future hook only: it closes the popup and announces `Word Pages coming soon`.
+
 ## Search index structure
 
 `data/greek/search-index.json` is generated from chapter files by the same generator. Each entry is verse-scoped and supports surface forms, lemmas, and references:
@@ -133,7 +160,7 @@ The Reader persists the last language, book, and chapter under `pp_reader_locati
 
 Matthew was generated from MorphGNT SBLGNT and contains 28 chapter files under `data/greek/matthew/`. The audit reports 28 Matthew chapters, with verse counts: 25, 23, 17, 25, 48, 34, 29, 34, 38, 42, 30, 50, 58, 36, 39, 28, 26, 34, 30, 34, 46, 46, 38, 51, 46, 75, 66, and 20. The SBLGNT source omits Matthew 17:21, 18:11, and 23:14, so the audit lists those as missing verse numbers rather than inventing text not present in the source. Mark 1 remains present as previously generated sample data, so `npm run reader:audit` reports both `mark` and `matthew`.
 
-Known limitations: this data includes Greek surface text and MorphGNT token metadata where available, but it does not add gloss display, parsing display, morphology-aware search, interlinear mode, commentary, notes, highlights, Hebrew Reader support, or AI features.
+Known limitations: this data includes Greek surface text and MorphGNT token metadata where available. The Reader now has a compact word popup, but it still does not add morphology-aware search, interlinear mode, inline glosses, commentary, notes, highlights, Hebrew Reader support, or AI features.
 
 ## Search
 
@@ -147,12 +174,11 @@ Search reads `data/greek/search-index.json`, shows concise verse results, and cl
 
 ## Scope boundaries
 
-This milestone is data infrastructure only. Do not add:
+The Reader remains intentionally narrow. Do not add:
 
 - interlinear mode;
-- word popups;
-- gloss display;
-- parsing display;
+- inline gloss display;
+- full parsing panels;
 - commentary;
 - notes;
 - highlights;

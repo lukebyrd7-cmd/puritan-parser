@@ -24,6 +24,12 @@ test('decodes MorphGNT-style Greek verb parse codes', () => {
   assert.equal(parsed.summary, 'Verb, aorist, active, indicative, 3rd person singular');
 });
 
+test('decodes padded MorphGNT reader parse codes', () => {
+  assert.equal(decodeParse('N- ----NSM-', 'greek').summary, 'Noun, nominative, singular, masculine');
+  assert.equal(decodeParse('RA ----NSM-', 'greek').summary, 'Article, nominative, singular, masculine');
+  assert.equal(decodeParse('V- 3IAI-S--', 'greek').summary, 'Verb, imperfect, active, indicative, 3rd person singular');
+});
+
 test('decodes Greek participle parse codes', () => {
   const parsed = decodeParse('V-PAP-NSM', 'greek');
   assert.equal(parsed.summary, 'Verb, present, active, participle, nominative, singular, masculine');

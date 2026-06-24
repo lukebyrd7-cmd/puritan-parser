@@ -616,14 +616,159 @@ button:focus-visible, input:focus-visible, select:focus-visible {
 .reader-verse:target,
 .reader-verse.reader-focus { background: color-mix(in srgb, var(--accent) 16%, transparent); border-radius: 8px; }
 .reader-verse sup { font-family: system-ui, sans-serif; font-size: .48em; color: var(--muted); margin-right: .35em; user-select: none; }
+.reader-token {
+  display: inline;
+  padding: 0 1px;
+  border-radius: 4px;
+  color: inherit;
+  font: inherit;
+  line-height: inherit;
+  vertical-align: baseline;
+  cursor: pointer;
+}
+.reader-token:hover,
+.reader-token:focus-visible {
+  background: color-mix(in srgb, var(--accent) 15%, transparent);
+  outline: none;
+}
 .reader-search { align-items: flex-start; }
 .reader-search .input { flex: 1; min-width: min(280px, 100%); }
 .reader-search-results { flex-basis: 100%; display: grid; gap: 6px; max-height: 220px; overflow: auto; }
 .reader-result { text-align: left; border: 1px solid var(--border); background: var(--surface-2); color: var(--text); border-radius: 10px; padding: 8px 10px; cursor: pointer; line-height: 1.35; }
 .reader-result:hover { border-color: var(--accent); }
+.reader-word-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 950;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 18px;
+  background: rgba(26,18,8,.28);
+}
+.reader-word-popup {
+  width: min(390px, 100%);
+  max-height: min(82dvh, 560px);
+  overflow: auto;
+  position: relative;
+  background: var(--card);
+  border: 1px solid var(--border-strong);
+  border-radius: 12px;
+  box-shadow: var(--shadow-lg);
+  padding: 16px;
+}
+.reader-word-close {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 4px 8px;
+  color: var(--muted);
+  background: var(--surface-2);
+  font-size: 13px;
+}
+.reader-word-close:hover,
+.reader-word-close:focus-visible { border-color: var(--accent); color: var(--text); outline: none; }
+.reader-word-surface {
+  margin: 2px 40px 4px 0;
+  font-family: var(--font-serif);
+  font-size: 42px;
+  line-height: 1.05;
+  font-weight: 700;
+}
+.reader-word-gloss {
+  color: var(--text);
+  font-size: 20px;
+  font-weight: 800;
+  line-height: 1.25;
+}
+.reader-word-meaning {
+  margin: 9px 0 0;
+  color: var(--text);
+  font-size: 15px;
+  line-height: 1.45;
+}
+.reader-word-also {
+  margin: 6px 0 0;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.4;
+}
+.reader-word-meta {
+  display: grid;
+  gap: 5px;
+  margin-top: 12px;
+}
+.reader-word-meta-item {
+  display: flex;
+  gap: 8px;
+  align-items: baseline;
+  justify-content: space-between;
+  color: var(--muted);
+  font-size: 13px;
+}
+.reader-word-meta-item strong {
+  color: var(--text);
+  font-size: 14px;
+  font-weight: 750;
+  text-align: right;
+}
+.reader-word-grammar { margin-top: 12px; }
+.reader-word-label {
+  margin-bottom: 7px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 800;
+}
+.reader-word-links {
+  display: flex;
+  gap: 7px;
+  flex-wrap: wrap;
+}
+.reader-word-link {
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 5px 9px;
+  background: var(--surface-2);
+  color: var(--text);
+  font-size: 12px;
+  font-weight: 700;
+}
+.reader-word-link:hover,
+.reader-word-link:focus-visible { border-color: var(--accent); outline: none; }
+.reader-word-parse-code {
+  margin-top: 11px;
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.3;
+}
+.reader-word-page-action {
+  width: 100%;
+  margin-top: 12px;
+  border: 1px solid var(--border-strong);
+  border-radius: 8px;
+  padding: 8px 10px;
+  background: var(--surface-2);
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 800;
+}
+.reader-word-page-action:hover,
+.reader-word-page-action:focus-visible { border-color: var(--accent); outline: none; }
 @media (max-width: 640px) {
   .reader-controls .input,
   .reader-controls .btn { flex: 1 1 46%; }
   .reader-reference { flex-basis: 100%; margin-left: 0; text-align: center; }
   .reader-text { padding: 18px; font-size: 23px; line-height: 1.75; }
+  .reader-word-overlay { align-items: flex-end; padding: 0; }
+  .reader-word-popup {
+    width: 100%;
+    max-height: 72dvh;
+    border-radius: 14px 14px 0 0;
+    border-width: 1px 0 0;
+    padding: 14px 14px calc(14px + env(safe-area-inset-bottom));
+  }
+  .reader-word-surface { font-size: 36px; }
+  .reader-word-gloss { font-size: 18px; }
 }

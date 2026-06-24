@@ -139,7 +139,8 @@
     if (norm(lang).toLowerCase() === 'hebrew') return decodeHebrewNominal(parse, label);
     const raw = norm(parse);
     const bits = raw.split('-');
-    const form = bits[1] || '';
+    const compactMorphGnt = raw.replace(/^[A-Z]+-?\s*/i, '').replace(/[-\s]/g, '');
+    const form = bits[1]?.trim() || (compactMorphGnt.length >= 3 ? compactMorphGnt.slice(-3) : '');
     const c = CASES[form[0]?.toLowerCase()];
     const n = NUMBERS[form[1]?.toLowerCase()];
     const g = GENDERS[form[2]?.toLowerCase()];
@@ -152,7 +153,17 @@
   }
 
   function decodeGreekVerb(parse) {
-    const bits = norm(parse).toLowerCase().split('-').filter(Boolean);
+    const raw = norm(parse);
+    const paddedMorphGnt = raw.match(/^V-\s*([123-])([A-Z-])([A-Z-])([A-Z-])-?([SPD-])?/i);
+    if (paddedMorphGnt) {
+      const tense = GREEK_COMPACT_TENSES[paddedMorphGnt[2].toLowerCase()];
+      const voice = GREEK_COMPACT_VOICES[paddedMorphGnt[3].toLowerCase()];
+      const mood = GREEK_COMPACT_MOODS[paddedMorphGnt[4].toLowerCase()] || (paddedMorphGnt[4].toLowerCase() === 'd' ? 'imperative' : undefined);
+      const png = paddedMorphGnt[1] && paddedMorphGnt[1] !== '-' && paddedMorphGnt[5] && paddedMorphGnt[5] !== '-' ? expandPersonNumberGender(`${paddedMorphGnt[1]}${paddedMorphGnt[5].toLowerCase()}`) : null;
+      const details = [tense, voice, mood, png].filter(Boolean);
+      return { family: 'verb', label: 'Verb', details, summary: ['Verb'].concat(details).join(', ') };
+    }
+    const bits = raw.toLowerCase().split('-').filter(Boolean);
     const compact = bits[1]?.match(/^[a-z]{3}$/);
     const morphGnt = bits[1]?.match(/^[123-][a-z-]{3}$/);
     if (morphGnt) {
@@ -197,12 +208,12 @@
   function decodeParse(parse, lang) {
     const raw = norm(parse);
     if (!raw) return { raw, family: 'unknown', label: 'Unknown', details: [], summary: 'No parse data' };
-    const first = raw.split('-')[0].toLowerCase();
+    const first = raw.split('-')[0].trim().toLowerCase();
     const language = norm(lang).toLowerCase();
     if (first === 'n') return decodeNominal(raw, 'Noun', language);
     if (first === 'a' || first === 'adj') return decodeNominal(raw, 'Adjective', language);
-    if (first === 't') return decodeNominal(raw, 'Article', language);
-    if (first === 'p' || first === 'pron') return decodeNominal(raw, 'Pronoun', language);
+    if (first === 't' || first === 'ra') return decodeNominal(raw, 'Article', language);
+    if (first === 'p' || first === 'pron' || first.startsWith('r')) return decodeNominal(raw, 'Pronoun', language);
     if (first === 'v') return language === 'hebrew' ? decodeHebrewVerb(raw) : decodeGreekVerb(raw);
     const labels = {
       conj: 'Conjunction',
