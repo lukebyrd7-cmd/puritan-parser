@@ -4,7 +4,7 @@
   "private": true,
   "type": "commonjs",
   "scripts": {
-    "dev": "serve .",
+    "dev": "serve -s .",
     "data:download": "node scripts/download-source-data.js",
     "data:build": "node scripts/build-expanded-vocab.js",
     "data:refresh": "npm run data:download && npm run data:build",

@@ -57,13 +57,13 @@ The importer accepts any of these shapes:
 
 ## Local Development
 
-Run a simple static server from the repo root:
+Run the local static server from the repo root:
 
 ```sh
-python3 -m http.server 8000
+npm run dev
 ```
 
-Then open `http://localhost:8000`.
+Then open the localhost URL shown in the terminal. The dev server uses app-shell fallback so routes like `/list` and `/word` load the app cleanly.
 
 ## Tests
 

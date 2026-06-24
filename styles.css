@@ -519,11 +519,12 @@ button:focus-visible, input:focus-visible, select:focus-visible {
 /* ===== MOBILE ===== */
 @media (max-width: 600px) {
   .app { padding: 10px; gap: 8px; }
+  .header { flex-wrap: wrap; }
   .app-name { font-size: 18px; }
   .fc-word-display { font-size: 42px; }
   .fc-gloss { font-size: 22px; }
   .fc-back-word { font-size: 24px; }
-  .header-actions .btn-ghost { display: none; }
+  .header-actions { width: 100%; margin-left: 0; justify-content: flex-end; }
   .topbar-right .badge { display: none; }
   .fc-face { padding: 24px 16px; }
   .panel { padding: 12px; }
@@ -532,6 +533,57 @@ button:focus-visible, input:focus-visible, select:focus-visible {
   .word-cell { font-size: 15px; }
   .fc-rating-btn { padding: 8px 10px; font-size: 12px; }
   .freq-range-wrap .input { width: 56px; }
+}
+
+/* ===== WORD PAGE ===== */
+.word-page-panel {
+  max-width: 520px;
+  margin: 0 auto;
+  display: grid;
+  gap: 16px;
+}
+.word-page-kicker {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.word-page-headword {
+  font-family: var(--font-serif);
+  font-size: 56px;
+  line-height: 1;
+  color: var(--text);
+}
+.word-page-meta {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+.word-page-meta div {
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+}
+.word-page-meta dt {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.word-page-meta dd {
+  margin-top: 4px;
+  font-family: var(--font-serif);
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+@media (max-width: 480px) {
+  .word-page-headword { font-size: 46px; }
+  .word-page-meta { grid-template-columns: 1fr; }
 }
 
 /* ===== TWO-COL DESKTOP ===== */

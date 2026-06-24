@@ -490,6 +490,24 @@
       <div id="readerShell" class="reader-shell"></div>
     </div>
 
+    <div id="wordPageView" class="hidden fade-in">
+      <section class="panel word-page-panel" aria-labelledby="wordPageTitle">
+        <div class="word-page-kicker">Word Page</div>
+        <h1 id="wordPageTitle" class="word-page-headword">λόγος</h1>
+        <dl class="word-page-meta">
+          <div>
+            <dt>Gloss</dt>
+            <dd>word</dd>
+          </div>
+          <div>
+            <dt>Frequency</dt>
+            <dd>330×</dd>
+          </div>
+        </dl>
+        <button class="btn btn-primary" id="wordPageBackToReader">Back to Reader</button>
+      </section>
+    </div>
+
     <div id="profileView" class="hidden fade-in">
       <div class="panel empty-state">
         <div class="empty-icon">👤</div>
@@ -510,6 +528,6 @@
 const svgFallback = `<svg xmlns="http://www.w3.org/2000/svg" width="38" height="38" viewBox="0 0 64 64"><rect width="64" height="64" rx="12" fill="#4e8f6e"/><text x="50%" y="54%" font-size="26" text-anchor="middle" fill="#fff" font-family="serif" font-weight="700">PP</text></svg>`;
 </script>
 
-<script src="src/main.js?v=v3.6.3d-grammar-navigation-polish"></script>
+<script src="src/main.js?v=v3.7a-static-word-page"></script>
 </body>
 </html>

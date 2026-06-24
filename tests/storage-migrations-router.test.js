@@ -61,4 +61,71 @@ test('router changes routes and selects views', () => {
   assert.equal(app.window.location.pathname, '/flashcards');
   assert.equal(shown.at(-1), 'flashView');
   assert.equal(app.routeForView('dashboardView'), '/dashboard');
+  assert.equal(app.routeForView('wordPageView'), '/word');
+});
+
+test('router treats root as the list view', () => {
+  const shown = [];
+  const app = loadBrowserScripts(['src/core/router.js'], {
+    window: { location: { pathname: '/' }, addEventListener() {} },
+    history: { pushState: (s, t, path) => { app.window.location.pathname = path; }, replaceState: (s, t, path) => { app.window.location.pathname = path; } },
+    showView: (viewId) => shown.push(viewId)
+  });
+
+  app.initRouter();
+  assert.equal(app.window.location.pathname, '/');
+  assert.equal(shown.at(-1), 'listView');
+});
+
+test('showView can display the static Word Page view', () => {
+  function makeElement(id){
+    const classes = new Set(id === 'wordPageView' ? ['hidden'] : []);
+    return {
+      id,
+      classList: {
+        toggle(name, force){ force ? classes.add(name) : classes.delete(name); },
+        contains(name){ return classes.has(name); }
+      },
+      textContent: ''
+    };
+  }
+
+  const ids = ['listView','flashView','parsingView','dashboardView','settingsView','grammarView','readerView','wordPageView','profileView','sharedFilterBar','filterSearchGroup','filterSortGroup','filterEntriesCount','filterPosGroup','footerLang'];
+  const elements = new Map(ids.map(id => [id, makeElement(id)]));
+  const context = {
+    console,
+    document: {
+      getElementById: id => elements.get(id) || null,
+      querySelector: selector => selector.startsWith('#') ? (elements.get(selector.slice(1)) || null) : null,
+      querySelectorAll: () => []
+    },
+    window: { location: { pathname: '/list' }, addEventListener() {} },
+    history: {
+      pushState: (s, t, path) => { context.window.location.pathname = path; },
+      replaceState: (s, t, path) => { context.window.location.pathname = path; }
+    },
+    state: { currentView: 'listView', lang: 'greek', dashboard: {}, prefs: {}, data: { greek: [], hebrew: [] }, filters: {} },
+    selectedLemma: null,
+    parsingModeFamily: () => 'all',
+    readFiltersFromDOM: () => {},
+    renderDashboard: () => {},
+    renderList: () => {},
+    updateParsingModeUI: () => {},
+    renderLemmaPicker: () => {},
+    getCurrentStudyList: () => [],
+    getCurrentList: () => [],
+    module: undefined
+  };
+  context.$ = selector => context.document.querySelector(selector);
+  context.$$ = selector => Array.from(context.document.querySelectorAll(selector));
+  vm.createContext(context);
+  vm.runInContext(fs.readFileSync('src/core/router.js', 'utf8'), context, { filename: 'src/core/router.js' });
+  const vocabSource = fs.readFileSync('src/features/vocab/index.js', 'utf8');
+  vm.runInContext(vocabSource.slice(0, vocabSource.indexOf('/* ---------- Language ---------- */')), context, { filename: 'src/features/vocab/index.js' });
+
+  assert.doesNotThrow(() => context.showView('wordPageView'));
+  assert.equal(context.window.location.pathname, '/word');
+  assert.equal(context.state.currentView, 'wordPageView');
+  assert.equal(elements.get('wordPageView').classList.contains('hidden'), false);
+  assert.equal(elements.get('listView').classList.contains('hidden'), true);
 });

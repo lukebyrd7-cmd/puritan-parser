@@ -1,5 +1,6 @@
 /* ---------- Lightweight Router ---------- */
 const ROUTES = {
+  '/': { viewId: 'listView', nav: 'list' },
   '/list': { viewId: 'listView', nav: 'list' },
   '/flashcards': { viewId: 'flashView', nav: 'flashcards' },
   '/parsing': { viewId: 'parsingView', nav: 'parsing' },
@@ -7,11 +8,12 @@ const ROUTES = {
   '/settings': { viewId: 'settingsView', nav: 'settings' },
   '/grammar': { viewId: 'grammarView', nav: 'grammar' },
   '/reader': { viewId: 'readerView', nav: 'reader' },
+  '/word': { viewId: 'wordPageView', nav: 'word' },
   '/profile': { viewId: 'profileView', nav: 'profile' }
 };
 
 function routeForView(viewId){
-  const found = Object.entries(ROUTES).find(([, route]) => route.viewId === viewId || route.nav === viewId);
+  const found = Object.entries(ROUTES).find(([path, route]) => path !== '/' && (route.viewId === viewId || route.nav === viewId));
   return found ? found[0] : '/list';
 }
 function currentRoutePath(){ return window.location.pathname in ROUTES ? window.location.pathname : '/list'; }
