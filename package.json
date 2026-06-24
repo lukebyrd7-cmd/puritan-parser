@@ -4,6 +4,7 @@
   "private": true,
   "type": "commonjs",
   "scripts": {
+    "dev": "serve .",
     "data:download": "node scripts/download-source-data.js",
     "data:build": "node scripts/build-expanded-vocab.js",
     "data:refresh": "npm run data:download && npm run data:build",
@@ -12,5 +13,8 @@
     "reader:generate": "node scripts/generate-reader-data.js",
     "reader:audit": "node scripts/audit-reader-data.js",
     "reader:update": "npm run data:download && npm run reader:generate && npm run reader:audit && npm test"
+  },
+  "devDependencies": {
+    "serve": "^14.2.6"
   }
 }

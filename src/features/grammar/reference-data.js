@@ -1,6 +1,6 @@
 /* ---------- Grammar & Reference Library Data ---------- */
 (function(root){
-  const COLORS = { tense:'blue', voice:'green', mood:'purple', qal:'blue', niphal:'green', piel:'orange', pual:'amber', hiphil:'red', hophal:'gray', hitpael:'teal' };
+  const COLORS = {};
   const ex = (word, reference, translation, note='') => ({ word, reference, translation, note });
   const chart = (label, columns, rows, options={}) => ({ label, columns, rows, ...options });
   const featureLinks = (...links) => links.map(([label, type, target]) => ({ label, type, target }));
@@ -122,19 +122,358 @@
       chart('Relative pronoun', ['Case','Masculine','Feminine','Neuter'], [['Nominative','ὅς','ἥ','ὅ'],['Genitive','οὗ','ἧς','οὗ'],['Dative','ᾧ','ᾗ','ᾧ'],['Accusative','ὅν','ἥν','ὅ']]),
       chart('Interrogative pronoun', ['Case','Masculine/Feminine','Neuter'], [['Nominative','τίς','τί'],['Genitive','τίνος','τίνος'],['Dative','τίνι','τίνι'],['Accusative','τίνα','τί']])
     );
+    pronounTopic.title = 'Pronouns';
+    pronounTopic.category = 'Pronouns';
+    pronounTopic.searchTerms = ['Pronoun Paradigms', 'Pronoun Endings'];
     pronounTopic.related = Array.from(new Set([...(pronounTopic.related||[]), 'greek-pronoun-endings', 'greek-case-functions']));
   }
 
-  function topicLabel(id){ return topics.find(t => t.id === id)?.title || id; }
+  const oldTopicAliases = {
+    'greek-articles':'greek-nouns',
+    'greek-logos-paradigm':'greek-nouns',
+    'greek-noun-endings':'greek-nouns',
+    'greek-case-endings':'greek-nouns',
+    'greek-first-declension-endings':'greek-nouns',
+    'greek-second-declension-endings':'greek-nouns',
+    'greek-third-declension-basics':'greek-nouns',
+    'greek-article-endings':'greek-nouns',
+    'greek-case-functions':'greek-nouns',
+    'greek-lyo-paradigm':'greek-verbs',
+    'greek-verb-overview':'greek-verbs',
+    'greek-tense-explanations':'greek-verbs',
+    'greek-voice-explanations':'greek-verbs',
+    'greek-mood-explanations':'greek-verbs',
+    'greek-verb-endings':'greek-verbs',
+    'greek-common-parsing-clues':'greek-verbs',
+    'greek-participles':'greek-verbs',
+    'greek-contract-verbs':'greek-verbs',
+    'greek-kalos-paradigm':'greek-adjectives',
+    'greek-adjective-endings':'greek-adjectives',
+    'greek-pronoun-endings':'greek-pronouns',
+    'hebrew-pronouns':'hebrew-nouns',
+    'hebrew-noun-basics':'hebrew-nouns',
+    'hebrew-dual-forms':'hebrew-nouns',
+    'hebrew-pronominal-suffixes':'hebrew-nouns',
+    'hebrew-construct-chains':'hebrew-nouns',
+    'hebrew-suffixes':'hebrew-nouns',
+    'hebrew-prefixes':'hebrew-particles',
+    'hebrew-wayyiqtol':'hebrew-verbs',
+    'hebrew-stem-markers':'hebrew-verbs',
+    'hebrew-qal':'hebrew-verbs',
+    'hebrew-niphal':'hebrew-verbs',
+    'hebrew-piel':'hebrew-verbs',
+    'hebrew-pual':'hebrew-verbs',
+    'hebrew-hiphil':'hebrew-verbs',
+    'hebrew-hophal':'hebrew-verbs',
+    'hebrew-hitpael':'hebrew-verbs',
+    'hebrew-weak-verbs':'hebrew-verbs',
+    'hebrew-katav-stem-relationships':'hebrew-verbs'
+  };
+  const oldTopicAliasIds = new Set(Object.keys(oldTopicAliases));
+  const oldTopic = id => topics.find(t => t.id === id) || {};
+  const sectionFromTopic = (id, title, extra={}) => {
+    const t = oldTopic(id);
+    const searchTerms = [id, t.title, t.category, ...(extra.searchTerms || [])].filter(term => term && !/cheat sheet/i.test(term));
+    return { title:title || t.title, body:t.body || [], recognitionTips:t.recognitionTips || [], charts:t.charts || [], examples:t.examples || [], searchTerms, ...extra };
+  };
+  const chartsFromTabs = (topicId, labels) => {
+    const t = oldTopic(topicId);
+    return (t.paradigmTabs || []).filter(tab => labels.includes(tab.label)).flatMap(tab => tab.charts || []);
+  };
+  const hebrewStemSection = stem => {
+    const t = oldTopic(`hebrew-${stem.toLowerCase()}`);
+    return { title:stem, body:t.body || [], recognitionTips:t.recognitionTips || [], charts:[...(t.charts || []), ...(t.paradigmTabs || []).flatMap(tab => tab.charts || [])], examples:t.examples || [], searchTerms:[`${stem} Paradigms`, `${stem} stem`, `hebrew-${stem.toLowerCase()}`] };
+  };
+  const sectionByTitle = (sections, title) => (sections || []).find(section => section.title === title) || { title, body:[], recognitionTips:[], charts:[], examples:[] };
+  const sectionWithId = (section, id, extra={}) => ({ ...section, id, ...extra });
+  const chip = (label, target) => ({ label, target });
+  const chartsByLabelText = (charts, terms) => (charts || []).filter(chart => terms.some(term => chart.label.includes(term)));
+  const categoryTab = (id, label, sections, chips=[], collapsible=true) => ({
+    id,
+    label,
+    collapsible,
+    jumpChips: chips.length ? chips : sections.map(section => chip(section.title, section.id || section.title.toLowerCase().replace(/[^a-z0-9\u0370-\u03ff\u0590-\u05ff]+/g,'-').replace(/^-|-$/g,''))),
+    sections
+  });
+  const greekMiVerbSection = () => ({
+    title:'μι Verbs',
+    id:'mi-verbs',
+    body:['μι verbs are high-frequency verbs with older endings and stem patterns. Recognize common forms by lexical familiarity, repeated stems, and compact endings rather than forcing an omega-verb pattern.'],
+    recognitionTips:['Look first for familiar lexical anchors: δίδωμι, τίθημι, ἵστημι, and εἰμί.','Third singular forms often end in -σι(ν): δίδωσι(ν), τίθησι(ν), ἵστησι(ν).','εἰμί is irregular and should be recognized as its own family of forms.'],
+    charts:[
+      chart('Common μι verb anchors', ['Verb','Common form','Reading clue'], [['δίδωμι','δίδωσι(ν)','he/she/it gives'],['τίθημι','τίθησι(ν)','he/she/it places'],['ἵστημι','ἵστησι(ν)','he/she/it stands / causes to stand'],['εἰμί','ἐστίν','he/she/it is']]),
+      chart('μι recognition forms', ['Lexical form','Present 1sg','Present 3sg','Useful clue'], [['δίδωμι','δίδωμι','δίδωσι(ν)','give; reduplicated δι-'],['τίθημι','τίθημι','τίθησι(ν)','put/place; θη stem'],['ἵστημι','ἵστημι','ἵστησι(ν)','stand; στη stem'],['εἰμί','εἰμί','ἐστίν','being verb; irregular forms']])
+    ],
+    examples:[ex('δίδωσιν','John 3:34','he gives'), ex('τίθησιν','John 10:11','he lays down'), ex('ἐστίν','John 1:1','he/she/it is')],
+    searchTerms:['mi verbs','μί verbs','δίδωμι','τίθημι','ἵστημι','εἰμί']
+  });
+  const applyVerbSectionTabs = topic => {
+    if (!topic || topic.sectionTabs?.length) return topic;
+    const sections = topic.sections || [];
+    const present = sectionWithId(sectionByTitle(sections,'Present'), 'present', { open:true });
+    const imperfect = sectionWithId(sectionByTitle(sections,'Imperfect'), 'imperfect');
+    const future = sectionWithId(sectionByTitle(sections,'Future'), 'future');
+    const aorist = sectionWithId(sectionByTitle(sections,'Aorist'), 'aorist');
+    const perfect = sectionWithId(sectionByTitle(sections,'Perfect'), 'perfect');
+    const infinitiveCharts = chartsFromTabs('greek-lyo-paradigm',['Infinitives & Participles']).filter(c => c.label.includes('Infinitive'));
+    const participleCharts = chartsFromTabs('greek-lyo-paradigm',['Infinitives & Participles']).filter(c => c.label.includes('Participle'));
+    const participles = { title:'Participles', id:'participles', body:['Participles are verbal adjectives: recognize tense-form and voice, then match case, number, and gender to the noun or substantive use.'], recognitionTips:[...(oldTopic('greek-participles').recognitionTips||[])], charts:participleCharts, examples:oldTopic('greek-participles').examples || [] };
+    const infinitives = { title:'Infinitives', id:'infinitives', body:['Infinitives are verbal nouns. They do not carry person and number endings, so recognize the tense-form and voice marker first.'], recognitionTips:['-ειν often marks present active infinitive.','-σθαι often marks middle/passive infinitives.','-θῆναι is a strong aorist passive infinitive clue.'], charts:infinitiveCharts, examples:[ex('λύειν','Representative','to release'), ex('λυθῆναι','Representative','to be released')] };
+    const contractVerbs = sectionWithId(sectionFromTopic('greek-contract-verbs','Contract Verbs'), 'contract-verbs');
+    const miVerbs = greekMiVerbSection();
+    const irregularVerbs = sectionWithId(sectionByTitle(sections,'Common Irregulars'), 'irregular-verbs');
+    const voice = sectionWithId(sectionByTitle(sections,'Voices'), 'voice');
+    const aspect = sectionWithId(sectionByTitle(sections,'Aspect'), 'aspect');
+    const mood = sectionWithId(sectionByTitle(sections,'Moods'), 'mood');
+    topic.sectionTabs = [
+      categoryTab('paradigms','Paradigms',[present, imperfect, future, aorist, perfect, participles, infinitives, contractVerbs, miVerbs, irregularVerbs],[chip('Present','present'),chip('Imperfect','imperfect'),chip('Future','future'),chip('Aorist','aorist'),chip('Perfect','perfect'),chip('Participles','participles'),chip('Infinitives','infinitives'),chip('Contract Verbs','contract-verbs'),chip('μι Verbs','mi-verbs'),chip('Irregular Verbs','irregular-verbs')]),
+      categoryTab('concepts','Concepts',[voice, aspect, mood],[chip('Voice','voice'),chip('Aspect','aspect'),chip('Mood','mood')]),
+      categoryTab('reference-material','Reference Material',[
+        { title:'Augment', id:'augment', body:['Augment is the prefixed ε that commonly marks past-time indicative forms, especially imperfect and aorist indicatives.'], recognitionTips:['Look for ε before the stem in indicative forms: ἔλυον, ἔλυσα, ἐλύθην.','Compound verbs often place augment after the prepositional prefix.'], charts:[chart('Augment anchors', ['Form','Clue','Likely path'], [['ἔλυσα','augment + σα','aorist active indicative'],['ἐλύθην','augment + θη','aorist passive indicative'],['ἐξῆλθεν','augment inside compound','aorist of ἐξέρχομαι']])], examples:[ex('ἐλύθησαν','Reader example','they were released')] },
+        { title:'Reduplication', id:'reduplication', body:['Reduplication commonly marks perfect-system forms and points to a completed action with a resulting state.'], recognitionTips:['Look for repeated initial consonant plus ε: λέλυκα.','Some perfects are irregular or use different stems.'], charts:[chart('Reduplication anchors', ['Form','Clue','Reading'], [['λέλυκα','λε- reduplication','I have released'],['γεγραμμένον','γε- reduplication','written']])], examples:[ex('γεγραμμένον','Reader example','written')] },
+        sectionWithId(sectionByTitle(sections,'Principal Parts'), 'principal-parts'),
+        { title:'Historical Present', id:'historical-present', body:['A present-tense form may narrate a past event for vividness. Recognize the present form first, then let narrative context supply the time reference.'], recognitionTips:['Common with verbs of saying, coming, and seeing in narrative.'], charts:[chart('Historical present reading', ['Visible form','Contextual reading'], [['λέγει','he says / he said in narrative'],['ἔρχεται','he comes / he came in narrative']])], examples:[ex('λέγει','Narrative example','he says / he said')] },
+        { title:'Deponency', id:'deponency', body:['Some verbs regularly appear in middle/passive forms while carrying active meaning. Treat the form as middle/passive for recognition, then learn the lexical behavior.'], recognitionTips:['ἔρχομαι and πορεύομαι are common active-meaning middle-form verbs.'], charts:[chart('Deponent-style anchors', ['Verb','Form','Reading'], [['ἔρχομαι','ἔρχομαι','I come/go'],['πορεύομαι','πορεύεται','he/she goes']])], examples:[ex('ἔρχεται','John 1:29','he comes')] },
+        { title:'Irregular Principal Parts', id:'irregular-principal-parts', body:['Frequent verbs often change stems across principal parts. Recognition usually comes from memorized form families rather than one ending rule.'], recognitionTips:['λέγω uses εἶπον for many aorist forms.','ἔρχομαι uses ἐλεύσομαι and ἦλθον.'], charts:[chart('Irregular principal part anchors', ['Lexical form','Aorist','Recognition'], [['λέγω','εἶπον','said'],['ἔρχομαι','ἦλθον','came/went'],['ὁράω','εἶδον','saw']])], examples:[ex('εἶπεν','Matthew 4:4','he said')] },
+        { title:'Common Irregularities', id:'common-irregularities', body:['Common irregularities include second aorist stems, liquid futures, contract changes, and high-frequency suppletive forms.'], recognitionTips:['If the ending looks regular but the stem is unfamiliar, check whether the verb is a common irregular.'], charts:[chart('Common irregularity checks', ['Pattern','Example','Check'], [['second aorist','ἔλαβον','lexical form λαμβάνω'],['liquid future','μενῶ','future without σ'],['contract','ποιεῖ','contracted vowel']])], examples:[ex('ἔλαβον','Reader example','I received / they received')] },
+        sectionWithId(sectionByTitle(sections,'Examples'), 'examples'),
+        sectionWithId(sectionByTitle(sections,'Recognition Tips'), 'recognition-notes')
+      ],[chip('Augment','augment'),chip('Reduplication','reduplication'),chip('Principal Parts','principal-parts'),chip('Historical Present','historical-present'),chip('Deponency','deponency'),chip('Irregular Principal Parts','irregular-principal-parts'),chip('Common Irregularities','common-irregularities'),chip('Examples','examples'),chip('Recognition Notes','recognition-notes')])
+    ];
+    topic.sections = sections.filter(section => !['Recognition Cheat Sheet','Indicative Paradigms','Pluperfect'].includes(section.title));
+    topic.searchTerms = (topic.searchTerms || []).filter(term => !/cheat sheet/i.test(term));
+    return topic;
+  };
+  const applyHebrewVerbSectionTabs = topic => {
+    if (!topic || topic.sectionTabs?.length) return topic;
+    const sections = topic.sections || [];
+    const stemSections = ['Qal','Niphal','Piel','Pual','Hiphil','Hophal','Hitpael'].map(stem => sectionWithId(sectionByTitle(sections,stem), stem.toLowerCase()));
+    const weakVerbSection = (title, hebrewClass, root, commonForms, why, examples=[]) => ({
+      title,
+      id:title.toLowerCase().replace(/[^a-z0-9]+/g,'-'),
+      body:[why],
+      recognitionTips:[
+        `Recognition notes: ${hebrewClass} roots may not look like the strong כתב pattern.`,
+        `Common forms: ${commonForms.map(form => form[0]).join(', ')}.`,
+        'Confirm the root from context and lexicon when one radical disappears, weakens, or changes vowel behavior.'
+      ],
+      charts:[
+        chart(`${title} common forms`, ['Root','Form','Recognition','Reading'], commonForms.map(row => [root, ...row])),
+        chart(`${title} paradigm snapshot`, ['Form','Representative','What changed'], commonForms.slice(0,4).map(row => [row[1], row[0], row[2]]))
+      ],
+      examples
+    });
+    const weakVerbs = [
+      sectionWithId(sectionByTitle(sections,'Weak Verbs'), 'weak-verbs', { open:true }),
+      sectionWithId(sectionByTitle(sections,'I-Aleph'), 'i-aleph'),
+      weakVerbSection('I-Nun','I-נ','נפל', [['יִפֹּל','imperfect','initial nun assimilates or drops','he falls'],['נָפַל','perfect','nun visible in the perfect','he fell'],['לִפֹּל','infinitive construct','nun absent before פ','to fall']], 'Initial nun often assimilates into the following consonant or disappears in prefixed forms, so the visible form may begin with the second radical.', [ex('יִפֹּל','Representative','he falls')]),
+      weakVerbSection('Pe-Yod','I-י','ישב', [['יֵשֵׁב','imperfect','initial yod shapes the vowel pattern','he sits'],['שֵׁב','imperative','initial yod may disappear','sit!'],['לָשֶׁבֶת','infinitive construct','weak initial yod affects the stem shape','to sit']], 'Pe-Yod roots have initial י/ו behavior that can collapse into vowel patterns or disappear in short command and infinitive forms.', [ex('יֵשֵׁב','Representative','he sits')]),
+      weakVerbSection('Hollow','II-ו/י','קום', [['יָקוּם','imperfect','middle weak radical appears as a long vowel','he arises'],['קָם','perfect','short form with vowel carrying the middle radical','he arose'],['קוּם','imperative','long vowel marks the hollow root','arise!']], 'Hollow verbs have ו or י as the middle radical, so the middle consonant is often represented by a long vowel rather than a normal consonantal slot.', [ex('קָם','Representative','he arose')]),
+      weakVerbSection('Geminate','II=III','סבב', [['יָסֹב','imperfect','second and third radicals may contract','he turns'],['סַב','imperative','doubled root can shorten','turn!'],['סָבַב','perfect','full doubled radicals may appear','he turned']], 'Geminate verbs repeat the second and third radicals. Forms often contract or show doubling because the final two radicals are identical.', [ex('סָבַב','Representative','he turned')]),
+      weakVerbSection('III-He','III-ה','בנה', [['בָּנָה','perfect','final ה marks the weak final radical','he built'],['יִבְנֶה','imperfect','final ה appears as final vowel/he','he builds'],['בְּנוֹת','infinitive construct','final ה shifts to ות','to build']], 'III-He verbs have final ה as the third radical; endings often replace it or expose older י/ת behavior.', [ex('בָּנָה','Representative','he built')]),
+      weakVerbSection('Lamed-He','ל״ה','עשה', [['עָשָׂה','perfect','final ה is visible','he did/made'],['יַעֲשֶׂה','imperfect','final ה shapes the final vowel','he does/makes'],['עֲשׂוֹת','infinitive construct','final ה shifts to ות','to do/make']], 'Lamed-He is another name for III-He. Many grammars use lamed because ל is the third radical in the פעל naming pattern.', [ex('עָשָׂה','Representative','he did/made')])
+    ];
+    topic.sectionTabs = [
+      categoryTab('paradigms','Paradigms',[
+        sectionWithId(sectionByTitle(sections,'Strong Verb Paradigms'), 'strong-verbs', { open:true }),
+        sectionWithId(sectionByTitle(sections,'Stems'), 'stems'),
+        ...stemSections,
+        ...weakVerbs,
+        sectionWithId(sectionByTitle(sections,'Participle'), 'participles'),
+        { title:'Infinitives', id:'infinitives', body:['Hebrew infinitives appear mainly as construct and absolute forms. Use them by visible shape and by their relationship to nearby verbs or prepositions.'], recognitionTips:['Infinitive construct often appears with לְ.','Infinitive absolute often reinforces a nearby finite verb.'], charts:[...chartsFromTabs('hebrew-qal',['Infinitive Construct']), ...chartsFromTabs('hebrew-qal',['Infinitive Absolute'])], examples:[] },
+        sectionWithId(sectionByTitle(sections,'Imperative'), 'imperatives')
+      ],[chip('Strong Verbs','strong-verbs'),chip('Stems','stems'),chip('Weak Verbs','weak-verbs'),chip('Participles','participles'),chip('Infinitives','infinitives'),chip('Imperatives','imperatives')]),
+      categoryTab('concepts','Concepts',[
+        sectionWithId(sectionByTitle(sections,'Aspect'), 'aspect'),
+        sectionWithId(sectionByTitle(sections,'Waw Consecutive'), 'waw-consecutive'),
+        { title:'Volitives', id:'volitives', body:['Volitives present wanted, commanded, or urged action, including cohortative, jussive, and imperative uses.'], recognitionTips:['Context and short forms often matter more than one visible ending.','Imperatives are the clearest command forms; jussives and cohortatives require context.'], charts:[chart('Volitive forms', ['Use','Common clue','Reading'], [['Imperative','second-person command','do!'],['Jussive','short/modal imperfect where visible','let him do / may he do'],['Cohortative','often 1cs/1cp with הָ','let me/us do']])], examples:[] },
+        { title:'Stem Meanings', id:'stem-meanings', body:stemRelationships, recognitionTips:['Start with the visible stem marker, then confirm the meaning in context.'], charts:[chart('Stem meaning map', ['Stem','Common relationship'], Object.entries(stemInfo).map(([s,v])=>[s,v[0]]))], examples:[] }
+      ],[chip('Aspect','aspect'),chip('Waw Consecutive','waw-consecutive'),chip('Volitives','volitives'),chip('Stem Meanings','stem-meanings')]),
+      categoryTab('reference-material','Reference Material',[
+        { title:'Energic Nun', id:'energic-nun', body:['The energic nun is an added nun element found in some older or poetic verbal forms. In reading, recognize it as a form-expanding feature rather than a new root consonant.'], recognitionTips:['Do not mistake energic nun for the first radical of the root.','Expect it mostly in specialized or less common forms.'], charts:[chart('Energic nun reading', ['Visible clue','Reader task'], [['extra final nun','check whether the root remains intact without it'],['unusual long ending','compare with the expected imperfect/jussive form']])], examples:[] },
+        { title:'Sequential Use', id:'sequential-use', body:['Sequential forms organize clauses in narrative or discourse. Wayyiqtol is the most important reader-facing pattern.'], recognitionTips:['וַי + imperfect shape usually moves narrative forward.','Do not treat every prefixed waw as the same construction.'], charts:[chart('Sequential patterns', ['Pattern','Typical use'], [['וַי + imperfect','narrative sequence'],['וְ + perfect','continuation or modal/future context depending discourse']])], examples:[ex('וַיֹּאמֶר','Genesis 1:3','and he said')] },
+        sectionWithId(sectionByTitle(sections,'Recognition Tips'), 'recognition-notes'),
+        sectionWithId(sectionByTitle(sections,'Examples'), 'examples'),
+        { title:'Common Irregularities', id:'common-irregularities', body:['Common irregularities usually come from weak roots, stem-specific vowel changes, or high-frequency verbs with shortened forms.'], recognitionTips:['If a root consonant seems missing, check weak verbs before assuming a different root.','If a stem marker is visible, identify the stem before solving the weak behavior.'], charts:[chart('Common irregularity checks', ['Problem','Likely cause','Go to'], [['missing initial נ','I-Nun','Weak Verbs'],['middle vowel carries root','Hollow','Weak Verbs'],['final ה changes','III-He / Lamed-He','Weak Verbs'],['doubled middle radical','Piel/Pual/Hitpael or geminate','Stems / Weak Verbs']])], examples:[ex('יִפֹּל','Representative','he falls'), ex('קָם','Representative','he arose')] }
+      ],[chip('Energic Nun','energic-nun'),chip('Sequential Use','sequential-use'),chip('Recognition Notes','recognition-notes'),chip('Examples','examples'),chip('Common Irregularities','common-irregularities')])
+    ];
+    topic.sections = sections.filter(section => section.title !== 'Recognition Cheat Sheet');
+    return topic;
+  };
+  const applyGreekNounSectionTabs = topic => {
+    if (!topic || topic.sectionTabs?.length) return topic;
+    const sections = topic.sections || [];
+    topic.sectionTabs = [
+      categoryTab('paradigms','Paradigms',[
+        sectionWithId(sectionByTitle(sections,'Article'), 'article', { open:true }),
+        sectionWithId(sectionByTitle(sections,'First Declension'), 'first-declension'),
+        sectionWithId(sectionByTitle(sections,'Second Declension'), 'second-declension'),
+        sectionWithId(sectionByTitle(sections,'Third Declension'), 'third-declension'),
+        { title:'Adjective Agreement', id:'adjective-agreement', body:['Adjectives use noun-like endings and agree with the nouns they modify in case, number, and gender.'], recognitionTips:['Find the article or noun first, then match the adjective ending.','Predicate adjectives may agree without standing inside the article-noun frame.'], charts:oldTopic('greek-adjective-endings').charts || [], examples:oldTopic('greek-kalos-paradigm').examples || [] }
+      ]),
+      categoryTab('concepts','Concepts',[
+        sectionWithId(sectionByTitle(sections,'Case Uses'), 'case-functions'),
+        { title:'Genitive Uses', id:'genitive-uses', body:['The genitive often marks possession, source, description, relationship, or the whole from which a part is taken.'], recognitionTips:['Start with of/from as a placeholder, then refine from context.'], charts:[chart('Genitive reading options', ['Use','Reader gloss'], [['Possession','of / belonging to'],['Source','from'],['Description','characterized by'],['Partitive','part of']])], examples:[ex('λόγου','Representative','of a word / word')] },
+        { title:'Dative Uses', id:'dative-uses', body:['The dative often marks indirect object, means, location, sphere, or reference.'], recognitionTips:['Try to/for/in/by as placeholders, then let the verb and preposition decide.'], charts:[chart('Dative reading options', ['Use','Reader gloss'], [['Indirect object','to / for'],['Means','by / with'],['Location/Sphere','in'],['Reference','with respect to']])], examples:[] },
+        { title:'Attributive Position', id:'attributive-position', body:['Attributive position places a modifier inside an article-noun structure or in another article-marked position.'], recognitionTips:['Article + adjective + noun often means the adjective modifies the noun.','Article + noun + article + adjective also marks attribution.'], charts:[chart('Attributive position', ['Pattern','Reading'], [['ὁ καλὸς λόγος','the good word'],['ὁ λόγος ὁ καλός','the good word']])], examples:[] }
+      ]),
+      categoryTab('reference-material','Reference Material',[
+        sectionWithId(sectionByTitle(sections,'Recognition Tips'), 'recognition-notes'),
+        sectionWithId(sectionByTitle(sections,'Common Patterns'), 'common-patterns'),
+        sectionWithId(sectionByTitle(sections,'Examples'), 'examples')
+      ])
+    ];
+    return topic;
+  };
+  const applyGreekAdjectiveSectionTabs = topic => {
+    if (!topic || topic.sectionTabs?.length) return topic;
+    const sections = topic.sections || [];
+    topic.sectionTabs = [
+      categoryTab('paradigms','Paradigms',[
+        { title:'Common Patterns', id:'common-patterns', body:['Most common adjectives follow 2-1-2 or third-declension patterns. Recognize the adjective family, then match the noun it modifies.'], recognitionTips:['-ος/-η/-ον is a common 2-1-2 pattern.','Some adjectives use third-declension endings, especially in masculine/feminine forms.'], charts:oldTopic('greek-adjective-endings').charts || [], examples:[] },
+        sectionWithId(sectionByTitle(sections,'Agreement'), 'agreement', { open:true }),
+        sectionWithId(sectionByTitle(sections,'Comparative'), 'comparative'),
+        sectionWithId(sectionByTitle(sections,'Superlative'), 'superlative')
+      ]),
+      categoryTab('concepts','Concepts',[
+        { title:'Adjective Function', id:'adjective-function', body:['Greek adjectives may modify nouns, stand substantively as nouns, or function predicatively with an implied or explicit verb of being.'], recognitionTips:['Article plus adjective can stand for a person or thing: οἱ καλοί, the good ones.','Predicate position often lacks the repeated attributive article pattern.'], charts:[chart('Adjective function', ['Function','Clue','Reading task'], [['Attributive','article-noun/adjective frame','modifies a noun'],['Substantive','article + adjective without noun','supplies a noun from context'],['Predicate','agrees with noun but outside attributive frame','states something about the noun']])], examples:[ex('καλός','John 10:11','good')] }
+      ]),
+      categoryTab('reference-material','Reference Material',[
+        sectionWithId(sectionByTitle(sections,'Examples'), 'examples'),
+        { title:'Recognition Notes', id:'recognition-notes', body:[], recognitionTips:topic.recognitionTips || [], charts:[], examples:[] }
+      ])
+    ];
+    return topic;
+  };
+  const applyHebrewNounSectionTabs = topic => {
+    if (!topic || topic.sectionTabs?.length) return topic;
+    const sections = topic.sections || [];
+    topic.sectionTabs = [
+      categoryTab('paradigms','Paradigms',[
+        { title:'Singular', id:'singular', body:['Singular nouns are the base recognition form and may be absolute or construct.'], recognitionTips:['A singular noun lacks plural ים/ות and dual יִם endings.'], charts:[chart('Singular anchors', ['Form','Reading'], [['דָּבָר','word'],['מֶלֶךְ','king']])], examples:[ex('דָּבָר','Representative','word')] },
+        { title:'Plural', id:'plural', body:['Plural nouns commonly use masculine ים or feminine ות endings, though lexical gender and form do not always line up neatly.'], recognitionTips:['־ִים and ־וֹת are the main plural endings.'], charts:[chart('Plural anchors', ['Ending','Example','Reading'], [['־ִים','סוּסִים','horses'],['־וֹת','תּוֹרוֹת','laws']])], examples:[] },
+        sectionWithId(sectionByTitle(sections,'Dual'), 'dual'),
+        { title:'Construct Forms', id:'construct-forms', body:['Construct forms bind a noun to the following word and often shorten or alter vowels.'], recognitionTips:['Read construct as noun of the following noun.','A construct noun normally does not take the article itself.'], charts:sectionByTitle(sections,'Construct State').charts || [], examples:sectionByTitle(sections,'Construct State').examples || [] },
+        { title:'Suffix Forms', id:'suffix-forms', body:['Pronominal suffixes attach to nouns and commonly mark possession.'], recognitionTips:['Identify the noun first, then read the suffix as my/your/his/her/our/their.'], charts:sectionByTitle(sections,'Pronominal Suffixes').charts || [], examples:sectionByTitle(sections,'Pronominal Suffixes').examples || [] }
+      ]),
+      categoryTab('concepts','Concepts',[
+        sectionWithId(sectionByTitle(sections,'Construct State'), 'construct-state-usage'),
+        sectionWithId(sectionByTitle(sections,'Pronominal Suffixes'), 'pronominal-suffix-usage'),
+        sectionWithId(sectionByTitle(sections,'Article'), 'definite-article'),
+        { title:'Apposition', id:'apposition', body:['Apposition places two nominals side by side where the second identifies or explains the first.'], recognitionTips:['If two nouns stand together without construct behavior, ask whether the second renames the first.'], charts:[chart('Apposition reading', ['Pattern','Reading task'], [['דָּוִד הַמֶּלֶךְ','David, the king']])], examples:[] },
+        { title:'Predicate and Attributive Position', id:'predicate-attributive-position', body:['Hebrew adjectives may attribute a quality to a noun or predicate a quality in a verbless clause.'], recognitionTips:['Attributive adjectives usually follow the noun and match definiteness.','Predicate adjectives usually do not take the article merely because the noun is definite.'], charts:[chart('Hebrew adjective positions', ['Pattern','Reading'], [['הַמֶּלֶךְ הַטּוֹב','the good king'],['הַמֶּלֶךְ טוֹב','the king is good']])], examples:[] }
+      ]),
+      categoryTab('reference-material','Reference Material',[
+        sectionWithId(sectionByTitle(sections,'Recognition Tips'), 'recognition-notes'),
+        { title:'Common Patterns', id:'common-patterns', body:['Common Hebrew noun patterns include masculine plurals in ים, feminine plurals in ות, dual forms in יִם, construct chains, and suffixed possession.'], recognitionTips:['State comes before meaning: decide absolute, construct, or suffixed before smoothing the English.'], charts:[chart('Common noun pattern checks', ['Visible form','Likely category'], [['־ִים','plural'],['־ַיִם','dual'],['shortened first noun before another noun','construct'],['final pronominal ending','suffix form']])], examples:[] },
+        sectionWithId(sectionByTitle(sections,'Examples'), 'examples')
+      ])
+    ];
+    return topic;
+  };
+
+  topics.push(
+    { id:'greek-nouns', language:'greek', title:'Nouns', category:'Nouns', summary:'Reader-focused Greek noun reference: article, declensions, case endings, and recognition clues in one place.', body:['Use nouns by recognition first: parse article and ending, identify likely declension, then let context decide the case use.'], recognitionTips:['Articles often give the fastest case, number, and gender anchor.','Genitive singular is often the best clue for declension.','Neuter nominative and accusative forms usually match.'], searchTerms:['Noun Paradigms','Noun Endings','Article','Article Paradigms','Article Endings','First Declension','Second Declension','Third Declension','Third Declension Basics','Case Endings','Case Uses','Case Functions'], sections:[
+      sectionFromTopic('greek-articles','Article'),
+      sectionFromTopic('greek-first-declension-endings','First Declension'),
+      sectionFromTopic('greek-second-declension-endings','Second Declension'),
+      sectionFromTopic('greek-third-declension-basics','Third Declension'),
+      sectionFromTopic('greek-case-endings','Case Endings'),
+      sectionFromTopic('greek-case-functions','Case Uses', { searchTerms:['Case Functions'] }),
+      sectionFromTopic('greek-noun-endings','Recognition Tips'),
+      sectionFromTopic('greek-logos-paradigm','Common Patterns'),
+      { title:'Examples', body:[], recognitionTips:[], charts:[], examples:[...(oldTopic('greek-logos-paradigm').examples||[]), ...(oldTopic('greek-articles').examples||[]), ...(oldTopic('greek-first-declension-endings').examples||[]), ...(oldTopic('greek-second-declension-endings').examples||[]), ...(oldTopic('greek-third-declension-basics').examples||[])] }
+    ], charts:[], examples:[ex('λόγος','John 1:1','word'), ex('ὁ λόγος','John 1:1','the Word'), ex('σάρξ','John 1:14','flesh')], related:['greek-verbs','greek-adjectives','greek-pronouns','greek-prepositions'] },
+    { id:'greek-verbs', language:'greek', title:'Verbs', category:'Verbs', color:'tense', summary:'Major Greek verb reference for recognizing tense-form, voice, mood, finite forms, infinitives, and participles while reading.', body:['Start with visible clues: augment, tense stem, voice marker, mood vowel, and ending. Then confirm the form against the nearest paradigm section.'], principalParts:['λύω','λύσω','ἔλυσα','λέλυκα','λέλυμαι','ἐλύθην'], recognitionTips:['Augment plus θη points strongly toward aorist passive indicative, as in ἐλύθησαν.','σ before endings often signals future or first aorist.','μαι/σαι/ται endings usually point to middle or passive forms.'], searchTerms:['Verb Paradigms','Parsing Guide','Cheat Sheets','Participles','Infinitives','Contract Verbs','μι Verbs','mi verbs','Common Irregulars','Aspect','Voice','Mood','Aorist Passive Indicative','ἐλύθησαν'], sections:[
+      sectionFromTopic('greek-common-parsing-clues','Recognition Cheat Sheet'),
+      sectionFromTopic('greek-lyo-paradigm','Principal Parts', { charts:chartsFromTabs('greek-lyo-paradigm',['Principal Parts']) }),
+      { title:'Indicative Paradigms', body:['Use the indicative charts first when a form has augment or ordinary personal endings.'], recognitionTips:[], charts:chartsFromTabs('greek-lyo-paradigm',['Present','Imperfect','Future','Aorist','Perfect','Pluperfect']).filter(c => c.label.includes('Indicative')), examples:[] },
+      { title:'Present', body:[], recognitionTips:['Present forms usually use the present stem plus primary endings.'], charts:chartsFromTabs('greek-lyo-paradigm',['Present']), examples:[] },
+      { title:'Imperfect', body:[], recognitionTips:['Imperfect indicative commonly has augment plus present stem.'], charts:chartsFromTabs('greek-lyo-paradigm',['Imperfect']), examples:[] },
+      { title:'Future', body:[], recognitionTips:['Future active and middle often show σ before the ending.'], charts:chartsFromTabs('greek-lyo-paradigm',['Future']), examples:[] },
+      { title:'Aorist', body:[], recognitionTips:['Aorist passive forms commonly show θη; ἐλύθησαν is aorist passive indicative, third plural.'], charts:chartsFromTabs('greek-lyo-paradigm',['Aorist']), examples:[ex('ἐλύθησαν','Representative','they were released')] },
+      { title:'Perfect', body:[], recognitionTips:['Perfect forms often show reduplication and completed-result force.'], charts:chartsFromTabs('greek-lyo-paradigm',['Perfect']), examples:[] },
+      { title:'Pluperfect', body:[], recognitionTips:['Pluperfect combines past reference with perfect/result-state forms.'], charts:chartsFromTabs('greek-lyo-paradigm',['Pluperfect']), examples:[] },
+      sectionFromTopic('greek-voice-explanations','Voices', { searchTerms:['Active','Middle','Passive','Voice Explanation'] }),
+      sectionFromTopic('greek-mood-explanations','Moods', { searchTerms:['Indicative','Subjunctive','Imperative'] }),
+      { title:'Non-Finite Forms', body:['Infinitives and participles do not carry ordinary finite person endings. Participles also agree like adjectives.'], recognitionTips:[...(oldTopic('greek-participles').recognitionTips||[])], charts:chartsFromTabs('greek-lyo-paradigm',['Infinitives & Participles']), examples:[...(oldTopic('greek-participles').examples||[])] },
+      sectionFromTopic('greek-contract-verbs','Contract Verbs'),
+      { title:'μι Verbs', body:['μι verbs are high-frequency verbs with older endings and stem patterns. Recognize common forms by lexical familiarity and endings rather than forcing an omega-verb pattern.'], recognitionTips:['Look for δίδωμι, τίθημι, ἵστημι, and εἰμί as common reading forms.'], charts:[chart('Common μι verb anchors', ['Verb','Common form','Reading clue'], [['δίδωμι','δίδωσι(ν)','he/she/it gives'],['τίθημι','τίθησι(ν)','he/she/it places'],['εἰμί','ἐστίν','he/she/it is']])], examples:[ex('ἐστίν','John 1:1','he/she/it is')], searchTerms:['mi verbs'] },
+      { title:'Common Irregulars', body:['Some very frequent verbs are best recognized as families of forms. Principal parts and context matter more than a single ending chart.'], recognitionTips:['λέγω has aorist forms from εἶπον.','ἔρχομαι uses future ἐλεύσομαι and aorist ἦλθον.'], charts:[chart('Common irregular anchors', ['Lexical form','Common form','Recognition'], [['λέγω','εἶπον','aorist: I said'],['ἔρχομαι','ἦλθον','aorist: I came/went'],['ὁράω','εἶδον','aorist: I saw']])], examples:[ex('εἶπεν','Matthew 4:4','he said')], searchTerms:['irregular verbs'] },
+      sectionFromTopic('greek-tense-explanations','Aspect'),
+      sectionFromTopic('greek-common-parsing-clues','Recognition Tips'),
+      { title:'Examples', body:[], recognitionTips:[], charts:[], examples:[...(oldTopic('greek-lyo-paradigm').examples||[]), ...(oldTopic('greek-verb-endings').examples||[]), ...(oldTopic('greek-contract-verbs').examples||[]), ...(oldTopic('greek-participles').examples||[]), ex('ἐλύθησαν','Reader example','they were released')] }
+    ], charts:[], examples:[ex('λύω','John 8:32','I release / loose'), ex('ἐλύθησαν','Reader example','they were released')], related:['greek-nouns','greek-adjectives','grammar-parsing-decoder'] },
+    { id:'greek-adjectives', language:'greek', title:'Adjectives', category:'Adjectives', summary:'Greek adjective endings, agreement, comparison, and recognition examples in one page.', body:['Read adjectives by agreement: find the noun or substantive use, then check case, number, and gender.'], recognitionTips:['Adjectives agree with nouns in case, number, and gender.','Neuter nominative and accusative forms often match.','Comparatives often use -τερος; superlatives often use -τατος.'], searchTerms:['Adjective Paradigms','Adjective Endings','Comparative','Superlative'], sections:[
+      sectionFromTopic('greek-adjective-endings','Endings'),
+      sectionFromTopic('greek-kalos-paradigm','Agreement'),
+      { title:'Comparative', body:['Comparatives normally express more/greater, often with -τερος patterns or irregular forms like μείζων.'], recognitionTips:['Look for -τερος/-τέρα/-τερον or irregular comparative stems.'], charts:[chart('Comparative anchors', ['Pattern','Example','Sense'], [['-τερος','σοφώτερος','wiser'],['irregular','μείζων','greater']])], examples:[ex('μείζων','John 14:28','greater')] },
+      { title:'Superlative', body:['Superlatives express greatest/highest degree and are less common in the New Testament than comparatives.'], recognitionTips:['Look for -τατος/-τη/-τον patterns.'], charts:[chart('Superlative anchors', ['Pattern','Example','Sense'], [['-τατος','πρῶτος / μέγιστος','first / greatest']])], examples:[ex('πρῶτος','Matthew 22:38','first / greatest')] },
+      sectionFromTopic('greek-kalos-paradigm','Examples')
+    ], charts:[], examples:[ex('καλός','John 10:11','good'), ex('μείζων','John 14:28','greater')], related:['greek-nouns','greek-pronouns'] },
+    { id:'greek-prepositions', language:'greek', title:'Prepositions', category:'Prepositions', summary:'Compact recognition guide for common Greek prepositions and the cases they govern.', body:['Prepositions narrow case use. Identify the preposition, then ask which case follows it.'], recognitionTips:['ἐν usually takes the dative.','εἰς usually takes the accusative.','ἐκ/ἐξ usually takes the genitive.'], searchTerms:['preposition','prepositions','case uses'], charts:[chart('Common prepositions', ['Preposition','Common case','Basic reading value'], [['ἐν','Dative','in / among'],['εἰς','Accusative','into / toward'],['ἐκ / ἐξ','Genitive','out of / from'],['διά','Genitive or Accusative','through / because of'],['μετά','Genitive or Accusative','with / after']])], examples:[ex('ἐν ἀρχῇ','John 1:1','in the beginning'), ex('εἰς τὸν κόσμον','John 1:9','into the world')], related:['greek-nouns','greek-case-functions'] },
+    { id:'hebrew-nouns', language:'hebrew', title:'Nouns', category:'Nouns', summary:'Hebrew noun reference for state, number, article, suffixes, and construct recognition.', body:['Read Hebrew nouns by state and relationship: absolute, construct, article, suffix, then number.'], recognitionTips:['Construct forms bind to the following noun.','־ַיִם often marks dual.','Pronominal suffixes frequently express possession on nouns.'], searchTerms:['Noun patterns','Noun basics','Construct State','Absolute State','Dual Forms','Pronominal Suffixes','Article','Construct Chains','Suffixes cheat sheet'], sections:[
+      sectionFromTopic('hebrew-construct-chains','Construct State', { searchTerms:['Construct Chains'] }),
+      { title:'Absolute State', body:['The absolute state is the ordinary independent noun form, not bound to a following noun in a construct chain.'], recognitionTips:['A noun with the article or standing independently is often absolute.'], charts:[chart('Absolute vs construct', ['State','Example','Reading'], [['Absolute','דָּבָר','word'],['Construct','דְּבַר','word of']])], examples:[ex('דָּבָר','Representative','word')] },
+      sectionFromTopic('hebrew-dual-forms','Dual'),
+      sectionFromTopic('hebrew-pronominal-suffixes','Pronominal Suffixes'),
+      { title:'Article', body:['The Hebrew article normally appears as prefixed הַ with doubling in the following consonant when spelling allows.'], recognitionTips:['הַ at the front of a noun often marks the article.','Prefixed prepositions can combine with the article.'], charts:[chart('Article clues', ['Form','Example','Sense'], [['הַ','הַמֶּלֶךְ','the king'],['בַּ','בַּבַּיִת','in the house']])], examples:[ex('הַמֶּלֶךְ','Representative','the king')] },
+      sectionFromTopic('hebrew-noun-basics','Recognition Tips'),
+      { title:'Examples', body:[], recognitionTips:[], charts:[], examples:[...(oldTopic('hebrew-noun-basics').examples||[]), ...(oldTopic('hebrew-construct-chains').examples||[]), ...(oldTopic('hebrew-pronominal-suffixes').examples||[]), ...(oldTopic('hebrew-dual-forms').examples||[])] }
+    ], charts:[], examples:[ex('דְּבַר יְהוָה','Jeremiah 1:2','word of YHWH'), ex('יָדַיִם','Representative','hands')], related:['hebrew-verbs','hebrew-particles'] },
+    { id:'hebrew-verbs', language:'hebrew', title:'Verbs', category:'Verbs', color:'qal', summary:'Major Hebrew verb reference for strong forms, stems, weak verbs, aspect, and waw consecutive recognition.', body:['Start with the verbal pattern: prefixes/suffixes, stem markers, root consonants, and whether וַי marks narrative sequence.'], recognitionTips:['וַי plus an imperfect form is the classic waw consecutive / wayyiqtol clue, as in וַיֹּאמֶר.','Stem markers such as נִ, doubled middle radical, and הִ narrow the binyan.','Weak roots may hide or change consonants.'], searchTerms:['Strong Verb Paradigms','Perfect','Imperfect','Imperative','Infinitive Construct','Infinitive Absolute','Participle','Stems','Qal','Niphal','Piel','Pual','Hiphil','Hophal','Hitpael','Weak Verbs','I-Aleph','I-Nun','III-He','Geminate','Hollow','Aspect','Waw Consecutive','Wayyiqtol','וַיֹּאמֶר'], sections:[
+      sectionFromTopic('hebrew-stem-markers','Recognition Cheat Sheet'),
+      { title:'Strong Verb Paradigms', body:['כתב is the representative strong verb pattern used for quick recognition.'], recognitionTips:[], charts:[...(oldTopic('hebrew-qal').paradigmTabs||[]).flatMap(tab => tab.charts || [])], examples:[ex('כָּתַב','Jeremiah 36:2','he wrote / write')] },
+      { title:'Perfect', body:[], recognitionTips:['Perfect forms often use suffixes for person, gender, and number.'], charts:chartsFromTabs('hebrew-qal',['Perfect']), examples:[] },
+      { title:'Imperfect', body:[], recognitionTips:['Imperfect forms use prefixes plus endings.'], charts:chartsFromTabs('hebrew-qal',['Imperfect']), examples:[] },
+      { title:'Imperative', body:[], recognitionTips:['Imperatives are second-person command forms.'], charts:chartsFromTabs('hebrew-qal',['Imperative']), examples:[] },
+      { title:'Infinitive Construct', body:[], recognitionTips:['Often appears with לְ.'], charts:chartsFromTabs('hebrew-qal',['Infinitive Construct']), examples:[] },
+      { title:'Infinitive Absolute', body:[], recognitionTips:['Often reinforces a nearby finite verb.'], charts:chartsFromTabs('hebrew-qal',['Infinitive Absolute']), examples:[] },
+      { title:'Participle', body:[], recognitionTips:['Participles often behave as verbal adjectives.'], charts:chartsFromTabs('hebrew-qal',['Participles']), examples:[] },
+      { title:'Stems', body:['The stems modify the root idea in conventional active, passive, causative, intensive, reflexive, or reciprocal directions.'], recognitionTips:stemRelationships, charts:[chart('Stem overview', ['Stem','Typical value','Pattern','Recognition'], Object.entries(stemInfo).map(([s,v])=>[s,v[0],v[1],v[2]]))], examples:[] },
+      ...['Qal','Niphal','Piel','Pual','Hiphil','Hophal','Hitpael'].map(hebrewStemSection),
+      sectionFromTopic('hebrew-weak-verbs','Weak Verbs', { searchTerms:['I-Aleph','I-Nun','III-He','Geminate','Hollow'] }),
+      { title:'I-Aleph', body:['I-א verbs can show vowel and guttural behavior that obscures the expected strong pattern.'], recognitionTips:['Watch for א as the first root consonant and compensating vowel patterns.'], charts:[chart('I-Aleph clue', ['Class','Recognition'], [['I-א','initial aleph with guttural vowel behavior']])], examples:[ex('אָמַר','Genesis 1:3','he said')] },
+      { title:'Aspect', body:['Hebrew perfect and imperfect are better treated as aspectual forms whose time value comes from context, genre, and sequence.'], recognitionTips:['Do not translate perfect as mechanically past or imperfect as mechanically future.'], charts:[chart('Aspect reading', ['Form','Common reading task'], [['Perfect','completed, whole, or stative viewpoint'],['Imperfect','incomplete, habitual, modal, future, or sequenced action']])], examples:[] },
+      sectionFromTopic('hebrew-wayyiqtol','Waw Consecutive', { searchTerms:['wayyiqtol','וַיֹּאמֶר'] }),
+      sectionFromTopic('hebrew-stem-markers','Recognition Tips'),
+      { title:'Examples', body:[], recognitionTips:[], charts:[], examples:[ex('וַיֹּאמֶר','Genesis 1:3','and he said'), ...(oldTopic('hebrew-qal').examples||[]), ...(oldTopic('hebrew-wayyiqtol').examples||[])] }
+    ], charts:[], examples:[ex('וַיֹּאמֶר','Genesis 1:3','and he said'), ex('כָּתַב','Jeremiah 36:2','he wrote / write')], related:['hebrew-nouns','hebrew-particles'] },
+    { id:'hebrew-particles', language:'hebrew', title:'Particles', category:'Particles', summary:'Common Hebrew prefixes, particles, and small-form recognition cues.', body:['Particles and prefixed elements shape reading before full parsing begins.'], recognitionTips:['וְ/וַ marks conjunction or sequence depending form.','לְ, בְּ, כְּ attach directly to nouns and infinitives.','הַ may be article or interrogative depending context.'], searchTerms:['Prefixes cheat sheet','particles','prepositions','article'], sections:[
+      sectionFromTopic('hebrew-prefixes','Prefixes'),
+      { title:'Article', body:['The article is usually prefixed הַ, sometimes absorbed into a prefixed preposition.'], recognitionTips:['Look for הַ and following doubling when spelling allows.'], charts:[chart('Particle/article anchors', ['Form','Reading'], [['הַ','the / question marker by context'],['בַּ','in the'],['לַ','to the']])], examples:[ex('בַּבַּיִת','Representative','in the house')] },
+      { title:'Examples', body:[], recognitionTips:[], charts:[], examples:[...(oldTopic('hebrew-prefixes').examples||[])] }
+    ], charts:[], examples:[ex('וַיֹּאמֶר','Genesis 1:3','and he said')], related:['hebrew-nouns','hebrew-verbs'] }
+  );
+  applyGreekNounSectionTabs(topics.find(t => t.id === 'greek-nouns'));
+  applyVerbSectionTabs(topics.find(t => t.id === 'greek-verbs'));
+  applyGreekAdjectiveSectionTabs(topics.find(t => t.id === 'greek-adjectives'));
+  applyHebrewNounSectionTabs(topics.find(t => t.id === 'hebrew-nouns'));
+  applyHebrewVerbSectionTabs(topics.find(t => t.id === 'hebrew-verbs'));
+  const scrubReferenceColors = value => {
+    if (!value || typeof value !== 'object') return;
+    delete value.color;
+    Object.values(value).forEach(child => Array.isArray(child) ? child.forEach(scrubReferenceColors) : scrubReferenceColors(child));
+  };
+  topics.forEach(scrubReferenceColors);
+
+  const visibleTopics = topics.filter(t => !oldTopicAliasIds.has(t.id));
+  function canonicalTopicId(id){ return oldTopicAliases[id] || id; }
+  function getReferenceTopic(id){ const canonical = canonicalTopicId(id); return visibleTopics.find(t => t.id === canonical) || topics.find(t => t.id === canonical); }
+  function topicLabel(id){ return getReferenceTopic(id)?.title || id; }
   function cellText(cell){ return typeof cell === 'object' && cell !== null ? Object.values(cell).join(' ') : String(cell ?? ''); }
   function normalizeSearchText(value){ return String(value ?? '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase(); }
-  function flattenTopic(topic){ return [topic.id, topic.title, topic.category, topic.summary, topic.frequency, ...(topic.body||[]), ...(topic.recognitionTips||[]), ...(topic.principalParts||[]), ...(topic.paradigmTabs||[]).flatMap(tab=>[tab.label,...(tab.charts||[]).flatMap(c=>[c.label,c.note,...(c.columns||[]),...(c.rows||[]).flat().map(cellText)])]), ...(topic.charts||[]).flatMap(c=>[c.heading,c.label,c.note,c.color,...(c.columns||[]),...(c.rows||[]).flat().map(cellText)]), ...(topic.examples||[]).flatMap(e=>[e.word,e.reference,e.translation,e.note,e.text]), ...(topic.related||[]).map(topicLabel), ...(topic.featureLinks||[]).flatMap(l=>[l.label,l.type,l.target]), topic.stemRelationships?.root, ...(topic.stemRelationships?.stems||[]), ...(topic.stemRelationships?.explanation||[])].join(' '); }
+  function flattenCharts(charts){ return (charts||[]).flatMap(c=>[c.heading,c.label,c.note,c.color,...(c.columns||[]),...(c.rows||[]).flat().map(cellText)]); }
+  function flattenExamples(examples){ return (examples||[]).flatMap(e=>[e.word,e.reference,e.translation,e.note,e.text]); }
+  function flattenSections(sections){ return (sections||[]).flatMap(s=>[s.title, ...(s.body||[]), ...(s.recognitionTips||[]), ...(s.searchTerms||[]), ...flattenCharts(s.charts), ...flattenExamples(s.examples)]); }
+  function flattenSectionTabs(sectionTabs){ return (sectionTabs||[]).flatMap(tab=>[tab.label, ...(tab.jumpChips||[]).flatMap(chip=>[chip.label, chip.target]), ...flattenSections(tab.sections)]); }
+  function flattenTopic(topic){ return [topic.id, topic.title, topic.category, topic.summary, topic.frequency, ...(topic.searchTerms||[]), ...(topic.body||[]), ...(topic.recognitionTips||[]), ...(topic.principalParts||[]), ...flattenSections(topic.sections), ...flattenSectionTabs(topic.sectionTabs), ...(topic.paradigmTabs||[]).flatMap(tab=>[tab.label,...flattenCharts(tab.charts)]), ...flattenCharts(topic.charts), ...flattenExamples(topic.examples), ...(topic.related||[]).map(topicLabel), ...(topic.featureLinks||[]).flatMap(l=>[l.label,l.type,l.target]), topic.stemRelationships?.root, ...(topic.stemRelationships?.stems||[]), ...(topic.stemRelationships?.explanation||[])].join(' '); }
   function searchReferenceTopics(query='', language='all'){
     const q = normalizeSearchText(String(query).trim());
-    return topics.filter(t => (language === 'all' || t.language === language) && (!q || normalizeSearchText(flattenTopic(t)).includes(q)));
+    return visibleTopics.filter(t => (language === 'all' || t.language === language) && (!q || normalizeSearchText(flattenTopic(t)).includes(q)));
   }
   function decodeParsing(input){ const key=String(input||'').trim().toUpperCase().replace(/\s+/g,' '); return decoderEntries[key] || null; }
-  const api = { referenceTopics: topics, futureGrammarHooks, searchReferenceTopics, getReferenceTopic: id => topics.find(t => t.id === id), topicLabel, referenceColors: COLORS, decodeParsing, decoderEntries };
+  const api = { referenceTopics: visibleTopics, futureGrammarHooks, searchReferenceTopics, getReferenceTopic, topicLabel, referenceColors: COLORS, decodeParsing, decoderEntries, oldTopicAliases, canonicalTopicId };
   if(typeof module !== 'undefined' && module.exports) module.exports = api;
   root.PuritanReferenceLibrary = api;
 })(typeof window !== 'undefined' ? window : globalThis);

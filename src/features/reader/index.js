@@ -137,7 +137,8 @@ async function lookupReaderWordInfo(token = {}, reference = {}, language = reade
     parse,
     parseExplanation: explainReaderParse(parse, language),
     frequency: bestFrequency || '',
-    reference: readerReferenceLabel(reference)
+    reference: readerReferenceLabel(reference),
+    language
   };
 }
 function formatReaderParseExplanation(decoded){
@@ -155,6 +156,7 @@ function explainReaderParse(parse, language = 'greek'){
 function readerParseKind(parse, explanation = ''){
   const raw = cleanReaderTokenValue(parse).toUpperCase();
   const text = `${raw} ${explanation}`.toLowerCase();
+  if(/\b(qal|niphal|piel|pual|hiphil|hophal|hitpael)\b/.test(text)) return 'verb';
   if(text.includes('participle')) return 'participle';
   if(raw.startsWith('V') || text.includes('verb')) return 'verb';
   if(raw.startsWith('RA') || raw.startsWith('T') || text.includes('article')) return 'article';
@@ -163,15 +165,25 @@ function readerParseKind(parse, explanation = ''){
   return '';
 }
 function readerGrammarLinksForInfo(info = {}){
-  const byKind = {
-    noun: [['Noun Paradigms','greek-logos-paradigm'], ['Case Endings','greek-case-endings']],
-    adjective: [['Adjective Paradigms','greek-kalos-paradigm'], ['Adjective Endings','greek-adjective-endings']],
-    verb: [['Verb Paradigms','greek-lyo-paradigm'], ['Parsing Guide','grammar-parsing-decoder']],
-    participle: [['Participles','greek-participles'], ['Verb Paradigms','greek-lyo-paradigm']],
-    article: [['Article Paradigms','greek-articles'], ['Article Endings','greek-article-endings']]
+  const language = info.language === 'hebrew' ? 'hebrew' : 'greek';
+  const byLanguage = {
+    greek: {
+      noun: [['Nouns','greek-nouns']],
+      adjective: [['Adjectives','greek-adjectives']],
+      verb: [['Verbs','greek-verbs']],
+      participle: [['Verbs','greek-verbs']],
+      article: [['Nouns','greek-nouns']]
+    },
+    hebrew: {
+      noun: [['Hebrew Nouns','hebrew-nouns']],
+      adjective: [['Hebrew Nouns','hebrew-nouns']],
+      verb: [['Hebrew Verbs','hebrew-verbs']],
+      participle: [['Hebrew Verbs','hebrew-verbs']],
+      article: [['Particles','hebrew-particles'], ['Hebrew Nouns','hebrew-nouns']]
+    }
   };
   const api = typeof PuritanReferenceLibrary !== 'undefined' ? PuritanReferenceLibrary : null;
-  return (byKind[readerParseKind(info.parse, info.parseExplanation)] || [])
+  return (byLanguage[language][readerParseKind(info.parse, info.parseExplanation)] || [])
     .filter(([, id]) => !api?.getReferenceTopic || api.getReferenceTopic(id))
     .map(([label, topicId]) => ({ label, topicId }));
 }
