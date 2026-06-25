@@ -120,8 +120,58 @@
     return parts.join(' ');
   }
 
+  function decodeOshbHebrewNominal(parse, label) {
+    const raw = norm(parse);
+    const form = raw.match(/^H[NA]([a-z]+)/i)?.[1] || '';
+    const gender = { m: 'masculine', f: 'feminine', c: 'common' }[form[1]?.toLowerCase() || form[0]?.toLowerCase()];
+    const number = { s: 'singular', p: 'plural', d: 'dual' }[form[2]?.toLowerCase() || form[1]?.toLowerCase()];
+    const state = { a: 'absolute', c: 'construct', d: 'determined' }[form[3]?.toLowerCase() || form[2]?.toLowerCase()];
+    const details = [gender, number, state].filter(Boolean);
+    return {
+      family: 'nominal',
+      label,
+      details,
+      summary: [label].concat(details).join(', ')
+    };
+  }
+
+  function decodeOshbHebrewVerb(parse) {
+    const code = norm(parse).match(/(?:^|\/)V([a-z0-9]+)/i)?.[1] || norm(parse).replace(/^HV/i, '');
+    const stemCodes = {
+      q: 'Qal',
+      n: 'Niphal',
+      p: 'Piel',
+      P: 'Pual',
+      h: 'Hiphil',
+      H: 'Hophal',
+      t: 'Hithpael'
+    };
+    const formCodes = {
+      p: 'perfect',
+      q: 'wayyiqtol',
+      w: 'wayyiqtol',
+      i: 'imperfect',
+      v: 'imperative',
+      r: 'participle',
+      s: 'participle',
+      a: 'infinitive absolute',
+      c: 'infinitive construct'
+    };
+    const stem = stemCodes[code[0]] || stemCodes[code[0]?.toLowerCase()] || code[0];
+    const form = formCodes[code[1]] || code[1];
+    const png = expandPersonNumberGender(code.slice(2)) || code.slice(2);
+    const details = [stem, form, png].filter(Boolean);
+    return {
+      family: 'verb',
+      label: 'Verb',
+      details,
+      summary: ['Verb'].concat(details).join(', ')
+    };
+  }
+
   function decodeHebrewNominal(parse, label) {
     const raw = norm(parse);
+    if (/^H[NA]/i.test(raw)) return decodeOshbHebrewNominal(raw, label);
     const form = raw.split('-')[1] || '';
     const gender = { m: 'masculine', f: 'feminine', c: 'common' }[form[0]?.toLowerCase()];
     const number = { s: 'singular', p: 'plural', d: 'dual' }[form[1]?.toLowerCase()];
@@ -192,6 +242,7 @@
   }
 
   function decodeHebrewVerb(parse) {
+    if (/^(H[VCA]|.*\/V)/i.test(norm(parse))) return decodeOshbHebrewVerb(parse);
     const bits = norm(parse).toLowerCase().split('-').filter(Boolean);
     const stem = HEBREW_STEMS[bits[1]] || bits[1];
     const form = HEBREW_FORMS[bits[2]] || bits[2];
@@ -210,6 +261,10 @@
     if (!raw) return { raw, family: 'unknown', label: 'Unknown', details: [], summary: 'No parse data' };
     const first = raw.split('-')[0].trim().toLowerCase();
     const language = norm(lang).toLowerCase();
+    if (language === 'hebrew' && /^H[NA]/i.test(raw)) return decodeHebrewNominal(raw, raw.startsWith('HA') ? 'Adjective' : 'Noun');
+    if (language === 'hebrew' && /^(H[VCA]|.*\/V)/i.test(raw)) return decodeHebrewVerb(raw);
+    if (language === 'hebrew' && /^HR/i.test(raw)) return { raw, family: 'indeclinable', label: 'Preposition', details: [], summary: 'Preposition' };
+    if (language === 'hebrew' && /^HC/i.test(raw)) return { raw, family: 'indeclinable', label: 'Conjunction', details: [], summary: 'Conjunction' };
     if (first === 'n') return decodeNominal(raw, 'Noun', language);
     if (first === 'a' || first === 'adj') return decodeNominal(raw, 'Adjective', language);
     if (first === 't' || first === 'ra') return decodeNominal(raw, 'Article', language);

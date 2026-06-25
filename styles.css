@@ -740,12 +740,14 @@ button:focus-visible, input:focus-visible, select:focus-visible {
 .reader-search .input { min-width: 150px; }
 .reader-reference { margin-left: auto; font-weight: 700; color: var(--text); letter-spacing: .01em; }
 .reader-text { max-width: 860px; margin: 0 auto; padding: 8px 4px 24px; font-family: 'EB Garamond', Georgia, serif; font-size: clamp(22px, 3vw, 30px); line-height: 1.85; color: var(--text); }
+.reader-text-hebrew { text-align: right; }
 .reader-chapter-heading { font-size: 24px; line-height: 1.2; margin: 0 0 18px; font-family: 'EB Garamond', Georgia, serif; font-weight: 700; }
 .reader-paragraph { margin: 0 0 1.35em; }
 .reader-verse { scroll-margin-top: 110px; }
 .reader-verse:target,
 .reader-verse.reader-focus { background: color-mix(in srgb, var(--accent) 16%, transparent); border-radius: 8px; }
 .reader-verse sup { font-family: system-ui, sans-serif; font-size: .48em; color: var(--muted); margin-right: .35em; user-select: none; }
+.reader-text-hebrew .reader-verse sup { margin-right: 0; margin-left: .35em; }
 .reader-token {
   display: inline;
   padding: 0 1px;

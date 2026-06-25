@@ -611,6 +611,123 @@ test('Reader render creates visible chapter controls and loaded chapter text', a
   assert.equal(reader.readerState().error, '');
 });
 
+test('Reader loads Jonah 1 through the shared Hebrew reader path with RTL text', async () => {
+  let html = '';
+  const shell = { set innerHTML(value){ html = value; }, get innerHTML(){ return html; } };
+  global.$ = selector => selector === '#readerShell' ? shell : null;
+  global.$$ = () => [];
+  await reader.setReaderLocation({ language: 'hebrew', book: 'jonah', chapter: 1 });
+  assert.equal(reader.readerState().language, 'hebrew');
+  assert.equal(reader.readerState().book, 'jonah');
+  assert.match(html, /id="readerLanguageSelect"/);
+  assert.match(html, /<option value="hebrew" selected>Hebrew<\/option>/);
+  assert.match(html, /<article class="reader-text reader-text-hebrew" aria-live="polite"/);
+  assert.doesNotMatch(html, /<article class="reader-text reader-text-hebrew"[^>]*(lang|dir)=/);
+  assert.match(html, /<p class="reader-paragraph" lang="he" dir="rtl">/);
+  assert.match(html, /Jonah 1/);
+  assert.match(renderedText(html), /וַֽיְהִי֙ דְּבַר יְהוָ֔ה/);
+  assert.match(html, /class="reader-token"/);
+  assert.match(html, /data-lemma="1961"/);
+  assert.match(html, /data-parse="HC\/Vqw3ms"/);
+  assert.equal(reader.getAdjacentReaderLocation(1), null);
+});
+
+test('Hebrew search uses the Hebrew index and keeps RTL attributes on result text only', async () => {
+  let html = '';
+  const resultBox = { set innerHTML(value){ html = value; }, get innerHTML(){ return html; } };
+  global.$ = selector => selector === '#readerSearchResults' ? resultBox : null;
+  global.$$ = () => [];
+  await reader.setReaderLocation({ language: 'hebrew', book: 'jonah', chapter: 1 });
+  const lemmaResults = await reader.runReaderSearch('3068');
+  assert.ok(lemmaResults.some(item => item.book === 'jonah' && item.chapter === 1 && item.verse === 1));
+  assert.match(html, /data-language="hebrew"/);
+  assert.match(html, /<span lang="he" dir="rtl">/);
+  assert.deepEqual(reader.parseReaderReference('Jonah 1:1', 'hebrew'), { language: 'hebrew', book: 'jonah', chapter: 1, verse: '1' });
+});
+
+test('Hebrew token lookup and popup display Jonah gloss, lemma, frequency, reference, and grammar links', async () => {
+  let popupHtml = '';
+  const root = {
+    set innerHTML(value){ popupHtml = value; },
+    get innerHTML(){ return popupHtml; },
+    querySelector: selector => selector === '.reader-word-close' ? { addEventListener(){}, focus(){} } : null,
+    querySelectorAll: selector => selector === '.reader-word-link' ? [{ dataset: { topicId: 'hebrew-verbs' }, addEventListener(){} }] : []
+  };
+  global.PuritanReferenceLibrary = { getReferenceTopic: id => ({ id }) };
+  global.$ = (selector, scope) => scope?.querySelector ? scope.querySelector(selector) : (selector === '#readerWordPopupRoot' ? root : null);
+  global.$$ = (selector, scope) => scope?.querySelectorAll ? scope.querySelectorAll(selector) : [];
+  await reader.setReaderLocation({ language: 'hebrew', book: 'jonah', chapter: 1 });
+  await reader.openReaderTokenPopup({
+    dataset: { surface: 'וַֽיְהִי֙', lemma: '1961', parse: 'HC/Vqw3ms', book: 'jonah', bookName: 'Jonah', chapter: '1', verse: '1' },
+    focus(){}
+  });
+  assert.match(popupHtml, /reader-word-popup/);
+  assert.match(popupHtml, /lang="he" dir="rtl">וַֽיְהִי֙/);
+  assert.match(popupHtml, /be/);
+  assert.match(popupHtml, /Lemma[\s\S]*1961/);
+  assert.match(popupHtml, /Frequency[\s\S]*2×/);
+  assert.match(popupHtml, /Reference[\s\S]*Jonah 1:1/);
+  assert.match(popupHtml, /Verb — qal wayyiqtol 3rd person masculine singular/);
+  assert.match(popupHtml, /data-topic-id="hebrew-verbs"/);
+  assert.match(popupHtml, /Parse: HC\/Vqw3ms/);
+  reader.closeReaderWordPopup();
+  delete global.PuritanReferenceLibrary;
+});
+
+test('Hebrew Word Page opens from the shared popup and Read in Context uses the Hebrew index', async () => {
+  let popupHtml = '';
+  let wordPageHtml = '';
+  let actionHandler;
+  let shownView = '';
+  const popupRoot = {
+    set innerHTML(value){ popupHtml = value; },
+    get innerHTML(){ return popupHtml; },
+    querySelector: selector => {
+      if(selector === '.reader-word-close') return { addEventListener(){}, focus(){} };
+      if(selector === '.reader-word-page-action') return { addEventListener(type, handler){ if(type === 'click') actionHandler = handler; } };
+      return null;
+    },
+    querySelectorAll: () => []
+  };
+  const wordRoot = {
+    set innerHTML(value){ wordPageHtml = value; },
+    get innerHTML(){ return wordPageHtml; },
+    querySelector: selector => selector === '#wordPageBackToReader' ? { addEventListener(){} } : null,
+    querySelectorAll: selector => selector === '.reader-word-link' ? [{ dataset: { topicId: 'hebrew-nouns' }, addEventListener(){} }] : []
+  };
+  global.PuritanReferenceLibrary = { getReferenceTopic: id => ({ id }) };
+  global.$ = (selector, scope) => {
+    if(scope?.querySelector) return scope.querySelector(selector);
+    if(selector === '#readerWordPopupRoot') return popupRoot;
+    if(selector === '#wordPageShell') return wordRoot;
+    return null;
+  };
+  global.$$ = (selector, scope) => scope?.querySelectorAll ? scope.querySelectorAll(selector) : [];
+  global.showView = view => { shownView = view; };
+  await reader.setReaderLocation({ language: 'hebrew', book: 'jonah', chapter: 1 });
+  await reader.openReaderTokenPopup({
+    dataset: { surface: 'דְּבַר', lemma: '1697', parse: 'HNcmsc', book: 'jonah', bookName: 'Jonah', chapter: '1', verse: '1' },
+    focus(){}
+  });
+  actionHandler();
+  assert.equal(shownView, 'wordPageView');
+  assert.equal(popupHtml, '');
+  assert.match(wordPageHtml, /<h1 id="wordPageTitle" class="word-page-headword" lang="he" dir="rtl">דְּבַר<\/h1>/);
+  assert.match(wordPageHtml, /word-page-pos">Noun<\/div>/);
+  assert.match(wordPageHtml, /word-page-primary-gloss">word<\/p>/);
+  assert.match(wordPageHtml, /matter[\s\S]*thing/);
+  assert.match(wordPageHtml, /<dt>Current Reference<\/dt><dd>Jonah 1:1<\/dd>/);
+  assert.match(wordPageHtml, /data-topic-id="hebrew-nouns"/);
+
+  const occurrences = await reader.getReaderLemmaOccurrences('1697', 'hebrew', 5);
+  assert.ok(occurrences.some(item => item.reference === 'Jonah 1:1'));
+  const contextHtml = reader.renderReaderWordPageContext(occurrences);
+  assert.match(contextHtml, /data-language="hebrew"/);
+  assert.match(contextHtml, /<q lang="he" dir="rtl">/);
+  delete global.showView;
+  delete global.PuritanReferenceLibrary;
+});
+
 test('Matthew 28 loads from generated chapter data', async () => {
   const chapter = await reader.loadReaderChapter('greek', 'matthew', 28);
   assert.equal(chapter.bookName, 'Matthew');

@@ -1,17 +1,49 @@
-/* ---------- Reader (Greek MVP) ---------- */
+/* ---------- Reader ---------- */
 const ReaderStorageKey = 'pp_reader_location';
 const ReaderConfig = {
   greek: {
     label: 'Greek New Testament',
+    shortLabel: 'Greek',
+    htmlLang: 'grc',
+    dir: 'ltr',
     dataRoot: 'data/greek',
     manifestPath: 'data/greek/manifest.json',
+    glossPath: 'data/glosses/greek-glosses.json',
+    searchIndexPath: 'data/greek/search-index.json',
+    searchPlaceholder: 'Search Greek text, lemma, or Matthew 1:1...',
+    grammarLinks: {
+      noun: [['Greek Nouns','greek-nouns']],
+      adjective: [['Greek Adjectives','greek-adjectives']],
+      verb: [['Greek Verbs','greek-verbs']],
+      participle: [['Greek Verbs','greek-verbs']],
+      article: [['Greek Nouns','greek-nouns']]
+    },
+    books: []
+  },
+  hebrew: {
+    label: 'Hebrew Bible',
+    shortLabel: 'Hebrew',
+    htmlLang: 'he',
+    dir: 'rtl',
+    dataRoot: 'data/hebrew',
+    manifestPath: 'data/hebrew/manifest.json',
+    glossPath: 'data/glosses/hebrew-glosses.json',
+    searchIndexPath: 'data/hebrew/search-index.json',
+    searchPlaceholder: 'Search Hebrew text, lemma, or book reference...',
+    useSurfaceForNumericLemmaHeadword: true,
+    grammarLinks: {
+      noun: [['Hebrew Nouns','hebrew-nouns']],
+      adjective: [['Hebrew Nouns','hebrew-nouns']],
+      verb: [['Hebrew Verbs','hebrew-verbs']],
+      participle: [['Hebrew Verbs','hebrew-verbs']],
+      article: [['Particles','hebrew-particles'], ['Hebrew Nouns','hebrew-nouns']]
+    },
     books: []
   }
 };
 const FallbackReaderBooks = {
-  greek: [
-    { id: 'matthew', name: 'Matthew', chapters: [1, 2] }
-  ]
+  greek: [{ id: 'matthew', name: 'Matthew', chapters: [1, 2] }],
+  hebrew: [{ id: 'jonah', name: 'Jonah', chapters: [1] }]
 };
 
 let readerState = {
@@ -28,8 +60,8 @@ let readerState = {
 const readerChapterCache = new Map();
 const readerManifestCache = new Map();
 const readerLoadCounts = {};
-let readerGlossSourceCache = null;
-let readerSearchIndexCache = null;
+const readerGlossSourceCache = new Map();
+const readerSearchIndexCache = new Map();
 let readerPopupLastTrigger = null;
 
 function normalizeReaderBook(book){
@@ -41,6 +73,10 @@ function normalizeReaderManifest(manifest = {}){
   return { ...manifest, books };
 }
 function getReaderConfig(language = readerState.language){ return ReaderConfig[language] || ReaderConfig.greek; }
+function getReaderLanguageMeta(language = readerState.language){
+  const config = getReaderConfig(language);
+  return { language: ReaderConfig[language] ? language : 'greek', htmlLang: config.htmlLang || 'grc', dir: config.dir || 'ltr', label: config.label || 'Greek New Testament' };
+}
 function getReaderBooks(language = readerState.language){ return getReaderConfig(language).books.length ? getReaderConfig(language).books : FallbackReaderBooks[language] || FallbackReaderBooks.greek; }
 function getReaderBook(language, bookId){ return getReaderBooks(language).find(book => book.id === bookId) || getReaderBooks(language)[0]; }
 function readerCacheKey(language, book, chapter){ return `${language}/${book}/${chapter}`; }
@@ -54,13 +90,16 @@ function readerReferenceLabel(reference = {}){
   const verse = reference.verse || '';
   return `${bookName} ${chapter}${verse ? `:${verse}` : ''}`.trim();
 }
-function parseReaderReference(value){
+function parseReaderReference(value, language = readerState.language){
   const match = String(value || '').trim().match(/^([1-3]?\s?[A-Za-z]+)\s+(\d+)(?::(\d+))?$/);
   if(!match) return null;
   const bookName = match[1].toLowerCase().replace(/\s+/g, '');
-  const book = getReaderBooks('greek').find(item => item.id === bookName || item.name.toLowerCase().replace(/\s+/g, '') === bookName);
-  if(!book) return null;
-  return { language: 'greek', book: book.id, chapter: Number(match[2]), verse: match[3] || '' };
+  const languages = [language, ...Object.keys(ReaderConfig).filter(item => item !== language)];
+  for(const lang of languages){
+    const book = getReaderBooks(lang).find(item => item.id === bookName || item.name.toLowerCase().replace(/\s+/g, '') === bookName);
+    if(book) return { language: lang, book: book.id, chapter: Number(match[2]), verse: match[3] || '' };
+  }
+  return null;
 }
 function getReaderLocation(){ return { language: readerState.language, book: readerState.book, chapter: readerState.chapter }; }
 function saveReaderLocation(location = getReaderLocation()){
@@ -84,17 +123,20 @@ async function fetchReaderJson(path){
   return response.json();
 }
 async function loadReaderGlossSource(language = 'greek'){
-  if(language !== 'greek') return {};
-  if(readerGlossSourceCache) return readerGlossSourceCache;
-  try { readerGlossSourceCache = await fetchReaderJson('data/glosses/greek-glosses.json'); }
-  catch(e) { readerGlossSourceCache = {}; }
-  return readerGlossSourceCache;
+  const config = getReaderConfig(language);
+  if(readerGlossSourceCache.has(language)) return readerGlossSourceCache.get(language);
+  let glosses = {};
+  try { glosses = await fetchReaderJson(config.glossPath); }
+  catch(e) { glosses = {}; }
+  readerGlossSourceCache.set(language, glosses);
+  return glosses;
 }
 async function loadReaderSearchIndex(language = 'greek'){
-  if(language !== 'greek') return [];
-  if(readerSearchIndexCache) return readerSearchIndexCache;
-  readerSearchIndexCache = await fetchReaderJson('data/greek/search-index.json');
-  return readerSearchIndexCache;
+  const config = getReaderConfig(language);
+  if(readerSearchIndexCache.has(language)) return readerSearchIndexCache.get(language);
+  const index = await fetchReaderJson(config.searchIndexPath);
+  readerSearchIndexCache.set(language, index);
+  return index;
 }
 function getReaderVocabulary(language = 'greek'){
   if(typeof state !== 'undefined' && Array.isArray(state.data?.[language])) return state.data[language];
@@ -136,6 +178,7 @@ async function lookupReaderWordInfo(token = {}, reference = {}, language = reade
   ]);
   const aggregateFrequency = vocabMatches.reduce((sum, entry) => sum + (Number(entry.freq) || 0), 0);
   const bestFrequency = aggregateFrequency || Math.max(0, ...vocabMatches.map(entry => Number(entry.freq) || 0));
+  const indexFrequency = bestFrequency ? 0 : (await getReaderLemmaOccurrences(lemma, language, Number.MAX_SAFE_INTEGER)).length;
   const parse = cleanReaderTokenValue(token.parse);
   return {
     surface: cleanReaderTokenValue(token.surface),
@@ -144,7 +187,7 @@ async function lookupReaderWordInfo(token = {}, reference = {}, language = reade
     alternateGlosses: alternateGlosses.filter(gloss => gloss !== primaryGloss),
     parse,
     parseExplanation: explainReaderParse(parse, language),
-    frequency: bestFrequency || '',
+    frequency: bestFrequency || indexFrequency || '',
     reference: readerReferenceLabel(reference),
     language
   };
@@ -166,32 +209,17 @@ function readerParseKind(parse, explanation = ''){
   const text = `${raw} ${explanation}`.toLowerCase();
   if(/\b(qal|niphal|piel|pual|hiphil|hophal|hitpael)\b/.test(text)) return 'verb';
   if(text.includes('participle')) return 'participle';
-  if(raw.startsWith('V') || text.includes('verb')) return 'verb';
+  if(raw.startsWith('V') || raw.startsWith('HV') || raw.includes('/V') || text.includes('verb')) return 'verb';
   if(raw.startsWith('RA') || raw.startsWith('T') || text.includes('article')) return 'article';
   if(raw.startsWith('A') || text.includes('adjective')) return 'adjective';
-  if(raw.startsWith('N') || text.includes('noun')) return 'noun';
+  if(raw.startsWith('N') || raw.startsWith('HN') || text.includes('noun')) return 'noun';
+  if(raw.startsWith('HR') || raw.startsWith('HC')) return 'article';
   return '';
 }
 function readerGrammarLinksForInfo(info = {}){
-  const language = info.language === 'hebrew' ? 'hebrew' : 'greek';
-  const byLanguage = {
-    greek: {
-      noun: [['Greek Nouns','greek-nouns']],
-      adjective: [['Greek Adjectives','greek-adjectives']],
-      verb: [['Greek Verbs','greek-verbs']],
-      participle: [['Greek Verbs','greek-verbs']],
-      article: [['Greek Nouns','greek-nouns']]
-    },
-    hebrew: {
-      noun: [['Hebrew Nouns','hebrew-nouns']],
-      adjective: [['Hebrew Nouns','hebrew-nouns']],
-      verb: [['Hebrew Verbs','hebrew-verbs']],
-      participle: [['Hebrew Verbs','hebrew-verbs']],
-      article: [['Particles','hebrew-particles'], ['Hebrew Nouns','hebrew-nouns']]
-    }
-  };
+  const config = getReaderConfig(info.language);
   const api = typeof PuritanReferenceLibrary !== 'undefined' ? PuritanReferenceLibrary : null;
-  return (byLanguage[language][readerParseKind(info.parse, info.parseExplanation)] || [])
+  return (config.grammarLinks?.[readerParseKind(info.parse, info.parseExplanation)] || [])
     .filter(([, id]) => !api?.getReferenceTopic || api.getReferenceTopic(id))
     .map(([label, topicId]) => ({ label, topicId }));
 }
@@ -224,7 +252,7 @@ function readerOccurrenceSnippet(item = {}, lemma = ''){
 function readerOccurrenceReference(item = {}){
   return `${item.bookName || ''} ${item.chapter}:${item.verse}`.trim();
 }
-function representativeReaderOccurrences(index = [], lemma = '', limit = 5){
+function representativeReaderOccurrences(index = [], lemma = '', limit = 5, language = 'greek'){
   const seen = new Set();
   return index.filter(item => readerLemmaIndex(item, lemma) >= 0).reduce((items, item) => {
     if(items.length >= limit) return items;
@@ -232,7 +260,7 @@ function representativeReaderOccurrences(index = [], lemma = '', limit = 5){
     if(seen.has(key)) return items;
     seen.add(key);
     items.push({
-      language: 'greek',
+      language,
       book: item.book,
       bookName: item.bookName,
       chapter: Number(item.chapter),
@@ -247,7 +275,7 @@ async function getReaderLemmaOccurrences(lemma, language = 'greek', limit = 5){
   const cleanLemma = cleanReaderTokenValue(lemma);
   if(!cleanLemma) return [];
   try {
-    return representativeReaderOccurrences(await loadReaderSearchIndex(language), cleanLemma, limit);
+    return representativeReaderOccurrences(await loadReaderSearchIndex(language), cleanLemma, limit, language);
   } catch(e) {
     return [];
   }
@@ -308,24 +336,27 @@ function getAdjacentReaderLocation(direction){
 }
 function renderReader(){
   const root = $('#readerShell'); if(!root) return;
+  const meta = getReaderLanguageMeta(readerState.language);
+  const config = getReaderConfig(readerState.language);
   const book = getReaderBook(readerState.language, readerState.book);
   const books = getReaderBooks(readerState.language);
   const chapters = getReaderBookChapters(readerState.language, readerState.book);
   const data = readerState.chapterData;
   root.innerHTML = `
     <section class="panel reader-controls" aria-label="Reader controls">
+      <select id="readerLanguageSelect" class="input" aria-label="Reader language selector">${Object.entries(ReaderConfig).map(([key, item]) => `<option value="${key}" ${key===readerState.language?'selected':''}>${escHtml(item.shortLabel || item.label)}</option>`).join('')}</select>
       <select id="readerBookSelect" class="input" aria-label="Book selector">${books.map(item => `<option value="${item.id}" ${item.id===readerState.book?'selected':''}>${escHtml(item.name)}</option>`).join('')}</select>
       <select id="readerChapterSelect" class="input" aria-label="Chapter selector">${chapters.map(ch => `<option value="${ch}" ${ch===readerState.chapter?'selected':''}>Chapter ${ch}</option>`).join('')}</select>
       <button class="btn btn-ghost btn-sm" id="readerPrevBtn" ${getAdjacentReaderLocation(-1)?'':'disabled'}>← Previous</button>
       <button class="btn btn-ghost btn-sm" id="readerNextBtn" ${getAdjacentReaderLocation(1)?'':'disabled'}>Next →</button>
       <div class="reader-reference" id="readerReference">${escHtml(book.name)} ${readerState.chapter}</div>
     </section>
-    <section class="panel reader-search" aria-label="Greek reader search">
-      <input id="readerSearchInput" class="input" placeholder="Search Greek text, lemma, or Matthew 1:1…" autocomplete="off" />
+    <section class="panel reader-search" aria-label="${escReaderAttr(config.shortLabel || meta.label)} reader search">
+      <input id="readerSearchInput" class="input" placeholder="${escReaderAttr(config.searchPlaceholder)}" autocomplete="off" />
       <button class="btn btn-primary btn-sm" id="readerSearchBtn">Search</button>
       <div id="readerSearchResults" class="reader-search-results"></div>
     </section>
-    <article class="reader-text" lang="grc" aria-live="polite">
+    <article class="reader-text reader-text-${escReaderAttr(meta.language)}" aria-live="polite">
       ${readerState.loading ? '<div class="empty-state">Loading chapter…</div>' : ''}
       ${readerState.error ? `<div class="empty-state danger">${escHtml(readerState.error)}</div>` : ''}
       ${!readerState.loading && !readerState.error && data ? renderReaderChapter(data) : ''}
@@ -337,7 +368,8 @@ function renderReader(){
 }
 function renderReaderChapter(data){
   const paragraphs = data.paragraphs || [{ verses: data.verses || [] }];
-  return `<h2 class="reader-chapter-heading">${escHtml(data.bookName)} ${data.chapter}</h2>` + paragraphs.map(paragraph => `<p class="reader-paragraph">${paragraph.verses.map(verse => renderReaderVerse(verse, data)).join(' ')}</p>`).join('');
+  const meta = getReaderLanguageMeta(data.language || readerState.language);
+  return `<h2 class="reader-chapter-heading" dir="ltr">${escHtml(data.bookName)} ${data.chapter}</h2>` + paragraphs.map(paragraph => `<p class="reader-paragraph" lang="${escReaderAttr(meta.htmlLang)}" dir="${escReaderAttr(meta.dir)}">${paragraph.verses.map(verse => renderReaderVerse(verse, data)).join(' ')}</p>`).join('');
 }
 function renderReaderVerse(verse, data = readerState.chapterData || {}){
   const number = verse.number || verse.verse;
@@ -351,6 +383,11 @@ function renderReaderTokens(tokens, reference = {}){
   }).join(' ');
 }
 function wireReaderControls(){
+  $('#readerLanguageSelect')?.addEventListener('change', e => {
+    const language = ReaderConfig[e.target.value] ? e.target.value : 'greek';
+    const book = getReaderBook(language)?.id;
+    setReaderLocation({ language, book, chapter: 1 });
+  });
   $('#readerBookSelect')?.addEventListener('change', e => setReaderLocation({ language: readerState.language, book: e.target.value, chapter: 1 }));
   $('#readerChapterSelect')?.addEventListener('change', e => setReaderLocation({ language: readerState.language, book: readerState.book, chapter: Number(e.target.value) }));
   $('#readerPrevBtn')?.addEventListener('click', () => { const loc = getAdjacentReaderLocation(-1); if(loc) setReaderLocation(loc); });
@@ -415,7 +452,7 @@ function renderReaderWordPageContextContent(occurrences = [], loading = false){
       ? `<div class="word-page-context-list">${occurrences.map(item => `
           <button class="word-page-context-link" type="button" data-language="${escReaderAttr(item.language || 'greek')}" data-book="${escReaderAttr(item.book || '')}" data-chapter="${escReaderAttr(item.chapter || '')}" data-verse="${escReaderAttr(item.verse || '')}">
             <span>${escHtml(item.reference)}</span>
-            <q lang="grc">${escHtml(item.snippet)}</q>
+            <q lang="${escReaderAttr(getReaderLanguageMeta(item.language).htmlLang)}" dir="${escReaderAttr(getReaderLanguageMeta(item.language).dir)}">${escHtml(item.snippet)}</q>
           </button>`).join('')}</div>`
       : '<p class="word-page-context-empty">No reader references found yet.</p>';
 }
@@ -446,7 +483,11 @@ async function updateReaderWordPageContext(lemma, language = 'greek'){
 function renderReaderWordPage(){
   const root = $('#wordPageShell'); if(!root) return;
   const info = readerState.wordPageInfo || {};
+  const meta = getReaderLanguageMeta(info.language || readerState.language);
+  const config = getReaderConfig(info.language || readerState.language);
+  const headwordAttrs = meta.dir === 'rtl' ? ` lang="${escReaderAttr(meta.htmlLang)}" dir="${escReaderAttr(meta.dir)}"` : '';
   const lemma = cleanReaderTokenValue(info.lemma || info.surface);
+  const headword = config.useSurfaceForNumericLemmaHeadword && /^\d+$/.test(lemma) ? cleanReaderTokenValue(info.surface) || lemma : lemma;
   const primaryGloss = cleanReaderTokenValue(info.primaryGloss);
   const alternateGlosses = Array.isArray(info.alternateGlosses) ? info.alternateGlosses.map(cleanReaderTokenValue).filter(Boolean) : [];
   const partOfSpeech = readerPartOfSpeechForInfo(info);
@@ -459,7 +500,7 @@ function renderReaderWordPage(){
   root.innerHTML = `
     <section class="panel word-page-panel" aria-labelledby="wordPageTitle">
       <header class="word-page-header">
-        ${lemma ? `<h1 id="wordPageTitle" class="word-page-headword">${escHtml(lemma)}</h1>` : `<h1 id="wordPageTitle" class="word-page-headword word-page-empty-title">Choose a word</h1>`}
+        ${lemma ? `<h1 id="wordPageTitle" class="word-page-headword"${headwordAttrs}>${escHtml(headword)}</h1>` : `<h1 id="wordPageTitle" class="word-page-headword word-page-empty-title">Choose a word</h1>`}
         ${partOfSpeech ? `<div class="word-page-pos">${escHtml(partOfSpeech)}</div>` : ''}
       </header>
       ${lemma ? `
@@ -493,6 +534,7 @@ function renderReaderWordPopup(){
   const active = readerState.activeToken;
   if(!active){ root.innerHTML = ''; return; }
   const info = active.info || {};
+  const meta = getReaderLanguageMeta(info.language || readerState.language);
   const links = readerGrammarLinksForInfo(info);
   const parseExplanation = cleanReaderTokenValue(info.parseExplanation);
   const rawParse = cleanReaderTokenValue(info.parse);
@@ -506,11 +548,12 @@ function renderReaderWordPopup(){
     <div class="reader-word-overlay" data-reader-popup-overlay>
       <section class="reader-word-popup" role="dialog" aria-modal="true" aria-labelledby="readerWordPopupTitle">
         <button class="reader-word-close" type="button" aria-label="Close word popup">✕</button>
-        <div class="reader-word-surface" id="readerWordPopupTitle">${escHtml(info.surface || 'Word')}</div>
+        <div class="reader-word-surface" id="readerWordPopupTitle" lang="${escReaderAttr(meta.htmlLang)}" dir="${escReaderAttr(meta.dir)}">${escHtml(info.surface || 'Word')}</div>
         <div class="reader-word-gloss">${escHtml(info.primaryGloss || (active.loading ? 'Loading...' : '-'))}</div>
         ${hasDecodedParse ? `<p class="reader-word-meaning">${escHtml(parseExplanation)}</p>` : ''}
         ${info.alternateGlosses?.length ? `<p class="reader-word-also">Also: ${escHtml(info.alternateGlosses.join(', '))}</p>` : ''}
         <div class="reader-word-meta">
+          ${readerPopupMeta('Lemma', info.lemma && info.lemma !== info.surface ? info.lemma : '')}
           ${readerPopupMeta('Frequency', info.frequency ? `${info.frequency}×` : '')}
           ${readerPopupMeta('Reference', info.reference)}
         </div>
@@ -532,17 +575,19 @@ function readerPopupMeta(label, value){
 }
 async function runReaderSearch(query){
   const box = $('#readerSearchResults'); if(!box) return [];
-  const direct = parseReaderReference(query);
+  const language = readerState.language;
+  const meta = getReaderLanguageMeta(language);
+  const direct = parseReaderReference(query, language);
   if(direct){ await setReaderLocation(direct); return [direct]; }
   const q = normalizeReaderText(query);
   if(q.length < 2){ box.innerHTML = '<div class="small muted">Enter at least 2 characters.</div>'; return []; }
   let index = [];
-  try { index = await loadReaderSearchIndex('greek'); } catch(e) { box.innerHTML = '<div class="small muted">Search index unavailable.</div>'; return []; }
+  try { index = await loadReaderSearchIndex(language); } catch(e) { box.innerHTML = '<div class="small muted">Search index unavailable.</div>'; return []; }
   const results = index.filter(item => normalizeReaderText(`${item.text} ${item.lemmas?.join(' ')}`).includes(q)).slice(0, 20);
-  box.innerHTML = results.length ? results.map(item => `<button class="reader-result" data-book="${item.book}" data-chapter="${item.chapter}" data-verse="${item.verse}"><strong>${escHtml(item.bookName)} ${item.chapter}:${item.verse}</strong> ${escHtml(item.text)}</button>`).join('') : '<div class="small muted">No verses found.</div>';
-  $$('.reader-result', box).forEach(btn => btn.addEventListener('click', () => setReaderLocation({ language: 'greek', book: btn.dataset.book, chapter: Number(btn.dataset.chapter), verse: btn.dataset.verse })));
+  box.innerHTML = results.length ? results.map(item => `<button class="reader-result" data-language="${escReaderAttr(language)}" data-book="${escReaderAttr(item.book)}" data-chapter="${escReaderAttr(item.chapter)}" data-verse="${escReaderAttr(item.verse)}"><strong>${escHtml(item.bookName)} ${item.chapter}:${item.verse}</strong> <span lang="${escReaderAttr(meta.htmlLang)}" dir="${escReaderAttr(meta.dir)}">${escHtml(item.text)}</span></button>`).join('') : '<div class="small muted">No verses found.</div>';
+  $$('.reader-result', box).forEach(btn => btn.addEventListener('click', () => setReaderLocation({ language: btn.dataset.language || language, book: btn.dataset.book, chapter: Number(btn.dataset.chapter), verse: btn.dataset.verse })));
   return results;
 }
 async function initReader(){ const loc = loadReaderLocation(); readerState = { ...readerState, ...loc }; await setReaderLocation(loc); }
-if(typeof window !== 'undefined') Object.assign(window, { ReaderConfig, readerState, readerChapterCache, readerManifestCache, readerLoadCounts, getReaderChapterPath, loadReaderManifest, loadReaderChapter, setReaderLocation, getAdjacentReaderLocation, renderReader, renderReaderChapter, renderReaderVerse, renderReaderTokens, initReader, runReaderSearch, loadReaderLocation, saveReaderLocation, parseReaderReference, openReaderTokenPopup, closeReaderWordPopup, openReaderWordPage, renderReaderWordPage, lookupReaderWordInfo, explainReaderParse, readerGrammarLinksForInfo, readerPartOfSpeechForInfo, getReaderLemmaOccurrences, openReaderContextOccurrence });
-if(typeof module !== 'undefined') module.exports = { ReaderConfig, readerState: () => readerState, readerChapterCache, readerManifestCache, readerLoadCounts, getReaderChapterPath, loadReaderManifest, normalizeReaderManifest, getReaderBookChapters, loadReaderChapter, setReaderLocation, getAdjacentReaderLocation, renderReaderChapter, renderReaderVerse, renderReaderTokens, runReaderSearch, loadReaderLocation, saveReaderLocation, parseReaderReference, normalizeReaderText, lookupReaderWordInfo, explainReaderParse, readerGrammarLinksForInfo, readerParseKind, readerPartOfSpeechForInfo, openReaderTokenPopup, closeReaderWordPopup, openReaderWordPage, renderReaderWordPage, loadReaderSearchIndex, representativeReaderOccurrences, getReaderLemmaOccurrences, readerOccurrenceSnippet, renderReaderWordPageContext, renderReaderWordPageContextContent, attachReaderWordPageContextHandlers, openReaderContextOccurrence };
+if(typeof window !== 'undefined') Object.assign(window, { ReaderConfig, readerState, readerChapterCache, readerManifestCache, readerLoadCounts, getReaderChapterPath, getReaderLanguageMeta, loadReaderManifest, loadReaderChapter, setReaderLocation, getAdjacentReaderLocation, renderReader, renderReaderChapter, renderReaderVerse, renderReaderTokens, initReader, runReaderSearch, loadReaderLocation, saveReaderLocation, parseReaderReference, openReaderTokenPopup, closeReaderWordPopup, openReaderWordPage, renderReaderWordPage, lookupReaderWordInfo, explainReaderParse, readerGrammarLinksForInfo, readerPartOfSpeechForInfo, getReaderLemmaOccurrences, openReaderContextOccurrence });
+if(typeof module !== 'undefined') module.exports = { ReaderConfig, readerState: () => readerState, readerChapterCache, readerManifestCache, readerLoadCounts, getReaderChapterPath, getReaderLanguageMeta, loadReaderManifest, normalizeReaderManifest, getReaderBookChapters, loadReaderChapter, setReaderLocation, getAdjacentReaderLocation, renderReaderChapter, renderReaderVerse, renderReaderTokens, runReaderSearch, loadReaderLocation, saveReaderLocation, parseReaderReference, normalizeReaderText, lookupReaderWordInfo, explainReaderParse, readerGrammarLinksForInfo, readerParseKind, readerPartOfSpeechForInfo, openReaderTokenPopup, closeReaderWordPopup, openReaderWordPage, renderReaderWordPage, loadReaderSearchIndex, representativeReaderOccurrences, getReaderLemmaOccurrences, readerOccurrenceSnippet, renderReaderWordPageContext, renderReaderWordPageContextContent, attachReaderWordPageContextHandlers, openReaderContextOccurrence };

@@ -45,6 +45,12 @@ test('decodes Hebrew nominal parse codes', () => {
   assert.equal(parsed.summary, 'Noun, masculine, singular, absolute');
 });
 
+test('decodes OSHB Hebrew reader parse codes', () => {
+  assert.equal(decodeParse('HC/Vqw3ms', 'hebrew').summary, 'Verb, Qal, wayyiqtol, 3rd person masculine singular');
+  assert.equal(decodeParse('HNcmsc', 'hebrew').summary, 'Noun, masculine, singular, construct');
+  assert.equal(decodeParse('HR', 'hebrew').label, 'Preposition');
+});
+
 test('builds and matches grammar categories', () => {
   const rows = [
     { word: 'λόγος', lang: 'greek', pos: 'noun', parse: 'N-NSM' },
