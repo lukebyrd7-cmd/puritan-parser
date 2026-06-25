@@ -1,8 +1,108 @@
-# The Puritan Parser Architecture
+# Architecture
+
+Puritan Parser is a local-first, static Biblical Greek and Hebrew reading app. Its architecture should stay boring in the best sense: clear module boundaries, repeatable data generation, shared infrastructure, and minimal runtime magic.
+
+This document records not only what exists, but why it exists.
+
+## Architectural Principles
+
+### Reading-first architecture
+
+Architecture exists to support reading Scripture in the original languages. New features should shorten the path from a user's question back to the biblical text.
+
+### Local first
+
+User progress, preferences, review history, and future personal data belong to the user. Browser storage and export remain the default persistence model unless a backend is explicitly requested.
+
+### Static data and user data stay separate
+
+Vocabulary source data, glosses, parsing data, grammar reference data, and Reader chapter files are source content. Review progress, preferences, custom glosses, and future notes are user data. Mixing these makes migrations, exports, and data refreshes brittle.
+
+### Shared before separate
+
+Whenever possible, prefer:
+
+- One Reader
+- One Word Page model
+- One popup pattern
+- One navigation model
+- One search philosophy
+- One generated-data pipeline shape
+
+Introduce language-specific implementations only when Greek and Hebrew genuinely need different behavior.
+
+### Incremental over sweeping
+
+Prefer incremental improvements that preserve behavior. Large rewrites should be rare and justified by a clear architectural simplification.
+
+## Word Pages
+
+Word Pages exist because routing-heavy implementations proved too fragile for the desired workflow. The successful model is view-first:
+
+- the router shows the `wordPageView`;
+- Reader or vocabulary interactions place the selected word information into app state;
+- the Word Page renders from that state;
+- "Read in Context" returns users to the Reader location.
+
+This keeps Word Pages aligned with the rest of the app's screen model instead of creating a separate route-driven mini-application.
+
+The purpose of a Word Page is not to detain the user. It should answer focused questions about a word and then help the user return to the passage.
+
+## Reader
+
+The Reader is shared infrastructure for both Greek and Hebrew.
+
+`src/features/reader/index.js` contains language-aware configuration for:
+
+- labels and HTML language direction;
+- data roots;
+- manifests;
+- gloss files;
+- search indexes;
+- grammar-link mapping;
+- fallback book behavior.
+
+The Reader should remain one Reader unless separate implementations become unavoidable. Greek and Hebrew need different data roots, typography, and parsing conventions, but they should share loading, navigation, caching, search flow, word popup behavior, and Word Page integration.
+
+Reader data is lazy-loaded one chapter at a time. Large JSON content must stay out of startup modules and service-worker install precaches.
+
+## Generated Data
+
+Generated data is a core part of the project.
+
+The app relies on repeatable scripts for source downloads, vocabulary generation, gloss merging, Reader chapter generation, Hebrew Reader generation, and Reader audits. Important scripts include:
+
+- `scripts/download-source-data.js`
+- `scripts/build-expanded-vocab.js`
+- `scripts/generate-reader-data.js`
+- `scripts/generate-hebrew-reader-data.js`
+- `scripts/audit-reader-data.js`
+- `scripts/gloss-audit.js`
+
+Generated outputs should be reproducible, auditable, and traceable to source files and attribution notes. Do not hand-edit large generated datasets when a script should own them.
+
+## Development Philosophy
+
+Prove the architecture before adding complexity.
+
+When a feature repeatedly needs special cases, reconsider the shape of the feature instead of layering more conditionals on top. Prefer a smaller shared model that works over a clever abstraction that hides duplication.
+
+Release meaningful work incrementally. Keep behavior stable, add tests around risky boundaries, and document architectural decisions when they will matter to future contributors.
+
+## Lessons Learned
+
+- Routing-heavy Word Page implementations were brittle. A view-first architecture works better with the existing app shell.
+- Greek and Hebrew Reader work should share one shell. Language-specific configuration is cheaper and clearer than duplicate Readers.
+- Generated data pipelines are safer than manual data maintenance.
+- Lazy loading protects startup performance and keeps future content growth manageable.
+- Static source data and user progress must remain separate so refreshes do not destroy user work.
+- Documentation should move with the product. Important product and architecture decisions should not live only in chat history.
+
+---
+
+## Current App Structure
 
 Phase 2 builds a clean data layer on top of the Phase 1 modular structure while preserving the local-first, static-app behavior.
-
-## Current app structure
 
 - `index.html` owns the page markup and loads one modular entry point, `src/main.js`.
 - `src/main.js` loads the Phase 1 modules plus the Phase 2 data-layer modules in dependency order.
@@ -299,4 +399,3 @@ Future languages should follow the same pattern: add a morphology parser that pr
 ## v3.5 Grammar & Reference Library
 
 The Reference / Grammar library is a modular, local content feature for concise Greek and Hebrew grammar pages. Topic data lives in `src/features/grammar/reference-data.js`, rendering lives in `src/features/grammar/index.js`, and the app shell provides the `grammarView` route. See `docs/reference-library.md` for the content model, scope boundaries, search behavior, and instructions for adding topics.
-
