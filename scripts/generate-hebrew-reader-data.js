@@ -6,6 +6,11 @@ const ROOT = path.resolve(__dirname, '..');
 const DEFAULT_SOURCE_ROOT = path.join(ROOT, 'data', 'source');
 const DEFAULT_OUTPUT_ROOT = path.join(ROOT, 'data', 'hebrew');
 const SOURCE_LABEL = 'Open Scriptures Hebrew Bible (data/source/morphhb-wlc)';
+const DEFAULT_BOOKS = ['jonah', 'ruth'];
+const DEFAULT_CHAPTERS_BY_BOOK = {
+  jonah: [1],
+  ruth: []
+};
 
 const BOOKS = {
   Gen: { id: 'genesis', name: 'Genesis', sourceFile: 'Gen.xml' },
@@ -53,19 +58,29 @@ function parseArgs(argv = process.argv.slice(2)) {
   const opts = {
     sourceRoot: DEFAULT_SOURCE_ROOT,
     outputRoot: DEFAULT_OUTPUT_ROOT,
-    books: ['jonah'],
-    chapters: [1],
+    books: [...DEFAULT_BOOKS],
+    chapters: [],
+    chaptersByBook: { ...DEFAULT_CHAPTERS_BY_BOOK },
     searchIndex: true
   };
+  let customSelection = false;
   for (let i = 0; i < argv.length; i++) {
     const arg = argv[i];
     if (arg === '--source-root') opts.sourceRoot = path.resolve(argv[++i]);
     else if (arg === '--output-root') opts.outputRoot = path.resolve(argv[++i]);
     else if (arg === '--book') {
-      if (opts.books.length === 1 && opts.books[0] === 'jonah') opts.books = [];
+      if (!customSelection) {
+        opts.books = [];
+        opts.chaptersByBook = null;
+        customSelection = true;
+      }
       opts.books.push(argv[++i]);
     } else if (arg === '--chapter') {
-      if (opts.chapters.length === 1 && opts.chapters[0] === 1) opts.chapters = [];
+      if (!customSelection) {
+        opts.books = [];
+        opts.chaptersByBook = null;
+        customSelection = true;
+      }
       opts.chapters.push(Number(argv[++i]));
     } else if (arg === '--all-chapters') opts.chapters = [];
     else if (arg === '--no-search-index') opts.searchIndex = false;
@@ -83,14 +98,21 @@ function bookMatches(info, wanted) {
   return keys.includes(normalizeKey(wanted));
 }
 
-function selectedBooks(wantedBooks = ['jonah']) {
-  const wanted = wantedBooks.length ? wantedBooks : ['jonah'];
-  return Object.entries(BOOKS)
-    .map(([sourceCode, info]) => ({ sourceCode, ...info }))
-    .filter(info => wanted.some(book => bookMatches(info, book)));
+function selectedBooks(wantedBooks = DEFAULT_BOOKS) {
+  const wanted = wantedBooks.length ? wantedBooks : DEFAULT_BOOKS;
+  const available = Object.entries(BOOKS).map(([sourceCode, info]) => ({ sourceCode, ...info }));
+  const seen = new Set();
+  return wanted.reduce((selected, book) => {
+    const match = available.find(info => !seen.has(info.id) && bookMatches(info, book));
+    if (match) {
+      seen.add(match.id);
+      selected.push(match);
+    }
+    return selected;
+  }, []);
 }
 
-function findOshbFiles(sourceRoot = DEFAULT_SOURCE_ROOT, wantedBooks = ['jonah']) {
+function findOshbFiles(sourceRoot = DEFAULT_SOURCE_ROOT, wantedBooks = DEFAULT_BOOKS) {
   const dir = path.join(sourceRoot, 'morphhb-wlc');
   if (!fs.existsSync(dir)) return [];
   return selectedBooks(wantedBooks)
@@ -213,24 +235,36 @@ function searchEntriesFromChapter(chapter) {
   }));
 }
 
-function missingSourceMessage(sourceRoot, books = ['jonah']) {
+function missingSourceMessage(sourceRoot, books = DEFAULT_BOOKS) {
   const sourceDir = path.join(sourceRoot, 'morphhb-wlc');
   const expected = selectedBooks(books).map(info => path.join('data', 'source', 'morphhb-wlc', info.sourceFile));
   const fileList = expected.length ? expected.join(', ') : path.join('data', 'source', 'morphhb-wlc', 'Jonah.xml');
   return `No OSHB source XML files found. Expected ${fileList}. Run \`npm run data:download\` first or pass --source-root pointing to a folder containing morphhb-wlc/*.xml. Looked in ${sourceDir}.`;
 }
 
+function chaptersForBook(info, opts = {}) {
+  const byBook = opts.chaptersByBook || {};
+  const keys = [info.id, info.name, info.sourceCode, info.sourceFile?.replace(/\.xml$/i, '')].map(normalizeKey);
+  const match = Object.entries(byBook).find(([book]) => keys.includes(normalizeKey(book)));
+  return match ? match[1] : opts.chapters;
+}
+
 function generateHebrewReaderData(options = {}) {
+  const hasExplicitSelection = Object.prototype.hasOwnProperty.call(options, 'books')
+    || Object.prototype.hasOwnProperty.call(options, 'chapters')
+    || Object.prototype.hasOwnProperty.call(options, 'chaptersByBook');
   const opts = {
     sourceRoot: DEFAULT_SOURCE_ROOT,
     outputRoot: DEFAULT_OUTPUT_ROOT,
-    books: ['jonah'],
-    chapters: [1],
+    books: [...DEFAULT_BOOKS],
+    chapters: [],
+    chaptersByBook: { ...DEFAULT_CHAPTERS_BY_BOOK },
     searchIndex: true,
     ...options
   };
+  if (hasExplicitSelection && !Object.prototype.hasOwnProperty.call(options, 'chaptersByBook')) opts.chaptersByBook = null;
   const files = findOshbFiles(opts.sourceRoot, opts.books);
-  const chapters = files.flatMap(({ filePath, info }) => buildBookChapters(filePath, info, opts.chapters));
+  const chapters = files.flatMap(({ filePath, info }) => buildBookChapters(filePath, info, chaptersForBook(info, opts)));
   for (const chapter of chapters) writeJson(path.join(opts.outputRoot, chapter.book, `${chapter.chapter}.json`), chapter);
   writeJson(path.join(opts.outputRoot, 'manifest.json'), manifestFromChapters(chapters));
   if (opts.searchIndex) writeJson(path.join(opts.outputRoot, 'search-index.json'), chapters.flatMap(searchEntriesFromChapter));
@@ -259,6 +293,7 @@ module.exports = {
   buildBookChapters,
   manifestFromChapters,
   searchEntriesFromChapter,
+  chaptersForBook,
   missingSourceMessage,
   generateHebrewReaderData
 };
