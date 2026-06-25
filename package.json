@@ -11,6 +11,7 @@
     "test": "node --test",
     "gloss:audit": "node scripts/gloss-audit.js",
     "reader:generate": "node scripts/generate-reader-data.js",
+    "hebrew:reader:generate": "node scripts/generate-hebrew-reader-data.js",
     "reader:audit": "node scripts/audit-reader-data.js",
     "reader:update": "npm run data:download && npm run reader:generate && npm run reader:audit && npm test"
   },
