@@ -1,0 +1,4214 @@
+{
+  "language": "hebrew",
+  "book": "nehemiah",
+  "bookName": "Nehemiah",
+  "chapter": 7,
+  "source": "Open Scriptures Hebrew Bible (data/source/morphhb-wlc)",
+  "verses": [
+    {
+      "verse": 1,
+      "text": "וַיְהִ֗י כַּאֲשֶׁ֤ר נִבְנְתָה֙ הַחוֹמָ֔ה וָאַעֲמִ֖יד הַדְּלָת֑וֹת וַיִּפָּֽקְד֛וּ הַשּׁוֹעֲרִ֥ים וְהַמְשֹׁרְרִ֖ים וְהַלְוִיִּֽם׃",
+      "tokens": [
+        {
+          "surface": "וַיְהִ֗י",
+          "lemma": "1961",
+          "parse": "HC/Vqw3ms",
+          "sourceLemma": "c/1961",
+          "n": "1.1.1"
+        },
+        {
+          "surface": "כַּאֲשֶׁ֤ר",
+          "lemma": "834",
+          "parse": "HR/Tr",
+          "sourceLemma": "k/834 d"
+        },
+        {
+          "surface": "נִבְנְתָה֙",
+          "lemma": "1129",
+          "parse": "HVNp3fs",
+          "n": "1.1.0"
+        },
+        {
+          "surface": "הַחוֹמָ֔ה",
+          "lemma": "2346",
+          "parse": "HTd/Ncfsa",
+          "sourceLemma": "d/2346",
+          "n": "1.1"
+        },
+        {
+          "surface": "וָאַעֲמִ֖יד",
+          "lemma": "5975",
+          "parse": "HC/Vhw1cs",
+          "sourceLemma": "c/5975",
+          "n": "1.0"
+        },
+        {
+          "surface": "הַדְּלָת֑וֹת",
+          "lemma": "1817",
+          "parse": "HTd/Ncfpa",
+          "sourceLemma": "d/1817 c",
+          "n": "1"
+        },
+        {
+          "surface": "וַיִּפָּֽקְד֛וּ",
+          "lemma": "6485",
+          "parse": "HC/VNw3mp",
+          "sourceLemma": "c/6485 a",
+          "n": "0.0.0"
+        },
+        {
+          "surface": "הַשּׁוֹעֲרִ֥ים",
+          "lemma": "7778",
+          "parse": "HTd/Ncmpa",
+          "sourceLemma": "d/7778"
+        },
+        {
+          "surface": "וְהַמְשֹׁרְרִ֖ים",
+          "lemma": "7891",
+          "parse": "HC/Td/Vormpa",
+          "sourceLemma": "c/d/7891",
+          "n": "0.0"
+        },
+        {
+          "surface": "וְהַלְוִיִּֽם",
+          "lemma": "3881",
+          "parse": "HC/Td/Ngmpa",
+          "sourceLemma": "c/d/3881",
+          "n": "0"
+        }
+      ]
+    },
+    {
+      "verse": 2,
+      "text": "וָאֲצַוֶּ֞ה אֶת חֲנָ֣נִי אָחִ֗י וְאֶת חֲנַנְיָ֛ה שַׂ֥ר הַבִּירָ֖ה עַל יְרוּשָׁלִָ֑ם כִּי הוּא֙ כְּאִ֣ישׁ אֱמֶ֔ת וְיָרֵ֥א אֶת הָאֱלֹהִ֖ים מֵרַבִּֽים׃",
+      "tokens": [
+        {
+          "surface": "וָאֲצַוֶּ֞ה",
+          "lemma": "6680",
+          "parse": "HC/Vpw1cs",
+          "sourceLemma": "c/6680",
+          "n": "1.0.1.0"
+        },
+        {
+          "surface": "אֶת",
+          "lemma": "853",
+          "parse": "HTo"
+        },
+        {
+          "surface": "חֲנָ֣נִי",
+          "lemma": "2607",
+          "parse": "HNp"
+        },
+        {
+          "surface": "אָחִ֗י",
+          "lemma": "251",
+          "parse": "HNcmsc/Sp1cs",
+          "n": "1.0.1"
+        },
+        {
+          "surface": "וְאֶת",
+          "lemma": "853",
+          "parse": "HC/To",
+          "sourceLemma": "c/853"
+        },
+        {
+          "surface": "חֲנַנְיָ֛ה",
+          "lemma": "2608",
+          "parse": "HNp",
+          "sourceLemma": "2608 a",
+          "n": "1.0.0"
+        },
+        {
+          "surface": "שַׂ֥ר",
+          "lemma": "8269",
+          "parse": "HNcmsc"
+        },
+        {
+          "surface": "הַבִּירָ֖ה",
+          "lemma": "1002",
+          "parse": "HTd/Ncfsa",
+          "sourceLemma": "d/1002",
+          "n": "1.0"
+        },
+        {
+          "surface": "עַל",
+          "lemma": "5921",
+          "parse": "HR",
+          "sourceLemma": "5921 a"
+        },
+        {
+          "surface": "יְרוּשָׁלִָ֑ם",
+          "lemma": "3389",
+          "parse": "HNp",
+          "n": "1"
+        },
+        {
+          "surface": "כִּי",
+          "lemma": "3588",
+          "parse": "HC",
+          "sourceLemma": "3588 a"
+        },
+        {
+          "surface": "הוּא֙",
+          "lemma": "1931",
+          "parse": "HPp3ms",
+          "n": "0.1.0"
+        },
+        {
+          "surface": "כְּאִ֣ישׁ",
+          "lemma": "376",
+          "parse": "HR/Ncmsc",
+          "sourceLemma": "k/376"
+        },
+        {
+          "surface": "אֱמֶ֔ת",
+          "lemma": "571",
+          "parse": "HNcfsa",
+          "n": "0.1"
+        },
+        {
+          "surface": "וְיָרֵ֥א",
+          "lemma": "3372",
+          "parse": "HC/Vqp3ms",
+          "sourceLemma": "c/3372"
+        },
+        {
+          "surface": "אֶת",
+          "lemma": "853",
+          "parse": "HTo"
+        },
+        {
+          "surface": "הָאֱלֹהִ֖ים",
+          "lemma": "430",
+          "parse": "HTd/Ncmpa",
+          "sourceLemma": "d/430",
+          "n": "0.0"
+        },
+        {
+          "surface": "מֵרַבִּֽים",
+          "lemma": "7227",
+          "parse": "HR/Aampa",
+          "sourceLemma": "m/7227 a",
+          "n": "0"
+        }
+      ]
+    },
+    {
+      "verse": 3,
+      "text": "ויאמר וָאֹמַ֣ר לָהֶ֗ם לֹ֣א יִפָּֽתְח֞וּ שַׁעֲרֵ֤י יְרוּשָׁלִַ֨ם֙ עַד חֹ֣ם הַשֶּׁ֔מֶשׁ וְעַ֨ד הֵ֥ם עֹמְדִ֛ים יָגִ֥יפוּ הַדְּלָת֖וֹת וֶאֱחֹ֑זוּ וְהַעֲמֵ֗יד מִשְׁמְרוֹת֙ יֹשְׁבֵ֣י יְרוּשָׁלִַ֔ם אִ֚ישׁ בְּמִשְׁמָר֔וֹ וְאִ֖ישׁ נֶ֥גֶד בֵּיתֽוֹ׃",
+      "tokens": [
+        {
+          "surface": "ויאמר",
+          "lemma": "559",
+          "parse": "HC/Vqw3ms",
+          "sourceLemma": "c/559"
+        },
+        {
+          "surface": "וָאֹמַ֣ר",
+          "lemma": "559",
+          "parse": "HC/Vqw1cs",
+          "sourceLemma": "c/559"
+        },
+        {
+          "surface": "לָהֶ֗ם",
+          "lemma": "l",
+          "parse": "HR/Sp3mp",
+          "n": "1.1.1"
+        },
+        {
+          "surface": "לֹ֣א",
+          "lemma": "3808",
+          "parse": "HTn"
+        },
+        {
+          "surface": "יִפָּֽתְח֞וּ",
+          "lemma": "6605",
+          "parse": "HVNi3mp",
+          "sourceLemma": "6605 a",
+          "n": "1.1.0.0"
+        },
+        {
+          "surface": "שַׁעֲרֵ֤י",
+          "lemma": "8179",
+          "parse": "HNcmpc"
+        },
+        {
+          "surface": "יְרוּשָׁלִַ֨ם֙",
+          "lemma": "3389",
+          "parse": "HNp",
+          "n": "1.1.0"
+        },
+        {
+          "surface": "עַד",
+          "lemma": "5704",
+          "parse": "HR"
+        },
+        {
+          "surface": "חֹ֣ם",
+          "lemma": "2527",
+          "parse": "HVqc"
+        },
+        {
+          "surface": "הַשֶּׁ֔מֶשׁ",
+          "lemma": "8121",
+          "parse": "HTd/Ncbsa",
+          "sourceLemma": "d/8121",
+          "n": "1.1"
+        },
+        {
+          "surface": "וְעַ֨ד",
+          "lemma": "5704",
+          "parse": "HC/R",
+          "sourceLemma": "c/5704"
+        },
+        {
+          "surface": "הֵ֥ם",
+          "lemma": "1992",
+          "parse": "HPp3mp"
+        },
+        {
+          "surface": "עֹמְדִ֛ים",
+          "lemma": "5975",
+          "parse": "HVqrmpa",
+          "n": "1.0.0"
+        },
+        {
+          "surface": "יָגִ֥יפוּ",
+          "lemma": "1479",
+          "parse": "HVhi3mp"
+        },
+        {
+          "surface": "הַדְּלָת֖וֹת",
+          "lemma": "1817",
+          "parse": "HTd/Ncfpa",
+          "sourceLemma": "d/1817 c",
+          "n": "1.0"
+        },
+        {
+          "surface": "וֶאֱחֹ֑זוּ",
+          "lemma": "270",
+          "parse": "HC/Vqv2mp",
+          "sourceLemma": "c/270",
+          "n": "1"
+        },
+        {
+          "surface": "וְהַעֲמֵ֗יד",
+          "lemma": "5975",
+          "parse": "HC/Vha",
+          "sourceLemma": "c/5975",
+          "n": "0.2.1"
+        },
+        {
+          "surface": "מִשְׁמְרוֹת֙",
+          "lemma": "4931",
+          "parse": "HNcfpc",
+          "n": "0.2.0"
+        },
+        {
+          "surface": "יֹשְׁבֵ֣י",
+          "lemma": "3427",
+          "parse": "HVqrmpc"
+        },
+        {
+          "surface": "יְרוּשָׁלִַ֔ם",
+          "lemma": "3389",
+          "parse": "HNp",
+          "n": "0.2"
+        },
+        {
+          "surface": "אִ֚ישׁ",
+          "lemma": "376",
+          "parse": "HNcmsa",
+          "n": "0.1.0"
+        },
+        {
+          "surface": "בְּמִשְׁמָר֔וֹ",
+          "lemma": "4929",
+          "parse": "HR/Ncmsc/Sp3ms",
+          "sourceLemma": "b/4929",
+          "n": "0.1"
+        },
+        {
+          "surface": "וְאִ֖ישׁ",
+          "lemma": "376",
+          "parse": "HC/Ncmsa",
+          "sourceLemma": "c/376",
+          "n": "0.0"
+        },
+        {
+          "surface": "נֶ֥גֶד",
+          "lemma": "5048",
+          "parse": "HR"
+        },
+        {
+          "surface": "בֵּיתֽוֹ",
+          "lemma": "1004",
+          "parse": "HNcmsc/Sp3ms",
+          "sourceLemma": "1004 b",
+          "n": "0"
+        }
+      ]
+    },
+    {
+      "verse": 4,
+      "text": "וְהָעִ֞יר רַחֲבַ֤ת יָדַ֨יִם֙ וּגְדוֹלָ֔ה וְהָעָ֥ם מְעַ֖ט בְּתוֹכָ֑הּ וְאֵ֥ין בָּתִּ֖ים בְּנוּיִֽם׃",
+      "tokens": [
+        {
+          "surface": "וְהָעִ֞יר",
+          "lemma": "5892",
+          "parse": "HC/Td/Ncfsa",
+          "sourceLemma": "c/d/5892 b",
+          "n": "1.1.0.0"
+        },
+        {
+          "surface": "רַחֲבַ֤ת",
+          "lemma": "7342",
+          "parse": "HAafsc"
+        },
+        {
+          "surface": "יָדַ֨יִם֙",
+          "lemma": "3027",
+          "parse": "HNcbda",
+          "n": "1.1.0"
+        },
+        {
+          "surface": "וּגְדוֹלָ֔ה",
+          "lemma": "1419",
+          "parse": "HC/Aafsa",
+          "sourceLemma": "c/1419 a",
+          "n": "1.1"
+        },
+        {
+          "surface": "וְהָעָ֥ם",
+          "lemma": "5971",
+          "parse": "HC/Td/Ncmsa",
+          "sourceLemma": "c/d/5971 a"
+        },
+        {
+          "surface": "מְעַ֖ט",
+          "lemma": "4592",
+          "parse": "HNcmsa",
+          "n": "1.0"
+        },
+        {
+          "surface": "בְּתוֹכָ֑הּ",
+          "lemma": "8432",
+          "parse": "HR/Ncmsc/Sp3fs",
+          "sourceLemma": "b/8432",
+          "n": "1"
+        },
+        {
+          "surface": "וְאֵ֥ין",
+          "lemma": "369",
+          "parse": "HC/Tn",
+          "sourceLemma": "c/369"
+        },
+        {
+          "surface": "בָּתִּ֖ים",
+          "lemma": "1004",
+          "parse": "HNcmpa",
+          "sourceLemma": "1004 b",
+          "n": "0.0"
+        },
+        {
+          "surface": "בְּנוּיִֽם",
+          "lemma": "1129",
+          "parse": "HVqsmpa",
+          "n": "0"
+        }
+      ]
+    },
+    {
+      "verse": 5,
+      "text": "וַיִּתֵּ֤ן אֱלֹהַי֙ אֶל לִבִּ֔י וָאֶקְבְּצָ֞ה אֶת הַחֹרִ֧ים וְאֶת הַסְּגָנִ֛ים וְאֶת הָעָ֖ם לְהִתְיַחֵ֑שׂ וָֽאֶמְצָ֗א סֵ֤פֶר הַיַּ֨חַשׂ֙ הָעוֹלִ֣ים בָּרִאשׁוֹנָ֔ה וָאֶמְצָ֖א כָּת֥וּב בּֽוֹ׃",
+      "tokens": [
+        {
+          "surface": "וַיִּתֵּ֤ן",
+          "lemma": "5414",
+          "parse": "HC/Vqw3ms",
+          "sourceLemma": "c/5414"
+        },
+        {
+          "surface": "אֱלֹהַי֙",
+          "lemma": "430",
+          "parse": "HNcmpc/Sp1cs",
+          "n": "1.1.0"
+        },
+        {
+          "surface": "אֶל",
+          "lemma": "413",
+          "parse": "HR"
+        },
+        {
+          "surface": "לִבִּ֔י",
+          "lemma": "3820",
+          "parse": "HNcmsc/Sp1cs",
+          "sourceLemma": "3820 a",
+          "n": "1.1"
+        },
+        {
+          "surface": "וָאֶקְבְּצָ֞ה",
+          "lemma": "6908",
+          "parse": "HC/Vqw1cs/Sh",
+          "sourceLemma": "c/6908",
+          "n": "1.0.0.0"
+        },
+        {
+          "surface": "אֶת",
+          "lemma": "853",
+          "parse": "HTo"
+        },
+        {
+          "surface": "הַחֹרִ֧ים",
+          "lemma": "2715",
+          "parse": "HTd/Ncmpa",
+          "sourceLemma": "d/2715"
+        },
+        {
+          "surface": "וְאֶת",
+          "lemma": "853",
+          "parse": "HC/To",
+          "sourceLemma": "c/853"
+        },
+        {
+          "surface": "הַסְּגָנִ֛ים",
+          "lemma": "5461",
+          "parse": "HTd/Ncmpa",
+          "sourceLemma": "d/5461",
+          "n": "1.0.0"
+        },
+        {
+          "surface": "וְאֶת",
+          "lemma": "853",
+          "parse": "HC/To",
+          "sourceLemma": "c/853"
+        },
+        {
+          "surface": "הָעָ֖ם",
+          "lemma": "5971",
+          "parse": "HTd/Ncmsa",
+          "sourceLemma": "d/5971 a",
+          "n": "1.0"
+        },
+        {
+          "surface": "לְהִתְיַחֵ֑שׂ",
+          "lemma": "3187",
+          "parse": "HR/Vtc",
+          "sourceLemma": "l/3187",
+          "n": "1"
+        },
+        {
+          "surface": "וָֽאֶמְצָ֗א",
+          "lemma": "4672",
+          "parse": "HC/Vqw1cs",
+          "sourceLemma": "c/4672",
+          "n": "0.1.1"
+        },
+        {
+          "surface": "סֵ֤פֶר",
+          "lemma": "5612",
+          "parse": "HNcmsc",
+          "sourceLemma": "5612 a"
+        },
+        {
+          "surface": "הַיַּ֨חַשׂ֙",
+          "lemma": "3188",
+          "parse": "HTd/Ncmsa",
+          "sourceLemma": "d/3188",
+          "n": "0.1.0"
+        },
+        {
+          "surface": "הָעוֹלִ֣ים",
+          "lemma": "5927",
+          "parse": "HTd/Vqrmpa",
+          "sourceLemma": "d/5927"
+        },
+        {
+          "surface": "בָּרִאשׁוֹנָ֔ה",
+          "lemma": "7223",
+          "parse": "HRd/Aafsa",
+          "sourceLemma": "b/7223",
+          "n": "0.1"
+        },
+        {
+          "surface": "וָאֶמְצָ֖א",
+          "lemma": "4672",
+          "parse": "HC/Vqw1cs",
+          "sourceLemma": "c/4672",
+          "n": "0.0"
+        },
+        {
+          "surface": "כָּת֥וּב",
+          "lemma": "3789",
+          "parse": "HVqsmsa"
+        },
+        {
+          "surface": "בּֽוֹ",
+          "lemma": "b",
+          "parse": "HR/Sp3ms",
+          "n": "0"
+        }
+      ]
+    },
+    {
+      "verse": 6,
+      "text": "אֵ֣לֶּה בְּנֵ֣י הַמְּדִינָ֗ה הָעֹלִים֙ מִשְּׁבִ֣י הַגּוֹלָ֔ה אֲשֶׁ֣ר הֶגְלָ֔ה נְבוּכַדְנֶצַּ֖ר מֶ֣לֶךְ בָּבֶ֑ל וַיָּשׁ֧וּבוּ לִֽירוּשָׁלִַ֛ם וְלִיהוּדָ֖ה אִ֥ישׁ לְעִירֽוֹ׃",
+      "tokens": [
+        {
+          "surface": "אֵ֣לֶּה",
+          "lemma": "428",
+          "parse": "HPdxcp",
+          "n": "1.2.1.0"
+        },
+        {
+          "surface": "בְּנֵ֣י",
+          "lemma": "1121",
+          "parse": "HNcmpc",
+          "sourceLemma": "1121 a"
+        },
+        {
+          "surface": "הַמְּדִינָ֗ה",
+          "lemma": "4082",
+          "parse": "HTd/Ncfsa",
+          "sourceLemma": "d/4082",
+          "n": "1.2.1"
+        },
+        {
+          "surface": "הָעֹלִים֙",
+          "lemma": "5927",
+          "parse": "HTd/Vqrmpa",
+          "sourceLemma": "d/5927",
+          "n": "1.2.0"
+        },
+        {
+          "surface": "מִשְּׁבִ֣י",
+          "lemma": "7628",
+          "parse": "HR/Ncbsc",
+          "sourceLemma": "m/7628 a"
+        },
+        {
+          "surface": "הַגּוֹלָ֔ה",
+          "lemma": "1473",
+          "parse": "HTd/Ncfsa",
+          "sourceLemma": "d/1473",
+          "n": "1.2"
+        },
+        {
+          "surface": "אֲשֶׁ֣ר",
+          "lemma": "834",
+          "parse": "HTr",
+          "sourceLemma": "834 a"
+        },
+        {
+          "surface": "הֶגְלָ֔ה",
+          "lemma": "1540",
+          "parse": "HVhp3ms",
+          "n": "1.1"
+        },
+        {
+          "surface": "נְבוּכַדְנֶצַּ֖ר",
+          "lemma": "5019",
+          "parse": "HNp",
+          "n": "1.0"
+        },
+        {
+          "surface": "מֶ֣לֶךְ",
+          "lemma": "4428",
+          "parse": "HNcmsc"
+        },
+        {
+          "surface": "בָּבֶ֑ל",
+          "lemma": "894",
+          "parse": "HNp",
+          "n": "1"
+        },
+        {
+          "surface": "וַיָּשׁ֧וּבוּ",
+          "lemma": "7725",
+          "parse": "HC/Vqw3mp",
+          "sourceLemma": "c/7725"
+        },
+        {
+          "surface": "לִֽירוּשָׁלִַ֛ם",
+          "lemma": "3389",
+          "parse": "HR/Np",
+          "sourceLemma": "l/3389",
+          "n": "0.0.0"
+        },
+        {
+          "surface": "וְלִיהוּדָ֖ה",
+          "lemma": "3063",
+          "parse": "HC/R/Np",
+          "sourceLemma": "c/l/3063",
+          "n": "0.0"
+        },
+        {
+          "surface": "אִ֥ישׁ",
+          "lemma": "376",
+          "parse": "HNcmsa"
+        },
+        {
+          "surface": "לְעִירֽוֹ",
+          "lemma": "5892",
+          "parse": "HR/Ncfsc/Sp3ms",
+          "sourceLemma": "l/5892 b",
+          "n": "0"
+        }
+      ]
+    },
+    {
+      "verse": 7,
+      "text": "הַבָּאִ֣ים עִם זְרֻבָּבֶ֗ל יֵשׁ֡וּעַ נְחֶמְיָ֡ה עֲ֠זַרְיָה רַֽעַמְיָ֨ה נַחֲמָ֜נִי מָרְדֳּכַ֥י בִּלְשָׁ֛ן מִסְפֶּ֥רֶת בִּגְוַ֖י נְח֣וּם בַּעֲנָ֑ה מִסְפַּ֕ר אַנְשֵׁ֖י עַ֥ם יִשְׂרָאֵֽל׃",
+      "tokens": [
+        {
+          "surface": "הַבָּאִ֣ים",
+          "lemma": "935",
+          "parse": "HTd/Vqrmpa",
+          "sourceLemma": "d/935"
+        },
+        {
+          "surface": "עִם",
+          "lemma": "5973",
+          "parse": "HR",
+          "sourceLemma": "5973 a"
+        },
+        {
+          "surface": "זְרֻבָּבֶ֗ל",
+          "lemma": "2216",
+          "parse": "HNp",
+          "n": "1.0.1"
+        },
+        {
+          "surface": "יֵשׁ֡וּעַ",
+          "lemma": "3442",
+          "parse": "HNp",
+          "n": "1.0.0.3"
+        },
+        {
+          "surface": "נְחֶמְיָ֡ה",
+          "lemma": "5166",
+          "parse": "HNp",
+          "n": "1.0.0.2"
+        },
+        {
+          "surface": "עֲ֠זַרְיָה",
+          "lemma": "5838",
+          "parse": "HNp",
+          "n": "1.0.0.1"
+        },
+        {
+          "surface": "רַֽעַמְיָ֨ה",
+          "lemma": "7485",
+          "parse": "HNp"
+        },
+        {
+          "surface": "נַחֲמָ֜נִי",
+          "lemma": "5167",
+          "parse": "HNp",
+          "n": "1.0.0.0"
+        },
+        {
+          "surface": "מָרְדֳּכַ֥י",
+          "lemma": "4782",
+          "parse": "HNp"
+        },
+        {
+          "surface": "בִּלְשָׁ֛ן",
+          "lemma": "1114",
+          "parse": "HNp",
+          "n": "1.0.0"
+        },
+        {
+          "surface": "מִסְפֶּ֥רֶת",
+          "lemma": "4559",
+          "parse": "HNp"
+        },
+        {
+          "surface": "בִּגְוַ֖י",
+          "lemma": "902",
+          "parse": "HNp",
+          "n": "1.0"
+        },
+        {
+          "surface": "נְח֣וּם",
+          "lemma": "5149",
+          "parse": "HNp"
+        },
+        {
+          "surface": "בַּעֲנָ֑ה",
+          "lemma": "1196",
+          "parse": "HNp",
+          "n": "1"
+        },
+        {
+          "surface": "מִסְפַּ֕ר",
+          "lemma": "4557",
+          "parse": "HNcmsc",
+          "n": "0.1"
+        },
+        {
+          "surface": "אַנְשֵׁ֖י",
+          "lemma": "376",
+          "parse": "HNcmpc",
+          "n": "0.0"
+        },
+        {
+          "surface": "עַ֥ם",
+          "lemma": "5971",
+          "parse": "HNcmsc",
+          "sourceLemma": "5971 a"
+        },
+        {
+          "surface": "יִשְׂרָאֵֽל",
+          "lemma": "3478",
+          "parse": "HNp",
+          "n": "0"
+        }
+      ]
+    },
+    {
+      "verse": 8,
+      "text": "בְּנֵ֣י פַרְעֹ֔שׁ אַלְפַּ֕יִם מֵאָ֖ה וְשִׁבְעִ֥ים וּשְׁנָֽיִם׃",
+      "tokens": [
+        {
+          "surface": "בְּנֵ֣י",
+          "lemma": "1121",
+          "parse": "HNcmpc",
+          "sourceLemma": "1121 a"
+        },
+        {
+          "surface": "פַרְעֹ֔שׁ",
+          "lemma": "6551",
+          "parse": "HNp",
+          "n": "0.2"
+        },
+        {
+          "surface": "אַלְפַּ֕יִם",
+          "lemma": "505",
+          "parse": "HAcbpa",
+          "n": "0.1"
+        },
+        {
+          "surface": "מֵאָ֖ה",
+          "lemma": "3967",
+          "parse": "HAcbsa",
+          "n": "0.0"
+        },
+        {
+          "surface": "וְשִׁבְעִ֥ים",
+          "lemma": "7657",
+          "parse": "HC/Acbpa",
+          "sourceLemma": "c/7657"
+        },
+        {
+          "surface": "וּשְׁנָֽיִם",
+          "lemma": "8147",
+          "parse": "HC/Acmda",
+          "sourceLemma": "c/8147",
+          "n": "0"
+        }
+      ]
+    },
+    {
+      "verse": 9,
+      "text": "בְּנֵ֣י שְׁפַטְיָ֔ה שְׁלֹ֥שׁ מֵא֖וֹת שִׁבְעִ֥ים וּשְׁנָֽיִם׃",
+      "tokens": [
+        {
+          "surface": "בְּנֵ֣י",
+          "lemma": "1121",
+          "parse": "HNcmpc",
+          "sourceLemma": "1121 a"
+        },
+        {
+          "surface": "שְׁפַטְיָ֔ה",
+          "lemma": "8203",
+          "parse": "HNp",
+          "n": "0.1"
+        },
+        {
+          "surface": "שְׁלֹ֥שׁ",
+          "lemma": "7969",
+          "parse": "HAcfsa"
+        },
+        {
+          "surface": "מֵא֖וֹת",
+          "lemma": "3967",
+          "parse": "HAcbpa",
+          "n": "0.0"
+        },
+        {
+          "surface": "שִׁבְעִ֥ים",
+          "lemma": "7657",
+          "parse": "HAcbpa"
+        },
+        {
+          "surface": "וּשְׁנָֽיִם",
+          "lemma": "8147",
+          "parse": "HC/Acmda",
+          "sourceLemma": "c/8147",
+          "n": "0"
+        }
+      ]
+    },
+    {
+      "verse": 10,
+      "text": "בְּנֵ֣י אָרַ֔ח שֵׁ֥שׁ מֵא֖וֹת חֲמִשִּׁ֥ים וּשְׁנָֽיִם׃",
+      "tokens": [
+        {
+          "surface": "בְּנֵ֣י",
+          "lemma": "1121",
+          "parse": "HNcmpc",
+          "sourceLemma": "1121 a"
+        },
+        {
+          "surface": "אָרַ֔ח",
+          "lemma": "733",
+          "parse": "HNp",
+          "n": "0.1"
+        },
+        {
+          "surface": "שֵׁ֥שׁ",
+          "lemma": "8337",
+          "parse": "HAcfsa"
+        },
+        {
+          "surface": "מֵא֖וֹת",
+          "lemma": "3967",
+          "parse": "HAcbpa",
+          "n": "0.0"
+        },
+        {
+          "surface": "חֲמִשִּׁ֥ים",
+          "lemma": "2572",
+          "parse": "HAcbpa"
+        },
+        {
+          "surface": "וּשְׁנָֽיִם",
+          "lemma": "8147",
+          "parse": "HC/Acmda",
+          "sourceLemma": "c/8147",
+          "n": "0"
+        }
+      ]
+    },
+    {
+      "verse": 11,
+      "text": "בְּנֵֽי פַחַ֥ת מוֹאָ֛ב לִבְנֵ֥י יֵשׁ֖וּעַ וְיוֹאָ֑ב אַלְפַּ֕יִם וּשְׁמֹנֶ֥ה מֵא֖וֹת שְׁמֹנָ֥ה עָשָֽׂר׃",
+      "tokens": [
+        {
+          "surface": "בְּנֵֽי",
+          "lemma": "1121",
+          "parse": "HNcmpc",
+          "sourceLemma": "1121 a"
+        },
+        {
+          "surface": "פַחַ֥ת",
+          "lemma": "6355+",
+          "parse": "HNp"
+        },
+        {
+          "surface": "מוֹאָ֛ב",
+          "lemma": "6355",
+          "parse": "HNp",
+          "n": "1.0.0"
+        },
+        {
+          "surface": "לִבְנֵ֥י",
+          "lemma": "1121",
+          "parse": "HR/Ncmpc",
+          "sourceLemma": "l/1121 a"
+        },
+        {
+          "surface": "יֵשׁ֖וּעַ",
+          "lemma": "3442",
+          "parse": "HNp",
+          "n": "1.0"
+        },
+        {
+          "surface": "וְיוֹאָ֑ב",
+          "lemma": "3097",
+          "parse": "HC/Np",
+          "sourceLemma": "c/3097",
+          "n": "1"
+        },
+        {
+          "surface": "אַלְפַּ֕יִם",
+          "lemma": "505",
+          "parse": "HAcbpa",
+          "n": "0.1"
+        },
+        {
+          "surface": "וּשְׁמֹנֶ֥ה",
+          "lemma": "8083",
+          "parse": "HC/Acfsa",
+          "sourceLemma": "c/8083"
+        },
+        {
+          "surface": "מֵא֖וֹת",
+          "lemma": "3967",
+          "parse": "HAcbpa",
+          "n": "0.0"
+        },
+        {
+          "surface": "שְׁמֹנָ֥ה",
+          "lemma": "8083",
+          "parse": "HAcmsa"
+        },
+        {
+          "surface": "עָשָֽׂר",
+          "lemma": "6240",
+          "parse": "HAcmsa",
+          "n": "0"
+        }
+      ]
+    },
+    {
+      "verse": 12,
+      "text": "בְּנֵ֣י עֵילָ֔ם אֶ֕לֶף מָאתַ֖יִם חֲמִשִּׁ֥ים וְאַרְבָּעָֽה׃",
+      "tokens": [
+        {
+          "surface": "בְּנֵ֣י",
+          "lemma": "1121",
+          "parse": "HNcmpc",
+          "sourceLemma": "1121 a"
+        },
+        {
+          "surface": "עֵילָ֔ם",
+          "lemma": "5867",
+          "parse": "HNp",
+          "sourceLemma": "5867 b",
+          "n": "0.2"
+        },
+        {
+          "surface": "אֶ֕לֶף",
+          "lemma": "505",
+          "parse": "HAcbsa",
+          "n": "0.1"
+        },
+        {
+          "surface": "מָאתַ֖יִם",
+          "lemma": "3967",
+          "parse": "HAcbda",
+          "n": "0.0"
+        },
+        {
+          "surface": "חֲמִשִּׁ֥ים",
+          "lemma": "2572",
+          "parse": "HAcbpa"
+        },
+        {
+          "surface": "וְאַרְבָּעָֽה",
+          "lemma": "702",
+          "parse": "HC/Acmsa",
+          "sourceLemma": "c/702",
+          "n": "0"
+        }
+      ]
+    },
+    {
+      "verse": 13,
+      "text": "בְּנֵ֣י זַתּ֔וּא שְׁמֹנֶ֥ה מֵא֖וֹת אַרְבָּעִ֥ים וַחֲמִשָּֽׁה׃",
+      "tokens": [
+        {
+          "surface": "בְּנֵ֣י",
+          "lemma": "1121",
+          "parse": "HNcmpc",
+          "sourceLemma": "1121 a"
+        },
+        {
+          "surface": "זַתּ֔וּא",
+          "lemma": "2240",
+          "parse": "HNp",
+          "n": "0.1"
+        },
+        {
+          "surface": "שְׁמֹנֶ֥ה",
+          "lemma": "8083",
+          "parse": "HAcfsa"
+        },
+        {
+          "surface": "מֵא֖וֹת",
+          "lemma": "3967",
+          "parse": "HAcbpa",
+          "n": "0.0"
+        },
+        {
+          "surface": "אַרְבָּעִ֥ים",
+          "lemma": "705",
+          "parse": "HAcbpa"
+        },
+        {
+          "surface": "וַחֲמִשָּֽׁה",
+          "lemma": "2568",
+          "parse": "HC/Acmsa",
+          "sourceLemma": "c/2568",
+          "n": "0"
+        }
+      ]
+    },
+    {
+      "verse": 14,
+      "text": "בְּנֵ֣י זַכָּ֔י שְׁבַ֥ע מֵא֖וֹת וְשִׁשִּֽׁים׃",
+      "tokens": [
+        {
+          "surface": "בְּנֵ֣י",
+          "lemma": "1121",
+          "parse": "HNcmpc",
+          "sourceLemma": "1121 a"
+        },
+        {
+          "surface": "זַכָּ֔י",
+          "lemma": "2140",
+          "parse": "HNp",
+          "n": "0.1"
+        },
+        {
+          "surface": "שְׁבַ֥ע",
+          "lemma": "7651",
+          "parse": "HAcfsa"
+        },
+        {
+          "surface": "מֵא֖וֹת",
+          "lemma": "3967",
+          "parse": "HAcbpa",
+          "n": "0.0"
+        },
+        {
+          "surface": "וְשִׁשִּֽׁים",
+          "lemma": "8346",
+          "parse": "HC/Acbpa",
+          "sourceLemma": "c/8346",
+          "n": "0"
+        }
+      ]
+    },
+    {
+      "verse": 15,
+      "text": "בְּנֵ֣י בִנּ֔וּי שֵׁ֥שׁ מֵא֖וֹת אַרְבָּעִ֥ים וּשְׁמֹנָֽה׃",
+      "tokens": [
+        {
+          "surface": "בְּנֵ֣י",
+          "lemma": "1121",
+          "parse": "HNcmpc",
+          "sourceLemma": "1121 a"
+        },
+        {
+          "surface": "בִנּ֔וּי",
+          "lemma": "1131",
+          "parse": "HNp",
+          "n": "0.1"
+        },
+        {
+          "surface": "שֵׁ֥שׁ",
+          "lemma": "8337",
+          "parse": "HAcfsa"
+        },
+        {
+          "surface": "מֵא֖וֹת",
+          "lemma": "3967",
+          "parse": "HAcbpa",
+          "n": "0.0"
+        },
+        {
+          "surface": "אַרְבָּעִ֥ים",
+          "lemma": "705",
+          "parse": "HAcbpa"
+        },
+        {
+          "surface": "וּשְׁמֹנָֽה",
+          "lemma": "8083",
+          "parse": "HC/Acmsa",
+          "sourceLemma": "c/8083",
+          "n": "0"
+        }
+      ]
+    },
+    {
+      "verse": 16,
+      "text": "בְּנֵ֣י בֵבָ֔י שֵׁ֥שׁ מֵא֖וֹת עֶשְׂרִ֥ים וּשְׁמֹנָֽה׃",
+      "tokens": [
+        {
+          "surface": "בְּנֵ֣י",
+          "lemma": "1121",
+          "parse": "HNcmpc",
+          "sourceLemma": "1121 a"
+        },
+        {
+          "surface": "בֵבָ֔י",
+          "lemma": "893",
+          "parse": "HNp",
+          "n": "0.1"
+        },
+        {
+          "surface": "שֵׁ֥שׁ",
+          "lemma": "8337",
+          "parse": "HAcfsa"
+        },
+        {
+          "surface": "מֵא֖וֹת",
+          "lemma": "3967",
+          "parse": "HAcbpa",
+          "n": "0.0"
+        },
+        {
+          "surface": "עֶשְׂרִ֥ים",
+          "lemma": "6242",
+          "parse": "HAcbpa"
+        },
+        {
+          "surface": "וּשְׁמֹנָֽה",
+          "lemma": "8083",
+          "parse": "HC/Acmsa",
+          "sourceLemma": "c/8083",
+          "n": "0"
+        }
+      ]
+    },
+    {
+      "verse": 17,
+      "text": "בְּנֵ֣י עַזְגָּ֔ד אַלְפַּ֕יִם שְׁלֹ֥שׁ מֵא֖וֹת עֶשְׂרִ֥ים וּשְׁנָֽיִם׃",
+      "tokens": [
+        {
+          "surface": "בְּנֵ֣י",
+          "lemma": "1121",
+          "parse": "HNcmpc",
+          "sourceLemma": "1121 a"
+        },
+        {
+          "surface": "עַזְגָּ֔ד",
+          "lemma": "5803",
+          "parse": "HNp",
+          "n": "0.2"
+        },
+        {
+          "surface": "אַלְפַּ֕יִם",
+          "lemma": "505",
+          "parse": "HAcbpa",
+          "n": "0.1"
+        },
+        {
+          "surface": "שְׁלֹ֥שׁ",
+          "lemma": "7969",
+          "parse": "HAcfsa"
+        },
+        {
+          "surface": "מֵא֖וֹת",
+          "lemma": "3967",
+          "parse": "HAcbpa",
+          "n": "0.0"
+        },
+        {
+          "surface": "עֶשְׂרִ֥ים",
+          "lemma": "6242",
+          "parse": "HAcbpa"
+        },
+        {
+          "surface": "וּשְׁנָֽיִם",
+          "lemma": "8147",
+          "parse": "HC/Acmda",
+          "sourceLemma": "c/8147",
+          "n": "0"
+        }
+      ]
+    },
+    {
+      "verse": 18,
+      "text": "בְּנֵי֙ אֲדֹ֣נִיקָ֔ם שֵׁ֥שׁ מֵא֖וֹת שִׁשִּׁ֥ים וְשִׁבְעָֽה׃",
+      "tokens": [
+        {
+          "surface": "בְּנֵי֙",
+          "lemma": "1121",
+          "parse": "HNcmpc",
+          "sourceLemma": "1121 a",
+          "n": "0.1.0"
+        },
+        {
+          "surface": "אֲדֹ֣נִיקָ֔ם",
+          "lemma": "140",
+          "parse": "HNp",
+          "n": "0.1"
+        },
+        {
+          "surface": "שֵׁ֥שׁ",
+          "lemma": "8337",
+          "parse": "HAcfsa"
+        },
+        {
+          "surface": "מֵא֖וֹת",
+          "lemma": "3967",
+          "parse": "HAcbpa",
+          "n": "0.0"
+        },
+        {
+          "surface": "שִׁשִּׁ֥ים",
+          "lemma": "8346",
+          "parse": "HAcbpa"
+        },
+        {
+          "surface": "וְשִׁבְעָֽה",
+          "lemma": "7651",
+          "parse": "HC/Acmsa",
+          "sourceLemma": "c/7651",
+          "n": "0"
+        }
+      ]
+    },
+    {
+      "verse": 19,
+      "text": "בְּנֵ֣י בִגְוָ֔י אַלְפַּ֖יִם שִׁשִּׁ֥ים וְשִׁבְעָֽה׃",
+      "tokens": [
+        {
+          "surface": "בְּנֵ֣י",
+          "lemma": "1121",
+          "parse": "HNcmpc",
+          "sourceLemma": "1121 a"
+        },
+        {
+          "surface": "בִגְוָ֔י",
+          "lemma": "902",
+          "parse": "HNp",
+          "n": "0.1"
+        },
+        {
+          "surface": "אַלְפַּ֖יִם",
+          "lemma": "505",
+          "parse": "HAcbpa",
+          "n": "0.0"
+        },
+        {
+          "surface": "שִׁשִּׁ֥ים",
+          "lemma": "8346",
+          "parse": "HAcbpa"
+        },
+        {
+          "surface": "וְשִׁבְעָֽה",
+          "lemma": "7651",
+          "parse": "HC/Acmsa",
+          "sourceLemma": "c/7651",
+          "n": "0"
+        }
+      ]
+    },
+    {
+      "verse": 20,
+      "text": "בְּנֵ֣י עָדִ֔ין שֵׁ֥שׁ מֵא֖וֹת חֲמִשִּׁ֥ים וַחֲמִשָּֽׁה׃",
+      "tokens": [
+        {
+          "surface": "בְּנֵ֣י",
+          "lemma": "1121",
+          "parse": "HNcmpc",
+          "sourceLemma": "1121 a"
+        },
+        {
+          "surface": "עָדִ֔ין",
+          "lemma": "5720",
+          "parse": "HNp",
+          "n": "0.1"
+        },
+        {
+          "surface": "שֵׁ֥שׁ",
+          "lemma": "8337",
+          "parse": "HAcfsa"
+        },
+        {
+          "surface": "מֵא֖וֹת",
+          "lemma": "3967",
+          "parse": "HAcbpa",
+          "n": "0.0"
+        },
+        {
+          "surface": "חֲמִשִּׁ֥ים",
+          "lemma": "2572",
+          "parse": "HAcbpa"
+        },
+        {
+          "surface": "וַחֲמִשָּֽׁה",
+          "lemma": "2568",
+          "parse": "HC/Acmsa",
+          "sourceLemma": "c/2568",
+          "n": "0"
+        }
+      ]
+    },
+    {
+      "verse": 21,
+      "text": "בְּנֵֽי אָטֵ֥ר לְחִזְקִיָּ֖ה תִּשְׁעִ֥ים וּשְׁמֹנָֽה׃",
+      "tokens": [
+        {
+          "surface": "בְּנֵֽי",
+          "lemma": "1121",
+          "parse": "HNcmpc",
+          "sourceLemma": "1121 a"
+        },
+        {
+          "surface": "אָטֵ֥ר",
+          "lemma": "333",
+          "parse": "HNp"
+        },
+        {
+          "surface": "לְחִזְקִיָּ֖ה",
+          "lemma": "2396",
+          "parse": "HR/Np",
+          "sourceLemma": "l/2396",
+          "n": "0.0"
+        },
+        {
+          "surface": "תִּשְׁעִ֥ים",
+          "lemma": "8673",
+          "parse": "HAcbpa"
+        },
+        {
+          "surface": "וּשְׁמֹנָֽה",
+          "lemma": "8083",
+          "parse": "HC/Acmsa",
+          "sourceLemma": "c/8083",
+          "n": "0"
+        }
+      ]
+    },
+    {
+      "verse": 22,
+      "text": "בְּנֵ֣י חָשֻׁ֔ם שְׁלֹ֥שׁ מֵא֖וֹת עֶשְׂרִ֥ים וּשְׁמֹנָֽה׃",
+      "tokens": [
+        {
+          "surface": "בְּנֵ֣י",
+          "lemma": "1121",
+          "parse": "HNcmpc",
+          "sourceLemma": "1121 a"
+        },
+        {
+          "surface": "חָשֻׁ֔ם",
+          "lemma": "2828",
+          "parse": "HNp",
+          "n": "0.1"
+        },
+        {
+          "surface": "שְׁלֹ֥שׁ",
+          "lemma": "7969",
+          "parse": "HAcfsa"
+        },
+        {
+          "surface": "מֵא֖וֹת",
+          "lemma": "3967",
+          "parse": "HAcbpa",
+          "n": "0.0"
+        },
+        {
+          "surface": "עֶשְׂרִ֥ים",
+          "lemma": "6242",
+          "parse": "HAcbpa"
+        },
+        {
+          "surface": "וּשְׁמֹנָֽה",
+          "lemma": "8083",
+          "parse": "HC/Acmsa",
+          "sourceLemma": "c/8083",
+          "n": "0"
+        }
+      ]
+    },
+    {
+      "verse": 23,
+      "text": "בְּנֵ֣י בֵצָ֔י שְׁלֹ֥שׁ מֵא֖וֹת עֶשְׂרִ֥ים וְאַרְבָּעָֽה׃",
+      "tokens": [
+        {
+          "surface": "בְּנֵ֣י",
+          "lemma": "1121",
+          "parse": "HNcmpc",
+          "sourceLemma": "1121 a"
+        },
+        {
+          "surface": "בֵצָ֔י",
+          "lemma": "1209",
+          "parse": "HNp",
+          "n": "0.1"
+        },
+        {
+          "surface": "שְׁלֹ֥שׁ",
+          "lemma": "7969",
+          "parse": "HAcfsa"
+        },
+        {
+          "surface": "מֵא֖וֹת",
+          "lemma": "3967",
+          "parse": "HAcbpa",
+          "n": "0.0"
+        },
+        {
+          "surface": "עֶשְׂרִ֥ים",
+          "lemma": "6242",
+          "parse": "HAcbpa"
+        },
+        {
+          "surface": "וְאַרְבָּעָֽה",
+          "lemma": "702",
+          "parse": "HC/Acmsa",
+          "sourceLemma": "c/702",
+          "n": "0"
+        }
+      ]
+    },
+    {
+      "verse": 24,
+      "text": "בְּנֵ֣י חָרִ֔יף מֵאָ֖ה שְׁנֵ֥ים עָשָֽׂר׃",
+      "tokens": [
+        {
+          "surface": "בְּנֵ֣י",
+          "lemma": "1121",
+          "parse": "HNcmpc",
+          "sourceLemma": "1121 a"
+        },
+        {
+          "surface": "חָרִ֔יף",
+          "lemma": "2756",
+          "parse": "HNp",
+          "n": "0.1"
+        },
+        {
+          "surface": "מֵאָ֖ה",
+          "lemma": "3967",
+          "parse": "HAcbsa",
+          "n": "0.0"
+        },
+        {
+          "surface": "שְׁנֵ֥ים",
+          "lemma": "8147",
+          "parse": "HAcmda"
+        },
+        {
+          "surface": "עָשָֽׂר",
+          "lemma": "6240",
+          "parse": "HAcmsa",
+          "n": "0"
+        }
+      ]
+    },
+    {
+      "verse": 25,
+      "text": "בְּנֵ֥י גִבְע֖וֹן תִּשְׁעִ֥ים וַחֲמִשָּֽׁה׃",
+      "tokens": [
+        {
+          "surface": "בְּנֵ֥י",
+          "lemma": "1121",
+          "parse": "HNcmpc",
+          "sourceLemma": "1121 a"
+        },
+        {
+          "surface": "גִבְע֖וֹן",
+          "lemma": "1391",
+          "parse": "HNp",
+          "n": "0.0"
+        },
+        {
+          "surface": "תִּשְׁעִ֥ים",
+          "lemma": "8673",
+          "parse": "HAcbpa"
+        },
+        {
+          "surface": "וַחֲמִשָּֽׁה",
+          "lemma": "2568",
+          "parse": "HC/Acmsa",
+          "sourceLemma": "c/2568",
+          "n": "0"
+        }
+      ]
+    },
+    {
+      "verse": 26,
+      "text": "אַנְשֵׁ֤י בֵֽית לֶ֨חֶם֙ וּנְטֹפָ֔ה מֵאָ֖ה שְׁמֹנִ֥ים וּשְׁמֹנָֽה׃",
+      "tokens": [
+        {
+          "surface": "אַנְשֵׁ֤י",
+          "lemma": "376",
+          "parse": "HNcmpc"
+        },
+        {
+          "surface": "בֵֽית",
+          "lemma": "1035+",
+          "parse": "HNp"
+        },
+        {
+          "surface": "לֶ֨חֶם֙",
+          "lemma": "1035",
+          "parse": "HNp",
+          "n": "0.1.0"
+        },
+        {
+          "surface": "וּנְטֹפָ֔ה",
+          "lemma": "5199",
+          "parse": "HC/Np",
+          "sourceLemma": "c/5199",
+          "n": "0.1"
+        },
+        {
+          "surface": "מֵאָ֖ה",
+          "lemma": "3967",
+          "parse": "HAcbsa",
+          "n": "0.0"
+        },
+        {
+          "surface": "שְׁמֹנִ֥ים",
+          "lemma": "8084",
+          "parse": "HAcbpa"
+        },
+        {
+          "surface": "וּשְׁמֹנָֽה",
+          "lemma": "8083",
+          "parse": "HC/Acmsa",
+          "sourceLemma": "c/8083",
+          "n": "0"
+        }
+      ]
+    },
+    {
+      "verse": 27,
+      "text": "אַנְשֵׁ֣י עֲנָת֔וֹת מֵאָ֖ה עֶשְׂרִ֥ים וּשְׁמֹנָֽה׃",
+      "tokens": [
+        {
+          "surface": "אַנְשֵׁ֣י",
+          "lemma": "376",
+          "parse": "HNcmpc"
+        },
+        {
+          "surface": "עֲנָת֔וֹת",
+          "lemma": "6068",
+          "parse": "HNp",
+          "n": "0.1"
+        },
+        {
+          "surface": "מֵאָ֖ה",
+          "lemma": "3967",
+          "parse": "HAcbsa",
+          "n": "0.0"
+        },
+        {
+          "surface": "עֶשְׂרִ֥ים",
+          "lemma": "6242",
+          "parse": "HAcbpa"
+        },
+        {
+          "surface": "וּשְׁמֹנָֽה",
+          "lemma": "8083",
+          "parse": "HC/Acmsa",
+          "sourceLemma": "c/8083",
+          "n": "0"
+        }
+      ]
+    },
+    {
+      "verse": 28,
+      "text": "אַנְשֵׁ֥י בֵית עַזְמָ֖וֶת אַרְבָּעִ֥ים וּשְׁנָֽיִם׃",
+      "tokens": [
+        {
+          "surface": "אַנְשֵׁ֥י",
+          "lemma": "376",
+          "parse": "HNcmpc"
+        },
+        {
+          "surface": "בֵית",
+          "lemma": "1041+",
+          "parse": "HNp"
+        },
+        {
+          "surface": "עַזְמָ֖וֶת",
+          "lemma": "1041",
+          "parse": "HNp",
+          "n": "0.0"
+        },
+        {
+          "surface": "אַרְבָּעִ֥ים",
+          "lemma": "705",
+          "parse": "HAcbpa"
+        },
+        {
+          "surface": "וּשְׁנָֽיִם",
+          "lemma": "8147",
+          "parse": "HC/Acmda",
+          "sourceLemma": "c/8147",
+          "n": "0"
+        }
+      ]
+    },
+    {
+      "verse": 29,
+      "text": "אַנְשֵׁ֨י קִרְיַ֤ת יְעָרִים֙ כְּפִירָ֣ה וּבְאֵר֔וֹת שְׁבַ֥ע מֵא֖וֹת אַרְבָּעִ֥ים וּשְׁלֹשָֽׁה׃",
+      "tokens": [
+        {
+          "surface": "אַנְשֵׁ֨י",
+          "lemma": "376",
+          "parse": "HNcmpc"
+        },
+        {
+          "surface": "קִרְיַ֤ת",
+          "lemma": "7157+",
+          "parse": "HNp"
+        },
+        {
+          "surface": "יְעָרִים֙",
+          "lemma": "7157",
+          "parse": "HNp",
+          "n": "0.1.0"
+        },
+        {
+          "surface": "כְּפִירָ֣ה",
+          "lemma": "3716",
+          "parse": "HNp"
+        },
+        {
+          "surface": "וּבְאֵר֔וֹת",
+          "lemma": "881",
+          "parse": "HC/Np",
+          "sourceLemma": "c/881",
+          "n": "0.1"
+        },
+        {
+          "surface": "שְׁבַ֥ע",
+          "lemma": "7651",
+          "parse": "HAcfsa"
+        },
+        {
+          "surface": "מֵא֖וֹת",
+          "lemma": "3967",
+          "parse": "HAcbpa",
+          "n": "0.0"
+        },
+        {
+          "surface": "אַרְבָּעִ֥ים",
+          "lemma": "705",
+          "parse": "HAcbpa"
+        },
+        {
+          "surface": "וּשְׁלֹשָֽׁה",
+          "lemma": "7969",
+          "parse": "HC/Acmsa",
+          "sourceLemma": "c/7969",
+          "n": "0"
+        }
+      ]
+    },
+    {
+      "verse": 30,
+      "text": "אַנְשֵׁ֤י הָֽרָמָה֙ וָגָ֔בַע שֵׁ֥שׁ מֵא֖וֹת עֶשְׂרִ֥ים וְאֶחָֽד׃",
+      "tokens": [
+        {
+          "surface": "אַנְשֵׁ֤י",
+          "lemma": "376",
+          "parse": "HNcmpc"
+        },
+        {
+          "surface": "הָֽרָמָה֙",
+          "lemma": "7414",
+          "parse": "HTd/Np",
+          "sourceLemma": "d/7414",
+          "n": "0.1.0"
+        },
+        {
+          "surface": "וָגָ֔בַע",
+          "lemma": "1387",
+          "parse": "HC/Np",
+          "sourceLemma": "c/1387",
+          "n": "0.1"
+        },
+        {
+          "surface": "שֵׁ֥שׁ",
+          "lemma": "8337",
+          "parse": "HAcfsa"
+        },
+        {
+          "surface": "מֵא֖וֹת",
+          "lemma": "3967",
+          "parse": "HAcbpa",
+          "n": "0.0"
+        },
+        {
+          "surface": "עֶשְׂרִ֥ים",
+          "lemma": "6242",
+          "parse": "HAcbpa"
+        },
+        {
+          "surface": "וְאֶחָֽד",
+          "lemma": "259",
+          "parse": "HC/Acmsa",
+          "sourceLemma": "c/259",
+          "n": "0"
+        }
+      ]
+    },
+    {
+      "verse": 31,
+      "text": "אַנְשֵׁ֣י מִכְמָ֔ס מֵאָ֖ה וְעֶשְׂרִ֥ים וּשְׁנָֽיִם׃",
+      "tokens": [
+        {
+          "surface": "אַנְשֵׁ֣י",
+          "lemma": "376",
+          "parse": "HNcmpc"
+        },
+        {
+          "surface": "מִכְמָ֔ס",
+          "lemma": "4363",
+          "parse": "HNp",
+          "n": "0.1"
+        },
+        {
+          "surface": "מֵאָ֖ה",
+          "lemma": "3967",
+          "parse": "HAcbsa",
+          "n": "0.0"
+        },
+        {
+          "surface": "וְעֶשְׂרִ֥ים",
+          "lemma": "6242",
+          "parse": "HC/Acbpa",
+          "sourceLemma": "c/6242"
+        },
+        {
+          "surface": "וּשְׁנָֽיִם",
+          "lemma": "8147",
+          "parse": "HC/Acmda",
+          "sourceLemma": "c/8147",
+          "n": "0"
+        }
+      ]
+    },
+    {
+      "verse": 32,
+      "text": "אַנְשֵׁ֤י בֵֽית אֵל֙ וְהָעָ֔י מֵאָ֖ה עֶשְׂרִ֥ים וּשְׁלֹשָֽׁה׃",
+      "tokens": [
+        {
+          "surface": "אַנְשֵׁ֤י",
+          "lemma": "376",
+          "parse": "HNcmpc"
+        },
+        {
+          "surface": "בֵֽית",
+          "lemma": "1008+",
+          "parse": "HNp"
+        },
+        {
+          "surface": "אֵל֙",
+          "lemma": "1008",
+          "parse": "HNp",
+          "n": "0.1.0"
+        },
+        {
+          "surface": "וְהָעָ֔י",
+          "lemma": "5857",
+          "parse": "HC/Td/Np",
+          "sourceLemma": "c/d/5857",
+          "n": "0.1"
+        },
+        {
+          "surface": "מֵאָ֖ה",
+          "lemma": "3967",
+          "parse": "HAcbsa",
+          "n": "0.0"
+        },
+        {
+          "surface": "עֶשְׂרִ֥ים",
+          "lemma": "6242",
+          "parse": "HAcbpa"
+        },
+        {
+          "surface": "וּשְׁלֹשָֽׁה",
+          "lemma": "7969",
+          "parse": "HC/Acmsa",
+          "sourceLemma": "c/7969",
+          "n": "0"
+        }
+      ]
+    },
+    {
+      "verse": 33,
+      "text": "אַנְשֵׁ֥י נְב֛וֹ אַחֵ֖ר חֲמִשִּׁ֥ים וּשְׁנָֽיִם׃",
+      "tokens": [
+        {
+          "surface": "אַנְשֵׁ֥י",
+          "lemma": "376",
+          "parse": "HNcmpc"
+        },
+        {
+          "surface": "נְב֛וֹ",
+          "lemma": "5015",
+          "parse": "HNp",
+          "sourceLemma": "5015 a",
+          "n": "0.0.0"
+        },
+        {
+          "surface": "אַחֵ֖ר",
+          "lemma": "312",
+          "parse": "HAamsa",
+          "n": "0.0"
+        },
+        {
+          "surface": "חֲמִשִּׁ֥ים",
+          "lemma": "2572",
+          "parse": "HAcbpa"
+        },
+        {
+          "surface": "וּשְׁנָֽיִם",
+          "lemma": "8147",
+          "parse": "HC/Acmda",
+          "sourceLemma": "c/8147",
+          "n": "0"
+        }
+      ]
+    },
+    {
+      "verse": 34,
+      "text": "בְּנֵי֙ עֵילָ֣ם אַחֵ֔ר אֶ֕לֶף מָאתַ֖יִם חֲמִשִּׁ֥ים וְאַרְבָּעָֽה׃",
+      "tokens": [
+        {
+          "surface": "בְּנֵי֙",
+          "lemma": "1121",
+          "parse": "HNcmpc",
+          "sourceLemma": "1121 a",
+          "n": "0.2.0"
+        },
+        {
+          "surface": "עֵילָ֣ם",
+          "lemma": "5867",
+          "parse": "HNp",
+          "sourceLemma": "5867 b"
+        },
+        {
+          "surface": "אַחֵ֔ר",
+          "lemma": "312",
+          "parse": "HAamsa",
+          "n": "0.2"
+        },
+        {
+          "surface": "אֶ֕לֶף",
+          "lemma": "505",
+          "parse": "HAcbsa",
+          "n": "0.1"
+        },
+        {
+          "surface": "מָאתַ֖יִם",
+          "lemma": "3967",
+          "parse": "HAcbda",
+          "n": "0.0"
+        },
+        {
+          "surface": "חֲמִשִּׁ֥ים",
+          "lemma": "2572",
+          "parse": "HAcbpa"
+        },
+        {
+          "surface": "וְאַרְבָּעָֽה",
+          "lemma": "702",
+          "parse": "HC/Acmsa",
+          "sourceLemma": "c/702",
+          "n": "0"
+        }
+      ]
+    },
+    {
+      "verse": 35,
+      "text": "בְּנֵ֣י חָרִ֔ם שְׁלֹ֥שׁ מֵא֖וֹת וְעֶשְׂרִֽים׃",
+      "tokens": [
+        {
+          "surface": "בְּנֵ֣י",
+          "lemma": "1121",
+          "parse": "HNcmpc",
+          "sourceLemma": "1121 a"
+        },
+        {
+          "surface": "חָרִ֔ם",
+          "lemma": "2766",
+          "parse": "HNp",
+          "n": "0.1"
+        },
+        {
+          "surface": "שְׁלֹ֥שׁ",
+          "lemma": "7969",
+          "parse": "HAcfsa"
+        },
+        {
+          "surface": "מֵא֖וֹת",
+          "lemma": "3967",
+          "parse": "HAcbpa",
+          "n": "0.0"
+        },
+        {
+          "surface": "וְעֶשְׂרִֽים",
+          "lemma": "6242",
+          "parse": "HC/Acbpa",
+          "sourceLemma": "c/6242",
+          "n": "0"
+        }
+      ]
+    },
+    {
+      "verse": 36,
+      "text": "בְּנֵ֣י יְרֵח֔וֹ שְׁלֹ֥שׁ מֵא֖וֹת אַרְבָּעִ֥ים וַחֲמִשָּֽׁה׃",
+      "tokens": [
+        {
+          "surface": "בְּנֵ֣י",
+          "lemma": "1121",
+          "parse": "HNcmpc",
+          "sourceLemma": "1121 a"
+        },
+        {
+          "surface": "יְרֵח֔וֹ",
+          "lemma": "3405",
+          "parse": "HNp",
+          "n": "0.1"
+        },
+        {
+          "surface": "שְׁלֹ֥שׁ",
+          "lemma": "7969",
+          "parse": "HAcfsa"
+        },
+        {
+          "surface": "מֵא֖וֹת",
+          "lemma": "3967",
+          "parse": "HAcbpa",
+          "n": "0.0"
+        },
+        {
+          "surface": "אַרְבָּעִ֥ים",
+          "lemma": "705",
+          "parse": "HAcbpa"
+        },
+        {
+          "surface": "וַחֲמִשָּֽׁה",
+          "lemma": "2568",
+          "parse": "HC/Acmsa",
+          "sourceLemma": "c/2568",
+          "n": "0"
+        }
+      ]
+    },
+    {
+      "verse": 37,
+      "text": "בְּנֵי לֹד֙ חָדִ֣יד וְאוֹנ֔וֹ שְׁבַ֥ע מֵא֖וֹת וְעֶשְׂרִ֥ים וְאֶחָֽד׃",
+      "tokens": [
+        {
+          "surface": "בְּנֵי",
+          "lemma": "1121",
+          "parse": "HNcmpc",
+          "sourceLemma": "1121 a"
+        },
+        {
+          "surface": "לֹד֙",
+          "lemma": "3850",
+          "parse": "HNp",
+          "n": "0.1.0"
+        },
+        {
+          "surface": "חָדִ֣יד",
+          "lemma": "2307",
+          "parse": "HNp"
+        },
+        {
+          "surface": "וְאוֹנ֔וֹ",
+          "lemma": "207",
+          "parse": "HC/Np",
+          "sourceLemma": "c/207",
+          "n": "0.1"
+        },
+        {
+          "surface": "שְׁבַ֥ע",
+          "lemma": "7651",
+          "parse": "HAcfsa"
+        },
+        {
+          "surface": "מֵא֖וֹת",
+          "lemma": "3967",
+          "parse": "HAcbpa",
+          "n": "0.0"
+        },
+        {
+          "surface": "וְעֶשְׂרִ֥ים",
+          "lemma": "6242",
+          "parse": "HC/Acbpa",
+          "sourceLemma": "c/6242"
+        },
+        {
+          "surface": "וְאֶחָֽד",
+          "lemma": "259",
+          "parse": "HC/Acmsa",
+          "sourceLemma": "c/259",
+          "n": "0"
+        }
+      ]
+    },
+    {
+      "verse": 38,
+      "text": "בְּנֵ֣י סְנָאָ֔ה שְׁלֹ֣שֶׁת אֲלָפִ֔ים תְּשַׁ֥ע מֵא֖וֹת וּשְׁלֹשִֽׁים׃",
+      "tokens": [
+        {
+          "surface": "בְּנֵ֣י",
+          "lemma": "1121",
+          "parse": "HNcmpc",
+          "sourceLemma": "1121 a"
+        },
+        {
+          "surface": "סְנָאָ֔ה",
+          "lemma": "5570",
+          "parse": "HNp",
+          "n": "0.2"
+        },
+        {
+          "surface": "שְׁלֹ֣שֶׁת",
+          "lemma": "7969",
+          "parse": "HAcmsc"
+        },
+        {
+          "surface": "אֲלָפִ֔ים",
+          "lemma": "505",
+          "parse": "HAcbpa",
+          "n": "0.1"
+        },
+        {
+          "surface": "תְּשַׁ֥ע",
+          "lemma": "8672",
+          "parse": "HAcfsa"
+        },
+        {
+          "surface": "מֵא֖וֹת",
+          "lemma": "3967",
+          "parse": "HAcbpa",
+          "n": "0.0"
+        },
+        {
+          "surface": "וּשְׁלֹשִֽׁים",
+          "lemma": "7970",
+          "parse": "HC/Acbpa",
+          "sourceLemma": "c/7970",
+          "n": "0"
+        }
+      ]
+    },
+    {
+      "verse": 39,
+      "text": "הַֽכֹּהֲנִ֑ים בְּנֵ֤י יְדַֽעְיָה֙ לְבֵ֣ית יֵשׁ֔וּעַ תְּשַׁ֥ע מֵא֖וֹת שִׁבְעִ֥ים וּשְׁלֹשָֽׁה׃",
+      "tokens": [
+        {
+          "surface": "הַֽכֹּהֲנִ֑ים",
+          "lemma": "3548",
+          "parse": "HTd/Ncmpa",
+          "sourceLemma": "d/3548",
+          "n": "1"
+        },
+        {
+          "surface": "בְּנֵ֤י",
+          "lemma": "1121",
+          "parse": "HNcmpc",
+          "sourceLemma": "1121 a"
+        },
+        {
+          "surface": "יְדַֽעְיָה֙",
+          "lemma": "3048",
+          "parse": "HNp",
+          "n": "0.1.0"
+        },
+        {
+          "surface": "לְבֵ֣ית",
+          "lemma": "1004",
+          "parse": "HR/Ncmsc",
+          "sourceLemma": "l/1004 b"
+        },
+        {
+          "surface": "יֵשׁ֔וּעַ",
+          "lemma": "3442",
+          "parse": "HNp",
+          "n": "0.1"
+        },
+        {
+          "surface": "תְּשַׁ֥ע",
+          "lemma": "8672",
+          "parse": "HAcfsa"
+        },
+        {
+          "surface": "מֵא֖וֹת",
+          "lemma": "3967",
+          "parse": "HAcbpa",
+          "n": "0.0"
+        },
+        {
+          "surface": "שִׁבְעִ֥ים",
+          "lemma": "7657",
+          "parse": "HAcbpa"
+        },
+        {
+          "surface": "וּשְׁלֹשָֽׁה",
+          "lemma": "7969",
+          "parse": "HC/Acmsa",
+          "sourceLemma": "c/7969",
+          "n": "0"
+        }
+      ]
+    },
+    {
+      "verse": 40,
+      "text": "בְּנֵ֣י אִמֵּ֔ר אֶ֖לֶף חֲמִשִּׁ֥ים וּשְׁנָֽיִם׃",
+      "tokens": [
+        {
+          "surface": "בְּנֵ֣י",
+          "lemma": "1121",
+          "parse": "HNcmpc",
+          "sourceLemma": "1121 a"
+        },
+        {
+          "surface": "אִמֵּ֔ר",
+          "lemma": "564",
+          "parse": "HNp",
+          "n": "0.1"
+        },
+        {
+          "surface": "אֶ֖לֶף",
+          "lemma": "505",
+          "parse": "HAcbsa",
+          "n": "0.0"
+        },
+        {
+          "surface": "חֲמִשִּׁ֥ים",
+          "lemma": "2572",
+          "parse": "HAcbpa"
+        },
+        {
+          "surface": "וּשְׁנָֽיִם",
+          "lemma": "8147",
+          "parse": "HC/Acmda",
+          "sourceLemma": "c/8147",
+          "n": "0"
+        }
+      ]
+    },
+    {
+      "verse": 41,
+      "text": "בְּנֵ֣י פַשְׁח֔וּר אֶ֕לֶף מָאתַ֖יִם אַרְבָּעִ֥ים וְשִׁבְעָֽה׃",
+      "tokens": [
+        {
+          "surface": "בְּנֵ֣י",
+          "lemma": "1121",
+          "parse": "HNcmpc",
+          "sourceLemma": "1121 a"
+        },
+        {
+          "surface": "פַשְׁח֔וּר",
+          "lemma": "6583",
+          "parse": "HNp",
+          "n": "0.2"
+        },
+        {
+          "surface": "אֶ֕לֶף",
+          "lemma": "505",
+          "parse": "HAcbsa",
+          "n": "0.1"
+        },
+        {
+          "surface": "מָאתַ֖יִם",
+          "lemma": "3967",
+          "parse": "HAcbda",
+          "n": "0.0"
+        },
+        {
+          "surface": "אַרְבָּעִ֥ים",
+          "lemma": "705",
+          "parse": "HAcbpa"
+        },
+        {
+          "surface": "וְשִׁבְעָֽה",
+          "lemma": "7651",
+          "parse": "HC/Acmsa",
+          "sourceLemma": "c/7651",
+          "n": "0"
+        }
+      ]
+    },
+    {
+      "verse": 42,
+      "text": "בְּנֵ֣י חָרִ֔ם אֶ֖לֶף שִׁבְעָ֥ה עָשָֽׂר׃",
+      "tokens": [
+        {
+          "surface": "בְּנֵ֣י",
+          "lemma": "1121",
+          "parse": "HNcmpc",
+          "sourceLemma": "1121 a"
+        },
+        {
+          "surface": "חָרִ֔ם",
+          "lemma": "2766",
+          "parse": "HNp",
+          "n": "0.1"
+        },
+        {
+          "surface": "אֶ֖לֶף",
+          "lemma": "505",
+          "parse": "HAcbsa",
+          "n": "0.0"
+        },
+        {
+          "surface": "שִׁבְעָ֥ה",
+          "lemma": "7651",
+          "parse": "HAcmsa"
+        },
+        {
+          "surface": "עָשָֽׂר",
+          "lemma": "6240",
+          "parse": "HAcmsa",
+          "n": "0"
+        }
+      ]
+    },
+    {
+      "verse": 43,
+      "text": "הַלְוִיִּ֑ם בְּנֵֽי יֵשׁ֧וּעַ לְקַדְמִיאֵ֛ל לִבְנֵ֥י לְהוֹדְוָ֖ה שִׁבְעִ֥ים וְאַרְבָּעָֽה׃",
+      "tokens": [
+        {
+          "surface": "הַלְוִיִּ֑ם",
+          "lemma": "3881",
+          "parse": "HTd/Ngmpa",
+          "sourceLemma": "d/3881",
+          "n": "1"
+        },
+        {
+          "surface": "בְּנֵֽי",
+          "lemma": "1121",
+          "parse": "HNcmpc",
+          "sourceLemma": "1121 a"
+        },
+        {
+          "surface": "יֵשׁ֧וּעַ",
+          "lemma": "3442",
+          "parse": "HNp"
+        },
+        {
+          "surface": "לְקַדְמִיאֵ֛ל",
+          "lemma": "6934",
+          "parse": "HR/Np",
+          "sourceLemma": "l/6934",
+          "n": "0.0.0"
+        },
+        {
+          "surface": "לִבְנֵ֥י",
+          "lemma": "1121",
+          "parse": "HR/Ncmpc",
+          "sourceLemma": "l/1121 a"
+        },
+        {
+          "surface": "לְהוֹדְוָ֖ה",
+          "lemma": "1937",
+          "parse": "HR/Np",
+          "sourceLemma": "l/1937",
+          "n": "0.0"
+        },
+        {
+          "surface": "שִׁבְעִ֥ים",
+          "lemma": "7657",
+          "parse": "HAcbpa"
+        },
+        {
+          "surface": "וְאַרְבָּעָֽה",
+          "lemma": "702",
+          "parse": "HC/Acmsa",
+          "sourceLemma": "c/702",
+          "n": "0"
+        }
+      ]
+    },
+    {
+      "verse": 44,
+      "text": "הַֽמְשֹׁרְרִ֑ים בְּנֵ֣י אָסָ֔ף מֵאָ֖ה אַרְבָּעִ֥ים וּשְׁמֹנָֽה׃",
+      "tokens": [
+        {
+          "surface": "הַֽמְשֹׁרְרִ֑ים",
+          "lemma": "7891",
+          "parse": "HTd/Vormpa",
+          "sourceLemma": "d/7891",
+          "n": "1"
+        },
+        {
+          "surface": "בְּנֵ֣י",
+          "lemma": "1121",
+          "parse": "HNcmpc",
+          "sourceLemma": "1121 a"
+        },
+        {
+          "surface": "אָסָ֔ף",
+          "lemma": "623",
+          "parse": "HNp",
+          "n": "0.1"
+        },
+        {
+          "surface": "מֵאָ֖ה",
+          "lemma": "3967",
+          "parse": "HAcbsa",
+          "n": "0.0"
+        },
+        {
+          "surface": "אַרְבָּעִ֥ים",
+          "lemma": "705",
+          "parse": "HAcbpa"
+        },
+        {
+          "surface": "וּשְׁמֹנָֽה",
+          "lemma": "8083",
+          "parse": "HC/Acmsa",
+          "sourceLemma": "c/8083",
+          "n": "0"
+        }
+      ]
+    },
+    {
+      "verse": 45,
+      "text": "הַשֹּֽׁעֲרִ֗ים בְּנֵֽי שַׁלּ֤וּם בְּנֵֽי אָטֵר֙ בְּנֵֽי טַלְמֹ֣ן בְּנֵֽי עַקּ֔וּב בְּנֵ֥י חֲטִיטָ֖א בְּנֵ֣י שֹׁבָ֑י מֵאָ֖ה שְׁלֹשִׁ֥ים וּשְׁמֹנָֽה׃",
+      "tokens": [
+        {
+          "surface": "הַשֹּֽׁעֲרִ֗ים",
+          "lemma": "7778",
+          "parse": "HTd/Ncmpa",
+          "sourceLemma": "d/7778",
+          "n": "1.1.1"
+        },
+        {
+          "surface": "בְּנֵֽי",
+          "lemma": "1121",
+          "parse": "HNcmpc",
+          "sourceLemma": "1121 a"
+        },
+        {
+          "surface": "שַׁלּ֤וּם",
+          "lemma": "7967",
+          "parse": "HNp"
+        },
+        {
+          "surface": "בְּנֵֽי",
+          "lemma": "1121",
+          "parse": "HNcmpc",
+          "sourceLemma": "1121 a"
+        },
+        {
+          "surface": "אָטֵר֙",
+          "lemma": "333",
+          "parse": "HNp",
+          "n": "1.1.0"
+        },
+        {
+          "surface": "בְּנֵֽי",
+          "lemma": "1121",
+          "parse": "HNcmpc",
+          "sourceLemma": "1121 a"
+        },
+        {
+          "surface": "טַלְמֹ֣ן",
+          "lemma": "2929",
+          "parse": "HNp"
+        },
+        {
+          "surface": "בְּנֵֽי",
+          "lemma": "1121",
+          "parse": "HNcmpc",
+          "sourceLemma": "1121 a"
+        },
+        {
+          "surface": "עַקּ֔וּב",
+          "lemma": "6126",
+          "parse": "HNp",
+          "n": "1.1"
+        },
+        {
+          "surface": "בְּנֵ֥י",
+          "lemma": "1121",
+          "parse": "HNcmpc",
+          "sourceLemma": "1121 a"
+        },
+        {
+          "surface": "חֲטִיטָ֖א",
+          "lemma": "2410",
+          "parse": "HNp",
+          "n": "1.0"
+        },
+        {
+          "surface": "בְּנֵ֣י",
+          "lemma": "1121",
+          "parse": "HNcmpc",
+          "sourceLemma": "1121 a"
+        },
+        {
+          "surface": "שֹׁבָ֑י",
+          "lemma": "7630",
+          "parse": "HNp",
+          "n": "1"
+        },
+        {
+          "surface": "מֵאָ֖ה",
+          "lemma": "3967",
+          "parse": "HAcbsa",
+          "n": "0.0"
+        },
+        {
+          "surface": "שְׁלֹשִׁ֥ים",
+          "lemma": "7970",
+          "parse": "HAcbpa"
+        },
+        {
+          "surface": "וּשְׁמֹנָֽה",
+          "lemma": "8083",
+          "parse": "HC/Acmsa",
+          "sourceLemma": "c/8083",
+          "n": "0"
+        }
+      ]
+    },
+    {
+      "verse": 46,
+      "text": "הַנְּתִינִ֑ים בְּנֵי צִחָ֥א בְנֵי חֲשֻׂפָ֖א בְּנֵ֥י טַבָּעֽוֹת׃",
+      "tokens": [
+        {
+          "surface": "הַנְּתִינִ֑ים",
+          "lemma": "5411",
+          "parse": "HTd/Ncmpa",
+          "sourceLemma": "d/5411",
+          "n": "1"
+        },
+        {
+          "surface": "בְּנֵי",
+          "lemma": "1121",
+          "parse": "HNcmpc",
+          "sourceLemma": "1121 a"
+        },
+        {
+          "surface": "צִחָ֥א",
+          "lemma": "6727",
+          "parse": "HNp"
+        },
+        {
+          "surface": "בְנֵי",
+          "lemma": "1121",
+          "parse": "HNcmpc",
+          "sourceLemma": "1121 a"
+        },
+        {
+          "surface": "חֲשֻׂפָ֖א",
+          "lemma": "2817",
+          "parse": "HNp",
+          "n": "0.0"
+        },
+        {
+          "surface": "בְּנֵ֥י",
+          "lemma": "1121",
+          "parse": "HNcmpc",
+          "sourceLemma": "1121 a"
+        },
+        {
+          "surface": "טַבָּעֽוֹת",
+          "lemma": "2884",
+          "parse": "HNp",
+          "n": "0"
+        }
+      ]
+    },
+    {
+      "verse": 47,
+      "text": "בְּנֵי קֵירֹ֥ס בְּנֵי סִיעָ֖א בְּנֵ֥י פָדֽוֹן׃",
+      "tokens": [
+        {
+          "surface": "בְּנֵי",
+          "lemma": "1121",
+          "parse": "HNcmpc",
+          "sourceLemma": "1121 a"
+        },
+        {
+          "surface": "קֵירֹ֥ס",
+          "lemma": "7026",
+          "parse": "HNp"
+        },
+        {
+          "surface": "בְּנֵי",
+          "lemma": "1121",
+          "parse": "HNcmpc",
+          "sourceLemma": "1121 a"
+        },
+        {
+          "surface": "סִיעָ֖א",
+          "lemma": "5517",
+          "parse": "HNp",
+          "n": "0.0"
+        },
+        {
+          "surface": "בְּנֵ֥י",
+          "lemma": "1121",
+          "parse": "HNcmpc",
+          "sourceLemma": "1121 a"
+        },
+        {
+          "surface": "פָדֽוֹן",
+          "lemma": "6303",
+          "parse": "HNp",
+          "n": "0"
+        }
+      ]
+    },
+    {
+      "verse": 48,
+      "text": "בְּנֵי לְבָנָ֥ה בְנֵי חֲגָבָ֖ה בְּנֵ֥י שַׁלְמָֽי׃",
+      "tokens": [
+        {
+          "surface": "בְּנֵי",
+          "lemma": "1121",
+          "parse": "HNcmpc",
+          "sourceLemma": "1121 a"
+        },
+        {
+          "surface": "לְבָנָ֥ה",
+          "lemma": "3838",
+          "parse": "HNp"
+        },
+        {
+          "surface": "בְנֵי",
+          "lemma": "1121",
+          "parse": "HNcmpc",
+          "sourceLemma": "1121 a"
+        },
+        {
+          "surface": "חֲגָבָ֖ה",
+          "lemma": "2286",
+          "parse": "HNp",
+          "sourceLemma": "2286 a",
+          "n": "0.0"
+        },
+        {
+          "surface": "בְּנֵ֥י",
+          "lemma": "1121",
+          "parse": "HNcmpc",
+          "sourceLemma": "1121 a"
+        },
+        {
+          "surface": "שַׁלְמָֽי",
+          "lemma": "8014",
+          "parse": "HNp",
+          "n": "0"
+        }
+      ]
+    },
+    {
+      "verse": 49,
+      "text": "בְּנֵי חָנָ֥ן בְּנֵי גִדֵּ֖ל בְּנֵי גָֽחַר׃",
+      "tokens": [
+        {
+          "surface": "בְּנֵי",
+          "lemma": "1121",
+          "parse": "HNcmpc",
+          "sourceLemma": "1121 a"
+        },
+        {
+          "surface": "חָנָ֥ן",
+          "lemma": "2605",
+          "parse": "HNp"
+        },
+        {
+          "surface": "בְּנֵי",
+          "lemma": "1121",
+          "parse": "HNcmpc",
+          "sourceLemma": "1121 a"
+        },
+        {
+          "surface": "גִדֵּ֖ל",
+          "lemma": "1435",
+          "parse": "HNp",
+          "n": "0.0"
+        },
+        {
+          "surface": "בְּנֵי",
+          "lemma": "1121",
+          "parse": "HNcmpc",
+          "sourceLemma": "1121 a"
+        },
+        {
+          "surface": "גָֽחַר",
+          "lemma": "1515",
+          "parse": "HNp",
+          "n": "0"
+        }
+      ]
+    },
+    {
+      "verse": 50,
+      "text": "בְּנֵי רְאָיָ֥ה בְנֵי רְצִ֖ין בְּנֵ֥י נְקוֹדָֽא׃",
+      "tokens": [
+        {
+          "surface": "בְּנֵי",
+          "lemma": "1121",
+          "parse": "HNcmpc",
+          "sourceLemma": "1121 a"
+        },
+        {
+          "surface": "רְאָיָ֥ה",
+          "lemma": "7211",
+          "parse": "HNp"
+        },
+        {
+          "surface": "בְנֵי",
+          "lemma": "1121",
+          "parse": "HNcmpc",
+          "sourceLemma": "1121 a"
+        },
+        {
+          "surface": "רְצִ֖ין",
+          "lemma": "7526",
+          "parse": "HNp",
+          "n": "0.0"
+        },
+        {
+          "surface": "בְּנֵ֥י",
+          "lemma": "1121",
+          "parse": "HNcmpc",
+          "sourceLemma": "1121 a"
+        },
+        {
+          "surface": "נְקוֹדָֽא",
+          "lemma": "5353",
+          "parse": "HNp",
+          "n": "0"
+        }
+      ]
+    },
+    {
+      "verse": 51,
+      "text": "בְּנֵי גַזָּ֥ם בְּנֵי עֻזָּ֖א בְּנֵ֥י פָסֵֽחַ׃",
+      "tokens": [
+        {
+          "surface": "בְּנֵי",
+          "lemma": "1121",
+          "parse": "HNcmpc",
+          "sourceLemma": "1121 a"
+        },
+        {
+          "surface": "גַזָּ֥ם",
+          "lemma": "1502",
+          "parse": "HNp"
+        },
+        {
+          "surface": "בְּנֵי",
+          "lemma": "1121",
+          "parse": "HNcmpc",
+          "sourceLemma": "1121 a"
+        },
+        {
+          "surface": "עֻזָּ֖א",
+          "lemma": "5798",
+          "parse": "HNp",
+          "sourceLemma": "5798 a",
+          "n": "0.0"
+        },
+        {
+          "surface": "בְּנֵ֥י",
+          "lemma": "1121",
+          "parse": "HNcmpc",
+          "sourceLemma": "1121 a"
+        },
+        {
+          "surface": "פָסֵֽחַ",
+          "lemma": "6454",
+          "parse": "HNp",
+          "n": "0"
+        }
+      ]
+    },
+    {
+      "verse": 52,
+      "text": "בְּנֵי בֵסַ֥י בְּנֵי מְעוּנִ֖ים בְּנֵ֥י נפושסים נְפִֽישְׁסִֽים׃",
+      "tokens": [
+        {
+          "surface": "בְּנֵי",
+          "lemma": "1121",
+          "parse": "HNcmpc",
+          "sourceLemma": "1121 a"
+        },
+        {
+          "surface": "בֵסַ֥י",
+          "lemma": "1153",
+          "parse": "HNp"
+        },
+        {
+          "surface": "בְּנֵי",
+          "lemma": "1121",
+          "parse": "HNcmpc",
+          "sourceLemma": "1121 a"
+        },
+        {
+          "surface": "מְעוּנִ֖ים",
+          "lemma": "4586",
+          "parse": "HNgmpa",
+          "n": "0.0"
+        },
+        {
+          "surface": "בְּנֵ֥י",
+          "lemma": "1121",
+          "parse": "HNcmpc",
+          "sourceLemma": "1121 a"
+        },
+        {
+          "surface": "נפושסים",
+          "lemma": "5300",
+          "parse": "HNgmpa"
+        },
+        {
+          "surface": "נְפִֽישְׁסִֽים",
+          "lemma": "5304",
+          "parse": "HNgmpa",
+          "n": "0"
+        }
+      ]
+    },
+    {
+      "verse": 53,
+      "text": "בְּנֵי בַקְבּ֥וּק בְּנֵֽי חֲקוּפָ֖א בְּנֵ֥י חַרְחֽוּר׃",
+      "tokens": [
+        {
+          "surface": "בְּנֵי",
+          "lemma": "1121",
+          "parse": "HNcmpc",
+          "sourceLemma": "1121 a"
+        },
+        {
+          "surface": "בַקְבּ֥וּק",
+          "lemma": "1227",
+          "parse": "HNp"
+        },
+        {
+          "surface": "בְּנֵֽי",
+          "lemma": "1121",
+          "parse": "HNcmpc",
+          "sourceLemma": "1121 a"
+        },
+        {
+          "surface": "חֲקוּפָ֖א",
+          "lemma": "2709",
+          "parse": "HNp",
+          "n": "0.0"
+        },
+        {
+          "surface": "בְּנֵ֥י",
+          "lemma": "1121",
+          "parse": "HNcmpc",
+          "sourceLemma": "1121 a"
+        },
+        {
+          "surface": "חַרְחֽוּר",
+          "lemma": "2744",
+          "parse": "HNp",
+          "n": "0"
+        }
+      ]
+    },
+    {
+      "verse": 54,
+      "text": "בְּנֵי בַצְלִ֥ית בְּנֵֽי מְחִידָ֖א בְּנֵ֥י חַרְשָֽׁא׃",
+      "tokens": [
+        {
+          "surface": "בְּנֵי",
+          "lemma": "1121",
+          "parse": "HNcmpc",
+          "sourceLemma": "1121 a"
+        },
+        {
+          "surface": "בַצְלִ֥ית",
+          "lemma": "1213",
+          "parse": "HNp"
+        },
+        {
+          "surface": "בְּנֵֽי",
+          "lemma": "1121",
+          "parse": "HNcmpc",
+          "sourceLemma": "1121 a"
+        },
+        {
+          "surface": "מְחִידָ֖א",
+          "lemma": "4240",
+          "parse": "HNp",
+          "n": "0.0"
+        },
+        {
+          "surface": "בְּנֵ֥י",
+          "lemma": "1121",
+          "parse": "HNcmpc",
+          "sourceLemma": "1121 a"
+        },
+        {
+          "surface": "חַרְשָֽׁא",
+          "lemma": "2797",
+          "parse": "HNp",
+          "n": "0"
+        }
+      ]
+    },
+    {
+      "verse": 55,
+      "text": "בְּנֵי בַרְק֥וֹס בְּֽנֵי סִֽיסְרָ֖א בְּנֵי תָֽמַח׃",
+      "tokens": [
+        {
+          "surface": "בְּנֵי",
+          "lemma": "1121",
+          "parse": "HNcmpc",
+          "sourceLemma": "1121 a"
+        },
+        {
+          "surface": "בַרְק֥וֹס",
+          "lemma": "1302",
+          "parse": "HNp"
+        },
+        {
+          "surface": "בְּֽנֵי",
+          "lemma": "1121",
+          "parse": "HNcmpc",
+          "sourceLemma": "1121 a"
+        },
+        {
+          "surface": "סִֽיסְרָ֖א",
+          "lemma": "5516",
+          "parse": "HNp",
+          "n": "0.0"
+        },
+        {
+          "surface": "בְּנֵי",
+          "lemma": "1121",
+          "parse": "HNcmpc",
+          "sourceLemma": "1121 a"
+        },
+        {
+          "surface": "תָֽמַח",
+          "lemma": "8547",
+          "parse": "HNp",
+          "n": "0"
+        }
+      ]
+    },
+    {
+      "verse": 56,
+      "text": "בְּנֵ֥י נְצִ֖יחַ בְּנֵ֥י חֲטִיפָֽא׃",
+      "tokens": [
+        {
+          "surface": "בְּנֵ֥י",
+          "lemma": "1121",
+          "parse": "HNcmpc",
+          "sourceLemma": "1121 a"
+        },
+        {
+          "surface": "נְצִ֖יחַ",
+          "lemma": "5335",
+          "parse": "HNp",
+          "n": "0.0"
+        },
+        {
+          "surface": "בְּנֵ֥י",
+          "lemma": "1121",
+          "parse": "HNcmpc",
+          "sourceLemma": "1121 a"
+        },
+        {
+          "surface": "חֲטִיפָֽא",
+          "lemma": "2412",
+          "parse": "HNp",
+          "n": "0"
+        }
+      ]
+    },
+    {
+      "verse": 57,
+      "text": "בְּנֵ֖י עַבְדֵ֣י שְׁלֹמֹ֑ה בְּנֵי סוֹטַ֥י בְּנֵי סוֹפֶ֖רֶת בְּנֵ֥י פְרִידָֽא׃",
+      "tokens": [
+        {
+          "surface": "בְּנֵ֖י",
+          "lemma": "1121",
+          "parse": "HNcmpc",
+          "sourceLemma": "1121 a",
+          "n": "1.0"
+        },
+        {
+          "surface": "עַבְדֵ֣י",
+          "lemma": "5650",
+          "parse": "HNcmpc"
+        },
+        {
+          "surface": "שְׁלֹמֹ֑ה",
+          "lemma": "8010",
+          "parse": "HNp",
+          "n": "1"
+        },
+        {
+          "surface": "בְּנֵי",
+          "lemma": "1121",
+          "parse": "HNcmpc",
+          "sourceLemma": "1121 a"
+        },
+        {
+          "surface": "סוֹטַ֥י",
+          "lemma": "5479",
+          "parse": "HNp"
+        },
+        {
+          "surface": "בְּנֵי",
+          "lemma": "1121",
+          "parse": "HNcmpc",
+          "sourceLemma": "1121 a"
+        },
+        {
+          "surface": "סוֹפֶ֖רֶת",
+          "lemma": "5618",
+          "parse": "HNp",
+          "n": "0.0"
+        },
+        {
+          "surface": "בְּנֵ֥י",
+          "lemma": "1121",
+          "parse": "HNcmpc",
+          "sourceLemma": "1121 a"
+        },
+        {
+          "surface": "פְרִידָֽא",
+          "lemma": "6514",
+          "parse": "HNp",
+          "n": "0"
+        }
+      ]
+    },
+    {
+      "verse": 58,
+      "text": "בְּנֵי יַעְלָ֥א בְנֵי דַרְק֖וֹן בְּנֵ֥י גִדֵּֽל׃",
+      "tokens": [
+        {
+          "surface": "בְּנֵי",
+          "lemma": "1121",
+          "parse": "HNcmpc",
+          "sourceLemma": "1121 a"
+        },
+        {
+          "surface": "יַעְלָ֥א",
+          "lemma": "3279",
+          "parse": "HNp"
+        },
+        {
+          "surface": "בְנֵי",
+          "lemma": "1121",
+          "parse": "HNcmpc",
+          "sourceLemma": "1121 a"
+        },
+        {
+          "surface": "דַרְק֖וֹן",
+          "lemma": "1874",
+          "parse": "HNp",
+          "n": "0.0"
+        },
+        {
+          "surface": "בְּנֵ֥י",
+          "lemma": "1121",
+          "parse": "HNcmpc",
+          "sourceLemma": "1121 a"
+        },
+        {
+          "surface": "גִדֵּֽל",
+          "lemma": "1435",
+          "parse": "HNp",
+          "n": "0"
+        }
+      ]
+    },
+    {
+      "verse": 59,
+      "text": "בְּנֵ֧י שְׁפַטְיָ֣ה בְנֵֽי חַטִּ֗יל בְּנֵ֛י פֹּכֶ֥רֶת הַצְּבָיִ֖ים בְּנֵ֥י אָמֽוֹן׃",
+      "tokens": [
+        {
+          "surface": "בְּנֵ֧י",
+          "lemma": "1121",
+          "parse": "HNcmpc",
+          "sourceLemma": "1121 a"
+        },
+        {
+          "surface": "שְׁפַטְיָ֣ה",
+          "lemma": "8203",
+          "parse": "HNp"
+        },
+        {
+          "surface": "בְנֵֽי",
+          "lemma": "1121",
+          "parse": "HNcmpc",
+          "sourceLemma": "1121 a"
+        },
+        {
+          "surface": "חַטִּ֗יל",
+          "lemma": "2411",
+          "parse": "HNp",
+          "n": "0.0.1"
+        },
+        {
+          "surface": "בְּנֵ֛י",
+          "lemma": "1121",
+          "parse": "HNcmpc",
+          "sourceLemma": "1121 a",
+          "n": "0.0.0"
+        },
+        {
+          "surface": "פֹּכֶ֥רֶת",
+          "lemma": "6380+",
+          "parse": "HNp"
+        },
+        {
+          "surface": "הַצְּבָיִ֖ים",
+          "lemma": "6380",
+          "parse": "HNp",
+          "n": "0.0"
+        },
+        {
+          "surface": "בְּנֵ֥י",
+          "lemma": "1121",
+          "parse": "HNcmpc",
+          "sourceLemma": "1121 a"
+        },
+        {
+          "surface": "אָמֽוֹן",
+          "lemma": "526",
+          "parse": "HNp",
+          "n": "0"
+        }
+      ]
+    },
+    {
+      "verse": 60,
+      "text": "כָּל הַ֨נְּתִינִ֔ים וּבְנֵ֖י עַבְדֵ֣י שְׁלֹמֹ֑ה שְׁלֹ֥שׁ מֵא֖וֹת תִּשְׁעִ֥ים וּשְׁנָֽיִם׃",
+      "tokens": [
+        {
+          "surface": "כָּל",
+          "lemma": "3605",
+          "parse": "HNcmsc"
+        },
+        {
+          "surface": "הַ֨נְּתִינִ֔ים",
+          "lemma": "5411",
+          "parse": "HTd/Ncmpa",
+          "sourceLemma": "d/5411",
+          "n": "1.1"
+        },
+        {
+          "surface": "וּבְנֵ֖י",
+          "lemma": "1121",
+          "parse": "HC/Ncmpc",
+          "sourceLemma": "c/1121 a",
+          "n": "1.0"
+        },
+        {
+          "surface": "עַבְדֵ֣י",
+          "lemma": "5650",
+          "parse": "HNcmpc"
+        },
+        {
+          "surface": "שְׁלֹמֹ֑ה",
+          "lemma": "8010",
+          "parse": "HNp",
+          "n": "1"
+        },
+        {
+          "surface": "שְׁלֹ֥שׁ",
+          "lemma": "7969",
+          "parse": "HAcfsa"
+        },
+        {
+          "surface": "מֵא֖וֹת",
+          "lemma": "3967",
+          "parse": "HAcbpa",
+          "n": "0.0"
+        },
+        {
+          "surface": "תִּשְׁעִ֥ים",
+          "lemma": "8673",
+          "parse": "HAcbpa"
+        },
+        {
+          "surface": "וּשְׁנָֽיִם",
+          "lemma": "8147",
+          "parse": "HC/Acmda",
+          "sourceLemma": "c/8147",
+          "n": "0"
+        }
+      ]
+    },
+    {
+      "verse": 61,
+      "text": "וְאֵ֗לֶּה הָֽעוֹלִים֙ מִתֵּ֥ל מֶ֨לַח֙ תֵּ֣ל חַרְשָׁ֔א כְּר֥וּב אַדּ֖וֹן וְאִמֵּ֑ר וְלֹ֣א יָכְל֗וּ לְהַגִּ֤יד בֵּית אֲבוֹתָם֙ וְזַרְעָ֔ם אִ֥ם מִיִּשְׂרָאֵ֖ל הֵֽם׃",
+      "tokens": [
+        {
+          "surface": "וְאֵ֗לֶּה",
+          "lemma": "428",
+          "parse": "HC/Pdxcp",
+          "sourceLemma": "c/428",
+          "n": "1.1.2"
+        },
+        {
+          "surface": "הָֽעוֹלִים֙",
+          "lemma": "5927",
+          "parse": "HTd/Vqrmpa",
+          "sourceLemma": "d/5927",
+          "n": "1.1.1"
+        },
+        {
+          "surface": "מִתֵּ֥ל",
+          "lemma": "8528+",
+          "parse": "HR/Np",
+          "sourceLemma": "m/8528+"
+        },
+        {
+          "surface": "מֶ֨לַח֙",
+          "lemma": "8528",
+          "parse": "HNp",
+          "n": "1.1.0"
+        },
+        {
+          "surface": "תֵּ֣ל",
+          "lemma": "8521+",
+          "parse": "HNp"
+        },
+        {
+          "surface": "חַרְשָׁ֔א",
+          "lemma": "8521",
+          "parse": "HNp",
+          "n": "1.1"
+        },
+        {
+          "surface": "כְּר֥וּב",
+          "lemma": "3743",
+          "parse": "HNp"
+        },
+        {
+          "surface": "אַדּ֖וֹן",
+          "lemma": "114",
+          "parse": "HNp",
+          "n": "1.0"
+        },
+        {
+          "surface": "וְאִמֵּ֑ר",
+          "lemma": "564",
+          "parse": "HC/Np",
+          "sourceLemma": "c/564",
+          "n": "1"
+        },
+        {
+          "surface": "וְלֹ֣א",
+          "lemma": "3808",
+          "parse": "HC/Tn",
+          "sourceLemma": "c/3808"
+        },
+        {
+          "surface": "יָכְל֗וּ",
+          "lemma": "3201",
+          "parse": "HVqp3cp",
+          "n": "0.1.1"
+        },
+        {
+          "surface": "לְהַגִּ֤יד",
+          "lemma": "5046",
+          "parse": "HR/Vhc",
+          "sourceLemma": "l/5046"
+        },
+        {
+          "surface": "בֵּית",
+          "lemma": "1004",
+          "parse": "HNcmsc",
+          "sourceLemma": "1004 b"
+        },
+        {
+          "surface": "אֲבוֹתָם֙",
+          "lemma": "1",
+          "parse": "HNcmpc/Sp3mp",
+          "n": "0.1.0"
+        },
+        {
+          "surface": "וְזַרְעָ֔ם",
+          "lemma": "2233",
+          "parse": "HC/Ncmsc/Sp3mp",
+          "sourceLemma": "c/2233",
+          "n": "0.1"
+        },
+        {
+          "surface": "אִ֥ם",
+          "lemma": "518",
+          "parse": "HC",
+          "sourceLemma": "518 a"
+        },
+        {
+          "surface": "מִיִּשְׂרָאֵ֖ל",
+          "lemma": "3478",
+          "parse": "HR/Np",
+          "sourceLemma": "m/3478",
+          "n": "0.0"
+        },
+        {
+          "surface": "הֵֽם",
+          "lemma": "1992",
+          "parse": "HPp3mp",
+          "n": "0"
+        }
+      ]
+    },
+    {
+      "verse": 62,
+      "text": "בְּנֵי דְלָיָ֥ה בְנֵֽי טוֹבִיָּ֖ה בְּנֵ֣י נְקוֹדָ֑א שֵׁ֥שׁ מֵא֖וֹת וְאַרְבָּעִ֥ים וּשְׁנָֽיִם׃",
+      "tokens": [
+        {
+          "surface": "בְּנֵי",
+          "lemma": "1121",
+          "parse": "HNcmpc",
+          "sourceLemma": "1121 a"
+        },
+        {
+          "surface": "דְלָיָ֥ה",
+          "lemma": "1806",
+          "parse": "HNp"
+        },
+        {
+          "surface": "בְנֵֽי",
+          "lemma": "1121",
+          "parse": "HNcmpc",
+          "sourceLemma": "1121 a"
+        },
+        {
+          "surface": "טוֹבִיָּ֖ה",
+          "lemma": "2900",
+          "parse": "HNp",
+          "n": "1.0"
+        },
+        {
+          "surface": "בְּנֵ֣י",
+          "lemma": "1121",
+          "parse": "HNcmpc",
+          "sourceLemma": "1121 a"
+        },
+        {
+          "surface": "נְקוֹדָ֑א",
+          "lemma": "5353",
+          "parse": "HNp",
+          "n": "1"
+        },
+        {
+          "surface": "שֵׁ֥שׁ",
+          "lemma": "8337",
+          "parse": "HAcfsa"
+        },
+        {
+          "surface": "מֵא֖וֹת",
+          "lemma": "3967",
+          "parse": "HAcbpa",
+          "n": "0.0"
+        },
+        {
+          "surface": "וְאַרְבָּעִ֥ים",
+          "lemma": "705",
+          "parse": "HC/Acbpa",
+          "sourceLemma": "c/705"
+        },
+        {
+          "surface": "וּשְׁנָֽיִם",
+          "lemma": "8147",
+          "parse": "HC/Acmda",
+          "sourceLemma": "c/8147",
+          "n": "0"
+        }
+      ]
+    },
+    {
+      "verse": 63,
+      "text": "וּמִן הַכֹּ֣הֲנִ֔ים בְּנֵ֥י חֳבַיָּ֖ה בְּנֵ֣י הַקּ֑וֹץ בְּנֵ֣י בַרְזִלַּ֗י אֲשֶׁ֣ר לָ֠קַח מִבְּנ֞וֹת בַּרְזִלַּ֤י הַגִּלְעָדִי֙ אִשָּׁ֔ה וַיִּקָּרֵ֖א עַל שְׁמָֽם׃",
+      "tokens": [
+        {
+          "surface": "וּמִן",
+          "lemma": "4480",
+          "parse": "HC/R",
+          "sourceLemma": "c/4480 a"
+        },
+        {
+          "surface": "הַכֹּ֣הֲנִ֔ים",
+          "lemma": "3548",
+          "parse": "HTd/Ncmpa",
+          "sourceLemma": "d/3548",
+          "n": "1.1"
+        },
+        {
+          "surface": "בְּנֵ֥י",
+          "lemma": "1121",
+          "parse": "HNcmpc",
+          "sourceLemma": "1121 a"
+        },
+        {
+          "surface": "חֳבַיָּ֖ה",
+          "lemma": "2252",
+          "parse": "HNp",
+          "n": "1.0"
+        },
+        {
+          "surface": "בְּנֵ֣י",
+          "lemma": "1121",
+          "parse": "HNcmpc",
+          "sourceLemma": "1121 a"
+        },
+        {
+          "surface": "הַקּ֑וֹץ",
+          "lemma": "6976",
+          "parse": "HNp",
+          "n": "1"
+        },
+        {
+          "surface": "בְּנֵ֣י",
+          "lemma": "1121",
+          "parse": "HNcmpc",
+          "sourceLemma": "1121 a"
+        },
+        {
+          "surface": "בַרְזִלַּ֗י",
+          "lemma": "1271",
+          "parse": "HNp",
+          "n": "0.1.1"
+        },
+        {
+          "surface": "אֲשֶׁ֣ר",
+          "lemma": "834",
+          "parse": "HTr",
+          "sourceLemma": "834 a"
+        },
+        {
+          "surface": "לָ֠קַח",
+          "lemma": "3947",
+          "parse": "HVqp3ms",
+          "n": "0.1.0.1"
+        },
+        {
+          "surface": "מִבְּנ֞וֹת",
+          "lemma": "1323",
+          "parse": "HR/Ncfpc",
+          "sourceLemma": "m/1323",
+          "n": "0.1.0.0"
+        },
+        {
+          "surface": "בַּרְזִלַּ֤י",
+          "lemma": "1271",
+          "parse": "HNp"
+        },
+        {
+          "surface": "הַגִּלְעָדִי֙",
+          "lemma": "1569",
+          "parse": "HTd/Ngmsa",
+          "sourceLemma": "d/1569",
+          "n": "0.1.0"
+        },
+        {
+          "surface": "אִשָּׁ֔ה",
+          "lemma": "802",
+          "parse": "HNcfsa",
+          "n": "0.1"
+        },
+        {
+          "surface": "וַיִּקָּרֵ֖א",
+          "lemma": "7121",
+          "parse": "HC/VNw3ms",
+          "sourceLemma": "c/7121",
+          "n": "0.0"
+        },
+        {
+          "surface": "עַל",
+          "lemma": "5921",
+          "parse": "HR",
+          "sourceLemma": "5921 a"
+        },
+        {
+          "surface": "שְׁמָֽם",
+          "lemma": "8034",
+          "parse": "HNcmsc/Sp3mp",
+          "n": "0"
+        }
+      ]
+    },
+    {
+      "verse": 64,
+      "text": "אֵ֗לֶּה בִּקְשׁ֧וּ כְתָבָ֛ם הַמִּתְיַחְשִׂ֖ים וְלֹ֣א נִמְצָ֑א וַיְגֹֽאֲל֖וּ מִן הַכְּהֻנָּֽה׃",
+      "tokens": [
+        {
+          "surface": "אֵ֗לֶּה",
+          "lemma": "428",
+          "parse": "HPdxcp",
+          "n": "1.0.1"
+        },
+        {
+          "surface": "בִּקְשׁ֧וּ",
+          "lemma": "1245",
+          "parse": "HVpp3cp"
+        },
+        {
+          "surface": "כְתָבָ֛ם",
+          "lemma": "3791",
+          "parse": "HNcmsc/Sp3mp",
+          "n": "1.0.0"
+        },
+        {
+          "surface": "הַמִּתְיַחְשִׂ֖ים",
+          "lemma": "3187",
+          "parse": "HTd/Vtrmpa",
+          "sourceLemma": "d/3187",
+          "n": "1.0"
+        },
+        {
+          "surface": "וְלֹ֣א",
+          "lemma": "3808",
+          "parse": "HC/Tn",
+          "sourceLemma": "c/3808"
+        },
+        {
+          "surface": "נִמְצָ֑א",
+          "lemma": "4672",
+          "parse": "HVNp3ms",
+          "n": "1"
+        },
+        {
+          "surface": "וַיְגֹֽאֲל֖וּ",
+          "lemma": "1351",
+          "parse": "HC/VPw3mp",
+          "sourceLemma": "c/1351",
+          "n": "0.0"
+        },
+        {
+          "surface": "מִן",
+          "lemma": "4480",
+          "parse": "HR",
+          "sourceLemma": "4480 a"
+        },
+        {
+          "surface": "הַכְּהֻנָּֽה",
+          "lemma": "3550",
+          "parse": "HTd/Ncfsa",
+          "sourceLemma": "d/3550",
+          "n": "0"
+        }
+      ]
+    },
+    {
+      "verse": 65,
+      "text": "וַיֹּ֤אמֶר הַתִּרְשָׁ֨תָא֙ לָהֶ֔ם אֲשֶׁ֥ר לֹא יֹאכְל֖וּ מִקֹּ֣דֶשׁ הַקֳּדָשִׁ֑ים עַ֛ד עֲמֹ֥ד הַכֹּהֵ֖ן לְאוּרִ֥ים וְתוּמִּֽים׃",
+      "tokens": [
+        {
+          "surface": "וַיֹּ֤אמֶר",
+          "lemma": "559",
+          "parse": "HC/Vqw3ms",
+          "sourceLemma": "c/559"
+        },
+        {
+          "surface": "הַתִּרְשָׁ֨תָא֙",
+          "lemma": "8660",
+          "parse": "HTd/Ncmsa",
+          "sourceLemma": "d/8660",
+          "n": "1.1.0"
+        },
+        {
+          "surface": "לָהֶ֔ם",
+          "lemma": "l",
+          "parse": "HR/Sp3mp",
+          "n": "1.1"
+        },
+        {
+          "surface": "אֲשֶׁ֥ר",
+          "lemma": "834",
+          "parse": "HTr",
+          "sourceLemma": "834 a"
+        },
+        {
+          "surface": "לֹא",
+          "lemma": "3808",
+          "parse": "HTn"
+        },
+        {
+          "surface": "יֹאכְל֖וּ",
+          "lemma": "398",
+          "parse": "HVqi3mp",
+          "n": "1.0"
+        },
+        {
+          "surface": "מִקֹּ֣דֶשׁ",
+          "lemma": "6944",
+          "parse": "HR/Ncmsc",
+          "sourceLemma": "m/6944"
+        },
+        {
+          "surface": "הַקֳּדָשִׁ֑ים",
+          "lemma": "6944",
+          "parse": "HTd/Ncmpa",
+          "sourceLemma": "d/6944",
+          "n": "1"
+        },
+        {
+          "surface": "עַ֛ד",
+          "lemma": "5704",
+          "parse": "HR",
+          "n": "0.0.0"
+        },
+        {
+          "surface": "עֲמֹ֥ד",
+          "lemma": "5975",
+          "parse": "HVqc"
+        },
+        {
+          "surface": "הַכֹּהֵ֖ן",
+          "lemma": "3548",
+          "parse": "HTd/Ncmsa",
+          "sourceLemma": "d/3548",
+          "n": "0.0"
+        },
+        {
+          "surface": "לְאוּרִ֥ים",
+          "lemma": "224",
+          "parse": "HR/Ncmpa",
+          "sourceLemma": "l/224"
+        },
+        {
+          "surface": "וְתוּמִּֽים",
+          "lemma": "8550",
+          "parse": "HC/Ncmpa",
+          "sourceLemma": "c/8550",
+          "n": "0"
+        }
+      ]
+    },
+    {
+      "verse": 66,
+      "text": "כָּל הַקָּהָ֖ל כְּאֶחָ֑ד אַרְבַּ֣ע רִבּ֔וֹא אַלְפַּ֖יִם שְׁלֹשׁ מֵא֥וֹת וְשִׁשִּֽׁים׃",
+      "tokens": [
+        {
+          "surface": "כָּל",
+          "lemma": "3605",
+          "parse": "HNcmsc"
+        },
+        {
+          "surface": "הַקָּהָ֖ל",
+          "lemma": "6951",
+          "parse": "HTd/Ncmsa",
+          "sourceLemma": "d/6951",
+          "n": "1.0"
+        },
+        {
+          "surface": "כְּאֶחָ֑ד",
+          "lemma": "259",
+          "parse": "HR/Acmsa",
+          "sourceLemma": "k/259",
+          "n": "1"
+        },
+        {
+          "surface": "אַרְבַּ֣ע",
+          "lemma": "702",
+          "parse": "HAcfsa"
+        },
+        {
+          "surface": "רִבּ֔וֹא",
+          "lemma": "7239",
+          "parse": "HAcbsa",
+          "n": "0.1"
+        },
+        {
+          "surface": "אַלְפַּ֖יִם",
+          "lemma": "505",
+          "parse": "HAcbpa",
+          "n": "0.0"
+        },
+        {
+          "surface": "שְׁלֹשׁ",
+          "lemma": "7969",
+          "parse": "HAcfsa"
+        },
+        {
+          "surface": "מֵא֥וֹת",
+          "lemma": "3967",
+          "parse": "HAcbpa"
+        },
+        {
+          "surface": "וְשִׁשִּֽׁים",
+          "lemma": "8346",
+          "parse": "HC/Acbpa",
+          "sourceLemma": "c/8346",
+          "n": "0"
+        }
+      ]
+    },
+    {
+      "verse": 67,
+      "text": "מִ֠לְּבַד עַבְדֵיהֶ֤ם וְאַמְהֹֽתֵיהֶם֙ אֵ֔לֶּה שִׁבְעַ֣ת אֲלָפִ֔ים שְׁלֹ֥שׁ מֵא֖וֹת שְׁלֹשִׁ֣ים וְשִׁבְעָ֑ה וְלָהֶ֗ם מְשֹֽׁרֲרִים֙ וּמְשֹׁ֣רֲר֔וֹת מָאתַ֖יִם וְאַרְבָּעִ֥ים וַחֲמִשָּֽׁה׃",
+      "tokens": [
+        {
+          "surface": "מִ֠לְּבַד",
+          "lemma": "905",
+          "parse": "HR/R/Ncmsc",
+          "sourceLemma": "m/l/905",
+          "n": "1.2.0.0"
+        },
+        {
+          "surface": "עַבְדֵיהֶ֤ם",
+          "lemma": "5650",
+          "parse": "HNcmpc/Sp3mp"
+        },
+        {
+          "surface": "וְאַמְהֹֽתֵיהֶם֙",
+          "lemma": "519",
+          "parse": "HC/Ncfpc/Sp3mp",
+          "sourceLemma": "c/519",
+          "n": "1.2.0"
+        },
+        {
+          "surface": "אֵ֔לֶּה",
+          "lemma": "428",
+          "parse": "HPdxcp",
+          "n": "1.2"
+        },
+        {
+          "surface": "שִׁבְעַ֣ת",
+          "lemma": "7651",
+          "parse": "HAcmsc"
+        },
+        {
+          "surface": "אֲלָפִ֔ים",
+          "lemma": "505",
+          "parse": "HAcbpa",
+          "n": "1.1"
+        },
+        {
+          "surface": "שְׁלֹ֥שׁ",
+          "lemma": "7969",
+          "parse": "HAcfsa"
+        },
+        {
+          "surface": "מֵא֖וֹת",
+          "lemma": "3967",
+          "parse": "HAcbpa",
+          "n": "1.0"
+        },
+        {
+          "surface": "שְׁלֹשִׁ֣ים",
+          "lemma": "7970",
+          "parse": "HAcbpa"
+        },
+        {
+          "surface": "וְשִׁבְעָ֑ה",
+          "lemma": "7651",
+          "parse": "HC/Acmsa",
+          "sourceLemma": "c/7651",
+          "n": "1"
+        },
+        {
+          "surface": "וְלָהֶ֗ם",
+          "lemma": "l",
+          "parse": "HC/R/Sp3mp",
+          "sourceLemma": "c/l",
+          "n": "0.1.1"
+        },
+        {
+          "surface": "מְשֹֽׁרֲרִים֙",
+          "lemma": "7891",
+          "parse": "HVormpa",
+          "n": "0.1.0"
+        },
+        {
+          "surface": "וּמְשֹׁ֣רֲר֔וֹת",
+          "lemma": "7891",
+          "parse": "HC/Vorfpa",
+          "sourceLemma": "c/7891",
+          "n": "0.1"
+        },
+        {
+          "surface": "מָאתַ֖יִם",
+          "lemma": "3967",
+          "parse": "HAcbda",
+          "n": "0.0"
+        },
+        {
+          "surface": "וְאַרְבָּעִ֥ים",
+          "lemma": "705",
+          "parse": "HC/Acbpa",
+          "sourceLemma": "c/705"
+        },
+        {
+          "surface": "וַחֲמִשָּֽׁה",
+          "lemma": "2568",
+          "parse": "HC/Acmsa",
+          "sourceLemma": "c/2568",
+          "n": "0"
+        }
+      ]
+    },
+    {
+      "verse": 68,
+      "text": "גְּמַלִּ֕ים אַרְבַּ֥ע מֵא֖וֹת שְׁלֹשִׁ֣ים וַחֲמִשָּׁ֑ה חֲמֹרִ֕ים שֵׁ֣שֶׁת אֲלָפִ֔ים שְׁבַ֥ע מֵא֖וֹת וְעֶשְׂרִֽים׃",
+      "tokens": [
+        {
+          "surface": "גְּמַלִּ֕ים",
+          "lemma": "1581",
+          "parse": "HNcmpa",
+          "n": "1.1"
+        },
+        {
+          "surface": "אַרְבַּ֥ע",
+          "lemma": "702",
+          "parse": "HAcfsa"
+        },
+        {
+          "surface": "מֵא֖וֹת",
+          "lemma": "3967",
+          "parse": "HAcbpa",
+          "n": "1.0"
+        },
+        {
+          "surface": "שְׁלֹשִׁ֣ים",
+          "lemma": "7970",
+          "parse": "HAcbpa"
+        },
+        {
+          "surface": "וַחֲמִשָּׁ֑ה",
+          "lemma": "2568",
+          "parse": "HC/Acmsa",
+          "sourceLemma": "c/2568",
+          "n": "1"
+        },
+        {
+          "surface": "חֲמֹרִ֕ים",
+          "lemma": "2543",
+          "parse": "HNcbpa",
+          "n": "0.2"
+        },
+        {
+          "surface": "שֵׁ֣שֶׁת",
+          "lemma": "8337",
+          "parse": "HAcmsc"
+        },
+        {
+          "surface": "אֲלָפִ֔ים",
+          "lemma": "505",
+          "parse": "HAcbpa",
+          "n": "0.1"
+        },
+        {
+          "surface": "שְׁבַ֥ע",
+          "lemma": "7651",
+          "parse": "HAcfsa"
+        },
+        {
+          "surface": "מֵא֖וֹת",
+          "lemma": "3967",
+          "parse": "HAcbpa",
+          "n": "0.0"
+        },
+        {
+          "surface": "וְעֶשְׂרִֽים",
+          "lemma": "6242",
+          "parse": "HC/Acbpa",
+          "sourceLemma": "c/6242",
+          "n": "0"
+        }
+      ]
+    },
+    {
+      "verse": 69,
+      "text": "וּמִקְצָת֙ רָאשֵׁ֣י הָֽאָב֔וֹת נָתְנ֖וּ לַמְּלָאכָ֑ה הַתִּרְשָׁ֜תָא נָתַ֣ן לָאוֹצָ֗ר זָהָ֞ב דַּרְכְּמֹנִ֥ים אֶ֨לֶף֙ מִזְרָק֣וֹת חֲמִשִּׁ֔ים כָּתְנוֹת֙ כֹּֽהֲנִ֔ים שְׁלֹשִׁ֖ים וַחֲמֵ֥שׁ מֵאֽוֹת׃",
+      "tokens": [
+        {
+          "surface": "וּמִקְצָת֙",
+          "lemma": "7117",
+          "parse": "HC/R/Ncfsc",
+          "sourceLemma": "c/m/7117",
+          "n": "1.1.0"
+        },
+        {
+          "surface": "רָאשֵׁ֣י",
+          "lemma": "7218",
+          "parse": "HNcmpc",
+          "sourceLemma": "7218 a"
+        },
+        {
+          "surface": "הָֽאָב֔וֹת",
+          "lemma": "1",
+          "parse": "HTd/Ncmpa",
+          "sourceLemma": "d/1",
+          "n": "1.1"
+        },
+        {
+          "surface": "נָתְנ֖וּ",
+          "lemma": "5414",
+          "parse": "HVqp3cp",
+          "n": "1.0"
+        },
+        {
+          "surface": "לַמְּלָאכָ֑ה",
+          "lemma": "4399",
+          "parse": "HRd/Ncfsa",
+          "sourceLemma": "l/4399",
+          "n": "1"
+        },
+        {
+          "surface": "הַתִּרְשָׁ֜תָא",
+          "lemma": "8660",
+          "parse": "HTd/Ncmsa",
+          "sourceLemma": "d/8660",
+          "n": "0.2.1.0"
+        },
+        {
+          "surface": "נָתַ֣ן",
+          "lemma": "5414",
+          "parse": "HVqp3ms"
+        },
+        {
+          "surface": "לָאוֹצָ֗ר",
+          "lemma": "214",
+          "parse": "HRd/Ncmsa",
+          "sourceLemma": "l/214",
+          "n": "0.2.1"
+        },
+        {
+          "surface": "זָהָ֞ב",
+          "lemma": "2091",
+          "parse": "HNcmsa",
+          "n": "0.2.0.0"
+        },
+        {
+          "surface": "דַּרְכְּמֹנִ֥ים",
+          "lemma": "1871",
+          "parse": "HNcmpa"
+        },
+        {
+          "surface": "אֶ֨לֶף֙",
+          "lemma": "505",
+          "parse": "HAcbsa",
+          "n": "0.2.0"
+        },
+        {
+          "surface": "מִזְרָק֣וֹת",
+          "lemma": "4219",
+          "parse": "HNcmpa"
+        },
+        {
+          "surface": "חֲמִשִּׁ֔ים",
+          "lemma": "2572",
+          "parse": "HAcbpa",
+          "n": "0.2"
+        },
+        {
+          "surface": "כָּתְנוֹת֙",
+          "lemma": "3801",
+          "parse": "HNcfpc",
+          "n": "0.1.0"
+        },
+        {
+          "surface": "כֹּֽהֲנִ֔ים",
+          "lemma": "3548",
+          "parse": "HNcmpa",
+          "n": "0.1"
+        },
+        {
+          "surface": "שְׁלֹשִׁ֖ים",
+          "lemma": "7970",
+          "parse": "HAcbpa",
+          "n": "0.0"
+        },
+        {
+          "surface": "וַחֲמֵ֥שׁ",
+          "lemma": "2568",
+          "parse": "HC/Acfsa",
+          "sourceLemma": "c/2568"
+        },
+        {
+          "surface": "מֵאֽוֹת",
+          "lemma": "3967",
+          "parse": "HAcbpa",
+          "n": "0"
+        }
+      ]
+    },
+    {
+      "verse": 70,
+      "text": "וּמֵֽרָאשֵׁ֣י הָֽאָב֗וֹת נָֽתְנוּ֙ לְאוֹצַ֣ר הַמְּלָאכָ֔ה זָהָ֕ב דַּרְכְּמוֹנִ֖ים שְׁתֵּ֣י רִבּ֑וֹת וְכֶ֕סֶף מָנִ֖ים אַלְפַּ֥יִם וּמָאתָֽיִם׃",
+      "tokens": [
+        {
+          "surface": "וּמֵֽרָאשֵׁ֣י",
+          "lemma": "7218",
+          "parse": "HC/R/Ncmpc",
+          "sourceLemma": "c/m/7218 a"
+        },
+        {
+          "surface": "הָֽאָב֗וֹת",
+          "lemma": "1",
+          "parse": "HTd/Ncmpa",
+          "sourceLemma": "d/1",
+          "n": "1.2.1"
+        },
+        {
+          "surface": "נָֽתְנוּ֙",
+          "lemma": "5414",
+          "parse": "HVqp3cp",
+          "n": "1.2.0"
+        },
+        {
+          "surface": "לְאוֹצַ֣ר",
+          "lemma": "214",
+          "parse": "HR/Ncmsc",
+          "sourceLemma": "l/214"
+        },
+        {
+          "surface": "הַמְּלָאכָ֔ה",
+          "lemma": "4399",
+          "parse": "HTd/Ncfsa",
+          "sourceLemma": "d/4399",
+          "n": "1.2"
+        },
+        {
+          "surface": "זָהָ֕ב",
+          "lemma": "2091",
+          "parse": "HNcmsa",
+          "n": "1.1"
+        },
+        {
+          "surface": "דַּרְכְּמוֹנִ֖ים",
+          "lemma": "1871",
+          "parse": "HNcmpa",
+          "n": "1.0"
+        },
+        {
+          "surface": "שְׁתֵּ֣י",
+          "lemma": "8147",
+          "parse": "HAcfdc"
+        },
+        {
+          "surface": "רִבּ֑וֹת",
+          "lemma": "7239",
+          "parse": "HNcbpa",
+          "n": "1"
+        },
+        {
+          "surface": "וְכֶ֕סֶף",
+          "lemma": "3701",
+          "parse": "HC/Ncmsa",
+          "sourceLemma": "c/3701",
+          "n": "0.1"
+        },
+        {
+          "surface": "מָנִ֖ים",
+          "lemma": "4488",
+          "parse": "HNcmpa",
+          "n": "0.0"
+        },
+        {
+          "surface": "אַלְפַּ֥יִם",
+          "lemma": "505",
+          "parse": "HAcbpa"
+        },
+        {
+          "surface": "וּמָאתָֽיִם",
+          "lemma": "3967",
+          "parse": "HC/Acbda",
+          "sourceLemma": "c/3967",
+          "n": "0"
+        }
+      ]
+    },
+    {
+      "verse": 71,
+      "text": "וַאֲשֶׁ֣ר נָתְנוּ֮ שְׁאֵרִ֣ית הָעָם֒ זָהָ֗ב דַּרְכְּמוֹנִים֙ שְׁתֵּ֣י רִבּ֔וֹא וְכֶ֖סֶף מָנִ֣ים אַלְפָּ֑יִם וְכָתְנֹ֥ת כֹּֽהֲנִ֖ים שִׁשִּׁ֥ים וְשִׁבְעָֽה׃",
+      "tokens": [
+        {
+          "surface": "וַאֲשֶׁ֣ר",
+          "lemma": "834",
+          "parse": "HC/Tr",
+          "sourceLemma": "c/834 a"
+        },
+        {
+          "surface": "נָתְנוּ֮",
+          "lemma": "5414",
+          "parse": "HVqp3cp",
+          "n": "1.2.0"
+        },
+        {
+          "surface": "שְׁאֵרִ֣ית",
+          "lemma": "7611",
+          "parse": "HNcfsc"
+        },
+        {
+          "surface": "הָעָם֒",
+          "lemma": "5971",
+          "parse": "HTd/Ncmsa",
+          "sourceLemma": "d/5971 a",
+          "n": "1.2"
+        },
+        {
+          "surface": "זָהָ֗ב",
+          "lemma": "2091",
+          "parse": "HNcmsa",
+          "n": "1.1.1"
+        },
+        {
+          "surface": "דַּרְכְּמוֹנִים֙",
+          "lemma": "1871",
+          "parse": "HNcmpa",
+          "n": "1.1.0"
+        },
+        {
+          "surface": "שְׁתֵּ֣י",
+          "lemma": "8147",
+          "parse": "HAcfdc"
+        },
+        {
+          "surface": "רִבּ֔וֹא",
+          "lemma": "7239",
+          "parse": "HAcbsa",
+          "n": "1.1"
+        },
+        {
+          "surface": "וְכֶ֖סֶף",
+          "lemma": "3701",
+          "parse": "HC/Ncmsa",
+          "sourceLemma": "c/3701",
+          "n": "1.0"
+        },
+        {
+          "surface": "מָנִ֣ים",
+          "lemma": "4488",
+          "parse": "HNcmpa"
+        },
+        {
+          "surface": "אַלְפָּ֑יִם",
+          "lemma": "505",
+          "parse": "HAcbpa",
+          "n": "1"
+        },
+        {
+          "surface": "וְכָתְנֹ֥ת",
+          "lemma": "3801",
+          "parse": "HC/Ncfpc",
+          "sourceLemma": "c/3801"
+        },
+        {
+          "surface": "כֹּֽהֲנִ֖ים",
+          "lemma": "3548",
+          "parse": "HNcmpa",
+          "n": "0.0"
+        },
+        {
+          "surface": "שִׁשִּׁ֥ים",
+          "lemma": "8346",
+          "parse": "HAcbpa"
+        },
+        {
+          "surface": "וְשִׁבְעָֽה",
+          "lemma": "7651",
+          "parse": "HC/Acmsa",
+          "sourceLemma": "c/7651",
+          "n": "0"
+        }
+      ]
+    },
+    {
+      "verse": 72,
+      "text": "וַיֵּשְׁב֣וּ הַכֹּהֲנִ֣ים וְהַלְוִיִּ֡ם וְהַשּׁוֹעֲרִים֩ וְהַמְשֹׁרְרִ֨ים וּמִן הָעָ֧ם וְהַנְּתִינִ֛ים וְכָל יִשְׂרָאֵ֖ל בְּעָרֵיהֶ֑ם וַיִּגַּע֙ הַחֹ֣דֶשׁ הַשְּׁבִיעִ֔י וּבְנֵ֥י יִשְׂרָאֵ֖ל בְּעָרֵיהֶֽם׃",
+      "tokens": [
+        {
+          "surface": "וַיֵּשְׁב֣וּ",
+          "lemma": "3427",
+          "parse": "HC/Vqw3mp",
+          "sourceLemma": "c/3427"
+        },
+        {
+          "surface": "הַכֹּהֲנִ֣ים",
+          "lemma": "3548",
+          "parse": "HTd/Ncmpa",
+          "sourceLemma": "d/3548"
+        },
+        {
+          "surface": "וְהַלְוִיִּ֡ם",
+          "lemma": "3881",
+          "parse": "HC/Td/Ngmpa",
+          "sourceLemma": "c/d/3881",
+          "n": "1.0.0.0"
+        },
+        {
+          "surface": "וְהַשּׁוֹעֲרִים֩",
+          "lemma": "7778",
+          "parse": "HC/Td/Ncmpa",
+          "sourceLemma": "c/d/7778"
+        },
+        {
+          "surface": "וְהַמְשֹׁרְרִ֨ים",
+          "lemma": "7891",
+          "parse": "HC/Td/Vormpa",
+          "sourceLemma": "c/d/7891"
+        },
+        {
+          "surface": "וּמִן",
+          "lemma": "4480",
+          "parse": "HC/R",
+          "sourceLemma": "c/4480 a"
+        },
+        {
+          "surface": "הָעָ֧ם",
+          "lemma": "5971",
+          "parse": "HTd/Ncmsa",
+          "sourceLemma": "d/5971 a"
+        },
+        {
+          "surface": "וְהַנְּתִינִ֛ים",
+          "lemma": "5411",
+          "parse": "HC/Td/Ncmpa",
+          "sourceLemma": "c/d/5411",
+          "n": "1.0.0"
+        },
+        {
+          "surface": "וְכָל",
+          "lemma": "3605",
+          "parse": "HC/Ncmsc",
+          "sourceLemma": "c/3605"
+        },
+        {
+          "surface": "יִשְׂרָאֵ֖ל",
+          "lemma": "3478",
+          "parse": "HNp",
+          "n": "1.0"
+        },
+        {
+          "surface": "בְּעָרֵיהֶ֑ם",
+          "lemma": "5892",
+          "parse": "HR/Ncfpc/Sp3mp",
+          "sourceLemma": "b/5892 b",
+          "n": "1"
+        },
+        {
+          "surface": "וַיִּגַּע֙",
+          "lemma": "5060",
+          "parse": "HC/Vqw3ms",
+          "sourceLemma": "c/5060",
+          "n": "0.1.0"
+        },
+        {
+          "surface": "הַחֹ֣דֶשׁ",
+          "lemma": "2320",
+          "parse": "HTd/Ncmsa",
+          "sourceLemma": "d/2320"
+        },
+        {
+          "surface": "הַשְּׁבִיעִ֔י",
+          "lemma": "7637",
+          "parse": "HTd/Aomsa",
+          "sourceLemma": "d/7637",
+          "n": "0.1"
+        },
+        {
+          "surface": "וּבְנֵ֥י",
+          "lemma": "1121",
+          "parse": "HC/Ncmpc",
+          "sourceLemma": "c/1121 a"
+        },
+        {
+          "surface": "יִשְׂרָאֵ֖ל",
+          "lemma": "3478",
+          "parse": "HNp",
+          "n": "0.0"
+        },
+        {
+          "surface": "בְּעָרֵיהֶֽם",
+          "lemma": "5892",
+          "parse": "HR/Ncfpc/Sp3mp",
+          "sourceLemma": "b/5892 b",
+          "n": "0"
+        }
+      ]
+    }
+  ]
+}

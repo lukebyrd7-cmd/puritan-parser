@@ -1,25 +1,6 @@
 /* ---------- Reader ---------- */
 const ReaderStorageKey = 'pp_reader_location';
 const ReaderConfig = {
-  greek: {
-    label: 'Greek New Testament',
-    shortLabel: 'Greek',
-    htmlLang: 'grc',
-    dir: 'ltr',
-    dataRoot: 'data/greek',
-    manifestPath: 'data/greek/manifest.json',
-    glossPath: 'data/glosses/greek-glosses.json',
-    searchIndexPath: 'data/greek/search-index.json',
-    searchPlaceholder: 'Search Greek text, lemma, or Matthew 1:1...',
-    grammarLinks: {
-      noun: [['Greek Nouns','greek-nouns']],
-      adjective: [['Greek Adjectives','greek-adjectives']],
-      verb: [['Greek Verbs','greek-verbs']],
-      participle: [['Greek Verbs','greek-verbs']],
-      article: [['Greek Nouns','greek-nouns']]
-    },
-    books: []
-  },
   hebrew: {
     label: 'Hebrew Bible',
     shortLabel: 'Hebrew',
@@ -37,6 +18,25 @@ const ReaderConfig = {
       verb: [['Hebrew Verbs','hebrew-verbs']],
       participle: [['Hebrew Verbs','hebrew-verbs']],
       article: [['Particles','hebrew-particles'], ['Hebrew Nouns','hebrew-nouns']]
+    },
+    books: []
+  },
+  greek: {
+    label: 'Greek New Testament',
+    shortLabel: 'Greek',
+    htmlLang: 'grc',
+    dir: 'ltr',
+    dataRoot: 'data/greek',
+    manifestPath: 'data/greek/manifest.json',
+    glossPath: 'data/glosses/greek-glosses.json',
+    searchIndexPath: 'data/greek/search-index.json',
+    searchPlaceholder: 'Search Greek text, lemma, or Matthew 1:1...',
+    grammarLinks: {
+      noun: [['Greek Nouns','greek-nouns']],
+      adjective: [['Greek Adjectives','greek-adjectives']],
+      verb: [['Greek Verbs','greek-verbs']],
+      participle: [['Greek Verbs','greek-verbs']],
+      article: [['Greek Nouns','greek-nouns']]
     },
     books: []
   }

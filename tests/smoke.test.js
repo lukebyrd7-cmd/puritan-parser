@@ -13,6 +13,7 @@ test('smoke: app shell loads required views and controls', () => {
 test('smoke: Greek/Hebrew switching and word list controls are present', () => {
   assert.match(html, /data-lang="greek"/);
   assert.match(html, /data-lang="hebrew"/);
+  assert.match(html, /data-lang="hebrew"[\s\S]*data-lang="greek"/);
   assert.match(html, /id="wordsTbody"/);
 });
 

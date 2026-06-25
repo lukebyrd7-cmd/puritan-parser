@@ -6,12 +6,6 @@ const ROOT = path.resolve(__dirname, '..');
 const DEFAULT_SOURCE_ROOT = path.join(ROOT, 'data', 'source');
 const DEFAULT_OUTPUT_ROOT = path.join(ROOT, 'data', 'hebrew');
 const SOURCE_LABEL = 'Open Scriptures Hebrew Bible (data/source/morphhb-wlc)';
-const DEFAULT_BOOKS = ['jonah', 'ruth'];
-const DEFAULT_CHAPTERS_BY_BOOK = {
-  jonah: [1],
-  ruth: []
-};
-
 const BOOKS = {
   Gen: { id: 'genesis', name: 'Genesis', sourceFile: 'Gen.xml' },
   Exod: { id: 'exodus', name: 'Exodus', sourceFile: 'Exod.xml' },
@@ -53,6 +47,15 @@ const BOOKS = {
   Zech: { id: 'zechariah', name: 'Zechariah', sourceFile: 'Zech.xml' },
   Mal: { id: 'malachi', name: 'Malachi', sourceFile: 'Mal.xml' }
 };
+
+const DEFAULT_BOOKS = [
+  'genesis', 'exodus', 'leviticus', 'numbers', 'deuteronomy',
+  'joshua', 'judges', '1samuel', '2samuel', '1kings', '2kings',
+  'isaiah', 'jeremiah', 'ezekiel',
+  'hosea', 'joel', 'amos', 'obadiah', 'jonah', 'micah', 'nahum', 'habakkuk', 'zephaniah', 'haggai', 'zechariah', 'malachi',
+  'psalms', 'proverbs', 'job', 'songofsolomon', 'ruth', 'lamentations', 'ecclesiastes', 'esther', 'daniel', 'ezra', 'nehemiah', '1chronicles', '2chronicles'
+];
+const DEFAULT_CHAPTERS_BY_BOOK = {};
 
 function parseArgs(argv = process.argv.slice(2)) {
   const opts = {
@@ -274,7 +277,7 @@ function generateHebrewReaderData(options = {}) {
 function main() {
   const opts = parseArgs();
   if (opts.help) {
-    console.log('Usage: node scripts/generate-hebrew-reader-data.js [--book jonah] [--chapter 1] [--all-chapters] [--source-root data/source] [--output-root data/hebrew] [--no-search-index]');
+    console.log('Usage: node scripts/generate-hebrew-reader-data.js [--book genesis] [--chapter 1] [--all-chapters] [--source-root data/source] [--output-root data/hebrew] [--no-search-index]');
     return;
   }
   const result = generateHebrewReaderData(opts);
