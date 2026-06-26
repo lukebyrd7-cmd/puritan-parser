@@ -678,6 +678,7 @@ button:focus-visible, input:focus-visible, select:focus-visible {
   gap: 16px;
   padding: 20px;
 }
+.learn-panel-wide { max-width: 980px; }
 .learn-header {
   display: flex;
   gap: 12px;
@@ -697,12 +698,44 @@ button:focus-visible, input:focus-visible, select:focus-visible {
   font-size: 14px;
   line-height: 1.45;
 }
+.learn-breadcrumbs {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  color: var(--muted);
+  font-size: 12px;
+}
+.learn-breadcrumbs button {
+  border: 0;
+  padding: 0;
+  background: transparent;
+  color: var(--accent-dark);
+  font: inherit;
+  cursor: pointer;
+}
+.learn-breadcrumbs button:hover,
+.learn-breadcrumbs button:focus-visible {
+  text-decoration: underline;
+  outline: none;
+}
+.learn-breadcrumb-separator { color: var(--muted); }
 .learn-card-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
   gap: 10px;
 }
 .learn-card-grid-compact { grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); }
+.learn-book-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 8px;
+}
+.learn-chapter-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(86px, 1fr));
+  gap: 8px;
+}
 .learn-card {
   display: grid;
   gap: 6px;
@@ -718,6 +751,12 @@ button:focus-visible, input:focus-visible, select:focus-visible {
   cursor: pointer;
   transition: border-color 150ms, background 150ms, transform 150ms;
 }
+.learn-card-compact {
+  min-height: 88px;
+  padding: 12px 13px;
+}
+.learn-card-compact .learn-card-title { font-size: 19px; }
+.learn-card-compact .learn-card-description { font-size: 12px; }
 .learn-card:hover,
 .learn-card:focus-visible {
   border-color: var(--accent);
@@ -757,6 +796,35 @@ button:focus-visible, input:focus-visible, select:focus-visible {
   text-transform: uppercase;
   color: var(--muted);
 }
+.learn-study-stats {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+.learn-custom-frequency-form {
+  display: grid;
+  gap: 7px;
+  align-items: start;
+  max-width: 280px;
+  padding-top: 2px;
+}
+.learn-custom-frequency-form label {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.learn-custom-frequency-row {
+  display: flex;
+  gap: 8px;
+}
+.learn-custom-frequency-input { width: 110px; }
+.learn-custom-frequency-error {
+  color: var(--danger);
+  font-size: 12px;
+  line-height: 1.35;
+}
 .learn-explainer p,
 .learn-placeholder p {
   color: var(--text-2);
@@ -771,6 +839,7 @@ button:focus-visible, input:focus-visible, select:focus-visible {
   .learn-header { display: grid; gap: 10px; }
   .learn-header h1 { font-size: 30px; }
   .learn-card-grid { grid-template-columns: 1fr; }
+  .learn-study-stats { grid-template-columns: 1fr; }
 }
 
 /* ===== TWO-COL DESKTOP ===== */

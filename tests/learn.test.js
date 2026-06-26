@@ -16,6 +16,7 @@ function renderedText(html){
 function renderPage(page){
   learn.learnState.page = page;
   learn.learnState.history = [];
+  learn.learnState.customFrequencyErrors = {};
   return learn.renderLearnPage();
 }
 
@@ -31,14 +32,107 @@ test('Learn home opens the three permanent study areas', () => {
   assert.doesNotMatch(html, /alert\(/);
 });
 
-test('Vocabulary shell opens each placeholder subpage', () => {
+test('Vocabulary shell opens review and the new words path chooser', () => {
   const html = renderPage('vocabulary');
-  ['Review', 'New Words', 'By Frequency', 'By Book'].forEach(label => assert.match(html, new RegExp(label)));
+  ['Review', 'New Words'].forEach(label => assert.match(html, new RegExp(label)));
+  assert.doesNotMatch(html, /data-learn-page="vocabulary:frequency"/);
+  assert.doesNotMatch(html, /data-learn-page="vocabulary:book"/);
 
-  assert.match(renderedText(renderPage('vocabulary:review')), /Eventually review words currently in Learning/);
-  assert.match(renderedText(renderPage('vocabulary:new-words')), /Learn new vocabulary from your selected study path/);
-  assert.match(renderedText(renderPage('vocabulary:by-frequency')), /Study vocabulary grouped by occurrence frequency/);
-  assert.match(renderedText(renderPage('vocabulary:by-book')), /Prepare vocabulary for individual books and chapters/);
+  assert.match(renderedText(renderPage('vocabulary:review')), /Review words currently in Learning and strengthen long-term retention/);
+  const newWords = renderPage('vocabulary:new-words');
+  assert.match(newWords, /Choose how you want to prepare for reading/);
+  assert.match(newWords, /data-learn-page="vocabulary:frequency"/);
+  assert.match(newWords, /data-learn-page="vocabulary:book"/);
+});
+
+test('Vocabulary by frequency exposes permanent language thresholds', () => {
+  const shell = renderPage('vocabulary:frequency');
+  assert.match(shell, /Greek/);
+  assert.match(shell, /Hebrew/);
+  assert.match(shell, /data-learn-page="vocabulary:frequency:greek"/);
+  assert.match(shell, /data-learn-page="vocabulary:frequency:hebrew"/);
+
+  const greek = renderPage('vocabulary:frequency:greek');
+  ['25+', '10+', '5+', 'All Words'].forEach(label => assert.match(renderedText(greek), new RegExp(label.replace('+', '\\+'))));
+  assert.match(greek, /Custom Frequency/);
+  assert.match(renderedText(renderPage('vocabulary:frequency:greek:25')), /Study every Greek lemma occurring 25 times or more/);
+  assert.match(renderedText(renderPage('vocabulary:frequency:greek:25')), /Eventually this will introduce new words into your review system/);
+
+  const hebrew = renderPage('vocabulary:frequency:hebrew');
+  ['60+', '30+', '10+', '5+', 'All Words'].forEach(label => assert.match(renderedText(hebrew), new RegExp(label.replace('+', '\\+'))));
+  assert.match(renderedText(renderPage('vocabulary:frequency:hebrew:60')), /Study every Hebrew lemma occurring 60 times or more/);
+});
+
+test('Vocabulary by book is generated from reader manifests and opens book and chapter study shells', () => {
+  const shell = renderPage('vocabulary:book');
+  assert.match(shell, /Old Testament/);
+  assert.match(shell, /New Testament/);
+
+  const oldTestament = renderPage('vocabulary:book:old-testament');
+  assert.match(oldTestament, /Genesis/);
+  assert.match(oldTestament, /data-learn-page="vocabulary:book:hebrew:genesis"/);
+
+  const newTestament = renderPage('vocabulary:book:new-testament');
+  assert.match(newTestament, /Matthew/);
+  assert.match(newTestament, /data-learn-page="vocabulary:book:greek:matthew"/);
+
+  const bookStudy = renderedText(renderPage('vocabulary:book:greek:matthew'));
+  assert.match(bookStudy, /Matthew/);
+  assert.match(bookStudy, /Known Vocabulary Placeholder/);
+  assert.match(bookStudy, /Remaining Words Placeholder/);
+  assert.match(bookStudy, /Study Options/);
+  assert.match(bookStudy, /Overall Frequency/);
+  assert.match(bookStudy, /By Chapter/);
+
+  const overall = renderedText(renderPage('vocabulary:book:hebrew:genesis:overall'));
+  assert.match(overall, /60\+/);
+  assert.match(overall, /30\+/);
+  assert.match(renderedText(renderPage('vocabulary:book:hebrew:genesis:overall:60')), /Study every Hebrew lemma occurring 60 times or more/);
+
+  const chapters = renderPage('vocabulary:book:greek:matthew:chapter');
+  assert.match(chapters, /Matthew 28/);
+  assert.match(chapters, /data-learn-page="vocabulary:book:greek:matthew:chapter:28"/);
+
+  const chapterStudy = renderedText(renderPage('vocabulary:book:greek:matthew:chapter:1'));
+  assert.match(chapterStudy, /Matthew 1/);
+  assert.match(chapterStudy, /Known Vocabulary Placeholder/);
+  assert.match(chapterStudy, /25\+/);
+  assert.match(renderedText(renderPage('vocabulary:book:greek:matthew:chapter:1:25')), /Study every Greek lemma occurring 25 times or more/);
+  assert.doesNotMatch(chapterStudy, /percent|score|mastery|due/i);
+});
+
+test('Learn breadcrumbs expose compact clickable path navigation', () => {
+  const html = renderPage('vocabulary:book:greek:romans:chapter:3:custom-7');
+  const text = renderedText(html);
+  assert.match(text, /Learn › Vocabulary › New Words › By Book › New Testament › Romans › By Chapter › Romans 3 › 7\+/);
+  [
+    'home',
+    'vocabulary',
+    'vocabulary:new-words',
+    'vocabulary:book',
+    'vocabulary:book:new-testament',
+    'vocabulary:book:greek:romans',
+    'vocabulary:book:greek:romans:chapter',
+    'vocabulary:book:greek:romans:chapter:3'
+  ].forEach(page => assert.match(html, new RegExp(`data-learn-page="${page}"`)));
+});
+
+test('Custom frequency validates positive whole numbers and navigates to placeholders', () => {
+  assert.deepEqual(learn.parseLearnCustomFrequency('3'), { valid: true, threshold: 3, pageToken: 'custom-3' });
+  assert.deepEqual(learn.parseLearnCustomFrequency(' 30 '), { valid: true, threshold: 30, pageToken: 'custom-30' });
+  assert.equal(learn.parseLearnCustomFrequency('0').valid, false);
+  assert.equal(learn.parseLearnCustomFrequency('2.5').valid, false);
+  assert.equal(learn.parseLearnCustomFrequency('abc').valid, false);
+
+  learn.learnState.page = 'vocabulary:frequency:greek';
+  learn.learnState.history = [];
+  learn.learnState.customFrequencyErrors = {};
+  assert.equal(learn.setLearnCustomFrequency('vocabulary:frequency:greek', '3'), true);
+  assert.equal(learn.learnState.page, 'vocabulary:frequency:greek:custom-3');
+  assert.match(renderedText(learn.renderLearnPage()), /Study every Greek lemma occurring 3 times or more/);
+
+  assert.equal(learn.setLearnCustomFrequency('vocabulary:frequency:greek', '0'), false);
+  assert.equal(learn.learnState.customFrequencyErrors['vocabulary:frequency:greek'], 'Enter a positive whole number.');
 });
 
 test('Paradigms shell is organized by language and emphasizes verbs', () => {
@@ -80,6 +174,94 @@ test('Learn back navigation returns through the Learn page stack and exits from 
   learn.backLearnPage();
   assert.equal(shownView, 'listView');
   delete global.showView;
+});
+
+test('resetLearn returns Learn to home and clears the Learn page stack', () => {
+  learn.learnState.page = 'vocabulary:book:greek:romans:chapter:3';
+  learn.learnState.history = ['home', 'vocabulary'];
+  learn.learnState.customFrequencyErrors = { 'vocabulary:frequency:greek': 'Enter a positive whole number.' };
+  learn.resetLearn({ render: false });
+  assert.equal(learn.learnState.page, 'home');
+  assert.deepEqual(learn.learnState.history, []);
+  assert.deepEqual(learn.learnState.customFrequencyErrors, {});
+});
+
+test('Primary Learn nav click resets Learn before routing', () => {
+  const listeners = {};
+  function makeElement(id){
+    return {
+      id,
+      value: '',
+      checked: false,
+      addEventListener(event, handler){ listeners[`${id}:${event}`] = handler; },
+      classList: { toggle() {}, contains(){ return false; } },
+      textContent: '',
+      style: {}
+    };
+  }
+  const elements = new Map([
+    'searchInput','freqMin','freqMax','dueOnlyToggle','posFilterSelect','parsingFamilySelect','sortSelect',
+    'startFlashBtn','endFlashBtn','fcFlipToBack','fcFlipToFront','flashCompleteBack',
+    'parsingMode','lemmaSearch','startParsing','endParsing','parsingSubmit','parsingReveal','nextParsing','finishParsing',
+    'closeModal','modalCloseBtn2','wordModal','openSettings','closeSettingsBtn','wordPageBackToReader','applyAccent',
+    'customAccent','studyModeSetting','fontSizeSlider','fontSizeLabel','importData','importFile','exportData','resetSRS','clearAll'
+  ].map(id => [id, makeElement(id)]));
+  const navLearn = makeElement('navLearn');
+  navLearn.dataset = { view: 'learn' };
+  let resetCalled = false;
+  let routedPath = '';
+  const context = {
+    console,
+    document: {
+      activeElement: { tagName: 'BODY' },
+      getElementById: id => elements.get(id) || null,
+      querySelector: selector => selector.startsWith('#') ? (elements.get(selector.slice(1)) || null) : null,
+      querySelectorAll: selector => selector === '.nav-tab' ? [navLearn] : []
+    },
+    window: { addEventListener: () => {} },
+    state: { currentView: 'learnView', lang: 'greek', prefs: {}, session: { queue: [] } },
+    resetLearn: options => { resetCalled = options?.render === false; },
+    navigateTo: path => { routedPath = path; },
+    setLang: () => {},
+    debounce: fn => fn,
+    renderList: () => {},
+    readFiltersFromDOM: () => {},
+    renderLemmaPicker: () => {},
+    updateParsingMatchCount: () => {},
+    readParsingFiltersFromDOM: () => ({}),
+    cleanParsingFiltersForMode: () => {},
+    updateParsingFilterOptions: () => {},
+    startFlash: () => {},
+    endFlash: () => {},
+    setCardFlipped: () => {},
+    wireSwipe: () => {},
+    updateParsingModeUI: () => {},
+    startParsing: () => {},
+    endParsing: () => {},
+    checkParsingAnswer: () => {},
+    revealParsingAnswer: () => {},
+    renderParsingQuestion: () => {},
+    closeWordModal: () => {},
+    showView: () => {},
+    applyTheme: () => {},
+    setAccent: () => {},
+    toast: () => {},
+    savePrefs: () => {},
+    exportData: () => {},
+    clearUserStorage: () => {},
+    location: { reload: () => {} },
+    confirm: () => false,
+    module: undefined
+  };
+  context.$ = selector => context.document.querySelector(selector);
+  context.$$ = selector => Array.from(context.document.querySelectorAll(selector));
+  context.document.addEventListener = () => {};
+  vm.createContext(context);
+  vm.runInContext(fs.readFileSync('src/features/settings/events.js', 'utf8'), context, { filename: 'src/features/settings/events.js' });
+  context.wireEvents();
+  listeners['navLearn:click']();
+  assert.equal(resetCalled, true);
+  assert.equal(routedPath, '/learn');
 });
 
 test('Learn route and view navigation are wired into the app shell', () => {
