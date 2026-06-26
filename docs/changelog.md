@@ -2,6 +2,14 @@
 
 This changelog is a human-readable project history, not a Git log. Future entries should summarize meaningful releases rather than individual commits.
 
+## v4.1.1
+
+- Documented the educational philosophy behind Puritan Parser.
+- Captured the conceptual design for the Learn system before v4.2 implementation.
+- Recorded the recognition-first philosophy for paradigm practice.
+- Captured the vocabulary study paths and Reading Readiness model.
+- Clarified the distinction between progress as reading ability and statistics as app activity.
+
 ## v4.1
 
 - Added project foundation documentation:

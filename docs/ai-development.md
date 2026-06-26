@@ -30,6 +30,12 @@ Always ask: does this feature make someone a better reader of Scripture?
 
 Avoid features that primarily increase engagement without improving reading ability. Features should reduce friction, clarify language, or build durable skill.
 
+Organize features according to the reader's mental model. Optimize for coherence over completeness. A smaller, more focused product that excels at its mission is preferable to a larger product that attempts to do everything.
+
+Prefer invitation over enforcement. Recommend rather than dictate. If the app suggests a next step, that recommendation should be evidence-based, infrequent, and easy to dismiss.
+
+Progress should measure ability, not app activity. Statistics may exist, but they should not dominate the main experience. When educational thresholds are unknown, present objective information instead of invented interpretation.
+
 ## Product Stewardship
 
 Protect the quiet companion philosophy.
@@ -58,8 +64,11 @@ At the conclusion of every meaningful implementation, determine whether these do
 - `docs/architecture.md`
 - `docs/changelog.md`
 - `docs/ai-development.md`
+- `docs/educational-philosophy.md`
 
 Documentation updates should normally be included in the same implementation as the feature itself.
+
+Future AI development prompts should consider whether product, roadmap, architecture, changelog, AI development, or educational philosophy docs need updates.
 
 These documents are considered part of the product and should remain current.
 
