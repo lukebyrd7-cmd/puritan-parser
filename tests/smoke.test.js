@@ -5,7 +5,7 @@ const fs = require('node:fs');
 const html = fs.readFileSync('index.html', 'utf8');
 
 test('smoke: app shell loads required views and controls', () => {
-  ['app', 'listView', 'flashView', 'parsingView', 'dashboardView', 'settingsView', 'wordPageView'].forEach(id => {
+  ['app', 'listView', 'flashView', 'parsingView', 'dashboardView', 'settingsView', 'wordPageView', 'learnView', 'learnShell'].forEach(id => {
     assert.match(html, new RegExp(`id="${id}"`));
   });
 });
@@ -27,6 +27,12 @@ test('smoke: dynamic Word Page shell is present', () => {
   assert.match(html, /id="wordPageShell"/);
   assert.doesNotMatch(html, /<dt>Gloss<\/dt>\s*<dd>word<\/dd>/);
   assert.doesNotMatch(html, /<dt>Frequency<\/dt>\s*<dd>330×<\/dd>/);
+});
+
+test('smoke: Learn shell and primary navigation are present', () => {
+  assert.match(html, /data-view="learn">Learn<\/button>/);
+  assert.match(html, /id="learnView"/);
+  assert.match(html, /id="learnShell"/);
 });
 
 test('smoke: service worker precaches every startup module from src/main.js', () => {

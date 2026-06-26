@@ -8,6 +8,7 @@ const ROUTES = {
   '/settings': { viewId: 'settingsView', nav: 'settings' },
   '/grammar': { viewId: 'grammarView', nav: 'grammar' },
   '/reader': { viewId: 'readerView', nav: 'reader' },
+  '/learn': { viewId: 'learnView', nav: 'learn' },
   '/word': { viewId: 'wordPageView', nav: 'word' },
   '/profile': { viewId: 'profileView', nav: 'profile' }
 };

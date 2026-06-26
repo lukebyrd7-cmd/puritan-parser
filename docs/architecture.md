@@ -66,6 +66,20 @@ The Reader should remain one Reader unless separate implementations become unavo
 
 Reader data is lazy-loaded one chapter at a time. Large JSON content must stay out of startup modules and service-worker install precaches.
 
+## Learn
+
+Learn is a permanent shell, not a temporary placeholder. It owns navigation homes for future study workflows while avoiding premature engines or user-data models.
+
+`src/features/learn/index.js` defines the Learn area structure:
+
+- Vocabulary study paths;
+- Greek and Hebrew paradigm recognition categories;
+- Reading Readiness entry points.
+
+The Learn shell uses a single `learnView` under the existing app navigation model. Its internal pages are feature-local state rather than separate routes, matching the view-first philosophy that worked for Reader-adjacent Word Pages. Future releases should plug capability into the existing Learn areas instead of replacing the shell.
+
+Learn must not mix static source data with user progress. Vocabulary scheduling, paradigm recognition results, readiness calculations, and review state should be introduced only when their release explicitly adds the required models and storage boundaries.
+
 ## Generated Data
 
 Generated data is a core part of the project.

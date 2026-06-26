@@ -2,6 +2,14 @@
 
 This changelog is a human-readable project history, not a Git log. Future entries should summarize meaningful releases rather than individual commits.
 
+## v4.2.0
+
+- Added the permanent Learn shell as a primary navigation area.
+- Created durable homes for Vocabulary, Paradigms, and Reading Readiness.
+- Added placeholder subpages for vocabulary study paths, paradigm recognition, and Testament-level readiness.
+- Kept the release architectural only: no SRS changes, scheduling, review logic, recognition engine, or readiness calculations.
+- Added navigation and smoke coverage for Learn pages and Back navigation.
+
 ## v4.1.1
 
 - Documented the educational philosophy behind Puritan Parser.

@@ -18,7 +18,7 @@ function normalizeViewId(viewId){
 function showView(viewId, options = {}){
   viewId = normalizeViewId(viewId);
   const views = Object.values(typeof ROUTES !== 'undefined' ? ROUTES : {}).map(route => route.viewId);
-  if(!views.length) views.push('listView','flashView','parsingView','dashboardView','settingsView','grammarView','readerView','wordPageView','profileView');
+  if(!views.length) views.push('listView','flashView','parsingView','dashboardView','settingsView','grammarView','readerView','wordPageView','learnView','profileView');
   views.forEach(id=>{ const el=document.getElementById(id); if(el) el.classList.toggle('hidden', id!==viewId); });
   $$('.nav-tab').forEach(t=>t.classList.toggle('active', t.dataset.view===viewId.replace('View','') || (typeof ROUTES !== 'undefined' && ROUTES[routeForView(viewId)]?.nav === t.dataset.view)));
   state.currentView = viewId;
@@ -27,7 +27,7 @@ function showView(viewId, options = {}){
 
   // Show/hide filter bar and its sub-elements
   const filterBar = $('#sharedFilterBar');
-  const noFilterViews = ['dashboardView','settingsView','grammarView','readerView','wordPageView','profileView'];
+  const noFilterViews = ['dashboardView','settingsView','grammarView','readerView','wordPageView','learnView','profileView'];
   if(filterBar) filterBar.classList.toggle('hidden', noFilterViews.includes(viewId));
   // search only on list
   const sg = $('#filterSearchGroup'); if(sg) sg.classList.toggle('hidden', viewId!=='listView');
@@ -42,6 +42,7 @@ function showView(viewId, options = {}){
   if(viewId==='parsingView') { updateParsingModeUI(); renderLemmaPicker(); }
   if(viewId==='readerView' && typeof initReader === 'function') initReader();
   if(viewId==='wordPageView' && typeof renderReaderWordPage === 'function') renderReaderWordPage();
+  if(viewId==='learnView' && typeof renderLearn === 'function') renderLearn();
 
   const fl = $('#footerLang');
   if(fl) fl.textContent = `${state.lang==='greek'?'Greek (GNT)':'Hebrew'} — ${getCurrentStudyList().length} study entries (${getCurrentList().length} forms) loaded`;
