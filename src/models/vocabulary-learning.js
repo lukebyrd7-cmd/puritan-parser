@@ -98,6 +98,12 @@
     const threshold = pathThreshold(path);
     return threshold == null || (Number(entry.freq) || 0) >= threshold;
   }
+  function matchesStudyPath(entry = {}, path = {}){
+    if(matchesFrequencyPath(entry, path)) return true;
+    if(Array.isArray(path.vocabularyIds)) return path.vocabularyIds.includes(lemmaId(entry));
+    if(path.vocabularyIdSet && typeof path.vocabularyIdSet.has === 'function') return path.vocabularyIdSet.has(lemmaId(entry));
+    return false;
+  }
   function sortedFrequencyEntries(entries = []){
     return entries.slice().sort((a,b)=>
       (Number(b.freq) || 0) - (Number(a.freq) || 0) ||
@@ -106,7 +112,7 @@
   }
   function notLearnedEntries(entries = [], store, path){
     return sortedFrequencyEntries(entries).filter(entry =>
-      matchesFrequencyPath(entry, path) && learningStatus(store, entry) === STATUS.NOT_LEARNED
+      matchesStudyPath(entry, path) && learningStatus(store, entry) === STATUS.NOT_LEARNED
     );
   }
   function nextNotLearnedEntry(entries = [], store, path){
@@ -196,6 +202,7 @@
     learningStatus,
     pathThreshold,
     matchesFrequencyPath,
+    matchesStudyPath,
     notLearnedEntries,
     nextNotLearnedEntry,
     remainingNotLearnedCount,

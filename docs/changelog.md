@@ -2,6 +2,15 @@
 
 This changelog is a human-readable project history, not a Git log. Future entries should summarize meaningful releases rather than individual commits.
 
+## v4.2.3
+
+- Added reusable Book Progress calculations for book, book-frequency, chapter, and chapter-frequency scopes.
+- Connected Reading Readiness to Reader manifests so Old Testament and New Testament book preparation opens real Book Progress views.
+- Moved book and chapter preparation under Reading Readiness while keeping Vocabulary focused on Review, New Words, and By Frequency study.
+- Added quiet scoped frequency choices and custom frequency entry for book and chapter preparation.
+- Kept readiness objective: known vocabulary, total vocabulary, and remaining words only; no percentages, progress bars, or gamified labels.
+- Left Word Page learning status, Paradigm Recognition, Progress redesign, Statistics, Catch Up Review, accounts, and sync out of scope.
+
 ## v4.2.2
 
 - Added the first working Vocabulary recognition flow for frequency study paths.

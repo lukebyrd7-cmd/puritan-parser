@@ -31,6 +31,7 @@ const PURITAN_PARSER_SCRIPTS = [
   'src/ui/theme.js',
   'src/core/filters.js',
   'src/core/study-entries.js',
+  'src/core/book-progress.js',
   'src/core/router.js',
   'src/features/grammar/reference-data.js',
   'src/features/grammar/index.js',

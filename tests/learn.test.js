@@ -34,6 +34,7 @@ global.normalizeAlternateGlosses = value => Array.isArray(value) ? value : [];
 
 const learn = require('../src/features/learn/index.js');
 const VocabularyLearning = require('../src/models/vocabulary-learning');
+const BookProgress = require('../src/core/book-progress');
 
 function renderedText(html){
   return String(html || '').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
@@ -76,7 +77,8 @@ test('Vocabulary shell opens review and the new words path chooser', () => {
   const newWords = renderPage('vocabulary:new-words');
   assert.match(newWords, /Choose how you want to prepare for reading/);
   assert.match(newWords, /data-learn-page="vocabulary:frequency"/);
-  assert.match(newWords, /data-learn-page="vocabulary:book"/);
+  assert.doesNotMatch(newWords, /data-learn-page="vocabulary:book"/);
+  assert.doesNotMatch(renderedText(newWords), /By Book/);
 });
 
 test('Vocabulary by frequency exposes permanent language thresholds', () => {
@@ -99,58 +101,65 @@ test('Vocabulary by frequency exposes permanent language thresholds', () => {
   assert.match(renderedText(renderPage('vocabulary:frequency:hebrew:60')), /Study every Hebrew lemma occurring 60 times or more/);
 });
 
-test('Vocabulary by book is generated from reader manifests and opens book and chapter study shells', () => {
-  const shell = renderPage('vocabulary:book');
+test('Reading Readiness owns book and chapter preparation paths', async () => {
+  const shell = renderPage('reading-readiness');
   assert.match(shell, /Old Testament/);
   assert.match(shell, /New Testament/);
 
-  const oldTestament = renderPage('vocabulary:book:old-testament');
+  const oldTestament = renderPage('reading-readiness:old-testament');
   assert.match(oldTestament, /Genesis/);
-  assert.match(oldTestament, /data-learn-page="vocabulary:book:hebrew:genesis"/);
+  assert.match(oldTestament, /data-learn-page="reading-readiness:old-testament:genesis"/);
 
-  const newTestament = renderPage('vocabulary:book:new-testament');
+  const newTestament = renderPage('reading-readiness:new-testament');
   assert.match(newTestament, /Matthew/);
-  assert.match(newTestament, /data-learn-page="vocabulary:book:greek:matthew"/);
+  assert.match(newTestament, /data-learn-page="reading-readiness:new-testament:matthew"/);
 
-  const bookStudy = renderedText(renderPage('vocabulary:book:greek:matthew'));
+  learn.learnState.progressCache['book:greek:matthew'] = await BookProgress.bookProgress('greek', 'matthew');
+  const bookHtml = renderPage('reading-readiness:new-testament:matthew');
+  const bookStudy = renderedText(bookHtml);
   assert.match(bookStudy, /Matthew/);
-  assert.match(bookStudy, /Known Vocabulary Placeholder/);
-  assert.match(bookStudy, /Remaining Words Placeholder/);
-  assert.match(bookStudy, /Study Options/);
-  assert.match(bookStudy, /Overall Frequency/);
+  assert.match(bookStudy, /Known Vocabulary \d+ of \d+/);
+  assert.match(bookStudy, /Remaining Words \d+/);
+  assert.match(bookStudy, /Study/);
   assert.match(bookStudy, /By Chapter/);
+  ['25+', '10+', '5+', 'All Words', 'Custom Frequency'].forEach(label => assert.match(bookStudy, new RegExp(label.replace('+', '\\+'))));
+  assert.match(bookHtml, /data-learn-page="reading-readiness:new-testament:matthew:overall:25"/);
+  assert.match(bookHtml, /data-learn-page="reading-readiness:new-testament:matthew:chapter"/);
 
-  const overall = renderedText(renderPage('vocabulary:book:hebrew:genesis:overall'));
+  learn.learnState.progressCache['book:hebrew:genesis'] = await BookProgress.bookProgress('hebrew', 'genesis');
+  const overall = renderedText(renderPage('reading-readiness:old-testament:genesis'));
   assert.match(overall, /60\+/);
   assert.match(overall, /30\+/);
-  assert.match(renderedText(renderPage('vocabulary:book:hebrew:genesis:overall:60')), /Study every Hebrew lemma occurring 60 times or more/);
-  assert.match(renderedText(renderPage('vocabulary:book:hebrew:genesis:overall:60')), /connected to vocabulary learning in a future release/);
+  assert.match(renderedText(renderPage('reading-readiness:old-testament:genesis:overall:60')), /Start Learning/);
+  assert.doesNotMatch(renderedText(renderPage('reading-readiness:old-testament:genesis:overall:60')), /connected to vocabulary learning in a future release/);
 
-  const chapters = renderPage('vocabulary:book:greek:matthew:chapter');
-  assert.match(chapters, /Matthew 28/);
-  assert.match(chapters, /data-learn-page="vocabulary:book:greek:matthew:chapter:28"/);
+  const chapters = renderPage('reading-readiness:new-testament:matthew:chapter');
+  assert.match(chapters, /Known Vocabulary 0 of \d+/);
+  assert.match(chapters, /data-learn-page="reading-readiness:new-testament:matthew:chapter:28"/);
 
-  const chapterStudy = renderedText(renderPage('vocabulary:book:greek:matthew:chapter:1'));
+  learn.learnState.progressCache['chapter:greek:matthew:1'] = await BookProgress.chapterProgress('greek', 'matthew', 1);
+  const chapterHtml = renderPage('reading-readiness:new-testament:matthew:chapter:1');
+  const chapterStudy = renderedText(chapterHtml);
   assert.match(chapterStudy, /Matthew 1/);
-  assert.match(chapterStudy, /Known Vocabulary Placeholder/);
+  assert.match(chapterStudy, /Known Vocabulary \d+ of \d+/);
   assert.match(chapterStudy, /25\+/);
-  assert.match(renderedText(renderPage('vocabulary:book:greek:matthew:chapter:1:25')), /Study every Greek lemma occurring 25 times or more/);
+  assert.match(chapterStudy, /Custom Frequency/);
+  assert.match(chapterHtml, /data-learn-page="reading-readiness:new-testament:matthew:chapter:1:25"/);
+  assert.match(renderedText(renderPage('reading-readiness:new-testament:matthew:chapter:1:25')), /Start Learning/);
   assert.doesNotMatch(chapterStudy, /percent|score|mastery|due/i);
 });
 
 test('Learn breadcrumbs expose compact clickable path navigation', () => {
-  const html = renderPage('vocabulary:book:greek:romans:chapter:3:custom-7');
+  const html = renderPage('reading-readiness:new-testament:romans:chapter:3:custom-7');
   const text = renderedText(html);
-  assert.match(text, /Learn › Vocabulary › New Words › By Book › New Testament › Romans › By Chapter › Romans 3 › 7\+/);
+  assert.match(text, /Learn › Reading Readiness › New Testament › Romans › By Chapter › Romans 3 › 7\+/);
   [
     'home',
-    'vocabulary',
-    'vocabulary:new-words',
-    'vocabulary:book',
-    'vocabulary:book:new-testament',
-    'vocabulary:book:greek:romans',
-    'vocabulary:book:greek:romans:chapter',
-    'vocabulary:book:greek:romans:chapter:3'
+    'reading-readiness',
+    'reading-readiness:new-testament',
+    'reading-readiness:new-testament:romans',
+    'reading-readiness:new-testament:romans:chapter',
+    'reading-readiness:new-testament:romans:chapter:3'
   ].forEach(page => assert.match(html, new RegExp(`data-learn-page="${page}"`)));
 });
 
@@ -170,6 +179,36 @@ test('Custom frequency validates positive whole numbers and navigates to placeho
 
   assert.equal(learn.setLearnCustomFrequency('vocabulary:frequency:greek', '0'), false);
   assert.equal(learn.learnState.customFrequencyErrors['vocabulary:frequency:greek'], 'Enter a positive whole number.');
+});
+
+test('Custom frequency works for scoped book and chapter paths', async () => {
+  learn.learnState.progressCache['book:greek:romans'] = await BookProgress.bookProgress('greek', 'romans');
+  learn.learnState.page = 'reading-readiness:new-testament:romans';
+  learn.learnState.history = [];
+  learn.learnState.customFrequencyErrors = {};
+  assert.equal(learn.setLearnCustomFrequency('reading-readiness:new-testament:romans:overall', '7'), true);
+  assert.equal(learn.learnState.page, 'reading-readiness:new-testament:romans:overall:custom-7');
+  assert.match(renderedText(learn.renderLearnPage()), /Start Learning/);
+
+  learn.learnState.progressCache['chapter:greek:romans:8'] = await BookProgress.chapterProgress('greek', 'romans', 8);
+  assert.equal(learn.setLearnCustomFrequency('reading-readiness:new-testament:romans:chapter:8', '7'), true);
+  assert.equal(learn.learnState.page, 'reading-readiness:new-testament:romans:chapter:8:custom-7');
+  assert.match(renderedText(learn.renderLearnPage()), /Start Learning/);
+});
+
+test('Book and chapter frequency paths keep their scoped vocabulary ids', async () => {
+  learn.learnState.progressCache['book:greek:romans'] = await BookProgress.bookProgress('greek', 'romans');
+  learn.learnState.progressCache['chapter:greek:romans:8'] = await BookProgress.chapterProgress('greek', 'romans', 8);
+
+  const bookPath = learn.learnPathForPage('reading-readiness:new-testament:romans:overall:5', 'greek', '5');
+  const chapterPath = learn.learnPathForPage('reading-readiness:new-testament:romans:chapter:8:5', 'greek', '5');
+  const globalPath = learn.learnPathForPage('vocabulary:frequency:greek:5', 'greek', '5');
+
+  assert.equal(bookPath.type, 'scoped-vocabulary');
+  assert.equal(chapterPath.type, 'scoped-vocabulary');
+  assert.equal(globalPath.type, 'frequency');
+  assert.ok(bookPath.vocabularyIds.length > chapterPath.vocabularyIds.length);
+  assert.ok(chapterPath.vocabularyIds.every(id => bookPath.vocabularyIds.includes(id)));
 });
 
 test('Frequency path starts learning and Learn Another Word advances with remaining count', () => {
@@ -286,15 +325,14 @@ test('Paradigms shell is organized by language and emphasizes verbs', () => {
   assert.match(renderedText(renderPage('paradigms:hebrew-nouns')), /Hebrew noun recognition practice will be added in a future release/);
 });
 
-test('Reading Readiness shell opens Testament placeholder pages without calculations', () => {
+test('Reading Readiness opens Testament book lists from Reader manifests', () => {
   const html = renderPage('reading-readiness');
-  assert.match(html, /Reading Readiness will show how prepared you are/);
   assert.match(html, /Old Testament/);
   assert.match(html, /New Testament/);
   assert.doesNotMatch(html, /percent|score|mastery|due/i);
 
-  assert.match(renderedText(renderPage('reading-readiness:old-testament')), /Old Testament readiness views will be added in a future release/);
-  assert.match(renderedText(renderPage('reading-readiness:new-testament')), /New Testament readiness views will be added in a future release/);
+  assert.match(renderPage('reading-readiness:old-testament'), /data-learn-page="reading-readiness:old-testament:genesis"/);
+  assert.match(renderPage('reading-readiness:new-testament'), /data-learn-page="reading-readiness:new-testament:matthew"/);
 });
 
 test('Learn back navigation returns through the Learn page stack and exits from home', () => {
@@ -314,7 +352,7 @@ test('Learn back navigation returns through the Learn page stack and exits from 
 });
 
 test('resetLearn returns Learn to home and clears the Learn page stack', () => {
-  learn.learnState.page = 'vocabulary:book:greek:romans:chapter:3';
+  learn.learnState.page = 'reading-readiness:new-testament:romans:chapter:3';
   learn.learnState.history = ['home', 'vocabulary'];
   learn.learnState.customFrequencyErrors = { 'vocabulary:frequency:greek': 'Enter a positive whole number.' };
   learn.resetLearn({ render: false });

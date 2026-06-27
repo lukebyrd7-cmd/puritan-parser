@@ -801,6 +801,58 @@ button:focus-visible, input:focus-visible, select:focus-visible {
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 10px;
 }
+.learn-progress-count {
+  margin: 4px 0 0;
+  color: var(--text);
+  font-size: 24px;
+  font-weight: 800;
+  line-height: 1.15;
+}
+.learn-progress-list {
+  display: grid;
+  gap: 12px;
+}
+.learn-progress-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: center;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 14px;
+  background: var(--surface-2);
+}
+.learn-progress-row h3 {
+  margin: 0 0 10px;
+  color: var(--text);
+  font-family: var(--font-serif);
+  font-size: 21px;
+  line-height: 1.1;
+}
+.learn-progress-row .learn-study-stats {
+  grid-template-columns: repeat(2, minmax(130px, 1fr));
+}
+.learn-progress-row .word-page-section {
+  padding: 10px;
+}
+.learn-progress-row .word-page-section h2 {
+  font-size: 13px;
+}
+.learn-progress-row .learn-progress-count {
+  font-size: 20px;
+}
+.learn-quiet-study-options {
+  display: grid;
+  gap: 12px;
+}
+.learn-quiet-frequency-row {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.learn-quiet-frequency-row .btn {
+  min-width: 76px;
+}
 .learn-custom-frequency-form {
   display: grid;
   gap: 7px;
@@ -951,6 +1003,9 @@ button:focus-visible, input:focus-visible, select:focus-visible {
   .learn-header h1 { font-size: 30px; }
   .learn-card-grid { grid-template-columns: 1fr; }
   .learn-study-stats { grid-template-columns: 1fr; }
+  .learn-progress-row { grid-template-columns: 1fr; }
+  .learn-progress-row .learn-study-stats { grid-template-columns: 1fr; }
+  .learn-progress-row .btn { width: 100%; }
   .learn-vocab-card { padding: 22px; gap: 16px; }
   .learn-vocab-card h2 { font-size: 46px; }
   .learn-vocab-meaning { font-size: 27px; }

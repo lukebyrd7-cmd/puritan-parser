@@ -2,6 +2,9 @@
 const VocabularyLearningModel = (typeof VocabularyLearning !== 'undefined')
   ? VocabularyLearning
   : (typeof require === 'function' ? require('../../models/vocabulary-learning') : null);
+const BookProgressModel = (typeof BookProgress !== 'undefined')
+  ? BookProgress
+  : (typeof require === 'function' ? require('../../core/book-progress') : null);
 const LearnAreas = [
   {
     id: 'vocabulary',
@@ -39,15 +42,14 @@ const LearnAreas = [
     id: 'reading-readiness',
     title: 'Reading Readiness',
     description: 'See how prepared you are to read books and chapters.',
-    body: 'Reading Readiness will show how prepared you are to read biblical books and chapters by connecting vocabulary, grammar recognition, and Reader coverage.',
     children: [
-      { id: 'old-testament', title: 'Old Testament', description: 'Old Testament readiness views will be added in a future release.' },
-      { id: 'new-testament', title: 'New Testament', description: 'New Testament readiness views will be added in a future release.' }
+      { id: 'old-testament', title: 'Old Testament', description: 'Hebrew Bible books from the Reader.' },
+      { id: 'new-testament', title: 'New Testament', description: 'Greek New Testament books from the Reader.' }
     ]
   }
 ];
 
-const learnState = { page: 'home', history: [], customFrequencyErrors: {}, activeVocabularyPath: '', currentVocabularyWordId: '', reviewReveal: false };
+const learnState = { page: 'home', history: [], customFrequencyErrors: {}, activeVocabularyPath: '', currentVocabularyWordId: '', reviewReveal: false, progressCache: {}, progressLoading: {} };
 const LearnFrequencyThresholds = {
   greek: ['25', '10', '5', 'all'],
   hebrew: ['60', '30', '10', '5', 'all']
@@ -83,6 +85,9 @@ function learnFrequencyDescription(language, threshold){
   return value === 'all'
     ? `Study every ${learnLanguageTitle(language)} lemma.`
     : `Study every ${learnLanguageTitle(language)} lemma occurring ${value} times or more.`;
+}
+function learnThresholds(language){
+  return BookProgressModel?.languageThresholds ? BookProgressModel.languageThresholds(language) : (LearnFrequencyThresholds[language] || LearnFrequencyThresholds.greek);
 }
 function learnBookList(language){
   if(typeof getReaderBooks === 'function') return getReaderBooks(language);
@@ -127,6 +132,8 @@ function resetLearn(options = {}){
   learnState.activeVocabularyPath = '';
   learnState.currentVocabularyWordId = '';
   learnState.reviewReveal = false;
+  learnState.progressCache = {};
+  learnState.progressLoading = {};
   if(options.render !== false) renderLearn();
 }
 function backLearnPage(){
@@ -212,6 +219,25 @@ function learnBreadcrumbs(page = learnState.page){
     return crumbs;
   }
 
+  if(area.id === 'reading-readiness'){
+    const testament = LearnTestaments[childId];
+    if(!testament) return crumbs;
+    crumbs.push({ label: testament.title, page: `reading-readiness:${childId}` });
+    if(thirdId){
+      const book = learnBook(testament.language, thirdId);
+      crumbs.push({ label: book.name, page: `reading-readiness:${childId}:${book.id}` });
+    }
+    if(fourthId === 'overall'){
+      if(fifthId) crumbs.push({ label: learnFrequencyLabel(fifthId), page });
+    }
+    if(fourthId === 'chapter'){
+      crumbs.push({ label: 'By Chapter', page: `reading-readiness:${childId}:${thirdId}:chapter` });
+      if(fifthId) crumbs.push({ label: `${learnBook(testament.language, thirdId).name} ${Number(fifthId) || 1}`, page: `reading-readiness:${childId}:${thirdId}:chapter:${Number(fifthId) || 1}` });
+      if(sixthId) crumbs.push({ label: learnFrequencyLabel(sixthId), page });
+    }
+    return crumbs;
+  }
+
   if(childId){
     const child = learnChild(area, childId);
     crumbs.push({ label: child?.title || learnPageTitle(page), page });
@@ -269,6 +295,71 @@ function renderLearnMetricPlaceholders(){
       </section>
     </div>`;
 }
+function bookProgressKey(language, bookId){ return `book:${language}:${bookId}`; }
+function chapterProgressKey(language, bookId, chapter){ return `chapter:${language}:${bookId}:${Number(chapter) || 1}`; }
+function ensureBookProgress(language, bookId){
+  const key = bookProgressKey(language, bookId);
+  if(!BookProgressModel || learnState.progressCache[key] || learnState.progressLoading[key]) return;
+  learnState.progressLoading[key] = true;
+  BookProgressModel.bookProgress(language, bookId)
+    .then(progress => { learnState.progressCache[key] = progress; })
+    .catch(error => { learnState.progressCache[key] = { error: error.message || 'Book progress failed to load.' }; })
+    .finally(() => { learnState.progressLoading[key] = false; renderLearn(); });
+}
+function ensureChapterProgress(language, bookId, chapter){
+  const key = chapterProgressKey(language, bookId, chapter);
+  if(!BookProgressModel || learnState.progressCache[key] || learnState.progressLoading[key]) return;
+  learnState.progressLoading[key] = true;
+  BookProgressModel.chapterProgress(language, bookId, chapter)
+    .then(progress => { learnState.progressCache[key] = progress; })
+    .catch(error => { learnState.progressCache[key] = { error: error.message || 'Chapter progress failed to load.' }; })
+    .finally(() => { learnState.progressLoading[key] = false; renderLearn(); });
+}
+function renderProgressStats(stats = {}){
+  const known = Number(stats.known) || 0;
+  const total = Number(stats.total) || 0;
+  const remaining = Math.max(0, Number(stats.remaining) || 0);
+  return `
+    <div class="learn-study-stats">
+      <section class="word-page-section">
+        <h2>Known Vocabulary</h2>
+        <p class="learn-progress-count">${known} of ${total}</p>
+      </section>
+      <section class="word-page-section">
+        <h2>Remaining Words</h2>
+        <p class="learn-progress-count">${remaining}</p>
+      </section>
+    </div>`;
+}
+function renderProgressLoading(label = 'Book Progress'){
+  return `<section class="word-page-section learn-explainer"><h2>${escHtml(label)}</h2><p>Loading vocabulary progress...</p></section>`;
+}
+function renderProgressError(message){
+  return `<section class="word-page-section learn-explainer"><h2>Book Progress</h2><p>${escHtml(message || 'Progress is unavailable.')}</p></section>`;
+}
+function renderFrequencyProgressList(items = [], basePage, actionLabel = 'Study'){
+  return `
+    <div class="learn-progress-list">
+      ${items.map(item => `
+        <article class="learn-progress-row">
+          <div>
+            <h3>${escHtml(item.label || learnFrequencyLabel(item.threshold))}</h3>
+            ${renderProgressStats(item)}
+          </div>
+          <button class="btn btn-primary btn-sm" type="button" data-learn-page="${escHtml(`${basePage}:${item.threshold}`)}">${escHtml(actionLabel)} ${escHtml(item.label || learnFrequencyLabel(item.threshold))}</button>
+        </article>`).join('')}
+    </div>`;
+}
+function renderQuietFrequencyChoices(language, basePage){
+  const choices = learnThresholds(language).map(threshold => `
+    <button class="btn btn-ghost btn-sm" type="button" data-learn-page="${escHtml(`${basePage}:${threshold}`)}">${escHtml(learnFrequencyLabel(threshold))}</button>
+  `).join('');
+  return `
+    <div class="learn-quiet-study-options">
+      <div class="learn-quiet-frequency-row">${choices}</div>
+      ${renderLearnCustomFrequency(basePage)}
+    </div>`;
+}
 function learnVocabularyEntries(language){
   const list = (typeof state !== 'undefined' && state.data?.[language]) ? state.data[language] : [];
   if(typeof getStudyEntries === 'function') return getStudyEntries(list, 'lemma');
@@ -285,6 +376,66 @@ function learnFrequencyPath(language, threshold){
     page: `vocabulary:frequency:${language}:${threshold}`
   };
 }
+function learnScopedProgressForPage(page){
+  const route = learnScopedRoute(page);
+  if(!route) return null;
+  const { language, bookId, mode, chapter, threshold } = route;
+  if(mode === 'overall'){
+    const progress = learnState.progressCache[bookProgressKey(language, bookId)];
+    const standard = progress?.frequency?.find(item => String(item.threshold) === String(threshold));
+    if(standard) return standard;
+    if(progress?.chapters?.length && threshold && BookProgressModel?.calculateProgress){
+      return BookProgressModel.calculateProgress({ language, book: progress.book, chapters: progress.chapters, threshold });
+    }
+    return null;
+  }
+  if(mode === 'chapter'){
+    const progress = learnState.progressCache[chapterProgressKey(language, bookId, chapter)] || learnState.progressCache[bookProgressKey(language, bookId)]?.byChapter?.find(item => Number(item.chapter) === chapter);
+    if(!threshold) return progress || null;
+    const chapterProgress = learnState.progressCache[chapterProgressKey(language, bookId, chapter)];
+    const standard = chapterProgress?.frequency?.find(item => String(item.threshold) === String(threshold));
+    if(standard) return standard;
+    if(chapterProgress?.chapterData && threshold && BookProgressModel?.calculateProgress){
+      return BookProgressModel.calculateProgress({ language, book: chapterProgress.book, chapters: [chapterProgress.chapterData], chapter: chapterProgress.chapter, threshold });
+    }
+    return null;
+  }
+  return null;
+}
+function learnScopedRoute(page){
+  const parts = String(page || '').split(':');
+  const [areaId, childId] = parts;
+  if(areaId === 'vocabulary' && childId === 'book'){
+    const [, , language, bookId, mode, chapterOrThreshold, maybeThreshold] = parts;
+    if(!language || !bookId) return null;
+    if(mode === 'overall') return { areaId, language, bookId, mode, threshold: chapterOrThreshold || '' };
+    if(mode === 'chapter') return { areaId, language, bookId, mode, chapter: Number(chapterOrThreshold) || 1, threshold: maybeThreshold || '' };
+  }
+  if(areaId === 'reading-readiness'){
+    const testament = LearnTestaments[childId];
+    const [, , bookId, mode, chapterOrThreshold, maybeThreshold] = parts;
+    if(!testament || !bookId) return null;
+    if(mode === 'overall') return { areaId, language: testament.language, bookId, mode, threshold: chapterOrThreshold || '' };
+    if(mode === 'chapter') return { areaId, language: testament.language, bookId, mode, chapter: Number(chapterOrThreshold) || 1, threshold: maybeThreshold || '' };
+  }
+  return null;
+}
+function learnPathForPage(page, language, threshold){
+  const scoped = learnScopedProgressForPage(page);
+  if(scoped) return {
+    type: 'scoped-vocabulary',
+    language,
+    threshold: learnFrequencyNumber(threshold),
+    page,
+    vocabularyIds: scoped.vocabularyIds || []
+  };
+  return learnFrequencyPath(language, threshold);
+}
+function learnEntriesForPath(path){
+  const scoped = learnScopedProgressForPage(path.page);
+  if(scoped?.vocabulary?.length) return scoped.vocabulary.map(item => item.entry);
+  return learnVocabularyEntries(path.language);
+}
 function learnWordId(entry){
   return VocabularyLearningModel ? VocabularyLearningModel.lemmaId(entry) : entry?.id;
 }
@@ -292,10 +443,10 @@ function findLearnVocabularyEntry(language, id){
   return learnVocabularyEntries(language).find(entry => learnWordId(entry) === id) || null;
 }
 function getLearnCurrentPathWord(path){
-  const entries = learnVocabularyEntries(path.language);
+  const entries = learnEntriesForPath(path);
   const store = learnVocabularyStore();
   const current = learnState.currentVocabularyWordId ? findLearnVocabularyEntry(path.language, learnState.currentVocabularyWordId) : null;
-  if(current && VocabularyLearningModel.learningStatus(store, current) === VocabularyLearningModel.STATUS.NOT_LEARNED && VocabularyLearningModel.matchesFrequencyPath(current, path)) return current;
+  if(current && VocabularyLearningModel.learningStatus(store, current) === VocabularyLearningModel.STATUS.NOT_LEARNED && VocabularyLearningModel.matchesStudyPath(current, path)) return current;
   const next = VocabularyLearningModel.nextNotLearnedEntry(entries, store, path);
   learnState.currentVocabularyWordId = next ? learnWordId(next) : '';
   return next;
@@ -352,9 +503,9 @@ function startLearnVocabularyPath(pathPage){
   learnState.currentVocabularyWordId = '';
   renderLearn();
 }
-function learnCurrentVocabularyWord(language, threshold){
+function learnCurrentVocabularyWord(language, threshold, pathPage = ''){
   if(!VocabularyLearningModel) return;
-  const path = learnFrequencyPath(language, threshold);
+  const path = learnPathForPage(pathPage || learnState.page, language, threshold);
   const entry = getLearnCurrentPathWord(path);
   if(!entry) return;
   VocabularyLearningModel.persistIntroduceEntry(entry, path);
@@ -373,7 +524,7 @@ function gradeLearnReview(language, id, result){
   renderLearn();
 }
 function renderLearnFrequencyCards(language, basePage){
-  const cards = (LearnFrequencyThresholds[language] || LearnFrequencyThresholds.greek).map(threshold => learnCard({
+  const cards = learnThresholds(language).map(threshold => learnCard({
     title: learnFrequencyLabel(threshold),
     description: learnFrequencyDescription(language, threshold)
   }, `${basePage}:${threshold}`));
@@ -454,7 +605,6 @@ function renderNewWordsPage(area){
       ${renderLearnHeader(item.title, item.description, 'learnNewWordsTitle')}
       <div class="learn-card-grid">
         ${learnCard({ title: 'By Frequency', description: 'Study vocabulary grouped by occurrence frequency.' }, 'vocabulary:frequency')}
-        ${learnCard({ title: 'By Book', description: 'Prepare vocabulary for individual books and chapters.' }, 'vocabulary:book')}
       </div>
     </section>`;
 }
@@ -478,10 +628,21 @@ function renderLanguageFrequencyPage(language){
 }
 function renderFrequencyPlaceholder(language, threshold, contextTitle = ''){
   const title = [learnLanguageTitle(language), learnFrequencyLabel(threshold)].join(' ');
-  if(VocabularyLearningModel && !contextTitle){
-    const page = `vocabulary:frequency:${language}:${threshold}`;
-    const path = learnFrequencyPath(language, threshold);
-    const entries = learnVocabularyEntries(language);
+  const page = contextTitle ? learnState.page : `vocabulary:frequency:${language}:${threshold}`;
+  const scoped = contextTitle ? learnScopedProgressForPage(page) : null;
+  if(contextTitle && !scoped){
+    const route = learnScopedRoute(page);
+    if(route?.mode === 'overall') ensureBookProgress(route.language, route.bookId);
+    if(route?.mode === 'chapter') ensureChapterProgress(route.language, route.bookId, route.chapter);
+    return `
+      <section class="panel learn-panel" aria-labelledby="learnFrequencyLoadingTitle">
+        ${renderLearnHeader(contextTitle || title, 'Study path', 'learnFrequencyLoadingTitle')}
+        ${renderProgressLoading(contextTitle || title)}
+      </section>`;
+  }
+  if(VocabularyLearningModel && (!contextTitle || scoped)){
+    const path = learnPathForPage(page, language, threshold);
+    const entries = learnEntriesForPath(path);
     const store = learnVocabularyStore();
     const remaining = VocabularyLearningModel.remainingNotLearnedCount(entries, store, path);
     const started = learnState.activeVocabularyPath === page;
@@ -493,7 +654,7 @@ function renderFrequencyPlaceholder(language, threshold, contextTitle = ''){
         ${started ? (current ? `
           ${renderVocabularyLearningCard(current)}
           <div class="learn-vocab-actions">
-            <button class="btn" type="button" data-learn-word-learned="true" data-lang="${escHtml(language)}" data-threshold="${escHtml(threshold)}">Learn Another Word</button>
+            <button class="btn" type="button" data-learn-word-learned="true" data-lang="${escHtml(language)}" data-threshold="${escHtml(threshold)}" data-path-page="${escHtml(page)}">Learn Another Word</button>
           </div>`
         : `<section class="word-page-section learn-explainer">
             <h2>Path complete</h2>
@@ -534,52 +695,69 @@ function renderTestamentBooks(testamentId){
       ${renderLearnBookGrid(testament.language, `vocabulary:book:${testament.language}`)}
     </section>`;
 }
-function renderBookStudyPage(language, bookId){
+function renderBookStudyPage(language, bookId, options = {}){
   const book = learnBook(language, bookId);
+  const basePage = options.basePage || `vocabulary:book:${language}:${book.id}`;
+  const key = bookProgressKey(language, book.id);
+  ensureBookProgress(language, book.id);
+  const progress = learnState.progressCache[key];
   return `
     <section class="panel learn-panel" aria-labelledby="learnBookStudyTitle">
-      ${renderLearnHeader(book.name, `${learnLanguageTitle(language)} vocabulary study path`, 'learnBookStudyTitle')}
-      ${renderLearnMetricPlaceholders()}
-      <section class="learn-language-group" aria-labelledby="learnStudyOptionsTitle">
-        <h2 id="learnStudyOptionsTitle">Study Options</h2>
-        <div class="learn-card-grid">
-          ${learnCard({ title: 'Overall Frequency', description: 'Choose a milestone for the whole book.' }, `vocabulary:book:${language}:${book.id}:overall`)}
-          ${learnCard({ title: 'By Chapter', description: 'Choose a chapter before selecting a frequency milestone.' }, `vocabulary:book:${language}:${book.id}:chapter`)}
-        </div>
+      ${renderLearnHeader(book.name, 'Book Progress', 'learnBookStudyTitle')}
+      ${progress?.error ? renderProgressError(progress.error) : progress ? renderProgressStats(progress.overall) : renderProgressLoading('Book Progress')}
+      <section class="learn-language-group" aria-labelledby="learnStudyTitle">
+        <h2 id="learnStudyTitle">Study</h2>
+        ${renderQuietFrequencyChoices(language, `${basePage}:overall`)}
+        ${learnCard({ title: 'By Chapter', description: 'Study vocabulary for individual chapters.' }, `${basePage}:chapter`, 'learn-card-compact')}
       </section>
     </section>`;
 }
-function renderBookOverallFrequencyPage(language, bookId){
+function renderBookOverallFrequencyPage(language, bookId, options = {}){
   const book = learnBook(language, bookId);
+  const basePage = options.basePage || `vocabulary:book:${language}:${book.id}:overall`;
+  const key = bookProgressKey(language, book.id);
+  ensureBookProgress(language, book.id);
+  const progress = learnState.progressCache[key];
   return `
     <section class="panel learn-panel" aria-labelledby="learnBookOverallTitle">
       ${renderLearnHeader('Overall Frequency', book.name, 'learnBookOverallTitle')}
-      ${renderLearnFrequencyCards(language, `vocabulary:book:${language}:${book.id}:overall`)}
+      ${progress?.error ? renderProgressError(progress.error) : progress ? renderFrequencyProgressList(progress.frequency, basePage) : renderProgressLoading('Overall Frequency')}
     </section>`;
 }
-function renderChapterListPage(language, bookId){
+function renderChapterListPage(language, bookId, options = {}){
   const book = learnBook(language, bookId);
+  const basePage = options.basePage || `vocabulary:book:${language}:${book.id}:chapter`;
+  const key = bookProgressKey(language, book.id);
+  ensureBookProgress(language, book.id);
+  const progress = learnState.progressCache[key];
   return `
     <section class="panel learn-panel learn-panel-wide" aria-labelledby="learnChapterListTitle">
       ${renderLearnHeader('By Chapter', book.name, 'learnChapterListTitle')}
-      <div class="learn-chapter-grid">
-        ${book.chapters.map(chapter => learnCard({
-          title: `${chapter}`,
-          description: `${book.name} ${chapter}`
-        }, `vocabulary:book:${language}:${book.id}:chapter:${chapter}`, 'learn-card-compact')).join('')}
-      </div>
+      ${progress?.error ? renderProgressError(progress.error) : progress ? `
+        <div class="learn-chapter-grid learn-chapter-progress-grid">
+          ${progress.byChapter.map(item => `
+            <button class="learn-card learn-card-compact" type="button" data-learn-page="${escHtml(`${basePage}:${item.chapter}`)}">
+              <span class="learn-card-title">${escHtml(String(item.chapter))}</span>
+              <span class="learn-card-description">Known Vocabulary ${escHtml(String(item.known))} of ${escHtml(String(item.total))}</span>
+              <span class="learn-card-description">Remaining Words ${escHtml(String(item.remaining))}</span>
+            </button>`).join('')}
+        </div>` : renderProgressLoading('Chapter Progress')}
     </section>`;
 }
-function renderChapterStudyPage(language, bookId, chapter){
+function renderChapterStudyPage(language, bookId, chapter, options = {}){
   const book = learnBook(language, bookId);
   const reference = `${book.name} ${Number(chapter) || 1}`;
+  const basePage = options.basePage || `vocabulary:book:${language}:${book.id}:chapter:${Number(chapter) || 1}`;
+  const key = chapterProgressKey(language, book.id, chapter);
+  ensureChapterProgress(language, book.id, chapter);
+  const progress = learnState.progressCache[key];
   return `
     <section class="panel learn-panel" aria-labelledby="learnChapterStudyTitle">
-      ${renderLearnHeader(reference, 'Chapter Study', 'learnChapterStudyTitle')}
-      ${renderLearnMetricPlaceholders()}
-      <section class="learn-language-group" aria-labelledby="learnChapterFrequencyTitle">
-        <h2 id="learnChapterFrequencyTitle">Study Options</h2>
-        ${renderLearnFrequencyCards(language, `vocabulary:book:${language}:${book.id}:chapter:${Number(chapter) || 1}`)}
+      ${renderLearnHeader(reference, 'Chapter Progress', 'learnChapterStudyTitle')}
+      ${progress?.error ? renderProgressError(progress.error) : progress ? renderProgressStats(progress.overall) : renderProgressLoading('Chapter Progress')}
+      <section class="learn-language-group" aria-labelledby="learnChapterStudyOptionsTitle">
+        <h2 id="learnChapterStudyOptionsTitle">Study</h2>
+        ${progress ? renderQuietFrequencyChoices(language, basePage) : ''}
       </section>
     </section>`;
 }
@@ -611,13 +789,17 @@ function renderReadingReadinessPage(area){
   return `
     <section class="panel learn-panel" aria-labelledby="learnReadinessTitle">
       ${renderLearnHeader(area.title, area.description, 'learnReadinessTitle')}
-      <section class="word-page-section learn-explainer">
-        <h2>Future Purpose</h2>
-        <p>${escHtml(area.body)}</p>
-      </section>
       <div class="learn-card-grid">
         ${area.children.map(item => learnCard(item, `${area.id}:${item.id}`)).join('')}
       </div>
+    </section>`;
+}
+function renderReadingReadinessBooks(testamentId){
+  const testament = LearnTestaments[testamentId] || LearnTestaments['new-testament'];
+  return `
+    <section class="panel learn-panel learn-panel-wide" aria-labelledby="learnReadinessBooksTitle">
+      ${renderLearnHeader(testament.title, 'Choose a book.', 'learnReadinessBooksTitle')}
+      ${renderLearnBookGrid(testament.language, `reading-readiness:${testamentId}`)}
     </section>`;
 }
 function renderLearnPlaceholder(area, item){
@@ -648,6 +830,27 @@ function renderLearnPage(){
   if(area.id === 'vocabulary' && childId === 'book' && thirdId && fourthId && fifthId === 'chapter' && !sixthId) return renderChapterListPage(thirdId, fourthId);
   if(area.id === 'vocabulary' && childId === 'book' && thirdId && fourthId && fifthId === 'chapter' && sixthId && !seventhId) return renderChapterStudyPage(thirdId, fourthId, sixthId);
   if(area.id === 'vocabulary' && childId === 'book' && thirdId && fourthId && fifthId === 'chapter' && sixthId && seventhId) return renderFrequencyPlaceholder(thirdId, seventhId, `${learnBook(thirdId, fourthId).name} ${Number(sixthId) || 1}`);
+  if(area.id === 'reading-readiness' && LearnTestaments[childId] && !thirdId) return renderReadingReadinessBooks(childId);
+  if(area.id === 'reading-readiness' && LearnTestaments[childId] && thirdId && !fourthId){
+    const language = LearnTestaments[childId].language;
+    return renderBookStudyPage(language, thirdId, { basePage: `reading-readiness:${childId}:${thirdId}` });
+  }
+  if(area.id === 'reading-readiness' && LearnTestaments[childId] && thirdId && fourthId === 'overall' && fifthId){
+    const language = LearnTestaments[childId].language;
+    return renderFrequencyPlaceholder(language, fifthId, `${learnBook(language, thirdId).name} ${learnFrequencyLabel(fifthId)}`);
+  }
+  if(area.id === 'reading-readiness' && LearnTestaments[childId] && thirdId && fourthId === 'chapter' && !fifthId){
+    const language = LearnTestaments[childId].language;
+    return renderChapterListPage(language, thirdId, { basePage: `reading-readiness:${childId}:${thirdId}:chapter` });
+  }
+  if(area.id === 'reading-readiness' && LearnTestaments[childId] && thirdId && fourthId === 'chapter' && fifthId && !sixthId){
+    const language = LearnTestaments[childId].language;
+    return renderChapterStudyPage(language, thirdId, fifthId, { basePage: `reading-readiness:${childId}:${thirdId}:chapter:${Number(fifthId) || 1}` });
+  }
+  if(area.id === 'reading-readiness' && LearnTestaments[childId] && thirdId && fourthId === 'chapter' && fifthId && sixthId){
+    const language = LearnTestaments[childId].language;
+    return renderFrequencyPlaceholder(language, sixthId, `${learnBook(language, thirdId).name} ${Number(fifthId) || 1} ${learnFrequencyLabel(sixthId)}`);
+  }
   if(childId) return renderLearnPlaceholder(area, learnChild(area, childId) || area);
   if(area.id === 'vocabulary') return renderVocabularyPage(area);
   if(area.id === 'paradigms') return renderParadigmsPage(area);
@@ -659,7 +862,7 @@ function wireLearn(){
   $$('.learn-card', root).forEach(card => card.addEventListener('click', () => setLearnPage(card.dataset.learnPage)));
   $$('.learn-breadcrumbs [data-learn-page]', root).forEach(crumb => crumb.addEventListener('click', () => setLearnPage(crumb.dataset.learnPage)));
   $$('[data-learn-start-path]', root).forEach(button => button.addEventListener('click', () => startLearnVocabularyPath(button.dataset.learnStartPath)));
-  $$('[data-learn-word-learned]', root).forEach(button => button.addEventListener('click', () => learnCurrentVocabularyWord(button.dataset.lang, button.dataset.threshold)));
+  $$('[data-learn-word-learned]', root).forEach(button => button.addEventListener('click', () => learnCurrentVocabularyWord(button.dataset.lang, button.dataset.threshold, button.dataset.pathPage)));
   $('#learnRevealMeaningBtn', root)?.addEventListener('click', revealLearnReview);
   $$('[data-learn-review-grade]', root).forEach(button => button.addEventListener('click', () => gradeLearnReview(button.dataset.lang, button.dataset.wordId, button.dataset.learnReviewGrade)));
   $$('.learn-custom-frequency-form', root).forEach(form => form.addEventListener('submit', event => {
@@ -674,5 +877,5 @@ function renderLearn(){
   wireLearn();
 }
 
-if(typeof window !== 'undefined') Object.assign(window, { LearnAreas, learnState, learnArea, learnChild, learnPageTitle, learnBreadcrumbs, parseLearnCustomFrequency, setLearnCustomFrequency, resetLearn, setLearnPage, backLearnPage, renderLearn, renderLearnPage, learnBookList, startLearnVocabularyPath, learnCurrentVocabularyWord, revealLearnReview, gradeLearnReview });
-if(typeof module !== 'undefined') module.exports = { LearnAreas, LearnFrequencyThresholds, learnState, learnArea, learnChild, learnPageTitle, learnBreadcrumbs, parseLearnCustomFrequency, setLearnCustomFrequency, resetLearn, learnBookList, setLearnPage, backLearnPage, renderLearnPage, startLearnVocabularyPath, learnCurrentVocabularyWord, revealLearnReview, gradeLearnReview };
+if(typeof window !== 'undefined') Object.assign(window, { LearnAreas, learnState, learnArea, learnChild, learnPageTitle, learnBreadcrumbs, parseLearnCustomFrequency, setLearnCustomFrequency, resetLearn, setLearnPage, backLearnPage, renderLearn, renderLearnPage, learnBookList, learnPathForPage, startLearnVocabularyPath, learnCurrentVocabularyWord, revealLearnReview, gradeLearnReview });
+if(typeof module !== 'undefined') module.exports = { LearnAreas, LearnFrequencyThresholds, learnState, learnArea, learnChild, learnPageTitle, learnBreadcrumbs, parseLearnCustomFrequency, setLearnCustomFrequency, resetLearn, learnBookList, learnPathForPage, setLearnPage, backLearnPage, renderLearnPage, startLearnVocabularyPath, learnCurrentVocabularyWord, revealLearnReview, gradeLearnReview };
