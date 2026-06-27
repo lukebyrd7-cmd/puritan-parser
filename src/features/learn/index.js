@@ -49,7 +49,7 @@ const LearnAreas = [
   }
 ];
 
-const learnState = { page: 'home', history: [], customFrequencyErrors: {}, activeVocabularyPath: '', currentVocabularyWordId: '', reviewReveal: false, progressCache: {}, progressLoading: {} };
+const learnState = { page: 'home', history: [], customFrequencyErrors: {}, activeVocabularyPath: '', currentVocabularyWordId: '', focusedReviewWordId: '', reviewReveal: false, progressCache: {}, progressLoading: {} };
 const LearnFrequencyThresholds = {
   greek: ['25', '10', '5', 'all'],
   hebrew: ['60', '30', '10', '5', 'all']
@@ -123,6 +123,7 @@ function setLearnPage(page, options = {}){
   if(!options.skipHistory && changed) learnState.history.push(learnState.page);
   learnState.page = next;
   if(changed) learnState.reviewReveal = false;
+  if(!options.preserveFocusedReview) learnState.focusedReviewWordId = '';
   renderLearn();
 }
 function resetLearn(options = {}){
@@ -131,6 +132,7 @@ function resetLearn(options = {}){
   learnState.customFrequencyErrors = {};
   learnState.activeVocabularyPath = '';
   learnState.currentVocabularyWordId = '';
+  learnState.focusedReviewWordId = '';
   learnState.reviewReveal = false;
   learnState.progressCache = {};
   learnState.progressLoading = {};
@@ -184,9 +186,9 @@ function learnBreadcrumbs(page = learnState.page){
       if(thirdId) crumbs.push({ label: `${learnLanguageTitle(thirdId)} Review`, page });
       return crumbs;
     }
-    if(childId) crumbs.push({ label: 'New Words', page: 'vocabulary:new-words' });
+    if(childId === 'new-words') crumbs.push({ label: 'New Words', page: 'vocabulary:new-words' });
     if(childId === 'frequency'){
-      crumbs.push({ label: 'By Frequency', page: 'vocabulary:frequency' });
+      crumbs.push({ label: 'New Words', page: 'vocabulary:new-words' });
       if(thirdId) crumbs.push({ label: learnLanguageTitle(thirdId), page: `vocabulary:frequency:${thirdId}` });
       if(fourthId) crumbs.push({ label: learnFrequencyLabel(fourthId), page });
       return crumbs;
@@ -520,8 +522,14 @@ function gradeLearnReview(language, id, result){
   if(!VocabularyLearningModel) return;
   const entry = findLearnVocabularyEntry(language, id);
   if(entry) VocabularyLearningModel.persistReviewEntry(entry, result);
+  if(learnState.focusedReviewWordId === id) learnState.focusedReviewWordId = '';
   learnState.reviewReveal = false;
   renderLearn();
+}
+function reviewLearnVocabularyWord(language, id){
+  learnState.focusedReviewWordId = id || '';
+  learnState.reviewReveal = false;
+  setLearnPage(`vocabulary:review:${language || 'greek'}`, { preserveFocusedReview: true });
 }
 function renderLearnFrequencyCards(language, basePage){
   const cards = learnThresholds(language).map(threshold => learnCard({
@@ -570,10 +578,12 @@ function renderLanguageReviewPage(area, language){
   if(VocabularyLearningModel){
     const store = learnVocabularyStore();
     const due = VocabularyLearningModel.dueEntries(learnVocabularyEntries(language), store);
-    const current = due[0];
+    const focused = learnState.focusedReviewWordId ? findLearnVocabularyEntry(language, learnState.focusedReviewWordId) : null;
+    const current = focused || due[0];
+    const reviewCount = focused ? due.filter(entry => learnWordId(entry) !== learnState.focusedReviewWordId).length : due.length;
     return `
       <section class="panel learn-panel" aria-labelledby="learnReviewTitle">
-        ${renderLearnHeader(title, 'Reviews Available', 'learnReviewTitle')}
+        ${renderLearnHeader(title, focused ? 'Word Review' : 'Reviews Available', 'learnReviewTitle')}
         ${current ? `
           ${renderVocabularyLearningCard(current, { revealed: learnState.reviewReveal })}
           <div class="learn-vocab-actions">
@@ -582,7 +592,7 @@ function renderLanguageReviewPage(area, language){
                  <button class="learn-review-action learn-review-missed" type="button" data-learn-review-grade="missed" data-lang="${escHtml(current.lang)}" data-word-id="${escHtml(learnWordId(current))}">Missed</button>`
               : `<button class="btn btn-primary learn-review-action learn-review-reveal" type="button" id="learnRevealMeaningBtn">Reveal Meaning</button>`}
           </div>
-          ${due.length > 1 ? `<p class="muted small">${due.length} reviews available</p>` : ''}`
+          ${reviewCount > 1 ? `<p class="muted small">${reviewCount} reviews available</p>` : ''}`
         : `<section class="word-page-section learn-explainer">
             <h2>No reviews available</h2>
             <p>${escHtml(learnLanguageTitle(language))} words you are learning will appear here when they are ready to review.</p>
@@ -603,8 +613,15 @@ function renderNewWordsPage(area){
   return `
     <section class="panel learn-panel" aria-labelledby="learnNewWordsTitle">
       ${renderLearnHeader(item.title, item.description, 'learnNewWordsTitle')}
-      <div class="learn-card-grid">
-        ${learnCard({ title: 'By Frequency', description: 'Study vocabulary grouped by occurrence frequency.' }, 'vocabulary:frequency')}
+      <div class="learn-language-grid">
+        <section class="learn-language-group" aria-labelledby="learnNewWordsGreek">
+          <h2 id="learnNewWordsGreek">Greek</h2>
+          ${renderQuietFrequencyChoices('greek', 'vocabulary:frequency:greek')}
+        </section>
+        <section class="learn-language-group" aria-labelledby="learnNewWordsHebrew">
+          <h2 id="learnNewWordsHebrew">Hebrew</h2>
+          ${renderQuietFrequencyChoices('hebrew', 'vocabulary:frequency:hebrew')}
+        </section>
       </div>
     </section>`;
 }
@@ -877,5 +894,5 @@ function renderLearn(){
   wireLearn();
 }
 
-if(typeof window !== 'undefined') Object.assign(window, { LearnAreas, learnState, learnArea, learnChild, learnPageTitle, learnBreadcrumbs, parseLearnCustomFrequency, setLearnCustomFrequency, resetLearn, setLearnPage, backLearnPage, renderLearn, renderLearnPage, learnBookList, learnPathForPage, startLearnVocabularyPath, learnCurrentVocabularyWord, revealLearnReview, gradeLearnReview });
-if(typeof module !== 'undefined') module.exports = { LearnAreas, LearnFrequencyThresholds, learnState, learnArea, learnChild, learnPageTitle, learnBreadcrumbs, parseLearnCustomFrequency, setLearnCustomFrequency, resetLearn, learnBookList, learnPathForPage, setLearnPage, backLearnPage, renderLearnPage, startLearnVocabularyPath, learnCurrentVocabularyWord, revealLearnReview, gradeLearnReview };
+if(typeof window !== 'undefined') Object.assign(window, { LearnAreas, learnState, learnArea, learnChild, learnPageTitle, learnBreadcrumbs, parseLearnCustomFrequency, setLearnCustomFrequency, resetLearn, setLearnPage, backLearnPage, renderLearn, renderLearnPage, learnBookList, learnPathForPage, startLearnVocabularyPath, learnCurrentVocabularyWord, reviewLearnVocabularyWord, revealLearnReview, gradeLearnReview });
+if(typeof module !== 'undefined') module.exports = { LearnAreas, LearnFrequencyThresholds, learnState, learnArea, learnChild, learnPageTitle, learnBreadcrumbs, parseLearnCustomFrequency, setLearnCustomFrequency, resetLearn, learnBookList, learnPathForPage, setLearnPage, backLearnPage, renderLearnPage, startLearnVocabularyPath, learnCurrentVocabularyWord, reviewLearnVocabularyWord, revealLearnReview, gradeLearnReview };

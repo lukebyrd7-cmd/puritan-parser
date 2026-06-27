@@ -669,6 +669,23 @@ button:focus-visible, input:focus-visible, select:focus-visible {
   font-size: 15px;
   line-height: 1.5;
 }
+.word-page-learning {
+  padding-top: 14px;
+}
+.word-page-learning-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.word-page-learning-status {
+  color: var(--ink);
+  font-size: 14px;
+}
+.word-page-learning-known {
+  color: var(--muted);
+  font-size: 13px;
+}
 
 /* ===== LEARN SHELL ===== */
 .learn-panel {

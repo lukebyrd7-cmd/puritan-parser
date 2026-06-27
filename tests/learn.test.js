@@ -46,6 +46,7 @@ function renderPage(page){
   learn.learnState.customFrequencyErrors = {};
   learn.learnState.activeVocabularyPath = '';
   learn.learnState.currentVocabularyWordId = '';
+  learn.learnState.focusedReviewWordId = '';
   learn.learnState.reviewReveal = false;
   return learn.renderLearnPage();
 }
@@ -76,8 +77,12 @@ test('Vocabulary shell opens review and the new words path chooser', () => {
   assert.match(renderedText(review), /Hebrew Review/);
   const newWords = renderPage('vocabulary:new-words');
   assert.match(newWords, /Choose how you want to prepare for reading/);
-  assert.match(newWords, /data-learn-page="vocabulary:frequency"/);
+  assert.match(renderedText(newWords), /Greek 25\+ 10\+ 5\+ All Words Custom Frequency/);
+  assert.match(renderedText(newWords), /Hebrew 60\+ 30\+ 10\+ 5\+ All Words Custom Frequency/);
+  assert.match(newWords, /data-learn-page="vocabulary:frequency:greek:25"/);
+  assert.match(newWords, /data-learn-page="vocabulary:frequency:hebrew:60"/);
   assert.doesNotMatch(newWords, /data-learn-page="vocabulary:book"/);
+  assert.doesNotMatch(renderedText(newWords), /By Frequency/);
   assert.doesNotMatch(renderedText(newWords), /By Book/);
 });
 
@@ -293,6 +298,22 @@ test('Language review page reveals due vocabulary and grading updates state', ()
   record = VocabularyLearning.getRecord(VocabularyLearning.loadStore(), global.state.data.greek[0]);
   assert.equal(record.successCount, 0);
   assert.equal(record.due, '2026-06-27');
+});
+
+test('Focused word review reuses the existing review interface even when the word is not due', () => {
+  storage.delete(VocabularyLearning.STORAGE_KEY);
+  let store = VocabularyLearning.normalizeStore();
+  store = VocabularyLearning.introduceEntry(store, global.state.data.greek[0], { type: 'word-page' }, '2026-06-26');
+  store = VocabularyLearning.reviewEntry(store, global.state.data.greek[0], 'recognized', '2026-06-26');
+  VocabularyLearning.saveStore(store);
+
+  learn.reviewLearnVocabularyWord('greek', 'lemma:greek:logos');
+  const html = learn.renderLearnPage();
+  assert.equal(learn.learnState.page, 'vocabulary:review:greek');
+  assert.match(renderedText(html), /Greek Review Word Review/);
+  assert.match(renderedText(html), /logos/);
+  assert.match(html, /Reveal Meaning/);
+  assert.match(html, /learn-review-action/);
 });
 
 test('Review gloss display splits embedded separators before deduping alternates', () => {

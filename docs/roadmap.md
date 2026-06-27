@@ -16,7 +16,9 @@ Puritan Parser is a local-first Biblical Greek and Hebrew reading and study app.
 - Greek Reader
 - Complete Hebrew Bible Reader
 - Reader word popups and Word Pages
+- Word Page learning status and handoff into Vocabulary Learning
 - Read in Context flows from word-level study back to the Reader
+- Reader handoff into current-book Reading Readiness
 - Shared Reader infrastructure for Greek and Hebrew
 - Generated data pipelines for vocabulary, glosses, and Reader chapter files
 - Local import/export and versioned storage migrations
@@ -27,8 +29,9 @@ The current product focus is v4.2: implementing the Learn section and the workfl
 
 The Learn system has been conceptually designed in `docs/educational-philosophy.md`. Implementation should preserve its reading-first model: focused vocabulary study paths, recognition-first paradigm practice, objective Reading Readiness, and progress that measures ability rather than app activity.
 
-- Vocabulary by frequency
+- Vocabulary review and New Words frequency study
 - Reading Readiness for book and chapter preparation
+- Reader ↔ Learn navigation
 - Paradigm practice
 - Flashcard improvements
 - Multiple accepted glosses
@@ -38,8 +41,8 @@ The Learn system has been conceptually designed in `docs/educational-philosophy.
 
 ## Upcoming
 
-- v4.2.3: Book Progress & Reading Readiness
-- v4.2.4: Reader ↔ Learn Integration
+- v4.2.3: Book Progress & Reading Readiness — complete
+- v4.2.4: Reader ↔ Learn Integration — complete
 - v4.2.5: Reference Foundation
 - v4.2.6: Paradigm Recognition
 - v4.2.7: Progress & Statistics
@@ -47,8 +50,16 @@ The Learn system has been conceptually designed in `docs/educational-philosophy.
 
 ## Release Gates
 
-- Before Paradigm Recognition: Grammar Verified
-- Before Public Release: Content Verified
+- Before v4.2.6: Grammar Verified
+  - Greek grammar audit complete
+  - Hebrew grammar audit complete
+  - Regression tests passing
+  - `docs/grammar-audit.md` added
+- Before v5.0: Content Verified
+  - Grammar audit complete
+  - Vocabulary audit complete
+  - Reader audit complete
+  - Known issues reviewed
 
 ## Future
 

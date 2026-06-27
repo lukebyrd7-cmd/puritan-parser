@@ -22,6 +22,7 @@ global.fetch = async filePath => {
 };
 
 const reader = require('../src/features/reader/index.js');
+const VocabularyLearning = require('../src/models/vocabulary-learning');
 
 function renderedText(html){
   return String(html || '').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
@@ -238,6 +239,73 @@ test('clicking Open Word Page closes the popup and opens a dynamic Word Page vie
   delete global.showView;
 });
 
+test('Word Page learning section reflects shared vocabulary learning state', () => {
+  const storage = new Map();
+  global.localStorage = {
+    getItem: key => storage.get(key) || null,
+    setItem: (key, value) => storage.set(key, value),
+    removeItem: key => storage.delete(key)
+  };
+  global.todayISO = () => '2026-06-26';
+  global.state = { data: { greek: [
+    { id: 'lemma:greek:λόγος', studyEntryType: 'lemma', lang: 'greek', lemma: 'λόγος', word: 'λόγος', primaryGloss: 'word', freq: 68 }
+  ] } };
+  global.getStudyEntries = entries => entries;
+
+  const info = { language: 'greek', lemma: 'λόγος', surface: 'λόγος' };
+  let html = reader.renderReaderWordLearning(info);
+  assert.match(renderedText(html), /Learning ○ Not Learned Learn This Word/);
+  assert.match(html, /data-word-learn-action="learn"/);
+
+  assert.equal(reader.introduceReaderWordFromPage(info), true);
+  html = reader.renderReaderWordLearning(info);
+  assert.match(renderedText(html), /Learning ◐ Learning Review This Word/);
+  assert.match(html, /data-word-learn-action="review"/);
+
+  let store = VocabularyLearning.loadStore();
+  store = VocabularyLearning.reviewEntry(store, global.state.data.greek[0], 'recognized', '2026-06-26');
+  store = VocabularyLearning.reviewEntry(store, global.state.data.greek[0], 'recognized', '2026-06-27');
+  store = VocabularyLearning.reviewEntry(store, global.state.data.greek[0], 'recognized', '2026-06-30');
+  VocabularyLearning.saveStore(store);
+  html = reader.renderReaderWordLearning(info);
+  assert.match(renderedText(html), /Learning ● Known Known Review Again/);
+
+  delete global.localStorage;
+  delete global.todayISO;
+  delete global.state;
+  delete global.getStudyEntries;
+});
+
+test('Review This Word opens the focused Learn review page through the shared review engine', () => {
+  const storage = new Map();
+  global.localStorage = {
+    getItem: key => storage.get(key) || null,
+    setItem: (key, value) => storage.set(key, value),
+    removeItem: key => storage.delete(key)
+  };
+  global.todayISO = () => '2026-06-26';
+  global.state = { data: { greek: [
+    { id: 'lemma:greek:λόγος', studyEntryType: 'lemma', lang: 'greek', lemma: 'λόγος', word: 'λόγος', primaryGloss: 'word', freq: 68 }
+  ] } };
+  global.getStudyEntries = entries => entries;
+  let reviewRequest = null;
+  let shownView = '';
+  global.reviewLearnVocabularyWord = (language, id) => { reviewRequest = { language, id }; };
+  global.showView = view => { shownView = view; };
+
+  VocabularyLearning.persistIntroduceEntry(global.state.data.greek[0], { type: 'word-page' }, '2026-06-26');
+  assert.equal(reader.reviewReaderWordFromPage({ language: 'greek', lemma: 'λόγος' }), true);
+  assert.deepEqual(reviewRequest, { language: 'greek', id: 'lemma:greek:λόγος' });
+  assert.equal(shownView, 'learnView');
+
+  delete global.localStorage;
+  delete global.todayISO;
+  delete global.state;
+  delete global.getStudyEntries;
+  delete global.reviewLearnVocabularyWord;
+  delete global.showView;
+});
+
 test('word page read in context selects up to five lemma occurrences with short snippets', async () => {
   const occurrences = await reader.getReaderLemmaOccurrences('λόγος', 'greek', 5);
   assert.ok(occurrences.length > 0);
@@ -278,6 +346,28 @@ test('clicking a read in context occurrence opens Reader at that reference', asy
   assert.equal(reader.readerState().focusVerse, '1');
   assert.match(readerHtml, /John 1/);
   assert.match(readerHtml, /readerVerse-1/);
+  delete global.showView;
+});
+
+test('Reader View Book Progress opens Reading Readiness for the current book', async () => {
+  let learnPage = '';
+  let shownView = '';
+  global.setLearnPage = (page, options) => { learnPage = page; assert.equal(options.skipHistory, true); };
+  global.showView = view => { shownView = view; };
+  global.$ = () => null;
+  global.$$ = () => [];
+
+  await reader.setReaderLocation({ language: 'greek', book: 'john', chapter: 1 });
+  reader.openReaderBookProgress();
+  assert.equal(learnPage, 'reading-readiness:new-testament:john');
+  assert.equal(shownView, 'learnView');
+
+  await reader.setReaderLocation({ language: 'hebrew', book: 'jonah', chapter: 1 });
+  reader.openReaderBookProgress();
+  assert.equal(learnPage, 'reading-readiness:old-testament:jonah');
+  assert.equal(shownView, 'learnView');
+
+  delete global.setLearnPage;
   delete global.showView;
 });
 

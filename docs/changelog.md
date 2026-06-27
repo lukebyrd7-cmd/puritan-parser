@@ -2,6 +2,16 @@
 
 This changelog is a human-readable project history, not a Git log. Future entries should summarize meaningful releases rather than individual commits.
 
+## v4.2.4
+
+- Added a quiet Learning section to Word Pages that shows Not Learned, Learning, or Known from the shared Vocabulary Learning model.
+- Connected Learn This Word to the existing vocabulary introduction flow without creating a separate word-page learning state.
+- Connected Review This Word and Review Again to the existing Learn review interface with a focused word review.
+- Added a Reader action to open Reading Readiness for the current book through the existing Book Progress pages.
+- Simplified Learn → Vocabulary → New Words so Greek and Hebrew frequency choices appear directly, removing the separate By Frequency navigation level.
+- Kept book and chapter preparation exclusively inside Reading Readiness.
+- Left Paradigm Recognition, grammar audits, statistics, dashboards, Catch Up Review, accounts, and sync out of scope.
+
 ## v4.2.3
 
 - Added reusable Book Progress calculations for book, book-frequency, chapter, and chapter-frequency scopes.
