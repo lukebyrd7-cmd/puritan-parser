@@ -264,7 +264,7 @@ test('v3.6.3e rendered Grammar Home is a simple table of contents', () => {
 test('v3.6.3d service worker cache version and app shell cache bust are bumped', () => {
   const sw = fs.readFileSync('sw.js', 'utf8');
   const html = fs.readFileSync('index.html', 'utf8');
-  assert.match(sw, /const CACHE = 'puritan-parser-v19-hebrew-reader-mvp'/);
+  assert.match(sw, /const CACHE = 'puritan-parser-v21-vocab-learning-review-polish'/);
   assert.doesNotMatch(sw, /puritan-parser-v13-reader-startup/);
-  assert.match(html, /src="src\/main\.js\?v=v3\.8\.1-hebrew-reader-mvp"/);
+  assert.match(html, /src="src\/main\.js\?v=v4\.2\.2-vocab-learning-mvp"/);
 });

@@ -2,6 +2,17 @@
 
 This changelog is a human-readable project history, not a Git log. Future entries should summarize meaningful releases rather than individual commits.
 
+## v4.2.2
+
+- Added the first working Vocabulary recognition flow for frequency study paths.
+- Introduced a reusable local-first vocabulary learning model with lemma status, review history, success counts, due dates, and simple scheduling.
+- Connected Greek and Hebrew frequency paths to Start Learning, one-word-at-a-time introduction, Learn Another Word, and remaining-path counts.
+- Made the Learn Review page show due vocabulary, reveal meanings, and accept Recognized or Missed self-grades.
+- Split Vocabulary Review into Greek Review and Hebrew Review sessions while keeping one shared learning model.
+- Polished review cards so the headword, revealed gloss, quiet frequency metadata, and review actions are easier to use.
+- Kept vocabulary learning as one global review system rather than separate study-path decks.
+- Left book/chapter vocabulary paths, Paradigm practice, Reading Readiness, Word Page learning status, Catch Up Review, accounts, sync, and gamification out of scope.
+
 ## v4.2.0
 
 - Added the permanent Learn shell as a primary navigation area.

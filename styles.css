@@ -825,6 +825,117 @@ button:focus-visible, input:focus-visible, select:focus-visible {
   font-size: 12px;
   line-height: 1.35;
 }
+.learn-start-learning-action {
+  min-height: 48px;
+  min-width: 210px;
+  margin-top: 10px;
+  padding: 13px 22px;
+  font-size: 15px;
+  font-weight: 800;
+}
+.learn-vocab-card {
+  display: grid;
+  gap: 18px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 32px;
+  background: var(--surface);
+  box-shadow: var(--shadow-sm);
+}
+.learn-vocab-card h2 {
+  font-family: var(--font-serif);
+  font-size: 64px;
+  line-height: 1.05;
+  color: var(--text);
+}
+.learn-vocab-details {
+  display: grid;
+  gap: 18px;
+  margin: 6px 0 0;
+}
+.learn-vocab-meaning {
+  margin: 0;
+  font-family: var(--font-serif);
+  font-size: 34px;
+  line-height: 1.2;
+  color: var(--text);
+}
+.learn-vocab-alternates {
+  display: grid;
+  gap: 5px;
+}
+.learn-vocab-alternates p {
+  margin: 0;
+}
+.learn-vocab-alternates p:first-child {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 800;
+}
+.learn-vocab-alternates p:last-child {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  color: var(--text-2);
+  font-size: 15px;
+  line-height: 1.45;
+}
+.learn-vocab-gloss-separator {
+  color: var(--muted);
+}
+.learn-vocab-meta {
+  margin: 0;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.4;
+}
+.learn-vocab-actions {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 6px;
+}
+.learn-review-action {
+  width: 156px;
+  min-height: 46px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 12px 16px;
+  background: transparent;
+  color: var(--text-2);
+  font-size: 15px;
+  font-weight: 800;
+  line-height: 1.2;
+  text-align: center;
+  cursor: pointer;
+  transition: border-color 150ms, background 150ms, color 150ms;
+}
+.learn-review-action:hover,
+.learn-review-action:focus-visible {
+  background: var(--surface-2);
+  outline: none;
+}
+.learn-review-recognized {
+  border-color: color-mix(in srgb, var(--accent) 45%, var(--border));
+  color: color-mix(in srgb, var(--accent-dark) 70%, var(--text-2));
+}
+.learn-review-missed {
+  border-color: var(--border);
+  color: var(--text-2);
+}
+.learn-review-reveal {
+  width: auto;
+  min-width: 190px;
+  border-color: var(--accent);
+  background: var(--accent);
+  color: white;
+}
+.learn-review-reveal:hover,
+.learn-review-reveal:focus-visible {
+  background: var(--accent-dark);
+  border-color: var(--accent-dark);
+  color: white;
+}
 .learn-explainer p,
 .learn-placeholder p {
   color: var(--text-2);
@@ -840,6 +951,11 @@ button:focus-visible, input:focus-visible, select:focus-visible {
   .learn-header h1 { font-size: 30px; }
   .learn-card-grid { grid-template-columns: 1fr; }
   .learn-study-stats { grid-template-columns: 1fr; }
+  .learn-vocab-card { padding: 22px; gap: 16px; }
+  .learn-vocab-card h2 { font-size: 46px; }
+  .learn-vocab-meaning { font-size: 27px; }
+  .learn-review-action { width: 100%; }
+  .learn-start-learning-action { width: 100%; }
 }
 
 /* ===== TWO-COL DESKTOP ===== */

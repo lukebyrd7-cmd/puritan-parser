@@ -1,6 +1,7 @@
 /* ---------- Storage adapter ---------- */
 const StorageKeys = {
   vocab: { greek: LS_VOCAB_GREEK, hebrew: LS_VOCAB_HEBREW },
+  vocabLearning: 'pp_vocab_learning',
   prefs: LS_PREFS,
   dashboard: LS_DASHBOARD,
   lastLang: 'pp_last_lang'
@@ -39,7 +40,7 @@ function writeVersionedStorageJson(key, value){
 }
 function removeStorageKey(key){ activeStorageAdapter.remove(key); }
 function clearUserStorage(){
-  [StorageKeys.vocab.greek, StorageKeys.vocab.hebrew, StorageKeys.prefs, StorageKeys.dashboard, StorageKeys.lastLang].forEach(removeStorageKey);
+  [StorageKeys.vocab.greek, StorageKeys.vocab.hebrew, StorageKeys.vocabLearning, StorageKeys.prefs, StorageKeys.dashboard, StorageKeys.lastLang].forEach(removeStorageKey);
 }
 function getLastLanguage(){ return activeStorageAdapter.get(StorageKeys.lastLang); }
 function saveLastLanguage(lang){ activeStorageAdapter.set(StorageKeys.lastLang, lang); }

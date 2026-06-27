@@ -6,8 +6,34 @@ const vm = require('node:vm');
 global.escHtml = value => String(value || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 global.$ = () => null;
 global.$$ = () => [];
+global.todayISO = () => '2026-06-26';
+
+const storage = new Map();
+global.localStorage = {
+  getItem: key => storage.get(key) || null,
+  setItem: (key, value) => storage.set(key, value),
+  removeItem: key => storage.delete(key)
+};
+global.state = {
+  data: {
+    greek: [
+      { id: 'lemma:greek:logos', studyEntryType: 'lemma', lang: 'greek', lemma: 'logos', word: 'logos', primaryGloss: 'word', alternateGlosses: ['word', 'message', 'account', 'message'], freq: 330 },
+      { id: 'lemma:greek:agape', studyEntryType: 'lemma', lang: 'greek', lemma: 'agape', word: 'agape', primaryGloss: 'love', freq: 116 },
+      { id: 'lemma:greek:adelphos', studyEntryType: 'lemma', lang: 'greek', lemma: 'adelphos', word: 'adelphos', primaryGloss: 'brother', freq: 343 },
+      { id: 'lemma:greek:eis', studyEntryType: 'lemma', lang: 'greek', lemma: 'eis', word: 'eis', primaryGloss: 'into, to, for', alternateGlosses: ['to', 'for'], freq: 1754 }
+    ],
+    hebrew: [
+      { id: 'lemma:hebrew:ברא', studyEntryType: 'lemma', lang: 'hebrew', lemma: 'ברא', word: 'ברא', primaryGloss: 'create', freq: 54 },
+      { id: 'lemma:hebrew:אמר', studyEntryType: 'lemma', lang: 'hebrew', lemma: 'אמר', word: 'אמר', primaryGloss: 'say', freq: 5300 }
+    ]
+  }
+};
+global.getStudyEntries = entries => entries;
+global.getDisplayGloss = entry => entry.customGloss || entry.primaryGloss || entry.gloss || '(missing gloss)';
+global.normalizeAlternateGlosses = value => Array.isArray(value) ? value : [];
 
 const learn = require('../src/features/learn/index.js');
+const VocabularyLearning = require('../src/models/vocabulary-learning');
 
 function renderedText(html){
   return String(html || '').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
@@ -17,6 +43,9 @@ function renderPage(page){
   learn.learnState.page = page;
   learn.learnState.history = [];
   learn.learnState.customFrequencyErrors = {};
+  learn.learnState.activeVocabularyPath = '';
+  learn.learnState.currentVocabularyWordId = '';
+  learn.learnState.reviewReveal = false;
   return learn.renderLearnPage();
 }
 
@@ -38,7 +67,12 @@ test('Vocabulary shell opens review and the new words path chooser', () => {
   assert.doesNotMatch(html, /data-learn-page="vocabulary:frequency"/);
   assert.doesNotMatch(html, /data-learn-page="vocabulary:book"/);
 
-  assert.match(renderedText(renderPage('vocabulary:review')), /Review words currently in Learning and strengthen long-term retention/);
+  const review = renderPage('vocabulary:review');
+  assert.match(renderedText(review), /Reviews Available/);
+  assert.match(review, /data-learn-page="vocabulary:review:greek"/);
+  assert.match(review, /data-learn-page="vocabulary:review:hebrew"/);
+  assert.match(renderedText(review), /Greek Review/);
+  assert.match(renderedText(review), /Hebrew Review/);
   const newWords = renderPage('vocabulary:new-words');
   assert.match(newWords, /Choose how you want to prepare for reading/);
   assert.match(newWords, /data-learn-page="vocabulary:frequency"/);
@@ -56,7 +90,9 @@ test('Vocabulary by frequency exposes permanent language thresholds', () => {
   ['25+', '10+', '5+', 'All Words'].forEach(label => assert.match(renderedText(greek), new RegExp(label.replace('+', '\\+'))));
   assert.match(greek, /Custom Frequency/);
   assert.match(renderedText(renderPage('vocabulary:frequency:greek:25')), /Study every Greek lemma occurring 25 times or more/);
-  assert.match(renderedText(renderPage('vocabulary:frequency:greek:25')), /Eventually this will introduce new words into your review system/);
+  const greek25 = renderPage('vocabulary:frequency:greek:25');
+  assert.match(greek25, /Start Learning/);
+  assert.match(greek25, /learn-start-learning-action/);
 
   const hebrew = renderPage('vocabulary:frequency:hebrew');
   ['60+', '30+', '10+', '5+', 'All Words'].forEach(label => assert.match(renderedText(hebrew), new RegExp(label.replace('+', '\\+'))));
@@ -88,6 +124,7 @@ test('Vocabulary by book is generated from reader manifests and opens book and c
   assert.match(overall, /60\+/);
   assert.match(overall, /30\+/);
   assert.match(renderedText(renderPage('vocabulary:book:hebrew:genesis:overall:60')), /Study every Hebrew lemma occurring 60 times or more/);
+  assert.match(renderedText(renderPage('vocabulary:book:hebrew:genesis:overall:60')), /connected to vocabulary learning in a future release/);
 
   const chapters = renderPage('vocabulary:book:greek:matthew:chapter');
   assert.match(chapters, /Matthew 28/);
@@ -133,6 +170,106 @@ test('Custom frequency validates positive whole numbers and navigates to placeho
 
   assert.equal(learn.setLearnCustomFrequency('vocabulary:frequency:greek', '0'), false);
   assert.equal(learn.learnState.customFrequencyErrors['vocabulary:frequency:greek'], 'Enter a positive whole number.');
+});
+
+test('Frequency path starts learning and Learn Another Word advances with remaining count', () => {
+  storage.delete(VocabularyLearning.STORAGE_KEY);
+  learn.learnState.page = 'vocabulary:frequency:greek:25';
+  learn.learnState.activeVocabularyPath = '';
+  learn.learnState.currentVocabularyWordId = '';
+
+  let html = learn.renderLearnPage();
+  assert.match(html, /Start Learning/);
+  assert.match(renderedText(html), /4 words remaining in this path/);
+
+  learn.startLearnVocabularyPath('vocabulary:frequency:greek:25');
+  html = learn.renderLearnPage();
+  assert.match(renderedText(html), /eis/);
+  assert.match(html, /Learn Another Word/);
+
+  learn.learnCurrentVocabularyWord('greek', '25');
+  html = learn.renderLearnPage();
+  assert.equal(VocabularyLearning.learningStatus(VocabularyLearning.loadStore(), global.state.data.greek[3], '2026-06-26'), 'Learning');
+  assert.match(renderedText(html), /3 words remaining in this path/);
+  assert.match(renderedText(html), /adelphos/);
+});
+
+test('Language review pages separate Greek and Hebrew due queues from the shared model', () => {
+  storage.delete(VocabularyLearning.STORAGE_KEY);
+  let store = VocabularyLearning.normalizeStore();
+  store = VocabularyLearning.introduceEntry(store, global.state.data.greek[0], { type: 'frequency', language: 'greek' }, '2026-06-26');
+  store = VocabularyLearning.introduceEntry(store, global.state.data.hebrew[1], { type: 'frequency', language: 'hebrew' }, '2026-06-26');
+  VocabularyLearning.saveStore(store);
+
+  const chooser = renderPage('vocabulary:review');
+  assert.match(renderedText(chooser), /Greek Review 1 review available/);
+  assert.match(renderedText(chooser), /Hebrew Review 1 review available/);
+
+  const greek = renderPage('vocabulary:review:greek');
+  assert.match(renderedText(greek), /Greek Review Reviews Available/);
+  assert.match(renderedText(greek), /logos/);
+  assert.doesNotMatch(renderedText(greek), /אמר/);
+
+  const hebrew = renderPage('vocabulary:review:hebrew');
+  assert.match(renderedText(hebrew), /Hebrew Review Reviews Available/);
+  assert.match(renderedText(hebrew), /אמר/);
+  assert.doesNotMatch(renderedText(hebrew), /logos/);
+
+  const loaded = VocabularyLearning.loadStore();
+  assert.ok(loaded.records['lemma:greek:logos']);
+  assert.ok(loaded.records['lemma:hebrew:אמר']);
+  assert.equal(Object.prototype.hasOwnProperty.call(loaded, 'decks'), false);
+});
+
+test('Language review page reveals due vocabulary and grading updates state', () => {
+  storage.delete(VocabularyLearning.STORAGE_KEY);
+  VocabularyLearning.saveStore(VocabularyLearning.introduceEntry(VocabularyLearning.normalizeStore(), global.state.data.greek[0], { type: 'frequency' }, '2026-06-26'));
+
+  let html = renderPage('vocabulary:review:greek');
+  assert.match(renderedText(html), /Greek Review Reviews Available/);
+  assert.match(renderedText(html), /logos/);
+  assert.match(html, /Reveal Meaning/);
+  assert.match(html, /learn-review-action/);
+  assert.doesNotMatch(html, /Recognized/);
+
+  learn.revealLearnReview();
+  html = learn.renderLearnPage();
+  const text = renderedText(html);
+  assert.match(text, /word Other translations message • account Greek · freq 330×/);
+  assert.doesNotMatch(text, /message, account/);
+  assert.doesNotMatch(text, /word •/);
+  assert.equal((html.match(/<span>word<\/span>/g) || []).length, 0);
+  assert.equal((html.match(/<span>message<\/span>/g) || []).length, 1);
+  assert.match(html, /Recognized/);
+  assert.match(html, /Missed/);
+  assert.match(html, /learn-review-recognized/);
+  assert.match(html, /learn-review-missed/);
+
+  learn.gradeLearnReview('greek', 'lemma:greek:logos', 'recognized');
+  let record = VocabularyLearning.getRecord(VocabularyLearning.loadStore(), global.state.data.greek[0]);
+  assert.equal(record.successCount, 1);
+  assert.equal(record.due, '2026-06-27');
+
+  learn.gradeLearnReview('greek', 'lemma:greek:logos', 'missed');
+  record = VocabularyLearning.getRecord(VocabularyLearning.loadStore(), global.state.data.greek[0]);
+  assert.equal(record.successCount, 0);
+  assert.equal(record.due, '2026-06-27');
+});
+
+test('Review gloss display splits embedded separators before deduping alternates', () => {
+  storage.delete(VocabularyLearning.STORAGE_KEY);
+  VocabularyLearning.saveStore(VocabularyLearning.introduceEntry(VocabularyLearning.normalizeStore(), global.state.data.greek[3], { type: 'frequency' }, '2026-06-26'));
+
+  renderPage('vocabulary:review:greek');
+  learn.revealLearnReview();
+  const html = learn.renderLearnPage();
+  const text = renderedText(html);
+
+  assert.match(text, /eis into Other translations to • for Greek · freq 1754×/);
+  assert.doesNotMatch(text, /into, to, for • to • for/);
+  assert.doesNotMatch(text, /,/);
+  assert.equal((html.match(/<span>to<\/span>/g) || []).length, 1);
+  assert.equal((html.match(/<span>for<\/span>/g) || []).length, 1);
 });
 
 test('Paradigms shell is organized by language and emphasizes verbs', () => {

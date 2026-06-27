@@ -1,4 +1,7 @@
 /* ---------- Learn Shell ---------- */
+const VocabularyLearningModel = (typeof VocabularyLearning !== 'undefined')
+  ? VocabularyLearning
+  : (typeof require === 'function' ? require('../../models/vocabulary-learning') : null);
 const LearnAreas = [
   {
     id: 'vocabulary',
@@ -44,7 +47,7 @@ const LearnAreas = [
   }
 ];
 
-const learnState = { page: 'home', history: [], customFrequencyErrors: {} };
+const learnState = { page: 'home', history: [], customFrequencyErrors: {}, activeVocabularyPath: '', currentVocabularyWordId: '', reviewReveal: false };
 const LearnFrequencyThresholds = {
   greek: ['25', '10', '5', 'all'],
   hebrew: ['60', '30', '10', '5', 'all']
@@ -111,14 +114,19 @@ function learnPageTitle(page = learnState.page){
 }
 function setLearnPage(page, options = {}){
   const next = page || 'home';
-  if(!options.skipHistory && learnState.page !== next) learnState.history.push(learnState.page);
+  const changed = learnState.page !== next;
+  if(!options.skipHistory && changed) learnState.history.push(learnState.page);
   learnState.page = next;
+  if(changed) learnState.reviewReveal = false;
   renderLearn();
 }
 function resetLearn(options = {}){
   learnState.page = 'home';
   learnState.history = [];
   learnState.customFrequencyErrors = {};
+  learnState.activeVocabularyPath = '';
+  learnState.currentVocabularyWordId = '';
+  learnState.reviewReveal = false;
   if(options.render !== false) renderLearn();
 }
 function backLearnPage(){
@@ -166,6 +174,7 @@ function learnBreadcrumbs(page = learnState.page){
   if(area.id === 'vocabulary'){
     if(childId === 'review'){
       crumbs.push({ label: 'Review', page: 'vocabulary:review' });
+      if(thirdId) crumbs.push({ label: `${learnLanguageTitle(thirdId)} Review`, page });
       return crumbs;
     }
     if(childId) crumbs.push({ label: 'New Words', page: 'vocabulary:new-words' });
@@ -260,6 +269,109 @@ function renderLearnMetricPlaceholders(){
       </section>
     </div>`;
 }
+function learnVocabularyEntries(language){
+  const list = (typeof state !== 'undefined' && state.data?.[language]) ? state.data[language] : [];
+  if(typeof getStudyEntries === 'function') return getStudyEntries(list, 'lemma');
+  return list;
+}
+function learnVocabularyStore(){
+  return VocabularyLearningModel ? VocabularyLearningModel.loadStore() : { records: {} };
+}
+function learnFrequencyPath(language, threshold){
+  return {
+    type: 'frequency',
+    language,
+    threshold: learnFrequencyNumber(threshold),
+    page: `vocabulary:frequency:${language}:${threshold}`
+  };
+}
+function learnWordId(entry){
+  return VocabularyLearningModel ? VocabularyLearningModel.lemmaId(entry) : entry?.id;
+}
+function findLearnVocabularyEntry(language, id){
+  return learnVocabularyEntries(language).find(entry => learnWordId(entry) === id) || null;
+}
+function getLearnCurrentPathWord(path){
+  const entries = learnVocabularyEntries(path.language);
+  const store = learnVocabularyStore();
+  const current = learnState.currentVocabularyWordId ? findLearnVocabularyEntry(path.language, learnState.currentVocabularyWordId) : null;
+  if(current && VocabularyLearningModel.learningStatus(store, current) === VocabularyLearningModel.STATUS.NOT_LEARNED && VocabularyLearningModel.matchesFrequencyPath(current, path)) return current;
+  const next = VocabularyLearningModel.nextNotLearnedEntry(entries, store, path);
+  learnState.currentVocabularyWordId = next ? learnWordId(next) : '';
+  return next;
+}
+function learnNormalizedGlosses(entry = {}){
+  const rawPrimary = typeof getDisplayGloss === 'function' ? getDisplayGloss(entry) : (entry.customGloss || entry.primaryGloss || entry.gloss || '');
+  const values = typeof normalizeAlternateGlosses === 'function'
+    ? normalizeAlternateGlosses(entry.alternateGlosses)
+    : (Array.isArray(entry.alternateGlosses) ? entry.alternateGlosses : []);
+  const unique = [];
+  const seen = new Set();
+  [rawPrimary, ...values].forEach(value => {
+    String(value || '').split(/[,;•]/).forEach(part => {
+      const gloss = part.trim();
+      const key = gloss.toLowerCase();
+      if(gloss && gloss !== '(missing gloss)' && !seen.has(key)){
+        seen.add(key);
+        unique.push(gloss);
+      }
+    });
+  });
+  return {
+    primary: unique[0] || '(missing gloss)',
+    alternates: unique.slice(1)
+  };
+}
+function renderVocabularyLearningDetails(entry, revealed = true){
+  const glosses = learnNormalizedGlosses(entry);
+  return `
+    ${revealed ? `
+      <div class="learn-vocab-details">
+        <p class="learn-vocab-meaning">${escHtml(glosses.primary)}</p>
+        ${glosses.alternates.length ? `
+          <div class="learn-vocab-alternates">
+            <p>Other translations</p>
+            <p>${glosses.alternates.map(gloss => `<span>${escHtml(gloss)}</span>`).join('<span class="learn-vocab-gloss-separator">•</span>')}</p>
+          </div>` : ''}
+        <p class="learn-vocab-meta">${escHtml(learnLanguageTitle(entry.lang))} · freq ${escHtml(String(entry.freq || 0))}×</p>
+      </div>` : ''}`;
+}
+function renderVocabularyLearningCard(entry, options = {}){
+  const headword = typeof displayHeadwordForEntry === 'function'
+    ? displayHeadwordForEntry(entry)
+    : (entry.lexicalForm || entry.lemma || entry.word || '');
+  return `
+    <article class="learn-vocab-card">
+      <h2>${escHtml(headword)}</h2>
+      ${entry.lemma && entry.lemma !== headword ? `<p class="muted">${escHtml(entry.lemma)}</p>` : ''}
+      ${renderVocabularyLearningDetails(entry, options.revealed !== false)}
+    </article>`;
+}
+function startLearnVocabularyPath(pathPage){
+  learnState.activeVocabularyPath = pathPage;
+  learnState.currentVocabularyWordId = '';
+  renderLearn();
+}
+function learnCurrentVocabularyWord(language, threshold){
+  if(!VocabularyLearningModel) return;
+  const path = learnFrequencyPath(language, threshold);
+  const entry = getLearnCurrentPathWord(path);
+  if(!entry) return;
+  VocabularyLearningModel.persistIntroduceEntry(entry, path);
+  learnState.currentVocabularyWordId = '';
+  renderLearn();
+}
+function revealLearnReview(){
+  learnState.reviewReveal = true;
+  renderLearn();
+}
+function gradeLearnReview(language, id, result){
+  if(!VocabularyLearningModel) return;
+  const entry = findLearnVocabularyEntry(language, id);
+  if(entry) VocabularyLearningModel.persistReviewEntry(entry, result);
+  learnState.reviewReveal = false;
+  renderLearn();
+}
 function renderLearnFrequencyCards(language, basePage){
   const cards = (LearnFrequencyThresholds[language] || LearnFrequencyThresholds.greek).map(threshold => learnCard({
     title: learnFrequencyLabel(threshold),
@@ -287,11 +399,48 @@ function renderLearnHome(){
       </div>
     </section>`;
 }
-function renderReviewPage(area){
+function renderReviewChooser(area){
   const item = learnChild(area, 'review');
+  const store = learnVocabularyStore();
+  const greekDue = VocabularyLearningModel ? VocabularyLearningModel.dueEntries(learnVocabularyEntries('greek'), store).length : 0;
+  const hebrewDue = VocabularyLearningModel ? VocabularyLearningModel.dueEntries(learnVocabularyEntries('hebrew'), store).length : 0;
+  return `
+    <section class="panel learn-panel" aria-labelledby="learnReviewTitle">
+      ${renderLearnHeader(item.title, 'Reviews Available', 'learnReviewTitle')}
+      <div class="learn-card-grid">
+        ${learnCard({ title: 'Greek Review', description: `${greekDue} ${greekDue === 1 ? 'review' : 'reviews'} available` }, 'vocabulary:review:greek')}
+        ${learnCard({ title: 'Hebrew Review', description: `${hebrewDue} ${hebrewDue === 1 ? 'review' : 'reviews'} available` }, 'vocabulary:review:hebrew')}
+      </div>
+    </section>`;
+}
+function renderLanguageReviewPage(area, language){
+  const item = learnChild(area, 'review');
+  const title = `${learnLanguageTitle(language)} Review`;
+  if(VocabularyLearningModel){
+    const store = learnVocabularyStore();
+    const due = VocabularyLearningModel.dueEntries(learnVocabularyEntries(language), store);
+    const current = due[0];
+    return `
+      <section class="panel learn-panel" aria-labelledby="learnReviewTitle">
+        ${renderLearnHeader(title, 'Reviews Available', 'learnReviewTitle')}
+        ${current ? `
+          ${renderVocabularyLearningCard(current, { revealed: learnState.reviewReveal })}
+          <div class="learn-vocab-actions">
+            ${learnState.reviewReveal
+              ? `<button class="learn-review-action learn-review-recognized" type="button" data-learn-review-grade="recognized" data-lang="${escHtml(current.lang)}" data-word-id="${escHtml(learnWordId(current))}">Recognized</button>
+                 <button class="learn-review-action learn-review-missed" type="button" data-learn-review-grade="missed" data-lang="${escHtml(current.lang)}" data-word-id="${escHtml(learnWordId(current))}">Missed</button>`
+              : `<button class="btn btn-primary learn-review-action learn-review-reveal" type="button" id="learnRevealMeaningBtn">Reveal Meaning</button>`}
+          </div>
+          ${due.length > 1 ? `<p class="muted small">${due.length} reviews available</p>` : ''}`
+        : `<section class="word-page-section learn-explainer">
+            <h2>No reviews available</h2>
+            <p>${escHtml(learnLanguageTitle(language))} words you are learning will appear here when they are ready to review.</p>
+          </section>`}
+      </section>`;
+  }
   return `
     <section class="panel learn-panel learn-placeholder" aria-labelledby="learnReviewTitle">
-      ${renderLearnHeader(item.title, area.title, 'learnReviewTitle')}
+      ${renderLearnHeader(title, area.title, 'learnReviewTitle')}
       <section class="word-page-section">
         <h2>Planned Work</h2>
         <p>${escHtml(item.description)}</p>
@@ -329,13 +478,41 @@ function renderLanguageFrequencyPage(language){
 }
 function renderFrequencyPlaceholder(language, threshold, contextTitle = ''){
   const title = [learnLanguageTitle(language), learnFrequencyLabel(threshold)].join(' ');
+  if(VocabularyLearningModel && !contextTitle){
+    const page = `vocabulary:frequency:${language}:${threshold}`;
+    const path = learnFrequencyPath(language, threshold);
+    const entries = learnVocabularyEntries(language);
+    const store = learnVocabularyStore();
+    const remaining = VocabularyLearningModel.remainingNotLearnedCount(entries, store, path);
+    const started = learnState.activeVocabularyPath === page;
+    const current = started ? getLearnCurrentPathWord(path) : null;
+    return `
+      <section class="panel learn-panel" aria-labelledby="learnFrequencyLearningTitle">
+        ${renderLearnHeader(title, learnFrequencyDescription(language, threshold), 'learnFrequencyLearningTitle')}
+        <p class="muted small">${remaining} words remaining in this path</p>
+        ${started ? (current ? `
+          ${renderVocabularyLearningCard(current)}
+          <div class="learn-vocab-actions">
+            <button class="btn" type="button" data-learn-word-learned="true" data-lang="${escHtml(language)}" data-threshold="${escHtml(threshold)}">Learn Another Word</button>
+          </div>`
+        : `<section class="word-page-section learn-explainer">
+            <h2>Path complete</h2>
+            <p>There are no Not Learned words remaining in this frequency path.</p>
+          </section>`)
+        : `<section class="word-page-section learn-explainer">
+            <h2>${escHtml(title)}</h2>
+            <p>${escHtml(learnFrequencyDescription(language, threshold))}</p>
+            <button class="btn btn-primary learn-start-learning-action" type="button" data-learn-start-path="${escHtml(page)}">Start Learning</button>
+          </section>`}
+      </section>`;
+  }
   return `
     <section class="panel learn-panel learn-placeholder" aria-labelledby="learnFrequencyPlaceholderTitle">
       ${renderLearnHeader(contextTitle || title, 'Future study path', 'learnFrequencyPlaceholderTitle')}
       <section class="word-page-section">
         <h2>${escHtml(title)}</h2>
         <p>${escHtml(learnFrequencyDescription(language, threshold))}</p>
-        <p>Eventually this will introduce new words into your review system.</p>
+        <p>This book or chapter path will be connected to vocabulary learning in a future release.</p>
       </section>
     </section>`;
 }
@@ -457,7 +634,8 @@ function renderLearnPage(){
   const [areaId, childId, thirdId, fourthId, fifthId, sixthId, seventhId] = learnState.page.split(':');
   const area = learnArea(areaId);
   if(!area) return renderLearnHome();
-  if(area.id === 'vocabulary' && childId === 'review') return renderReviewPage(area);
+  if(area.id === 'vocabulary' && childId === 'review' && !thirdId) return renderReviewChooser(area);
+  if(area.id === 'vocabulary' && childId === 'review' && (thirdId === 'greek' || thirdId === 'hebrew')) return renderLanguageReviewPage(area, thirdId);
   if(area.id === 'vocabulary' && childId === 'new-words') return renderNewWordsPage(area);
   if(area.id === 'vocabulary' && childId === 'frequency' && !thirdId) return renderFrequencyShell();
   if(area.id === 'vocabulary' && childId === 'frequency' && thirdId && !fourthId) return renderLanguageFrequencyPage(thirdId);
@@ -480,6 +658,10 @@ function wireLearn(){
   const root = $('#learnShell'); if(!root) return;
   $$('.learn-card', root).forEach(card => card.addEventListener('click', () => setLearnPage(card.dataset.learnPage)));
   $$('.learn-breadcrumbs [data-learn-page]', root).forEach(crumb => crumb.addEventListener('click', () => setLearnPage(crumb.dataset.learnPage)));
+  $$('[data-learn-start-path]', root).forEach(button => button.addEventListener('click', () => startLearnVocabularyPath(button.dataset.learnStartPath)));
+  $$('[data-learn-word-learned]', root).forEach(button => button.addEventListener('click', () => learnCurrentVocabularyWord(button.dataset.lang, button.dataset.threshold)));
+  $('#learnRevealMeaningBtn', root)?.addEventListener('click', revealLearnReview);
+  $$('[data-learn-review-grade]', root).forEach(button => button.addEventListener('click', () => gradeLearnReview(button.dataset.lang, button.dataset.wordId, button.dataset.learnReviewGrade)));
   $$('.learn-custom-frequency-form', root).forEach(form => form.addEventListener('submit', event => {
     event.preventDefault();
     setLearnCustomFrequency(form.dataset.learnCustomBase, form.querySelector('.learn-custom-frequency-input')?.value || '');
@@ -492,5 +674,5 @@ function renderLearn(){
   wireLearn();
 }
 
-if(typeof window !== 'undefined') Object.assign(window, { LearnAreas, learnState, learnArea, learnChild, learnPageTitle, learnBreadcrumbs, parseLearnCustomFrequency, setLearnCustomFrequency, resetLearn, setLearnPage, backLearnPage, renderLearn, renderLearnPage, learnBookList });
-if(typeof module !== 'undefined') module.exports = { LearnAreas, LearnFrequencyThresholds, learnState, learnArea, learnChild, learnPageTitle, learnBreadcrumbs, parseLearnCustomFrequency, setLearnCustomFrequency, resetLearn, learnBookList, setLearnPage, backLearnPage, renderLearnPage };
+if(typeof window !== 'undefined') Object.assign(window, { LearnAreas, learnState, learnArea, learnChild, learnPageTitle, learnBreadcrumbs, parseLearnCustomFrequency, setLearnCustomFrequency, resetLearn, setLearnPage, backLearnPage, renderLearn, renderLearnPage, learnBookList, startLearnVocabularyPath, learnCurrentVocabularyWord, revealLearnReview, gradeLearnReview });
+if(typeof module !== 'undefined') module.exports = { LearnAreas, LearnFrequencyThresholds, learnState, learnArea, learnChild, learnPageTitle, learnBreadcrumbs, parseLearnCustomFrequency, setLearnCustomFrequency, resetLearn, learnBookList, setLearnPage, backLearnPage, renderLearnPage, startLearnVocabularyPath, learnCurrentVocabularyWord, revealLearnReview, gradeLearnReview };
