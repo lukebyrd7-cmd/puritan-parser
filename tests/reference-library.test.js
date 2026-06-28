@@ -143,6 +143,26 @@ test('v4.2.5 Hebrew non-Qal paradigms do not reuse Qal non-finite and participle
   assert.notEqual(chartRows('Niphal Participles')[0][1], 'כֹּתֵב');
 });
 
+test('v4.2.5B Hebrew stem summary charts use the same stem-specific source rows as the paradigm tabs', () => {
+  const verbs = library.getReferenceTopic('hebrew-verbs');
+  const paradigmCharts = verbs.sectionTabs.find(tab => tab.id === 'paradigms').sections.flatMap(section => section.charts || []);
+  const chartRows = label => paradigmCharts.find(chart => chart.label === label)?.rows || [];
+  assert.equal(chartRows('Niphal representative paradigm: כתב').find(row => row[0] === 'Imperative')[1], 'הִכָּתֵב');
+  assert.equal(chartRows('Piel representative paradigm: כתב').find(row => row[0] === 'Participle')[1], 'מְכַתֵּב');
+  assert.equal(chartRows('Hiphil representative paradigm: כתב').find(row => row[0] === 'Infinitive Construct')[1], 'הַכְתִּיב');
+  assert.equal(chartRows('Pual representative paradigm: כתב').find(row => row[0] === 'Imperative')[1].label, 'Needs review');
+});
+
+test('v4.2.5B Greek participle detail rows use real declension forms, not suffix guesses', () => {
+  const verbs = library.getReferenceTopic('greek-verbs');
+  const paradigmCharts = verbs.sectionTabs.find(tab => tab.id === 'paradigms').sections.flatMap(section => section.charts || []);
+  const chartRows = label => paradigmCharts.find(chart => chart.label === label)?.rows || [];
+  assert.deepEqual(chartRows('Present Middle/Passive Participle')[1], ['Gen sg','λυομένου','λυομένης','λυομένου']);
+  assert.deepEqual(chartRows('Aorist Active Participle')[1], ['Gen sg','λύσαντος','λυσάσης','λύσαντος']);
+  assert.deepEqual(chartRows('Aorist Passive Participle')[2], ['Nom pl','λυθέντες','λυθεῖσαι','λυθέντα']);
+  assert.deepEqual(chartRows('Perfect Active Participle')[1], ['Gen sg','λελυκότος','λελυκυίας','λελυκότος']);
+});
+
 test('v3.6.3d major grammar pages use Paradigms, Concepts, and Reference Material', () => {
   for (const id of ['greek-nouns','greek-verbs','greek-adjectives','hebrew-nouns','hebrew-verbs']) {
     assert.deepEqual(sectionTabLabels(library.getReferenceTopic(id)), ['Paradigms','Concepts','Reference Material'], `${id} category tabs`);
