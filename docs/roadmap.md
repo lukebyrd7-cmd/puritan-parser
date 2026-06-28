@@ -44,6 +44,16 @@ The Learn system has been conceptually designed in `docs/educational-philosophy.
 - v4.2.3: Book Progress & Reading Readiness — complete
 - v4.2.4: Reader ↔ Learn Integration — complete
 - v4.2.5: Reference Foundation
+  - Phase A
+    - Reference organization
+    - UI consistency
+    - Known Hebrew fix
+    - New Words language selection
+  - Phase B
+    - Scholarly grammar audit
+    - Grammar verification
+    - Regression tests
+    - `docs/grammar-audit.md`
 - v4.2.6: Paradigm Recognition
 - v4.2.7: Progress & Statistics
 - v5.0: Public Release

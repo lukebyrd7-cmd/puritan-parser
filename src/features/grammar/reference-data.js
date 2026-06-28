@@ -42,12 +42,77 @@
   ];
   const hebPersons = ['3ms','3fs','2ms','2fs','1cs','3mp','3fp','2mp','2fp','1cp'];
   const hebrewForms = {
-    Qal:[['כָּתַב','כָּתְבָה','כָּתַבְתָּ','כָּתַבְתְּ','כָּתַבְתִּי','כָּתְבוּ','כָּתְבוּ','כְּתַבְתֶּם','כְּתַבְתֶּן','כָּתַבְנוּ'],['יִכְתֹּב','תִּכְתֹּב','תִּכְתֹּב','תִּכְתְּבִי','אֶכְתֹּב','יִכְתְּבוּ','תִּכְתֹּבְנָה','תִּכְתְּבוּ','תִּכְתֹּבְנָה','נִכְתֹּב']],
-    Niphal:[['נִכְתַּב','נִכְתְּבָה','נִכְתַּבְתָּ','נִכְתַּבְתְּ','נִכְתַּבְתִּי','נִכְתְּבוּ','נִכְתְּבוּ','נִכְתַּבְתֶּם','נִכְתַּבְתֶּן','נִכְתַּבְנוּ'],['יִכָּתֵב','תִּכָּתֵב','תִּכָּתֵב','תִּכָּתְבִי','אִכָּתֵב','יִכָּתְבוּ','תִּכָּתַבְנָה','תִּכָּתְבוּ','תִּכָּתַבְנָה','נִכָּתֵב']],
-    Piel:[['כִּתֵּב','כִּתְּבָה','כִּתַּבְתָּ','כִּתַּבְתְּ','כִּתַּבְתִּי','כִּתְּבוּ','כִּתְּבוּ','כִּתַּבְתֶּם','כִּתַּבְתֶּן','כִּתַּבְנוּ'],['יְכַתֵּב','תְּכַתֵּב','תְּכַתֵּב','תְּכַתְּבִי','אֲכַתֵּב','יְכַתְּבוּ','תְּכַתֵּבְנָה','תְּכַתְּבוּ','תְּכַתֵּבְנָה','נְכַתֵּב']],
+    Qal:{
+      perfect:['כָּתַב','כָּתְבָה','כָּתַבְתָּ','כָּתַבְתְּ','כָּתַבְתִּי','כָּתְבוּ','כָּתְבוּ','כְּתַבְתֶּם','כְּתַבְתֶּן','כָּתַבְנוּ'],
+      imperfect:['יִכְתֹּב','תִּכְתֹּב','תִּכְתֹּב','תִּכְתְּבִי','אֶכְתֹּב','יִכְתְּבוּ','תִּכְתֹּבְנָה','תִּכְתְּבוּ','תִּכְתֹּבְנָה','נִכְתֹּב'],
+      imperative:['כְּתֹב','כִּתְבִי','כִּתְבוּ','כְּתֹבְנָה'],
+      infinitiveConstruct:'כְּתֹב',
+      infinitiveAbsolute:'כָּתוֹב',
+      participles:[['masculine singular','כֹּתֵב'],['feminine singular','כֹּתֶבֶת'],['masculine plural','כֹּתְבִים'],['feminine plural','כֹּתְבוֹת']]
+    },
+    Niphal:{
+      perfect:['נִכְתַּב','נִכְתְּבָה','נִכְתַּבְתָּ','נִכְתַּבְתְּ','נִכְתַּבְתִּי','נִכְתְּבוּ','נִכְתְּבוּ','נִכְתַּבְתֶּם','נִכְתַּבְתֶּן','נִכְתַּבְנוּ'],
+      imperfect:['יִכָּתֵב','תִּכָּתֵב','תִּכָּתֵב','תִּכָּתְבִי','אִכָּתֵב','יִכָּתְבוּ','תִּכָּתַבְנָה','תִּכָּתְבוּ','תִּכָּתַבְנָה','נִכָּתֵב'],
+      imperative:['הִכָּתֵב','הִכָּתְבִי','הִכָּתְבוּ','הִכָּתַבְנָה'],
+      infinitiveConstruct:'הִכָּתֵב',
+      infinitiveAbsolute:'נִכְתֹּב',
+      participles:[['masculine singular','נִכְתָּב'],['feminine singular','נִכְתֶּבֶת'],['masculine plural','נִכְתָּבִים'],['feminine plural','נִכְתָּבוֹת']]
+    },
+    Piel:{
+      perfect:['כִּתֵּב','כִּתְּבָה','כִּתַּבְתָּ','כִּתַּבְתְּ','כִּתַּבְתִּי','כִּתְּבוּ','כִּתְּבוּ','כִּתַּבְתֶּם','כִּתַּבְתֶּן','כִּתַּבְנוּ'],
+      imperfect:['יְכַתֵּב','תְּכַתֵּב','תְּכַתֵּב','תְּכַתְּבִי','אֲכַתֵּב','יְכַתְּבוּ','תְּכַתֵּבְנָה','תְּכַתְּבוּ','תְּכַתֵּבְנָה','נְכַתֵּב'],
+      imperative:['כַּתֵּב','כַּתְּבִי','כַּתְּבוּ','כַּתֵּבְנָה'],
+      infinitiveConstruct:'כַּתֵּב',
+      infinitiveAbsolute:'כַּתֵּב',
+      participles:[['masculine singular','מְכַתֵּב'],['feminine singular','מְכַתֶּבֶת'],['masculine plural','מְכַתְּבִים'],['feminine plural','מְכַתְּבוֹת']]
+    },
+    Pual:{
+      perfect:['כֻּתַּב','כֻּתְּבָה','כֻּתַּבְתָּ','כֻּתַּבְתְּ','כֻּתַּבְתִּי','כֻּתְּבוּ','כֻּתְּבוּ','כֻּתַּבְתֶּם','כֻּתַּבְתֶּן','כֻּתַּבְנוּ'],
+      imperfect:['יְכֻתַּב','תְּכֻתַּב','תְּכֻתַּב','תְּכֻתְּבִי','אֲכֻתַּב','יְכֻתְּבוּ','תְּכֻתַּבְנָה','תְּכֻתְּבוּ','תְּכֻתַּבְנָה','נְכֻתַּב'],
+      imperative:null,
+      infinitiveConstruct:null,
+      infinitiveAbsolute:'כֻּתֹּב',
+      participles:[['masculine singular','מְכֻתָּב'],['feminine singular','מְכֻתֶּבֶת'],['masculine plural','מְכֻתָּבִים'],['feminine plural','מְכֻתָּבוֹת']]
+    },
+    Hiphil:{
+      perfect:['הִכְתִּיב','הִכְתִּיבָה','הִכְתַּבְתָּ','הִכְתַּבְתְּ','הִכְתַּבְתִּי','הִכְתִּיבוּ','הִכְתִּיבוּ','הִכְתַּבְתֶּם','הִכְתַּבְתֶּן','הִכְתַּבְנוּ'],
+      imperfect:['יַכְתִּיב','תַּכְתִּיב','תַּכְתִּיב','תַּכְתִּיבִי','אַכְתִּיב','יַכְתִּיבוּ','תַּכְתֵּבְנָה','תַּכְתִּיבוּ','תַּכְתֵּבְנָה','נַכְתִּיב'],
+      imperative:['הַכְתֵּב','הַכְתִּיבִי','הַכְתִּיבוּ','הַכְתֵּבְנָה'],
+      infinitiveConstruct:'הַכְתִּיב',
+      infinitiveAbsolute:'הַכְתֵּב',
+      participles:[['masculine singular','מַכְתִּיב'],['feminine singular','מַכְתִּיבָה'],['masculine plural','מַכְתִּיבִים'],['feminine plural','מַכְתִּיבוֹת']]
+    },
+    Hophal:{
+      perfect:['הָכְתַּב','הָכְתְּבָה','הָכְתַּבְתָּ','הָכְתַּבְתְּ','הָכְתַּבְתִּי','הָכְתְּבוּ','הָכְתְּבוּ','הָכְתַּבְתֶּם','הָכְתַּבְתֶּן','הָכְתַּבְנוּ'],
+      imperfect:['יָכְתַּב','תָּכְתַּב','תָּכְתַּב','תָּכְתְּבִי','אָכְתַּב','יָכְתְּבוּ','תָּכְתַּבְנָה','תָּכְתְּבוּ','תָּכְתַּבְנָה','נָכְתַּב'],
+      imperative:null,
+      infinitiveConstruct:null,
+      infinitiveAbsolute:'הָכְתֵּב',
+      participles:[['masculine singular','מָכְתָּב'],['feminine singular','מָכְתֶּבֶת'],['masculine plural','מָכְתָּבִים'],['feminine plural','מָכְתָּבוֹת']]
+    },
+    Hitpael:{
+      perfect:['הִתְכַּתֵּב','הִתְכַּתְּבָה','הִתְכַּתַּבְתָּ','הִתְכַּתַּבְתְּ','הִתְכַּתַּבְתִּי','הִתְכַּתְּבוּ','הִתְכַּתְּבוּ','הִתְכַּתַּבְתֶּם','הִתְכַּתַּבְתֶּן','הִתְכַּתַּבְנוּ'],
+      imperfect:['יִתְכַּתֵּב','תִּתְכַּתֵּב','תִּתְכַּתֵּב','תִּתְכַּתְּבִי','אֶתְכַּתֵּב','יִתְכַּתְּבוּ','תִּתְכַּתֵּבְנָה','תִּתְכַּתְּבוּ','תִּתְכַּתֵּבְנָה','נִתְכַּתֵּב'],
+      imperative:['הִתְכַּתֵּב','הִתְכַּתְּבִי','הִתְכַּתְּבוּ','הִתְכַּתֵּבְנָה'],
+      infinitiveConstruct:'הִתְכַּתֵּב',
+      infinitiveAbsolute:'הִתְכַּתֵּב',
+      participles:[['masculine singular','מִתְכַּתֵּב'],['feminine singular','מִתְכַּתֶּבֶת'],['masculine plural','מִתְכַּתְּבִים'],['feminine plural','מִתְכַּתְּבוֹת']]
+    }
   };
-  hebrewForms.Pual=hebrewForms.Piel; hebrewForms.Hiphil=hebrewForms.Piel; hebrewForms.Hophal=hebrewForms.Niphal; hebrewForms.Hitpael=hebrewForms.Piel;
-  const hebrewTabs = stem => [{id:'perfect',label:'Perfect',charts:[chart(`${stem} Perfect: כתב`, ['Person',...hebPersons], [['Form',...hebrewForms[stem][0]]])]}, {id:'imperfect',label:'Imperfect',charts:[chart(`${stem} Imperfect: כתב`, ['Person',...hebPersons], [['Form',...hebrewForms[stem][1]]])]}, {id:'imperative',label:'Imperative',charts:[chart(`${stem} Imperative`, ['2ms','2fs','2mp','2fp'], [['Form','כְּתֹב','כִּתְבִי','כִּתְבוּ','כְּתֹבְנָה']])]}, {id:'infinitive-construct',label:'Infinitive Construct',charts:[chart(`${stem} Infinitive Construct`, ['Form'], [[stem==='Hiphil'?'הַכְתִּיב':'כְּתֹב']])]}, {id:'infinitive-absolute',label:'Infinitive Absolute',charts:[chart(`${stem} Infinitive Absolute`, ['Form'], [[stem==='Hiphil'?'הַכְתֵּב':'כָּתוֹב']])]}, {id:'participles',label:'Participles',charts:[chart(`${stem} Participles`, ['Gender/Number','Form'], [['masculine singular','כֹּתֵב'],['feminine singular','כֹּתֶבֶת'],['masculine plural','כֹּתְבִים'],['feminine plural','כֹּתְבוֹת']])]}, {id:'recognition',label:'Recognition',charts:[chart(`${stem} recognition`, ['Clue','Tip'], [[stemInfo[stem][1], stemInfo[stem][2]],['Root','כתב']])]}];
+  const noForm = note => ({ label:'Needs review', note });
+  const hebrewTabRows = value => value ? [[value]] : [[noForm('No strong-form command/infinitive supplied for this passive stem; verify in Phase B.')]];
+  const hebrewTabs = stem => {
+    const forms = hebrewForms[stem];
+    return [
+      {id:'perfect',label:'Perfect',charts:[chart(`${stem} Perfect: כתב`, ['Person',...hebPersons], [['Form',...forms.perfect]])]},
+      {id:'imperfect',label:'Imperfect',charts:[chart(`${stem} Imperfect: כתב`, ['Person',...hebPersons], [['Form',...forms.imperfect]])]},
+      {id:'imperative',label:'Imperative',charts:[chart(`${stem} Imperative`, ['2ms','2fs','2mp','2fp'], [forms.imperative ? ['Form',...forms.imperative] : ['Form', noForm('Passive stems do not normally supply a standard imperative paradigm here.'), noForm('Phase B scholarly review'), noForm('Phase B scholarly review'), noForm('Phase B scholarly review')]])]},
+      {id:'infinitive-construct',label:'Infinitive Construct',charts:[chart(`${stem} Infinitive Construct`, ['Form'], hebrewTabRows(forms.infinitiveConstruct))]},
+      {id:'infinitive-absolute',label:'Infinitive Absolute',charts:[chart(`${stem} Infinitive Absolute`, ['Form'], hebrewTabRows(forms.infinitiveAbsolute))]},
+      {id:'participles',label:'Participles',charts:[chart(`${stem} Participles`, ['Gender/Number','Form'], forms.participles)]},
+      {id:'recognition',label:'Recognition',charts:[chart(`${stem} recognition`, ['Clue','Tip'], [[stemInfo[stem][1], stemInfo[stem][2]],['Root','כתב'],['Audit status','Strong representative forms corrected for Phase A; full scholarly verification is a Phase B gate.']])]}
+    ];
+  };
   const decoderEntries = {
     'V-PAI-3S': { breakdown:['Verb','Present Active Indicative','3rd singular'], tips:['Look for present stem plus active ending.'], examples:['λύει'], related:['greek-lyo-paradigm','greek-verb-endings'] },
     'V-API-3S': { breakdown:['Verb','Aorist Passive Indicative','3rd singular'], tips:['Augment plus θη commonly marks aorist passive.'], examples:['ἐλύθη'], related:['greek-lyo-paradigm','greek-common-parsing-clues'] },
@@ -95,8 +160,9 @@
   ];
 
   const futureGrammarHooks = [
-    { id:'greek-mi-verbs-hook', language:'greek' },
-    { id:'greek-irregular-verbs-hook', language:'greek' }
+    { id:'greek-mi-verbs-hook', language:'greek', sourceTopicId:'greek-verbs', sourceSectionId:'mi-verbs' },
+    { id:'greek-irregular-verbs-hook', language:'greek', sourceTopicId:'greek-verbs', sourceSectionId:'irregular-verbs' },
+    { id:'paradigm-recognition-source', language:'all', source:'referenceTopics', note:'Future Paradigm Recognition should consume reference topic sections and paradigmTabs rather than duplicate paradigm data.' }
   ];
 
   const grammarRefinements = [
@@ -180,6 +246,8 @@
     const t = oldTopic(topicId);
     return (t.paradigmTabs || []).filter(tab => labels.includes(tab.label)).flatMap(tab => tab.charts || []);
   };
+  const hebrewStemIds = ['hebrew-qal','hebrew-niphal','hebrew-piel','hebrew-pual','hebrew-hiphil','hebrew-hophal','hebrew-hitpael'];
+  const chartsFromHebrewStemTabs = labels => hebrewStemIds.flatMap(id => chartsFromTabs(id, labels));
   const hebrewStemSection = stem => {
     const t = oldTopic(`hebrew-${stem.toLowerCase()}`);
     return { title:stem, body:t.body || [], recognitionTips:t.recognitionTips || [], charts:[...(t.charts || []), ...(t.paradigmTabs || []).flatMap(tab => tab.charts || [])], examples:t.examples || [], searchTerms:[`${stem} Paradigms`, `${stem} stem`, `hebrew-${stem.toLowerCase()}`] };
@@ -280,7 +348,7 @@
         ...stemSections,
         ...weakVerbs,
         sectionWithId(sectionByTitle(sections,'Participle'), 'participles'),
-        { title:'Infinitives', id:'infinitives', body:['Hebrew infinitives appear mainly as construct and absolute forms. Use them by visible shape and by their relationship to nearby verbs or prepositions.'], recognitionTips:['Infinitive construct often appears with לְ.','Infinitive absolute often reinforces a nearby finite verb.'], charts:[...chartsFromTabs('hebrew-qal',['Infinitive Construct']), ...chartsFromTabs('hebrew-qal',['Infinitive Absolute'])], examples:[] },
+        { title:'Infinitives', id:'infinitives', body:['Hebrew infinitives appear mainly as construct and absolute forms. Use them by visible shape and by their relationship to nearby verbs or prepositions.'], recognitionTips:['Infinitive construct often appears with לְ.','Infinitive absolute often reinforces a nearby finite verb.'], charts:[...chartsFromHebrewStemTabs(['Infinitive Construct']), ...chartsFromHebrewStemTabs(['Infinitive Absolute'])], examples:[] },
         sectionWithId(sectionByTitle(sections,'Imperative'), 'imperatives')
       ],[chip('Strong Verbs','strong-verbs'),chip('Stems','stems'),chip('Weak Verbs','weak-verbs'),chip('Participles','participles'),chip('Infinitives','infinitives'),chip('Imperatives','imperatives')]),
       categoryTab('concepts','Concepts',[
@@ -423,13 +491,13 @@
     ], charts:[], examples:[ex('דְּבַר יְהוָה','Jeremiah 1:2','word of YHWH'), ex('יָדַיִם','Representative','hands')], related:['hebrew-verbs','hebrew-particles'] },
     { id:'hebrew-verbs', language:'hebrew', title:'Verbs', category:'Verbs', color:'qal', summary:'Major Hebrew verb reference for strong forms, stems, weak verbs, aspect, and waw consecutive recognition.', body:['Start with the verbal pattern: prefixes/suffixes, stem markers, root consonants, and whether וַי marks narrative sequence.'], recognitionTips:['וַי plus an imperfect form is the classic waw consecutive / wayyiqtol clue, as in וַיֹּאמֶר.','Stem markers such as נִ, doubled middle radical, and הִ narrow the binyan.','Weak roots may hide or change consonants.'], searchTerms:['Strong Verb Paradigms','Perfect','Imperfect','Imperative','Infinitive Construct','Infinitive Absolute','Participle','Stems','Qal','Niphal','Piel','Pual','Hiphil','Hophal','Hitpael','Weak Verbs','I-Aleph','I-Nun','III-He','Geminate','Hollow','Aspect','Waw Consecutive','Wayyiqtol','וַיֹּאמֶר'], sections:[
       sectionFromTopic('hebrew-stem-markers','Recognition Cheat Sheet'),
-      { title:'Strong Verb Paradigms', body:['כתב is the representative strong verb pattern used for quick recognition.'], recognitionTips:[], charts:[...(oldTopic('hebrew-qal').paradigmTabs||[]).flatMap(tab => tab.charts || [])], examples:[ex('כָּתַב','Jeremiah 36:2','he wrote / write')] },
-      { title:'Perfect', body:[], recognitionTips:['Perfect forms often use suffixes for person, gender, and number.'], charts:chartsFromTabs('hebrew-qal',['Perfect']), examples:[] },
-      { title:'Imperfect', body:[], recognitionTips:['Imperfect forms use prefixes plus endings.'], charts:chartsFromTabs('hebrew-qal',['Imperfect']), examples:[] },
-      { title:'Imperative', body:[], recognitionTips:['Imperatives are second-person command forms.'], charts:chartsFromTabs('hebrew-qal',['Imperative']), examples:[] },
-      { title:'Infinitive Construct', body:[], recognitionTips:['Often appears with לְ.'], charts:chartsFromTabs('hebrew-qal',['Infinitive Construct']), examples:[] },
-      { title:'Infinitive Absolute', body:[], recognitionTips:['Often reinforces a nearby finite verb.'], charts:chartsFromTabs('hebrew-qal',['Infinitive Absolute']), examples:[] },
-      { title:'Participle', body:[], recognitionTips:['Participles often behave as verbal adjectives.'], charts:chartsFromTabs('hebrew-qal',['Participles']), examples:[] },
+      { title:'Strong Verb Paradigms', body:['כתב is the representative strong verb pattern used for quick recognition.'], recognitionTips:['These Phase A forms are organized for recognition practice reuse; Phase B will perform the full scholarly verification.'], charts:hebrewStemIds.flatMap(id => (oldTopic(id).paradigmTabs||[]).flatMap(tab => tab.charts || [])), examples:[ex('כָּתַב','Jeremiah 36:2','he wrote / write')] },
+      { title:'Perfect', body:[], recognitionTips:['Perfect forms often use suffixes for person, gender, and number.'], charts:chartsFromHebrewStemTabs(['Perfect']), examples:[] },
+      { title:'Imperfect', body:[], recognitionTips:['Imperfect forms use prefixes plus endings.'], charts:chartsFromHebrewStemTabs(['Imperfect']), examples:[] },
+      { title:'Imperative', body:[], recognitionTips:['Imperatives are second-person command forms; passive stems may need Phase B verification rather than forced Qal-looking forms.'], charts:chartsFromHebrewStemTabs(['Imperative']), examples:[] },
+      { title:'Infinitive Construct', body:[], recognitionTips:['Often appears with לְ. Passive stem entries marked Needs review are intentionally not presented as Qal forms.'], charts:chartsFromHebrewStemTabs(['Infinitive Construct']), examples:[] },
+      { title:'Infinitive Absolute', body:[], recognitionTips:['Often reinforces a nearby finite verb. Passive stem entries marked Needs review are intentionally not presented as Qal forms.'], charts:chartsFromHebrewStemTabs(['Infinitive Absolute']), examples:[] },
+      { title:'Participle', body:[], recognitionTips:['Participles often behave as verbal adjectives.'], charts:chartsFromHebrewStemTabs(['Participles']), examples:[] },
       { title:'Stems', body:['The stems modify the root idea in conventional active, passive, causative, intensive, reflexive, or reciprocal directions.'], recognitionTips:stemRelationships, charts:[chart('Stem overview', ['Stem','Typical value','Pattern','Recognition'], Object.entries(stemInfo).map(([s,v])=>[s,v[0],v[1],v[2]]))], examples:[] },
       ...['Qal','Niphal','Piel','Pual','Hiphil','Hophal','Hitpael'].map(hebrewStemSection),
       sectionFromTopic('hebrew-weak-verbs','Weak Verbs', { searchTerms:['I-Aleph','I-Nun','III-He','Geminate','Hollow'] }),
@@ -457,7 +525,14 @@
   };
   topics.forEach(scrubReferenceColors);
 
-  const visibleTopics = topics.filter(t => !oldTopicAliasIds.has(t.id));
+  const referenceTopicOrder = ['greek-verbs','greek-nouns','greek-pronouns','greek-adjectives','greek-prepositions','grammar-parsing-decoder','grammar-parsing-ambiguity','hebrew-verbs','hebrew-nouns','hebrew-particles'];
+  const visibleTopics = topics
+    .filter(t => !oldTopicAliasIds.has(t.id))
+    .sort((a,b) => {
+      const ai = referenceTopicOrder.indexOf(a.id);
+      const bi = referenceTopicOrder.indexOf(b.id);
+      return (ai === -1 ? 999 : ai) - (bi === -1 ? 999 : bi);
+    });
   function canonicalTopicId(id){ return oldTopicAliases[id] || id; }
   function getReferenceTopic(id){ const canonical = canonicalTopicId(id); return visibleTopics.find(t => t.id === canonical) || topics.find(t => t.id === canonical); }
   function topicLabel(id){ return getReferenceTopic(id)?.title || id; }
@@ -468,12 +543,24 @@
   function flattenSections(sections){ return (sections||[]).flatMap(s=>[s.title, ...(s.body||[]), ...(s.recognitionTips||[]), ...(s.searchTerms||[]), ...flattenCharts(s.charts), ...flattenExamples(s.examples)]); }
   function flattenSectionTabs(sectionTabs){ return (sectionTabs||[]).flatMap(tab=>[tab.label, ...(tab.jumpChips||[]).flatMap(chip=>[chip.label, chip.target]), ...flattenSections(tab.sections)]); }
   function flattenTopic(topic){ return [topic.id, topic.title, topic.category, topic.summary, topic.frequency, ...(topic.searchTerms||[]), ...(topic.body||[]), ...(topic.recognitionTips||[]), ...(topic.principalParts||[]), ...flattenSections(topic.sections), ...flattenSectionTabs(topic.sectionTabs), ...(topic.paradigmTabs||[]).flatMap(tab=>[tab.label,...flattenCharts(tab.charts)]), ...flattenCharts(topic.charts), ...flattenExamples(topic.examples), ...(topic.related||[]).map(topicLabel), ...(topic.featureLinks||[]).flatMap(l=>[l.label,l.type,l.target]), topic.stemRelationships?.root, ...(topic.stemRelationships?.stems||[]), ...(topic.stemRelationships?.explanation||[])].join(' '); }
+  function referenceSectionSlug(section, index=0){ return section.id || String(section.title || `section-${index}`).toLowerCase().replace(/[^a-z0-9\u0370-\u03ff\u0590-\u05ff]+/g,'-').replace(/^-|-$/g,''); }
   function searchReferenceTopics(query='', language='all'){
     const q = normalizeSearchText(String(query).trim());
     return visibleTopics.filter(t => (language === 'all' || t.language === language) && (!q || normalizeSearchText(flattenTopic(t)).includes(q)));
   }
+  function referenceParadigmGroups(language='all'){
+    return visibleTopics
+      .filter(topic => (language === 'all' || topic.language === language) && (topic.sectionTabs?.some(tab => tab.id === 'paradigms') || topic.paradigmTabs?.length))
+      .map(topic => ({
+        topicId: topic.id,
+        language: topic.language,
+        title: topic.title,
+        sections: (topic.sectionTabs?.find(tab => tab.id === 'paradigms')?.sections || []).map((section, index) => ({ id: referenceSectionSlug(section, index), title: section.title })),
+        paradigmTabs: (topic.paradigmTabs || []).map(tab => ({ id: tab.id, label: tab.label }))
+      }));
+  }
   function decodeParsing(input){ const key=String(input||'').trim().toUpperCase().replace(/\s+/g,' '); return decoderEntries[key] || null; }
-  const api = { referenceTopics: visibleTopics, futureGrammarHooks, searchReferenceTopics, getReferenceTopic, topicLabel, referenceColors: COLORS, decodeParsing, decoderEntries, oldTopicAliases, canonicalTopicId };
+  const api = { referenceTopics: visibleTopics, futureGrammarHooks, searchReferenceTopics, getReferenceTopic, topicLabel, referenceColors: COLORS, decodeParsing, decoderEntries, oldTopicAliases, canonicalTopicId, referenceParadigmGroups };
   if(typeof module !== 'undefined' && module.exports) module.exports = api;
   root.PuritanReferenceLibrary = api;
 })(typeof window !== 'undefined' ? window : globalThis);

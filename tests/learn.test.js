@@ -76,11 +76,13 @@ test('Vocabulary shell opens review and the new words path chooser', () => {
   assert.match(renderedText(review), /Greek Review/);
   assert.match(renderedText(review), /Hebrew Review/);
   const newWords = renderPage('vocabulary:new-words');
-  assert.match(newWords, /Choose how you want to prepare for reading/);
-  assert.match(renderedText(newWords), /Greek 25\+ 10\+ 5\+ All Words Custom Frequency/);
-  assert.match(renderedText(newWords), /Hebrew 60\+ 30\+ 10\+ 5\+ All Words Custom Frequency/);
-  assert.match(newWords, /data-learn-page="vocabulary:frequency:greek:25"/);
-  assert.match(newWords, /data-learn-page="vocabulary:frequency:hebrew:60"/);
+  assert.match(newWords, /Choose Language/);
+  assert.match(renderedText(newWords), /Greek Study Greek words by overall frequency/);
+  assert.match(renderedText(newWords), /Hebrew Study Hebrew words by overall frequency/);
+  assert.match(newWords, /data-learn-page="vocabulary:frequency:greek"/);
+  assert.match(newWords, /data-learn-page="vocabulary:frequency:hebrew"/);
+  assert.doesNotMatch(newWords, /data-learn-page="vocabulary:frequency:greek:25"/);
+  assert.doesNotMatch(newWords, /data-learn-page="vocabulary:frequency:hebrew:60"/);
   assert.doesNotMatch(newWords, /data-learn-page="vocabulary:book"/);
   assert.doesNotMatch(renderedText(newWords), /By Frequency/);
   assert.doesNotMatch(renderedText(newWords), /By Book/);

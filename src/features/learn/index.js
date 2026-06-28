@@ -612,16 +612,10 @@ function renderNewWordsPage(area){
   const item = learnChild(area, 'new-words');
   return `
     <section class="panel learn-panel" aria-labelledby="learnNewWordsTitle">
-      ${renderLearnHeader(item.title, item.description, 'learnNewWordsTitle')}
-      <div class="learn-language-grid">
-        <section class="learn-language-group" aria-labelledby="learnNewWordsGreek">
-          <h2 id="learnNewWordsGreek">Greek</h2>
-          ${renderQuietFrequencyChoices('greek', 'vocabulary:frequency:greek')}
-        </section>
-        <section class="learn-language-group" aria-labelledby="learnNewWordsHebrew">
-          <h2 id="learnNewWordsHebrew">Hebrew</h2>
-          ${renderQuietFrequencyChoices('hebrew', 'vocabulary:frequency:hebrew')}
-        </section>
+      ${renderLearnHeader(item.title, 'Choose Language', 'learnNewWordsTitle')}
+      <div class="learn-card-grid learn-language-choice-grid">
+        ${learnCard({ title: 'Greek', description: 'Study Greek words by overall frequency.' }, 'vocabulary:frequency:greek')}
+        ${learnCard({ title: 'Hebrew', description: 'Study Hebrew words by overall frequency.' }, 'vocabulary:frequency:hebrew')}
       </div>
     </section>`;
 }

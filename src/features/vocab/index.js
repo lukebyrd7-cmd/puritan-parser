@@ -57,7 +57,7 @@ function setLang(lang){
   updatePosOptions();
   updateParsingFilterOptions();
   renderList(); updateDueBadge();
-  if(state.currentView==='grammarView' && typeof renderReferenceLibrary==='function'){ setReferenceLanguage(lang); renderReferenceLibrary(); }
+  if(state.currentView==='grammarView' && typeof renderReferenceLibrary==='function') renderReferenceLibrary();
   if(typeof saveLastLanguage === 'function') saveLastLanguage(lang);
 }
 function getCurrentList(){ return state.data[state.lang]||[]; }

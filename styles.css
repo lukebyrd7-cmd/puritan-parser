@@ -798,6 +798,7 @@ button:focus-visible, input:focus-visible, select:focus-visible {
   background: color-mix(in srgb, var(--accent) 7%, var(--surface));
 }
 .learn-card-emphasis .learn-card-title { color: var(--accent-dark); }
+.learn-language-choice-grid { grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
 .learn-language-grid {
   display: grid;
   gap: 14px;
@@ -1081,8 +1082,10 @@ button:focus-visible, input:focus-visible, select:focus-visible {
 .reference-collapsible summary { cursor: pointer; padding: 10px 12px; font-size: 15px; font-weight: 800; color: var(--text); }
 .reference-collapsible[open] { padding: 0 12px 12px; }
 .reference-collapsible[open] summary { margin: 0 -12px 8px; border-bottom: 1px solid var(--border); background: var(--surface-2); }
-.grammar-home { display: grid; gap: 18px; }
-.grammar-home-section h2 { font-family: var(--font-serif); font-size: 24px; line-height: 1.1; margin-bottom: 8px; }
+.grammar-home { display: grid; gap: 20px; }
+.grammar-home-language { display: grid; gap: 12px; }
+.grammar-home-language > h2 { font-family: var(--font-serif); font-size: 26px; line-height: 1.1; margin: 0; }
+.grammar-home-section h2 { color: var(--muted); font-size: 12px; font-weight: 800; letter-spacing: .08em; line-height: 1.1; margin-bottom: 8px; text-transform: uppercase; }
 .grammar-home-list { display: grid; gap: 6px; }
 .grammar-toc-link { min-height: 40px; align-content: center; }
 

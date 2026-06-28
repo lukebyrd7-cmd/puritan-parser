@@ -15,14 +15,14 @@ const sectionTabLabels = topic => (topic.sectionTabs || []).map(tab => tab.label
 const sectionTabJumpLabels = topic => (topic.sectionTabs || []).flatMap(tab => (tab.jumpChips || []).map(chip => chip.label));
 const sectionTabCharts = topic => (topic.sectionTabs || []).flatMap(tab => (tab.sections || []).flatMap(section => section.charts || []));
 
-test('v3.6.3 reference content exposes few visible handbook destinations', () => {
+test('v4.2.5 reference content exposes practical visible handbook destinations', () => {
   assert.deepEqual(
     library.referenceTopics.filter(t => t.language === 'greek').map(t => t.id),
-    ['grammar-parsing-decoder','greek-pronouns','grammar-parsing-ambiguity','greek-nouns','greek-verbs','greek-adjectives','greek-prepositions']
+    ['greek-verbs','greek-nouns','greek-pronouns','greek-adjectives','greek-prepositions','grammar-parsing-decoder','grammar-parsing-ambiguity']
   );
   assert.deepEqual(
     library.referenceTopics.filter(t => t.language === 'hebrew').map(t => t.id),
-    ['hebrew-nouns','hebrew-verbs','hebrew-particles']
+    ['hebrew-verbs','hebrew-nouns','hebrew-particles']
   );
   for (const topic of library.referenceTopics) {
     assert.ok(topic.id);
@@ -36,6 +36,16 @@ test('v3.6.3 reference content exposes few visible handbook destinations', () =>
     assert.ok(Array.isArray(topic.related));
     assert.ok(Array.isArray(topic.recognitionTips), `${topic.id} missing recognition tips`);
   }
+});
+
+test('v4.2.5 paradigm source groups are reusable for future recognition practice', () => {
+  const greek = library.referenceParadigmGroups('greek').map(group => group.topicId);
+  const hebrew = library.referenceParadigmGroups('hebrew').map(group => group.topicId);
+  assert.deepEqual(greek.slice(0, 2), ['greek-verbs', 'greek-nouns']);
+  assert.deepEqual(hebrew.slice(0, 2), ['hebrew-verbs', 'hebrew-nouns']);
+  const hebrewVerbs = library.referenceParadigmGroups('hebrew').find(group => group.topicId === 'hebrew-verbs');
+  assert.deepEqual(hebrewVerbs.sections.slice(0, 4).map(section => section.title), ['Strong Verb Paradigms','Stems','Qal','Niphal']);
+  assert.ok(library.futureGrammarHooks.some(hook => hook.id === 'paradigm-recognition-source' && hook.source === 'referenceTopics'));
 });
 
 test('v3.6.3 Greek nouns consolidate article, declensions, endings, cases, and examples', () => {
@@ -123,6 +133,16 @@ test('v3.6.3d Hebrew verbs use recognition-first category tabs and expanded weak
   assert.ok(sectionTabCharts(verbs).some(c => c.label === 'Wayyiqtol clues'));
 });
 
+test('v4.2.5 Hebrew non-Qal paradigms do not reuse Qal non-finite and participle forms', () => {
+  const verbs = library.getReferenceTopic('hebrew-verbs');
+  const paradigmCharts = verbs.sectionTabs.find(tab => tab.id === 'paradigms').sections.flatMap(section => section.charts || []);
+  const chartRows = label => paradigmCharts.find(chart => chart.label === label)?.rows || [];
+  assert.deepEqual(chartRows('Hiphil Imperative')[0].slice(1), ['הַכְתֵּב','הַכְתִּיבִי','הַכְתִּיבוּ','הַכְתֵּבְנָה']);
+  assert.deepEqual(chartRows('Hitpael Participles').map(row => row[1]), ['מִתְכַּתֵּב','מִתְכַּתֶּבֶת','מִתְכַּתְּבִים','מִתְכַּתְּבוֹת']);
+  assert.equal(chartRows('Pual Infinitive Construct')[0][0].label, 'Needs review');
+  assert.notEqual(chartRows('Niphal Participles')[0][1], 'כֹּתֵב');
+});
+
 test('v3.6.3d major grammar pages use Paradigms, Concepts, and Reference Material', () => {
   for (const id of ['greek-nouns','greek-verbs','greek-adjectives','hebrew-nouns','hebrew-verbs']) {
     assert.deepEqual(sectionTabLabels(library.getReferenceTopic(id)), ['Paradigms','Concepts','Reference Material'], `${id} category tabs`);
@@ -208,12 +228,18 @@ test('app shell includes reference controls and section rendering support', () =
   const html = fs.readFileSync('index.html', 'utf8');
   const main = fs.readFileSync('src/main.js', 'utf8');
   const ui = fs.readFileSync(path.join(__dirname, '../src/features/grammar/index.js'), 'utf8');
+  const vocab = fs.readFileSync(path.join(__dirname, '../src/features/vocab/index.js'), 'utf8');
   assert.match(html, /id="referenceSearchInput"/);
-  assert.match(html, /id="referenceLanguageFilter"/);
+  assert.doesNotMatch(html, /id="referenceLanguageFilter"/);
+  assert.doesNotMatch(html, /Reference language filter/);
   assert.match(html, /id="referenceTopicList"/);
   assert.match(html, /id="referencePage"/);
   assert.match(main, /src\/features\/grammar\/reference-data\.js/);
   assert.match(main, /src\/features\/grammar\/index\.js/);
+  assert.doesNotMatch(ui, /referenceLanguageFilter/);
+  assert.doesNotMatch(ui, /setReferenceLanguage/);
+  assert.match(vocab, /state\.currentView==='grammarView'[\s\S]*renderReferenceLibrary\(\)/);
+  assert.doesNotMatch(vocab, /setReferenceLanguage/);
   assert.match(ui, /renderReferenceSection/);
   assert.match(ui, /renderSectionTabs/);
   assert.match(ui, /reference-jump-chip/);
@@ -238,7 +264,7 @@ function renderGrammarHomeFor(language) {
     state: { lang: language },
     document: {},
     localStorage: { getItem: () => null, setItem: () => {} },
-    $: selector => selector === '#referenceLanguageFilter' ? { value: language } : null,
+    $: () => null,
     $$: () => [],
     debounce: fn => fn
   };
@@ -247,18 +273,25 @@ function renderGrammarHomeFor(language) {
   return context.__renderedGrammarHome;
 }
 
-test('v3.6.3e rendered Grammar Home is a simple table of contents', () => {
+test('v4.2.5 rendered Grammar Home follows the global language selection', () => {
   const greek = renderGrammarHomeFor('greek');
   assert.match(greek, /<nav class="grammar-home" aria-label="Grammar handbook contents">/);
-  assert.match(greek, /<h2>Greek<\/h2>[\s\S]*>Verbs<[\s\S]*>Nouns<[\s\S]*>Adjectives<[\s\S]*>Pronouns<[\s\S]*>Prepositions</);
-  assert.match(greek, /<h2>Hebrew<\/h2>[\s\S]*>Verbs<[\s\S]*>Nouns<[\s\S]*>Particles</);
-  for (const removed of ['Recently Visited','Recently Viewed','Favorites','Supporting Material','Supporting Reference','Start Here','Cheat Sheets','Featured Topics','Parsing Guide','Grammar Pages','Contract Verbs','Case Endings']) {
-    assert.doesNotMatch(greek, new RegExp(`>${removed}<`), `${removed} should not appear on Grammar Home`);
-  }
-  assert.doesNotMatch(greek, /reference-card|reference-card-grid|reference-lang-chip|reference-segmented/);
+  assert.match(greek, /<section class="grammar-home-language"><h2>Greek<\/h2>[\s\S]*<h2>Verbs<\/h2>[\s\S]*>Verbs<[\s\S]*<h2>Nouns<\/h2>[\s\S]*>Nouns<[\s\S]*<h2>Articles<\/h2>[\s\S]*>Articles<[\s\S]*<h2>Pronouns<\/h2>[\s\S]*>Pronouns<[\s\S]*<h2>Other Parts of Speech<\/h2>[\s\S]*>Adjectives<[\s\S]*>Prepositions<[\s\S]*<h2>Advanced Topics<\/h2>/);
+  assert.doesNotMatch(greek, /<h2>Hebrew<\/h2>/);
+  assert.doesNotMatch(greek, />Particles</);
 
   const hebrew = renderGrammarHomeFor('hebrew');
-  assert.equal(hebrew, greek);
+  assert.match(hebrew, /<section class="grammar-home-language"><h2>Hebrew<\/h2>[\s\S]*<h2>Verbs<\/h2>[\s\S]*>Verbs<[\s\S]*<h2>Nouns<\/h2>[\s\S]*>Nouns<[\s\S]*<h2>Construct State<\/h2>[\s\S]*>Construct State<[\s\S]*<h2>Suffixes<\/h2>[\s\S]*>Suffixes<[\s\S]*<h2>Other Parts of Speech<\/h2>[\s\S]*>Particles<[\s\S]*<h2>Advanced Topics<\/h2>[\s\S]*>Weak Verbs</);
+  assert.doesNotMatch(hebrew, /<h2>Greek<\/h2>/);
+  assert.doesNotMatch(hebrew, />Articles</);
+  assert.doesNotMatch(hebrew, />Pronouns</);
+
+  for (const removed of ['Recently Visited','Recently Viewed','Favorites','Supporting Material','Supporting Reference','Start Here','Cheat Sheets','Featured Topics','Grammar Pages','Contract Verbs','Case Endings']) {
+    assert.doesNotMatch(greek, new RegExp(`>${removed}<`), `${removed} should not appear on Grammar Home`);
+    assert.doesNotMatch(hebrew, new RegExp(`>${removed}<`), `${removed} should not appear on Grammar Home`);
+  }
+  assert.doesNotMatch(greek, /reference-card|reference-card-grid|reference-lang-chip|reference-segmented/);
+  assert.doesNotMatch(hebrew, /reference-card|reference-card-grid|reference-lang-chip|reference-segmented/);
 });
 
 test('v3.6.3d service worker cache version and app shell cache bust are bumped', () => {

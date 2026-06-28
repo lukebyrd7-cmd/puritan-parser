@@ -80,6 +80,18 @@ The Learn shell uses a single `learnView` under the existing app navigation mode
 
 Learn must not mix static source data with user progress. Vocabulary scheduling, paradigm recognition results, readiness calculations, and review state should be introduced only when their release explicitly adds the required models and storage boundaries.
 
+## Reference
+
+Reference lives in `src/features/grammar/` and is the source foundation for future Paradigm Recognition. `reference-data.js` owns static grammar topics, consolidated reference pages, paradigm charts, aliases from older topic ids, search flattening, and `referenceParadigmGroups()`. `index.js` renders the Reference UI from that data.
+
+Reference organization is practical rather than encyclopedic: verbs first, then high-value noun/article/pronoun material, with less commonly needed material later. Greek is organized as Verbs, Nouns, Articles, Pronouns, and Other paradigms. Hebrew is organized as Verbs, Nouns, and Other paradigms.
+
+Reference uses the global application language (`state.lang`) as its only language source. It must not introduce a separate language selector or Reference-local language state.
+
+Future Paradigm Recognition should consume the existing Reference topic sections and paradigm tabs through the reference API instead of duplicating charts in Learn. The `futureGrammarHooks` entry for `paradigm-recognition-source` marks this intended dependency. Reference remains static source content; user results from future recognition practice belong in a separate user-progress model.
+
+Phase A fixes obvious structural issues only. Forms marked as needing scholarly review must stay visible as audit targets until Phase B completes the full grammar verification.
+
 ## Generated Data
 
 Generated data is a core part of the project.

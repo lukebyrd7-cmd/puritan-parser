@@ -2,6 +2,18 @@
 
 This changelog is a human-readable project history, not a Git log. Future entries should summarize meaningful releases rather than individual commits.
 
+## v4.2.5 Phase A
+
+- Reorganized Reference around practical use, with verb paradigms first for Greek and Hebrew.
+- Grouped Greek Reference as Verbs, Nouns, Articles, Pronouns, and Other paradigms; grouped Hebrew as Verbs, Nouns, and Other paradigms.
+- Added a reusable `referenceParadigmGroups()` foundation so future Paradigm Recognition can consume existing Reference material instead of duplicating paradigm charts.
+- Corrected obvious Hebrew strong-verb paradigm aliasing where non-Qal stems reused Qal-looking imperative, infinitive, and participle forms.
+- Marked uncertain passive-stem non-finite material as needing Phase B scholarly review instead of presenting forced Qal forms.
+- Simplified Learn → Vocabulary → New Words to choose Greek or Hebrew first, then show the existing frequency choices.
+- Removed the separate Reference language selector so Reference follows the global Greek/Hebrew toggle.
+- Updated tests for Reference navigation, paradigm organization, New Words language selection, Hebrew paradigm corrections, existing Reference pages, and Learn navigation.
+- Left Scholarly Grammar Audit, Paradigm Recognition, Statistics, Dashboard work, Catch Up Review, accounts, and sync out of scope.
+
 ## v4.2.4
 
 - Added a quiet Learning section to Word Pages that shows Not Learned, Learning, or Known from the shared Vocabulary Learning model.
