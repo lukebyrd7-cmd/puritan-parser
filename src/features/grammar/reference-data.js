@@ -298,6 +298,7 @@
     const future = sectionWithId(sectionByTitle(sections,'Future'), 'future');
     const aorist = sectionWithId(sectionByTitle(sections,'Aorist'), 'aorist');
     const perfect = sectionWithId(sectionByTitle(sections,'Perfect'), 'perfect');
+    const pluperfect = sectionWithId(sectionByTitle(sections,'Pluperfect'), 'pluperfect');
     const infinitiveCharts = chartsFromTabs('greek-lyo-paradigm',['Infinitives & Participles']).filter(c => c.label.includes('Infinitive'));
     const participleCharts = chartsFromTabs('greek-lyo-paradigm',['Infinitives & Participles']).filter(c => c.label.includes('Participle'));
     const participles = { title:'Participles', id:'participles', body:['Participles are verbal adjectives: recognize tense-form and voice, then match case, number, and gender to the noun or substantive use.'], recognitionTips:[...(oldTopic('greek-participles').recognitionTips||[])], charts:participleCharts, examples:oldTopic('greek-participles').examples || [] };
@@ -309,7 +310,7 @@
     const aspect = sectionWithId(sectionByTitle(sections,'Aspect'), 'aspect');
     const mood = sectionWithId(sectionByTitle(sections,'Moods'), 'mood');
     topic.sectionTabs = [
-      categoryTab('paradigms','Paradigms',[present, imperfect, future, aorist, perfect, participles, infinitives, contractVerbs, miVerbs, irregularVerbs],[chip('Present','present'),chip('Imperfect','imperfect'),chip('Future','future'),chip('Aorist','aorist'),chip('Perfect','perfect'),chip('Participles','participles'),chip('Infinitives','infinitives'),chip('Contract Verbs','contract-verbs'),chip('μι Verbs','mi-verbs'),chip('Irregular Verbs','irregular-verbs')]),
+      categoryTab('paradigms','Paradigms',[present, imperfect, future, aorist, perfect, pluperfect, participles, infinitives, contractVerbs, miVerbs, irregularVerbs],[chip('Present','present'),chip('Imperfect','imperfect'),chip('Future','future'),chip('Aorist','aorist'),chip('Perfect','perfect'),chip('Pluperfect','pluperfect'),chip('Participles','participles'),chip('Infinitives','infinitives'),chip('Contract Verbs','contract-verbs'),chip('μι Verbs','mi-verbs'),chip('Irregular Verbs','irregular-verbs')]),
       categoryTab('concepts','Concepts',[voice, aspect, mood],[chip('Voice','voice'),chip('Aspect','aspect'),chip('Mood','mood')]),
       categoryTab('reference-material','Reference Material',[
         { title:'Augment', id:'augment', body:['Augment is the prefixed ε that commonly marks past-time indicative forms, especially imperfect and aorist indicatives.'], recognitionTips:['Look for ε before the stem in indicative forms: ἔλυον, ἔλυσα, ἐλύθην.','Compound verbs often place augment after the prepositional prefix.'], charts:[chart('Augment anchors', ['Form','Clue','Likely path'], [['ἔλυσα','augment + σα','aorist active indicative'],['ἐλύθην','augment + θη','aorist passive indicative'],['ἐξῆλθεν','augment inside compound','aorist of ἐξέρχομαι']])], examples:[ex('ἐλύθησαν','Reader example','they were released')] },

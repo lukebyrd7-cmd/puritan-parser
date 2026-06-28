@@ -68,7 +68,7 @@ Reader data is lazy-loaded one chapter at a time. Large JSON content must stay o
 
 ## Learn
 
-Learn is a permanent shell, not a temporary placeholder. It owns navigation homes for future study workflows while avoiding premature engines or user-data models.
+Learn is a permanent shell, not a temporary placeholder. It owns navigation homes for study workflows while keeping teaching content in Reference.
 
 `src/features/learn/index.js` defines the Learn area structure:
 
@@ -78,7 +78,25 @@ Learn is a permanent shell, not a temporary placeholder. It owns navigation home
 
 The Learn shell uses a single `learnView` under the existing app navigation model. Its internal pages are feature-local state rather than separate routes, matching the view-first philosophy that worked for Reader-adjacent Word Pages. Future releases should plug capability into the existing Learn areas instead of replacing the shell.
 
-Learn must not mix static source data with user progress. Vocabulary scheduling, paradigm recognition results, readiness calculations, and review state should be introduced only when their release explicitly adds the required models and storage boundaries.
+Learn must not mix static source data with user progress. Vocabulary scheduling, recognition results, readiness calculations, and review state should stay behind their own storage or feature-local boundaries.
+
+### Paradigm Recognition
+
+`src/features/learn/recognition-engine.js` is the reusable recognition engine introduced in v4.2.6. It consumes the Reference API instead of maintaining separate grammar lessons in Learn.
+
+The engine builds recognition items from Reference topics and paradigm sections:
+
+- Greek verbs, including tense-form, voice, mood, finite forms, infinitives, and participles;
+- Greek nouns where Reference already exposes verified forms;
+- verified Hebrew strong-verb material for Qal, Niphal, Piel, Hiphil, and Hithpael;
+- Hebrew noun material already present in Reference;
+- limited sequence recognition for Wayyiqtol and Weqatal.
+
+The engine deliberately excludes Hebrew Pual/Hophal drill material, weak-verb snapshots, and cells marked `Needs review`. Those remain Reference/audit material until separately verified.
+
+Recognition sessions present one form at a time, reveal the answer on demand, and accept only `recognized` or `missed`. Learn tracks simple in-session counts only. It does not implement typing exercises, parsing production, mastery scoring, streaks, or statistics redesign.
+
+Every recognition item carries Reference navigation metadata (`referenceTopicId` and section id). Learn may show brief recognition clues, but Reference remains the authoritative teaching resource and owns full explanations.
 
 ## Reference
 
@@ -88,7 +106,7 @@ Reference organization is practical rather than encyclopedic: verbs first, then 
 
 Reference uses the global application language (`state.lang`) as its only language source. It must not introduce a separate language selector or Reference-local language state.
 
-Future Paradigm Recognition should consume the existing Reference topic sections and paradigm tabs through the reference API instead of duplicating charts in Learn. The `futureGrammarHooks` entry for `paradigm-recognition-source` marks this intended dependency. Reference remains static source content; user results from future recognition practice belong in a separate user-progress model.
+Paradigm Recognition consumes existing Reference topic sections and paradigm tabs through the reference API instead of duplicating charts in Learn. The `futureGrammarHooks` entry for `paradigm-recognition-source` records this dependency. Reference remains static source content; recognition progress remains separate from Reference data.
 
 Phase A fixes obvious structural issues only. Forms marked as needing scholarly review must stay visible as audit targets until Phase B completes the full grammar verification.
 

@@ -2,6 +2,20 @@
 
 This changelog is a human-readable project history, not a Git log. Future entries should summarize meaningful releases rather than individual commits.
 
+## v4.2.6
+
+- Added the first reusable Paradigm Recognition engine for Learn.
+- Made Learn → Paradigms functional for Greek Verbs, Greek Nouns, Hebrew Verbs, and Hebrew Nouns.
+- Added one-form-at-a-time recognition sessions with Reveal Answer, I recognized it, and I missed it actions.
+- Kept progress deliberately simple: recognized and missed counts only.
+- Generated recognition items from Reference-backed paradigm material instead of duplicating grammar explanations in Learn.
+- Added quiet View Reference navigation from each recognition item back to the authoritative Reference page.
+- Included Greek verb recognition across audited tense-form, voice, mood, infinitive, and participle material, including Pluperfect anchors from the Reference paradigm source.
+- Included limited verified Hebrew recognition for Qal, Niphal, Piel, Hiphil, Hithpael, Perfect, Imperfect, Wayyiqtol, Weqatal, Imperative, Participles, Infinitive Absolute, Infinitive Construct, and verified noun material.
+- Excluded Hebrew Pual/Hophal drill material, weak-verb snapshots, and `Needs review` cells from recognition sessions.
+- Added tests for Greek sessions, Hebrew sessions, View Reference navigation, unverified Hebrew exclusions, reusable engine behavior, and existing Learn navigation.
+- Left typing exercises, parsing production, weak-verb drills, statistics redesign, dashboard work, accounts, and sync out of scope.
+
 ## v4.2.5 Phase A
 
 - Reorganized Reference around practical use, with verb paradigms first for Greek and Hebrew.

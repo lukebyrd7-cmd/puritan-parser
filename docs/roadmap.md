@@ -32,7 +32,7 @@ The Learn system has been conceptually designed in `docs/educational-philosophy.
 - Vocabulary review and New Words frequency study
 - Reading Readiness for book and chapter preparation
 - Reader ↔ Learn navigation
-- Paradigm practice
+- Paradigm recognition practice
 - Flashcard improvements
 - Multiple accepted glosses
 - Reader polish, performed alongside Reader-related work
@@ -54,13 +54,13 @@ The Learn system has been conceptually designed in `docs/educational-philosophy.
     - Grammar verification
     - Regression tests
     - `docs/grammar-audit.md`
-- v4.2.6: Paradigm Recognition
+- v4.2.6: Paradigm Recognition — complete
 - v4.2.7: Progress & Statistics
 - v5.0: Public Release
 
 ## Release Gates
 
-- Before v4.2.6: Grammar Verified
+- Completed for v4.2.6: Grammar Verified
   - Greek grammar audit complete
   - Hebrew grammar audit complete
   - Regression tests passing

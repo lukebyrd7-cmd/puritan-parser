@@ -965,6 +965,57 @@ button:focus-visible, input:focus-visible, select:focus-visible {
   flex-wrap: wrap;
   margin-top: 6px;
 }
+.learn-recognition-progress {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 800;
+}
+.learn-recognition-progress span {
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 5px 9px;
+  background: var(--surface-2);
+}
+.learn-recognition-card {
+  text-align: center;
+}
+.learn-recognition-card h2 {
+  overflow-wrap: anywhere;
+}
+.learn-recognition-prompt {
+  margin: 0;
+  color: var(--muted);
+  font-size: 14px;
+  font-weight: 700;
+}
+.learn-recognition-answer {
+  display: grid;
+  gap: 14px;
+}
+.learn-recognition-answer h2 {
+  line-height: 1.35;
+}
+.learn-recognition-clues {
+  display: grid;
+  gap: 6px;
+}
+.learn-recognition-clues p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.learn-recognition-clues ul {
+  margin: 0;
+  padding-left: 20px;
+  color: var(--text-2);
+  line-height: 1.5;
+}
 .learn-review-action {
   width: 156px;
   min-height: 46px;

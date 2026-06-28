@@ -1,6 +1,6 @@
 // Service worker for the static Puritan Parser app.
 // Keep this file next to index.html so navigator.serviceWorker.register('./sw.js') works.
-const CACHE = 'puritan-parser-v21-vocab-learning-review-polish';
+const CACHE = 'puritan-parser-v22-paradigm-recognition';
 const FILES = [
   './',
   './index.html',
@@ -39,6 +39,7 @@ const FILES = [
   './src/features/grammar/reference-data.js',
   './src/features/grammar/index.js',
   './src/features/reader/index.js',
+  './src/features/learn/recognition-engine.js',
   './src/features/learn/index.js',
   './src/features/vocab/index.js',
   './src/ui/modal.js',

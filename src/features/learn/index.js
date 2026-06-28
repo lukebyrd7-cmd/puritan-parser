@@ -5,6 +5,9 @@ const VocabularyLearningModel = (typeof VocabularyLearning !== 'undefined')
 const BookProgressModel = (typeof BookProgress !== 'undefined')
   ? BookProgress
   : (typeof require === 'function' ? require('../../core/book-progress') : null);
+const ParadigmRecognitionModel = (typeof ParadigmRecognition !== 'undefined')
+  ? ParadigmRecognition
+  : (typeof require === 'function' ? require('./recognition-engine') : null);
 const LearnAreas = [
   {
     id: 'vocabulary',
@@ -24,16 +27,16 @@ const LearnAreas = [
         id: 'greek',
         title: 'Greek',
         children: [
-          { id: 'greek-verbs', title: 'Verbs', emphasis: true, description: 'Greek verb recognition practice will be added in a future release.' },
-          { id: 'greek-nouns', title: 'Nouns', description: 'Greek noun recognition practice will be added in a future release.' }
+          { id: 'greek-verbs', title: 'Verbs', emphasis: true, description: 'Practice recognizing Greek verb paradigms from Reference.' },
+          { id: 'greek-nouns', title: 'Nouns', description: 'Practice recognizing verified Greek noun and article forms.' }
         ]
       },
       {
         id: 'hebrew',
         title: 'Hebrew',
         children: [
-          { id: 'hebrew-verbs', title: 'Verbs', emphasis: true, description: 'Hebrew verb recognition practice will be added in a future release.' },
-          { id: 'hebrew-nouns', title: 'Nouns', description: 'Hebrew noun recognition practice will be added in a future release.' }
+          { id: 'hebrew-verbs', title: 'Verbs', emphasis: true, description: 'Practice recognizing verified Hebrew strong-verb paradigms.' },
+          { id: 'hebrew-nouns', title: 'Nouns', description: 'Practice recognizing verified Hebrew noun forms.' }
         ]
       }
     ]
@@ -49,7 +52,7 @@ const LearnAreas = [
   }
 ];
 
-const learnState = { page: 'home', history: [], customFrequencyErrors: {}, activeVocabularyPath: '', currentVocabularyWordId: '', focusedReviewWordId: '', reviewReveal: false, progressCache: {}, progressLoading: {} };
+const learnState = { page: 'home', history: [], customFrequencyErrors: {}, activeVocabularyPath: '', currentVocabularyWordId: '', focusedReviewWordId: '', reviewReveal: false, progressCache: {}, progressLoading: {}, recognitionSession: null };
 const LearnFrequencyThresholds = {
   greek: ['25', '10', '5', 'all'],
   hebrew: ['60', '30', '10', '5', 'all']
@@ -123,6 +126,7 @@ function setLearnPage(page, options = {}){
   if(!options.skipHistory && changed) learnState.history.push(learnState.page);
   learnState.page = next;
   if(changed) learnState.reviewReveal = false;
+  if(changed && !next.includes(':session:')) learnState.recognitionSession = null;
   if(!options.preserveFocusedReview) learnState.focusedReviewWordId = '';
   renderLearn();
 }
@@ -136,6 +140,7 @@ function resetLearn(options = {}){
   learnState.reviewReveal = false;
   learnState.progressCache = {};
   learnState.progressLoading = {};
+  learnState.recognitionSession = null;
   if(options.render !== false) renderLearn();
 }
 function backLearnPage(){
@@ -236,6 +241,22 @@ function learnBreadcrumbs(page = learnState.page){
       crumbs.push({ label: 'By Chapter', page: `reading-readiness:${childId}:${thirdId}:chapter` });
       if(fifthId) crumbs.push({ label: `${learnBook(testament.language, thirdId).name} ${Number(fifthId) || 1}`, page: `reading-readiness:${childId}:${thirdId}:chapter:${Number(fifthId) || 1}` });
       if(sixthId) crumbs.push({ label: learnFrequencyLabel(sixthId), page });
+    }
+    return crumbs;
+  }
+
+  if(area.id === 'paradigms'){
+    if(childId){
+      const child = learnChild(area, childId);
+      crumbs.push({ label: child?.title || learnPageTitle(page), page: `paradigms:${childId}` });
+    }
+    if(thirdId === 'session' && fourthId){
+      const target = recognitionTargetForLearn(fourthId);
+      if(target) crumbs.push({ label: target.title, page });
+    }
+    if(thirdId && thirdId !== 'session'){
+      const target = recognitionTargetForLearn(thirdId);
+      if(target) crumbs.push({ label: target.title, page });
     }
     return crumbs;
   }
@@ -796,6 +817,131 @@ function renderParadigmsPage(area){
       </div>
     </section>`;
 }
+function recognitionTargetsForLearn(categoryId = ''){
+  const targets = ParadigmRecognitionModel?.recognitionTargets ? ParadigmRecognitionModel.recognitionTargets() : [];
+  if(!categoryId) return targets;
+  if(['greek-verbs','greek-nouns','hebrew-verbs','hebrew-nouns'].includes(categoryId)){
+    return targets.filter(target => target.language === categoryId.split('-')[0] && target.kind === categoryId.split('-')[1]);
+  }
+  return targets.filter(target => target.id === categoryId);
+}
+function recognitionTargetForLearn(targetId){
+  return ParadigmRecognitionModel?.recognitionTarget ? ParadigmRecognitionModel.recognitionTarget(targetId) : null;
+}
+function recognitionCategoryPageTitle(categoryId){
+  const [language, kind] = String(categoryId || '').split('-');
+  return `${learnLanguageTitle(language)} ${kind === 'nouns' ? 'Nouns' : 'Verbs'}`;
+}
+function startRecognitionSession(targetId, categoryId = ''){
+  const session = ParadigmRecognitionModel?.createSession ? ParadigmRecognitionModel.createSession(targetId) : null;
+  learnState.recognitionSession = session ? { targetId, index: 0, revealed: false, recognized: 0, missed: 0 } : null;
+  if(categoryId && learnState.page !== `paradigms:${categoryId}:session:${targetId}`){
+    setLearnPage(`paradigms:${categoryId}:session:${targetId}`);
+    return;
+  }
+  renderLearn();
+}
+function revealRecognitionAnswer(){
+  if(learnState.recognitionSession) learnState.recognitionSession.revealed = true;
+  renderLearn();
+}
+function gradeRecognitionAnswer(result){
+  const session = learnState.recognitionSession;
+  if(!session) return;
+  if(result === 'recognized') session.recognized += 1;
+  else session.missed += 1;
+  session.index += 1;
+  session.revealed = false;
+  renderLearn();
+}
+function openLearnReference(topicId, sectionId = ''){
+  const api = (typeof PuritanReferenceLibrary !== 'undefined')
+    ? PuritanReferenceLibrary
+    : (typeof require === 'function' ? require('../grammar/reference-data') : null);
+  if(typeof state !== 'undefined' && topicId){
+    const topic = api?.getReferenceTopic?.(topicId);
+    if(topic?.language === 'greek' || topic?.language === 'hebrew') state.lang = topic.language;
+  }
+  if(typeof showView === 'function') showView('grammarView');
+  if(typeof navigateTo === 'function') navigateTo('/grammar');
+  if(typeof renderReferenceLibrary === 'function') renderReferenceLibrary(topicId);
+  if(sectionId && typeof document !== 'undefined'){
+    setTimeout(() => {
+      const target = document.getElementById(sectionId);
+      if(target){
+        if(target.tagName === 'DETAILS') target.open = true;
+        target.scrollIntoView({ behavior:'smooth', block:'start' });
+      }
+    }, 0);
+  }
+}
+function renderRecognitionCategoryPage(categoryId){
+  const targets = recognitionTargetsForLearn(categoryId);
+  const groupedTarget = targets.find(target => target.id === categoryId);
+  const specificTargets = targets.filter(target => target.id !== categoryId);
+  return `
+    <section class="panel learn-panel learn-panel-wide" aria-labelledby="learnRecognitionCategoryTitle">
+      ${renderLearnHeader(recognitionCategoryPageTitle(categoryId), 'Choose grouped practice or one paradigm.', 'learnRecognitionCategoryTitle')}
+      ${groupedTarget ? `
+        <section class="word-page-section learn-explainer">
+          <h2>${escHtml(groupedTarget.title)}</h2>
+          <p>${escHtml(groupedTarget.description)}</p>
+          <button class="btn btn-primary learn-start-learning-action" type="button" data-learn-recognition-start="${escHtml(groupedTarget.id)}" data-learn-recognition-category="${escHtml(categoryId)}">Start Grouped Practice</button>
+        </section>` : ''}
+      <section class="learn-language-group">
+        <h2>Paradigms</h2>
+        <div class="learn-card-grid">
+          ${specificTargets.map(target => learnCard({ title: target.title, description: target.description }, `paradigms:${categoryId}:session:${target.id}`, 'learn-card-compact')).join('') || '<p class="muted">No verified recognition items are available for this category yet.</p>'}
+        </div>
+      </section>
+    </section>`;
+}
+function renderRecognitionSessionPage(categoryId, targetId){
+  const active = learnState.recognitionSession?.targetId === targetId ? learnState.recognitionSession : null;
+  const built = ParadigmRecognitionModel?.createSession ? ParadigmRecognitionModel.createSession(targetId) : null;
+  const sessionState = active || { targetId, index: 0, revealed: false, recognized: 0, missed: 0 };
+  if(!active) learnState.recognitionSession = sessionState;
+  const target = built?.target || recognitionTargetForLearn(targetId);
+  const items = built?.items || [];
+  const current = items[sessionState.index];
+  const done = !current;
+  return `
+    <section class="panel learn-panel" aria-labelledby="learnRecognitionSessionTitle">
+      ${renderLearnHeader(target?.title || 'Recognition Practice', target?.description || 'Recognize one form at a time.', 'learnRecognitionSessionTitle')}
+      <div class="learn-recognition-progress">
+        <span>${escHtml(String(Math.min(sessionState.index + (done ? 0 : 1), items.length)))} of ${escHtml(String(items.length))}</span>
+        <span>Recognized ${escHtml(String(sessionState.recognized))}</span>
+        <span>Missed ${escHtml(String(sessionState.missed))}</span>
+      </div>
+      ${done ? `
+        <section class="word-page-section learn-explainer">
+          <h2>Session complete</h2>
+          <p>Recognized ${escHtml(String(sessionState.recognized))}; missed ${escHtml(String(sessionState.missed))}.</p>
+          <button class="btn btn-primary learn-start-learning-action" type="button" data-learn-recognition-start="${escHtml(targetId)}" data-learn-recognition-category="${escHtml(categoryId)}">Restart Session</button>
+        </section>` : `
+        <article class="learn-vocab-card learn-recognition-card" dir="${target?.language === 'hebrew' ? 'rtl' : 'ltr'}">
+          <p class="learn-recognition-prompt">${escHtml(current.prompt)}</p>
+          <h2>${escHtml(current.form)}</h2>
+        </article>
+        ${sessionState.revealed ? `
+          <section class="word-page-section learn-recognition-answer">
+            <h2>${current.answerLines.map(escHtml).join('<br>')}</h2>
+            <div class="learn-recognition-clues">
+              <p>Recognition clues</p>
+              <ul>${(current.clues || []).slice(0, 3).map(clue => `<li>${escHtml(clue)}</li>`).join('')}</ul>
+            </div>
+            <div class="learn-vocab-actions">
+              <button class="learn-review-action learn-review-recognized" type="button" data-learn-recognition-grade="recognized">I recognized it</button>
+              <button class="learn-review-action learn-review-missed" type="button" data-learn-recognition-grade="missed">I missed it</button>
+              <button class="btn btn-ghost btn-sm" type="button" data-learn-reference-topic="${escHtml(current.referenceTopicId)}" data-learn-reference-section="${escHtml(current.referenceSectionId || '')}">View Reference</button>
+            </div>
+          </section>` : `
+          <div class="learn-vocab-actions">
+            <button class="btn btn-primary learn-review-action learn-review-reveal" type="button" data-learn-recognition-reveal="true">Reveal Answer</button>
+            <button class="btn btn-ghost btn-sm" type="button" data-learn-reference-topic="${escHtml(current.referenceTopicId)}" data-learn-reference-section="${escHtml(current.referenceSectionId || '')}">View Reference</button>
+          </div>`}`}
+    </section>`;
+}
 function renderReadingReadinessPage(area){
   return `
     <section class="panel learn-panel" aria-labelledby="learnReadinessTitle">
@@ -862,6 +1008,8 @@ function renderLearnPage(){
     const language = LearnTestaments[childId].language;
     return renderFrequencyPlaceholder(language, sixthId, `${learnBook(language, thirdId).name} ${Number(fifthId) || 1} ${learnFrequencyLabel(sixthId)}`);
   }
+  if(area.id === 'paradigms' && childId && thirdId === 'session' && fourthId) return renderRecognitionSessionPage(childId, fourthId);
+  if(area.id === 'paradigms' && childId && ['greek-verbs','greek-nouns','hebrew-verbs','hebrew-nouns'].includes(childId)) return renderRecognitionCategoryPage(childId);
   if(childId) return renderLearnPlaceholder(area, learnChild(area, childId) || area);
   if(area.id === 'vocabulary') return renderVocabularyPage(area);
   if(area.id === 'paradigms') return renderParadigmsPage(area);
@@ -876,6 +1024,10 @@ function wireLearn(){
   $$('[data-learn-word-learned]', root).forEach(button => button.addEventListener('click', () => learnCurrentVocabularyWord(button.dataset.lang, button.dataset.threshold, button.dataset.pathPage)));
   $('#learnRevealMeaningBtn', root)?.addEventListener('click', revealLearnReview);
   $$('[data-learn-review-grade]', root).forEach(button => button.addEventListener('click', () => gradeLearnReview(button.dataset.lang, button.dataset.wordId, button.dataset.learnReviewGrade)));
+  $$('[data-learn-recognition-start]', root).forEach(button => button.addEventListener('click', () => startRecognitionSession(button.dataset.learnRecognitionStart, button.dataset.learnRecognitionCategory || '')));
+  $$('[data-learn-recognition-reveal]', root).forEach(button => button.addEventListener('click', revealRecognitionAnswer));
+  $$('[data-learn-recognition-grade]', root).forEach(button => button.addEventListener('click', () => gradeRecognitionAnswer(button.dataset.learnRecognitionGrade)));
+  $$('[data-learn-reference-topic]', root).forEach(button => button.addEventListener('click', () => openLearnReference(button.dataset.learnReferenceTopic, button.dataset.learnReferenceSection || '')));
   $$('.learn-custom-frequency-form', root).forEach(form => form.addEventListener('submit', event => {
     event.preventDefault();
     setLearnCustomFrequency(form.dataset.learnCustomBase, form.querySelector('.learn-custom-frequency-input')?.value || '');
@@ -888,5 +1040,5 @@ function renderLearn(){
   wireLearn();
 }
 
-if(typeof window !== 'undefined') Object.assign(window, { LearnAreas, learnState, learnArea, learnChild, learnPageTitle, learnBreadcrumbs, parseLearnCustomFrequency, setLearnCustomFrequency, resetLearn, setLearnPage, backLearnPage, renderLearn, renderLearnPage, learnBookList, learnPathForPage, startLearnVocabularyPath, learnCurrentVocabularyWord, reviewLearnVocabularyWord, revealLearnReview, gradeLearnReview });
-if(typeof module !== 'undefined') module.exports = { LearnAreas, LearnFrequencyThresholds, learnState, learnArea, learnChild, learnPageTitle, learnBreadcrumbs, parseLearnCustomFrequency, setLearnCustomFrequency, resetLearn, learnBookList, learnPathForPage, setLearnPage, backLearnPage, renderLearnPage, startLearnVocabularyPath, learnCurrentVocabularyWord, reviewLearnVocabularyWord, revealLearnReview, gradeLearnReview };
+if(typeof window !== 'undefined') Object.assign(window, { LearnAreas, learnState, learnArea, learnChild, learnPageTitle, learnBreadcrumbs, parseLearnCustomFrequency, setLearnCustomFrequency, resetLearn, setLearnPage, backLearnPage, renderLearn, renderLearnPage, learnBookList, learnPathForPage, startLearnVocabularyPath, learnCurrentVocabularyWord, reviewLearnVocabularyWord, revealLearnReview, gradeLearnReview, recognitionTargetsForLearn, startRecognitionSession, revealRecognitionAnswer, gradeRecognitionAnswer, openLearnReference });
+if(typeof module !== 'undefined') module.exports = { LearnAreas, LearnFrequencyThresholds, learnState, learnArea, learnChild, learnPageTitle, learnBreadcrumbs, parseLearnCustomFrequency, setLearnCustomFrequency, resetLearn, learnBookList, learnPathForPage, setLearnPage, backLearnPage, renderLearnPage, startLearnVocabularyPath, learnCurrentVocabularyWord, reviewLearnVocabularyWord, revealLearnReview, gradeLearnReview, recognitionTargetsForLearn, startRecognitionSession, revealRecognitionAnswer, gradeRecognitionAnswer, openLearnReference };

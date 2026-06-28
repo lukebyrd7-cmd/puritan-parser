@@ -344,8 +344,56 @@ test('Paradigms shell is organized by language and emphasizes verbs', () => {
   assert.match(html, /data-learn-page="paradigms:hebrew-verbs"/);
   assert.match(html, /data-learn-page="paradigms:hebrew-nouns"/);
 
-  assert.match(renderedText(renderPage('paradigms:greek-verbs')), /Greek verb recognition practice will be added in a future release/);
-  assert.match(renderedText(renderPage('paradigms:hebrew-nouns')), /Hebrew noun recognition practice will be added in a future release/);
+  assert.match(renderedText(renderPage('paradigms:greek-verbs')), /Greek Verbs Choose grouped practice or one paradigm/);
+  assert.match(renderPage('paradigms:greek-verbs'), /data-learn-recognition-start="greek-verbs"/);
+  assert.match(renderPage('paradigms:greek-verbs'), /data-learn-page="paradigms:greek-verbs:session:greek-present-active-indicative"/);
+  assert.match(renderedText(renderPage('paradigms:hebrew-nouns')), /Hebrew Nouns Choose grouped practice or one paradigm/);
+});
+
+test('Paradigm recognition sessions reveal answers, track simple progress, and link Reference', () => {
+  let html = renderPage('paradigms:greek-verbs:session:greek-present-active-indicative');
+  assert.match(renderedText(html), /Present Active Indicative/);
+  assert.match(renderedText(html), /Recognize this form/);
+  assert.match(html, /Reveal Answer/);
+  assert.match(html, /data-learn-reference-topic="greek-verbs"/);
+  assert.doesNotMatch(html, /type="text"|textarea/i);
+
+  learn.revealRecognitionAnswer();
+  html = learn.renderLearnPage();
+  assert.match(renderedText(html), /Recognition clues/);
+  assert.match(html, /I recognized it/);
+  assert.match(html, /I missed it/);
+  assert.match(html, /data-learn-recognition-grade="recognized"/);
+
+  learn.gradeRecognitionAnswer('recognized');
+  html = learn.renderLearnPage();
+  assert.match(renderedText(html), /Recognized 1/);
+  assert.match(renderedText(html), /Missed 0/);
+
+  html = renderPage('paradigms:hebrew-verbs:session:hebrew-qal');
+  assert.match(renderedText(html), /Qal/);
+  assert.match(html, /dir="rtl"/);
+  assert.match(html, /data-learn-reference-topic="hebrew-verbs"/);
+});
+
+test('View Reference navigation from recognition opens the grammar reference topic', () => {
+  let shownView = '';
+  let routedPath = '';
+  let renderedTopic = '';
+  global.showView = view => { shownView = view; };
+  global.navigateTo = path => { routedPath = path; };
+  global.renderReferenceLibrary = topicId => { renderedTopic = topicId; };
+  global.state.lang = 'greek';
+
+  learn.openLearnReference('hebrew-verbs', 'strong-verbs');
+  assert.equal(global.state.lang, 'hebrew');
+  assert.equal(shownView, 'grammarView');
+  assert.equal(routedPath, '/grammar');
+  assert.equal(renderedTopic, 'hebrew-verbs');
+
+  delete global.showView;
+  delete global.navigateTo;
+  delete global.renderReferenceLibrary;
 });
 
 test('Reading Readiness opens Testament book lists from Reader manifests', () => {
