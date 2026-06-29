@@ -33,6 +33,7 @@ The Learn system has been conceptually designed in `docs/educational-philosophy.
 - Reading Readiness for book and chapter preparation
 - Reader ↔ Learn navigation
 - Paradigm recognition practice
+- Unified Progress overview and quieter Statistics page
 - Flashcard improvements
 - Multiple accepted glosses
 - Reader polish, performed alongside Reader-related work
@@ -55,7 +56,21 @@ The Learn system has been conceptually designed in `docs/educational-philosophy.
     - Regression tests
     - `docs/grammar-audit.md`
 - v4.2.6: Paradigm Recognition — complete
-- v4.2.7: Progress & Statistics
+- v4.2.7: Progress & Statistics — complete
+- v4.2.8: Word Page Excellence
+  - Hebrew prefixes
+  - Hebrew suffixes
+  - Better morphology presentation
+  - Reader examples
+  - Better Word Page organization
+  - Related forms
+- v4.2.9: Learning Refinement
+  - Navigation audit
+  - Terminology audit
+  - UX polish
+  - Button audit
+  - Session flow
+  - Final pre-release cleanup
 - v5.0: Public Release
 
 ## Release Gates

@@ -314,10 +314,10 @@ test('v4.2.5 rendered Grammar Home follows the global language selection', () =>
   assert.doesNotMatch(hebrew, /reference-card|reference-card-grid|reference-lang-chip|reference-segmented/);
 });
 
-test('v4.2.6 service worker cache version and app shell cache bust are bumped', () => {
+test('v4.2.7 service worker cache version and app shell cache bust are bumped', () => {
   const sw = fs.readFileSync('sw.js', 'utf8');
   const html = fs.readFileSync('index.html', 'utf8');
-  assert.match(sw, /const CACHE = 'puritan-parser-v22-paradigm-recognition'/);
+  assert.match(sw, /const CACHE = 'puritan-parser-v23-progress-statistics'/);
   assert.doesNotMatch(sw, /puritan-parser-v13-reader-startup/);
-  assert.match(html, /src="src\/main\.js\?v=v4\.2\.6-paradigm-recognition"/);
+  assert.match(html, /src="src\/main\.js\?v=v4\.2\.7-progress-statistics"/);
 });

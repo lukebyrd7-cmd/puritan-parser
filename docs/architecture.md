@@ -94,9 +94,24 @@ The engine builds recognition items from Reference topics and paradigm sections:
 
 The engine deliberately excludes Hebrew Pual/Hophal drill material, weak-verb snapshots, and cells marked `Needs review`. Those remain Reference/audit material until separately verified.
 
-Recognition sessions present one form at a time, reveal the answer on demand, and accept only `recognized` or `missed`. Learn tracks simple in-session counts only. It does not implement typing exercises, parsing production, mastery scoring, streaks, or statistics redesign.
+Recognition sessions present one form at a time, reveal the answer on demand, and accept only `recognized` or `missed`. Learn tracks simple in-session counts and records completed session summaries for the Progress service. It does not implement typing exercises, parsing production, mastery scoring, streaks, or statistics redesign.
 
 Every recognition item carries Reference navigation metadata (`referenceTopicId` and section id). Learn may show brief recognition clues, but Reference remains the authoritative teaching resource and owns full explanations.
+
+## Progress
+
+`src/core/progress-service.js` is the shared Progress service introduced in v4.2.7. It provides one underlying data shape for the Progress Overview and the quieter Statistics page.
+
+The service consumes existing learning systems rather than creating duplicate tracking:
+
+- `VocabularyLearning` supplies Known, Learning, Due Today, lifetime vocabulary review counts, correct recognitions, and missed recognitions.
+- `BookProgress` supplies Reading Readiness calculations for books and chapters.
+- `ParadigmRecognition` supplies available recognition targets, while completed recognition sessions are recorded as small local history entries under `pp_recognition_history`.
+- Reader activity is reported only where the app already exposes tracked local data; missing reader statistics display `Not yet tracked`.
+
+Progress and Statistics are intentionally distinct views of the same local data. Overview answers practical learning questions: what the user knows, what remains, and what should be studied next. Statistics documents lifetime totals only where those totals are actually tracked. The UI must not invent numbers, use achievements, add badges, require streaks, or show progress bars.
+
+The Progress service remains local-first. Recognition history is user data and must stay separate from Reference source material and generated Reader data.
 
 ## Reference
 

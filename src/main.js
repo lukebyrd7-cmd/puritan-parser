@@ -32,6 +32,7 @@ const PURITAN_PARSER_SCRIPTS = [
   'src/core/filters.js',
   'src/core/study-entries.js',
   'src/core/book-progress.js',
+  'src/core/progress-service.js',
   'src/core/router.js',
   'src/features/grammar/reference-data.js',
   'src/features/grammar/index.js',
@@ -43,6 +44,7 @@ const PURITAN_PARSER_SCRIPTS = [
   'src/features/flashcards/index.js',
   'src/features/parsing/index.js',
   'src/features/dashboard/index.js',
+  'src/features/progress/index.js',
   'src/features/settings/index.js',
   'src/features/settings/events.js',
   'src/bootstrap.js'

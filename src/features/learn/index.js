@@ -8,6 +8,9 @@ const BookProgressModel = (typeof BookProgress !== 'undefined')
 const ParadigmRecognitionModel = (typeof ParadigmRecognition !== 'undefined')
   ? ParadigmRecognition
   : (typeof require === 'function' ? require('./recognition-engine') : null);
+const LearnProgressModel = (typeof ProgressService !== 'undefined')
+  ? ProgressService
+  : (typeof require === 'function' ? require('../../core/progress-service') : null);
 const LearnAreas = [
   {
     id: 'vocabulary',
@@ -834,7 +837,7 @@ function recognitionCategoryPageTitle(categoryId){
 }
 function startRecognitionSession(targetId, categoryId = ''){
   const session = ParadigmRecognitionModel?.createSession ? ParadigmRecognitionModel.createSession(targetId) : null;
-  learnState.recognitionSession = session ? { targetId, index: 0, revealed: false, recognized: 0, missed: 0 } : null;
+  learnState.recognitionSession = session ? { targetId, index: 0, revealed: false, recognized: 0, missed: 0, total: session.total || session.items?.length || 0, recorded: false } : null;
   if(categoryId && learnState.page !== `paradigms:${categoryId}:session:${targetId}`){
     setLearnPage(`paradigms:${categoryId}:session:${targetId}`);
     return;
@@ -852,6 +855,10 @@ function gradeRecognitionAnswer(result){
   else session.missed += 1;
   session.index += 1;
   session.revealed = false;
+  if(!session.recorded && session.index >= (session.total || 0) && LearnProgressModel?.recordRecognitionSession){
+    LearnProgressModel.recordRecognitionSession(session);
+    session.recorded = true;
+  }
   renderLearn();
 }
 function openLearnReference(topicId, sectionId = ''){
@@ -899,10 +906,10 @@ function renderRecognitionCategoryPage(categoryId){
 function renderRecognitionSessionPage(categoryId, targetId){
   const active = learnState.recognitionSession?.targetId === targetId ? learnState.recognitionSession : null;
   const built = ParadigmRecognitionModel?.createSession ? ParadigmRecognitionModel.createSession(targetId) : null;
-  const sessionState = active || { targetId, index: 0, revealed: false, recognized: 0, missed: 0 };
-  if(!active) learnState.recognitionSession = sessionState;
   const target = built?.target || recognitionTargetForLearn(targetId);
   const items = built?.items || [];
+  const sessionState = active || { targetId, index: 0, revealed: false, recognized: 0, missed: 0, total: built?.total || items.length, recorded: false };
+  if(!active) learnState.recognitionSession = sessionState;
   const current = items[sessionState.index];
   const done = !current;
   return `

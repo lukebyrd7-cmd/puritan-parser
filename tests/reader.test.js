@@ -639,7 +639,7 @@ function makeElement(id = ''){
 }
 
 function createReaderStartupHarness(){
-  const ids = ['listView','flashView','parsingView','dashboardView','settingsView','grammarView','readerView','profileView','sharedFilterBar','filterSearchGroup','filterSortGroup','filterEntriesCount','filterPosGroup','footerLang'];
+  const ids = ['listView','flashView','parsingView','dashboardView','progressView','settingsView','grammarView','readerView','profileView','sharedFilterBar','filterSearchGroup','filterSortGroup','filterEntriesCount','filterPosGroup','footerLang'];
   const elements = new Map(ids.map(id => [id, makeElement(id)]));
   elements.get('readerView').classList.add('hidden');
   const readerTab = makeElement('readerTab');

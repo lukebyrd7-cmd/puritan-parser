@@ -446,6 +446,122 @@ canvas { display: block; }
 .pos-breakdown { display: flex; gap: 6px; margin-top: 10px; flex-wrap: wrap; }
 .pos-pill { padding: 3px 8px; border-radius: 999px; font-size: 11px; font-weight: 600; background: var(--surface-2); border: 1px solid var(--border); }
 
+/* ===== PROGRESS ===== */
+.progress-panel {
+  max-width: 980px;
+  margin: 0 auto;
+  display: grid;
+  gap: 16px;
+  padding: 22px;
+}
+.progress-panel-secondary { max-width: 860px; }
+.progress-header {
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 12px;
+}
+.progress-header h1 {
+  font-family: var(--font-serif);
+  font-size: 36px;
+  line-height: 1;
+  color: var(--text);
+}
+.progress-header p {
+  margin-top: 6px;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.45;
+}
+.progress-tabs {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.progress-tab {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  color: var(--muted);
+  padding: 7px 10px;
+  cursor: pointer;
+  font-size: 13px;
+}
+.progress-tab.active,
+.progress-tab:hover {
+  color: var(--text);
+  border-color: var(--border-strong);
+  background: var(--surface-2);
+}
+.progress-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 14px;
+  align-items: start;
+}
+.progress-section {
+  display: grid;
+  gap: 10px;
+  border-top: 1px solid var(--border);
+  padding-top: 12px;
+}
+.progress-recommendations {
+  border-top: 0;
+  padding-top: 0;
+}
+.progress-section h2 {
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.progress-subsection {
+  display: grid;
+  gap: 5px;
+}
+.progress-subsection h3 {
+  font-size: 13px;
+  color: var(--text-2);
+}
+.progress-metrics {
+  display: grid;
+  gap: 8px;
+}
+.progress-metric {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  padding: 10px 12px;
+}
+.progress-metric dt {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.progress-metric dd {
+  margin-top: 3px;
+  font-family: var(--font-serif);
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--text);
+  line-height: 1.15;
+}
+.progress-metric p,
+.progress-empty {
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.45;
+}
+.progress-plain-list {
+  display: grid;
+  gap: 7px;
+  color: var(--text);
+  font-size: 15px;
+  line-height: 1.45;
+  padding-left: 18px;
+}
+
 /* ===== SETTINGS ===== */
 .settings-section { display: flex; flex-direction: column; gap: 6px; }
 .settings-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); }

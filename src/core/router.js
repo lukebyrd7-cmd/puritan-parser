@@ -5,6 +5,7 @@ const ROUTES = {
   '/flashcards': { viewId: 'flashView', nav: 'flashcards' },
   '/parsing': { viewId: 'parsingView', nav: 'parsing' },
   '/dashboard': { viewId: 'dashboardView', nav: 'dashboard' },
+  '/progress': { viewId: 'progressView', nav: 'progress' },
   '/settings': { viewId: 'settingsView', nav: 'settings' },
   '/grammar': { viewId: 'grammarView', nav: 'grammar' },
   '/reader': { viewId: 'readerView', nav: 'reader' },

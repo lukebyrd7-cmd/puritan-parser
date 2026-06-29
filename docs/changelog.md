@@ -2,6 +2,17 @@
 
 This changelog is a human-readable project history, not a Git log. Future entries should summarize meaningful releases rather than individual commits.
 
+## v4.2.7
+
+- Added a new Progress section with Overview as the default page and Statistics as a quieter secondary page.
+- Introduced a reusable Progress service that reads Vocabulary Learning, Reading Readiness, Paradigm Recognition, and available Reader activity data without duplicating source tracking.
+- Added Overview summaries for Known, Learning, Due Today, closest books and chapters, Old Testament readiness, New Testament readiness, and recognition practice.
+- Added practical recommendations based on real local data, such as due vocabulary, closest unfinished books, readiness thresholds, and stale paradigm practice.
+- Added Statistics totals where existing tracking supports them and displays `Not yet tracked` where the app does not yet persist a category.
+- Recorded completed paradigm recognition sessions as local user progress for Progress and Statistics.
+- Kept the design quiet and typographic: no badges, trophies, confetti, leaderboards, streak requirements, or progress bars.
+- Added tests for progress calculations, recommendation generation, statistics display, empty-state handling, learning-data integration, and navigation.
+
 ## v4.2.6
 
 - Added the first reusable Paradigm Recognition engine for Learn.
