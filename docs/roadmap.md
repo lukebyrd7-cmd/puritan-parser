@@ -57,20 +57,14 @@ The Learn system has been conceptually designed in `docs/educational-philosophy.
     - `docs/grammar-audit.md`
 - v4.2.6: Paradigm Recognition — complete
 - v4.2.7: Progress & Statistics — complete
-- v4.2.8: Word Page Excellence
-  - Hebrew prefixes
-  - Hebrew suffixes
-  - Better morphology presentation
-  - Reader examples
-  - Better Word Page organization
-  - Related forms
+- v4.2.8: Word Page Excellence — complete
 - v4.2.9: Learning Refinement
   - Navigation audit
+  - UX audit
   - Terminology audit
-  - UX polish
   - Button audit
   - Session flow
-  - Final pre-release cleanup
+  - Final polish
 - v5.0: Public Release
 
 ## Release Gates

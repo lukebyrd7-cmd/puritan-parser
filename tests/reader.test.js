@@ -95,6 +95,88 @@ test('reader word lookup shows gloss, parsing explanation, aggregate frequency, 
   delete global.state;
 });
 
+test('Greek morphology display expands parsing details without dense abbreviations', () => {
+  const fields = reader.readerMorphologyFields({ language: 'greek', parse: 'V- 3IAI-S--' });
+  assert.deepEqual(fields, [
+    { label: 'Tense', value: 'imperfect' },
+    { label: 'Voice', value: 'active' },
+    { label: 'Mood', value: 'indicative' },
+    { label: 'Person', value: '3rd person' },
+    { label: 'Number', value: 'singular' }
+  ]);
+
+  const html = reader.renderReaderMorphology({ language: 'greek', parse: 'N- ----DSF-' });
+  assert.match(renderedText(html), /Morphology Case dative Number singular Gender feminine/);
+});
+
+test('Word Page grammar display summarizes Greek nouns and verbs with secondary parse codes', () => {
+  const nounHtml = reader.renderReaderGrammar({
+    language: 'greek',
+    parse: 'N- ----GSM-',
+    parseExplanation: 'Noun — genitive singular masculine'
+  }, 'Noun');
+  assert.match(renderedText(nounHtml), /Grammar Noun — genitive singular masculine Case genitive Number singular Gender masculine Parse code: N- ----GSM-/);
+  assert.doesNotMatch(nounHtml, /wordPageParsingHeading/);
+  assert.doesNotMatch(nounHtml, /wordPageMorphologyHeading/);
+
+  const verbHtml = reader.renderReaderGrammar({
+    language: 'greek',
+    parse: 'V-PAI-3S',
+    parseExplanation: 'Verb — present active indicative 3rd singular'
+  }, 'Verb');
+  assert.match(renderedText(verbHtml), /Grammar Verb — present active indicative, 3rd person singular Tense present Voice active Mood indicative Person 3rd person Number singular Parse code: V-PAI-3S/);
+});
+
+test('Hebrew morphology display uses existing prefix, suffix, stem, and conjugation data', () => {
+  const prefixedVerb = reader.readerMorphologyFields({ language: 'hebrew', parse: 'HC/Vqw3ms', sourceLemma: 'c/1961' });
+  assert.deepEqual(prefixedVerb, [
+    { label: 'Prefixes', value: 'Conjunction' },
+    { label: 'Stem', value: 'Qal' },
+    { label: 'Conjugation', value: 'wayyiqtol' },
+    { label: 'Person', value: '3rd person' },
+    { label: 'Gender', value: 'masculine' },
+    { label: 'Number', value: 'singular' }
+  ]);
+
+  const suffixHtml = reader.renderReaderGrammar({ language: 'hebrew', parse: 'HR/Sp3fs', parseExplanation: 'Preposition' }, 'Preposition');
+  assert.match(renderedText(suffixHtml), /Grammar Preposition — with 3rd person feminine singular suffix Suffix 3rd person feminine singular Parse code: HR\/Sp3fs/);
+  assert.equal((renderedText(suffixHtml).match(/Suffix/g) || []).length, 1);
+
+  const hiphil = reader.readerMorphologyFields({ language: 'hebrew', parse: 'HVhp1cp' });
+  assert.deepEqual(hiphil, [
+    { label: 'Stem', value: 'Hiphil' },
+    { label: 'Conjugation', value: 'perfect' },
+    { label: 'Person', value: '1st person' },
+    { label: 'Gender', value: 'common' },
+    { label: 'Number', value: 'plural' }
+  ]);
+});
+
+test('Word Page grammar display summarizes Hebrew nouns and verbs without duplicate suffix rows', () => {
+  const nounHtml = reader.renderReaderGrammar({
+    language: 'hebrew',
+    parse: 'HNcmpa',
+    parseExplanation: 'Noun — masculine plural absolute'
+  }, 'Noun');
+  assert.match(renderedText(nounHtml), /Grammar Noun — masculine plural absolute Gender masculine Number plural State absolute Parse code: HNcmpa/);
+
+  const nounSuffixHtml = reader.renderReaderGrammar({
+    language: 'hebrew',
+    parse: 'HNcmpa/Sp2ms',
+    parseExplanation: 'Noun'
+  }, 'Noun');
+  assert.match(renderedText(nounSuffixHtml), /Grammar Noun — masculine plural absolute with 2nd person masculine singular suffix/);
+  assert.equal((renderedText(nounSuffixHtml).match(/Suffix/g) || []).length, 1);
+  assert.doesNotMatch(nounSuffixHtml, /wordPageMorphologyHeading/);
+
+  const verbHtml = reader.renderReaderGrammar({
+    language: 'hebrew',
+    parse: 'HVhp1cp',
+    parseExplanation: 'Verb'
+  }, 'Verb');
+  assert.match(renderedText(verbHtml), /Grammar Verb — Hiphil perfect, 1st person common plural Stem Hiphil Conjugation perfect Person 1st person Gender common Number plural Parse code: HVhp1cp/);
+});
+
 test('reader word lookup falls back gracefully when data is missing', async () => {
   global.state = { data: { greek: [] } };
   const info = await reader.lookupReaderWordInfo(
@@ -204,7 +286,19 @@ test('clicking Open Word Page closes the popup and opens a dynamic Word Page vie
   assert.equal(toastMessage, '');
   assert.match(wordPageHtml, /<h1 id="wordPageTitle" class="word-page-headword">λόγος<\/h1>/);
   assert.match(wordPageHtml, /word-page-pos">Noun<\/div>/);
+  assert.doesNotMatch(wordPageHtml, /wordPageLemmaHeading/);
   assert.match(wordPageHtml, /word-page-primary-gloss">word<\/p>/);
+  assert.match(wordPageHtml, /<h2 id="wordPageLearningHeading">Learning<\/h2>/);
+  assert.match(wordPageHtml, /<h2 id="wordPageGrammarHeading">Grammar<\/h2>/);
+  assert.doesNotMatch(wordPageHtml, /wordPageParsingHeading/);
+  assert.doesNotMatch(wordPageHtml, /wordPageMorphologyHeading/);
+  assert.ok(wordPageHtml.indexOf('wordPageMeaningHeading') < wordPageHtml.indexOf('wordPageLearningHeading'));
+  assert.ok(wordPageHtml.indexOf('wordPageLearningHeading') < wordPageHtml.indexOf('wordPageGrammarHeading'));
+  assert.ok(wordPageHtml.indexOf('wordPageGrammarHeading') < wordPageHtml.indexOf('<dt>Frequency</dt>'));
+  assert.ok(wordPageHtml.indexOf('<dt>Frequency</dt>') < wordPageHtml.indexOf('wordPageContextHeading'));
+  assert.ok(wordPageHtml.indexOf('wordPageContextHeading') < wordPageHtml.indexOf('wordPageRelatedHeading'));
+  assert.ok(wordPageHtml.indexOf('wordPageRelatedHeading') < wordPageHtml.indexOf('wordPageLinksHeading'));
+  assert.match(wordPageHtml, /id="wordPageReaderExamplesSlot"[\s\S]*hidden/);
   assert.match(wordPageHtml, /Also translated as/);
   assert.match(wordPageHtml, /message[\s\S]*account[\s\S]*matter/);
   assert.match(wordPageHtml, /<dt>Frequency<\/dt><dd>68×<\/dd>/);
@@ -222,7 +316,8 @@ test('clicking Open Word Page closes the popup and opens a dynamic Word Page vie
     focus(){}
   });
   actionHandler();
-  assert.match(wordPageHtml, /<h1 id="wordPageTitle" class="word-page-headword">ἀρχή<\/h1>/);
+  assert.match(wordPageHtml, /<h1 id="wordPageTitle" class="word-page-headword">ἀρχῇ<\/h1>/);
+  assert.match(wordPageHtml, /<h2 id="wordPageLemmaHeading">Lemma<\/h2>[\s\S]*ἀρχή/);
   assert.match(wordPageHtml, /word-page-primary-gloss">beginning<\/p>/);
   assert.match(wordPageHtml, /origin/);
   assert.match(wordPageHtml, /<dt>Frequency<\/dt><dd>55×<\/dd>/);
@@ -868,8 +963,11 @@ test('Hebrew Word Page opens from the shared popup and Read in Context uses the 
   assert.equal(popupHtml, '');
   assert.match(wordPageHtml, /<h1 id="wordPageTitle" class="word-page-headword" lang="he" dir="rtl">דְּבַר<\/h1>/);
   assert.match(wordPageHtml, /word-page-pos">Noun<\/div>/);
+  assert.doesNotMatch(wordPageHtml, /wordPageLemmaHeading/);
+  assert.doesNotMatch(wordPageHtml, /<h2 id="wordPageLemmaHeading">Lemma<\/h2>[\s\S]*1697/);
   assert.match(wordPageHtml, /word-page-primary-gloss">word<\/p>/);
   assert.match(wordPageHtml, /matter[\s\S]*thing/);
+  assert.match(wordPageHtml, /<dt>Strong’s ID<\/dt><dd>1697<\/dd>/);
   assert.match(wordPageHtml, /<dt>Current Reference<\/dt><dd>Jonah 1:1<\/dd>/);
   assert.match(wordPageHtml, /data-topic-id="hebrew-nouns"/);
 
@@ -922,6 +1020,15 @@ test('Hebrew Word Pages and Read in Context work for expanded-corpus books', asy
   actionHandler();
   assert.equal(shownView, 'wordPageView');
   assert.match(wordPageHtml, /<dt>Current Reference<\/dt><dd>Genesis 1:1<\/dd>/);
+  assert.match(wordPageHtml, /<h2 id="wordPageGrammarHeading">Grammar<\/h2>[\s\S]*word-page-grammar-summary">Verb — Qal perfect, 3rd person masculine singular<\/p>/);
+  assert.match(wordPageHtml, /<dt>Stem<\/dt><dd>Qal<\/dd>/);
+  assert.match(wordPageHtml, /<dt>Conjugation<\/dt><dd>perfect<\/dd>/);
+  assert.match(wordPageHtml, /<dt>Person<\/dt><dd>3rd person<\/dd>/);
+  assert.match(wordPageHtml, /<dt>Gender<\/dt><dd>masculine<\/dd>/);
+  assert.match(wordPageHtml, /<dt>Number<\/dt><dd>singular<\/dd>/);
+  assert.match(wordPageHtml, /Parse code: HVqp3ms/);
+  assert.doesNotMatch(wordPageHtml, /wordPageParsingHeading/);
+  assert.doesNotMatch(wordPageHtml, /wordPageMorphologyHeading/);
   const occurrences = await reader.getReaderLemmaOccurrences('1254', 'hebrew', 5);
   assert.ok(occurrences.some(item => item.reference === 'Genesis 1:1'));
   assert.ok(occurrences.some(item => expectedHebrewBooks.includes(item.book)));

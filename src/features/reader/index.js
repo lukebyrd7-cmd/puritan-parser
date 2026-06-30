@@ -178,11 +178,14 @@ function readerLearningStatusMark(status){
   if(status === ReaderVocabularyLearningModel?.STATUS?.LEARNING || status === 'Learning') return '◐';
   return '○';
 }
+function readerLearningStatusLabel(info = {}){
+  return `${readerLearningStatusMark(readerLearningStatusForInfo(info))} ${readerLearningStatusForInfo(info)}`;
+}
 function renderReaderWordLearning(info = {}){
   if(!info.lemma && !info.surface) return '';
   const entry = readerVocabularyLearningEntry(info);
   const status = readerLearningStatusForInfo(info);
-  const label = `${readerLearningStatusMark(status)} ${status}`;
+  const label = readerLearningStatusLabel(info);
   const id = entry && ReaderVocabularyLearningModel ? ReaderVocabularyLearningModel.lemmaId(entry) : '';
   const language = info.language || readerState.language || 'greek';
   const action = status === ReaderVocabularyLearningModel?.STATUS?.NOT_LEARNED || status === 'Not Learned'
@@ -249,6 +252,7 @@ async function lookupReaderWordInfo(token = {}, reference = {}, language = reade
   return {
     surface: cleanReaderTokenValue(token.surface),
     lemma,
+    sourceLemma: cleanReaderTokenValue(token.sourceLemma),
     primaryGloss,
     alternateGlosses: alternateGlosses.filter(gloss => gloss !== primaryGloss),
     parse,
@@ -293,8 +297,233 @@ function readerPartOfSpeechForInfo(info = {}){
   const parseExplanation = cleanReaderTokenValue(info.parseExplanation);
   const rawParse = cleanReaderTokenValue(info.parse);
   if(parseExplanation && parseExplanation !== rawParse) return parseExplanation.split(/[—-]/)[0].trim();
+  const raw = rawParse.toUpperCase();
+  if((info.language || readerState.language) === 'hebrew'){
+    if(/^H?N/.test(raw)) return 'Noun';
+    if(/^H?A/.test(raw)) return 'Adjective';
+    if(/^H?V|\/V/.test(raw)) return 'Verb';
+    if(/^HR/.test(raw)) return 'Preposition';
+    if(/^HC/.test(raw)) return 'Conjunction';
+    if(/^HT/.test(raw)) return 'Article';
+  } else {
+    if(/^N/.test(raw)) return 'Noun';
+    if(/^A/.test(raw)) return 'Adjective';
+    if(/^V/.test(raw)) return 'Verb';
+    if(/^RA|^T/.test(raw)) return 'Article';
+    if(/^P/.test(raw)) return 'Preposition';
+    if(/^C/.test(raw)) return 'Conjunction';
+    if(/^D/.test(raw)) return 'Adverb';
+  }
   const labels = { noun: 'Noun', adjective: 'Adjective', verb: 'Verb', participle: 'Participle', article: 'Article' };
   return labels[readerParseKind(info.parse, info.parseExplanation)] || '';
+}
+function ordinalPerson(value){
+  const clean = cleanReaderTokenValue(value);
+  if(clean === '1') return '1st person';
+  if(clean === '2') return '2nd person';
+  if(clean === '3') return '3rd person';
+  return clean;
+}
+function readerPrefixLabel(code){
+  return ({
+    c: 'Conjunction',
+    d: 'Definite article',
+    h: 'Interrogative',
+    i: 'Interjection',
+    k: 'Preposition כ',
+    l: 'Preposition ל',
+    m: 'Preposition מ',
+    b: 'Preposition ב',
+    r: 'Relative marker',
+    s: 'Subordination marker',
+    w: 'Conjunction'
+  })[cleanReaderTokenValue(code).toLowerCase()] || cleanReaderTokenValue(code);
+}
+function parseHebrewSourcePrefixes(sourceLemma = ''){
+  const parts = cleanReaderTokenValue(sourceLemma).split('/').filter(Boolean);
+  if(parts.length < 2) return [];
+  return parts.slice(0, -1).map(readerPrefixLabel).filter(Boolean);
+}
+function parseHebrewSuffix(parse = ''){
+  const suffix = cleanReaderTokenValue(parse).match(/(?:^|\/)S([a-z0-9]+)/i)?.[1];
+  if(!suffix) return '';
+  const match = suffix.toLowerCase().match(/^p?([123])?([mfc])?([spd])$/);
+  if(!match) return suffix;
+  return [ordinalPerson(match[1]), ({ m: 'masculine', f: 'feminine', c: 'common' })[match[2]], ({ s: 'singular', p: 'plural', d: 'dual' })[match[3]]].filter(Boolean).join(' ');
+}
+function readerMorphologyFields(info = {}){
+  const language = info.language || readerState.language || 'greek';
+  const parse = cleanReaderTokenValue(info.parse);
+  if(!parse) return [];
+  return language === 'hebrew' ? hebrewMorphologyFields(info) : greekMorphologyFields(info);
+}
+function isNumericReaderLemma(value){
+  return /^\d+[+a-zA-Z]?$/.test(cleanReaderTokenValue(value));
+}
+function hasHebrewText(value){
+  return /[\u0590-\u05ff]/.test(cleanReaderTokenValue(value));
+}
+function readerSourceLemmaBase(sourceLemma = ''){
+  const parts = cleanReaderTokenValue(sourceLemma).split('/').filter(Boolean);
+  return parts.length ? parts.at(-1).replace(/\s+[a-z]$/i, '') : '';
+}
+function readerDisplayLemma(info = {}){
+  const language = info.language || readerState.language || 'greek';
+  const candidates = [
+    info.lexicalForm,
+    info.hebrewLemma,
+    info.root,
+    readerSourceLemmaBase(info.sourceLemma),
+    info.lemma
+  ].map(cleanReaderTokenValue).filter(Boolean);
+  if(language === 'hebrew'){
+    return candidates.find(value => hasHebrewText(value) && !isNumericReaderLemma(value)) || '';
+  }
+  return candidates.find(value => !isNumericReaderLemma(value)) || '';
+}
+function readerStrongId(info = {}){
+  const language = info.language || readerState.language || 'greek';
+  if(language !== 'hebrew') return '';
+  const direct = cleanReaderTokenValue(info.lemma);
+  const sourceBase = readerSourceLemmaBase(info.sourceLemma);
+  return isNumericReaderLemma(direct) ? direct : (isNumericReaderLemma(sourceBase) ? sourceBase : '');
+}
+function greekMorphologyFields(info = {}){
+  const raw = cleanReaderTokenValue(info.parse);
+  const compact = raw.toLowerCase().split('-').filter(Boolean);
+  const morphGnt = raw.match(/^V-\s*([123-])([A-Z-])([A-Z-])([A-Z-])-?([SPD-])?/i);
+  const fields = [];
+  const add = (label, value) => { if(cleanReaderTokenValue(value) && value !== '-') fields.push({ label, value }); };
+  const cases = { n: 'nominative', g: 'genitive', d: 'dative', a: 'accusative', v: 'vocative' };
+  const numbers = { s: 'singular', p: 'plural', d: 'dual' };
+  const genders = { m: 'masculine', f: 'feminine', n: 'neuter', c: 'common' };
+  const tenses = { p: 'present', i: 'imperfect', f: 'future', a: 'aorist', r: 'perfect', l: 'pluperfect', pres: 'present', impf: 'imperfect', fut: 'future', aor: 'aorist', perf: 'perfect', plup: 'pluperfect' };
+  const voices = { a: 'active', m: 'middle', p: 'passive', n: 'middle/passive', act: 'active', mid: 'middle', pas: 'passive', mp: 'middle/passive' };
+  const moods = { i: 'indicative', s: 'subjunctive', o: 'optative', m: 'imperative', n: 'infinitive', p: 'participle', d: 'imperative', ind: 'indicative', subj: 'subjunctive', opt: 'optative', imp: 'imperative', inf: 'infinitive', ptc: 'participle' };
+  const nominal = raw.replace(/^[A-Z]+-?\s*/i, '').replace(/[-\s]/g, '').slice(-3).toLowerCase();
+  const verbCode = morphGnt ? `${morphGnt[2]}${morphGnt[3]}${morphGnt[4]}`.toLowerCase() : (compact[0] === 'v' ? compact[1] || '' : '');
+  if(compact[0] === 'v' || morphGnt){
+    add('Tense', tenses[verbCode[0]] || tenses[compact[1]] || compact[1]);
+    add('Voice', voices[verbCode[1]] || voices[compact[2]] || compact[2]);
+    add('Mood', moods[verbCode[2]] || moods[compact[3]] || compact[3]);
+    const person = morphGnt ? morphGnt[1] : (compact[2]?.match(/^[123]/) ? compact[2][0] : compact[4]?.match(/^[123]/)?.[0]);
+    const numberCode = morphGnt ? morphGnt[5] : (compact[2]?.match(/[spd]$/i)?.[0] || compact[4]?.match(/[spd]$/i)?.[0]);
+    add('Person', ordinalPerson(person));
+    add('Number', numbers[numberCode?.toLowerCase()]);
+    if((moods[verbCode[2]] || moods[compact[3]]) === 'participle'){
+      const form = compact[2] || raw.replace(/^V-\s*[123-]?[A-Z-]{3}-?/i, '').replace(/-/g, '').slice(0, 3);
+      add('Case', cases[form[0]?.toLowerCase()]);
+      add('Gender', genders[form[2]?.toLowerCase()]);
+    }
+  } else {
+    add('Case', cases[nominal[0]]);
+    add('Number', numbers[nominal[1]]);
+    add('Gender', genders[nominal[2]]);
+  }
+  add('Principal Part', info.principalPart || info.principalpart);
+  return fields;
+}
+function hebrewMorphologyFields(info = {}){
+  const raw = cleanReaderTokenValue(info.parse);
+  const fields = [];
+  const add = (label, value) => { if(cleanReaderTokenValue(value)) fields.push({ label, value }); };
+  const prefixes = parseHebrewSourcePrefixes(info.sourceLemma);
+  const suffix = parseHebrewSuffix(raw);
+  const verb = raw.match(/(?:^H?V|\/V)([a-z0-9]+)/i)?.[1] || (/^V-/i.test(raw) ? raw.split('-').slice(1) : null);
+  const nominal = raw.match(/^H[NA]([a-z]+)/i)?.[1] || (/^[NA]-/i.test(raw) ? raw.split('-')[1] : '');
+  const stems = { q: 'Qal', n: 'Niphal', p: 'Piel', h: 'Hiphil', t: 'Hithpael' };
+  const forms = { p: 'perfect', q: 'wayyiqtol', w: 'wayyiqtol', i: 'imperfect', v: 'imperative', r: 'participle', s: 'participle', a: 'infinitive absolute', c: 'infinitive construct' };
+  const genders = { m: 'masculine', f: 'feminine', c: 'common' };
+  const numbers = { s: 'singular', p: 'plural', d: 'dual' };
+  const states = { a: 'absolute', c: 'construct', d: 'determined' };
+  if(prefixes.length) add('Prefixes', prefixes.join(', '));
+  if(suffix) add('Suffix', suffix);
+  if(Array.isArray(verb)){
+    add('Stem', verb[0]);
+    add('Conjugation', verb[1]);
+    const png = verb[2] || '';
+    add('Person', ordinalPerson(png.match(/[123]/)?.[0]));
+    add('Gender', genders[png.match(/[mfc]/)?.[0]]);
+    add('Number', numbers[png.match(/[spd]/)?.[0]]);
+  } else if(verb){
+    add('Stem', stems[verb[0]] || verb[0]);
+    add('Conjugation', forms[verb[1]] || verb[1]);
+    const png = verb.slice(2).toLowerCase();
+    add('Person', ordinalPerson(png.match(/[123]/)?.[0]));
+    add('Gender', genders[png.match(/[mfc]/)?.[0]]);
+    add('Number', numbers[png.match(/[spd]/)?.[0]]);
+  } else if(nominal){
+    const lower = nominal.toLowerCase();
+    const isOshb = /^H[NA]/i.test(raw);
+    add('Gender', genders[isOshb ? (lower[1] || lower[0]) : lower[0]]);
+    add('Number', numbers[isOshb ? (lower[2] || lower[1]) : lower[1]]);
+    add('State', states[isOshb ? lower[3] : lower[2]]);
+  }
+  return fields;
+}
+function renderReaderMorphology(info = {}){
+  const language = info.language || readerState.language || 'greek';
+  const fields = readerMorphologyFields(info).filter(field => !(language === 'hebrew' && field.label === 'Suffix'));
+  if(!fields.length) return '';
+  return `
+        <section class="word-page-section" aria-labelledby="wordPageMorphologyHeading">
+          <h2 id="wordPageMorphologyHeading">Morphology</h2>
+          <dl class="word-page-morphology">${fields.map(field => readerWordPageMeta(field.label, field.value)).join('')}</dl>
+        </section>`;
+}
+function grammarFieldValue(fields = [], label){
+  return fields.find(field => field.label === label)?.value || '';
+}
+function sentenceJoin(values = []){
+  return values.map(cleanReaderTokenValue).filter(Boolean).join(' ');
+}
+function readerGrammarSummary(info = {}, partOfSpeech = ''){
+  const language = info.language || readerState.language || 'greek';
+  const fields = readerMorphologyFields(info);
+  const pos = partOfSpeech || readerPartOfSpeechForInfo(info) || cleanReaderTokenValue(info.parseExplanation).split(/[—-]/)[0].trim();
+  if(!pos) return cleanReaderTokenValue(info.parseExplanation);
+  const suffix = grammarFieldValue(fields, 'Suffix');
+  if(language === 'hebrew'){
+    if(pos === 'Verb'){
+      const primary = sentenceJoin([grammarFieldValue(fields, 'Stem'), grammarFieldValue(fields, 'Conjugation')]);
+      const agreement = sentenceJoin([grammarFieldValue(fields, 'Person'), grammarFieldValue(fields, 'Gender'), grammarFieldValue(fields, 'Number')]);
+      return [pos, [primary, agreement].filter(Boolean).join(', ')].filter(Boolean).join(' — ');
+    }
+    if(['Noun', 'Adjective', 'Pronoun', 'Article'].includes(pos)){
+      const nominal = sentenceJoin([grammarFieldValue(fields, 'Gender'), grammarFieldValue(fields, 'Number'), grammarFieldValue(fields, 'State')]);
+      const withSuffix = suffix ? `${nominal ? `${nominal} ` : ''}with ${suffix} suffix` : nominal;
+      return [pos, withSuffix].filter(Boolean).join(' — ');
+    }
+    return suffix ? `${pos} — with ${suffix} suffix` : pos;
+  }
+  if(pos === 'Verb'){
+    const primary = sentenceJoin([grammarFieldValue(fields, 'Tense'), grammarFieldValue(fields, 'Voice'), grammarFieldValue(fields, 'Mood')]);
+    const agreement = sentenceJoin([grammarFieldValue(fields, 'Person'), grammarFieldValue(fields, 'Number')]);
+    return [pos, [primary, agreement].filter(Boolean).join(', ')].filter(Boolean).join(' — ');
+  }
+  if(['Noun', 'Adjective', 'Pronoun', 'Article', 'Participle'].includes(pos)){
+    const nominal = sentenceJoin([grammarFieldValue(fields, 'Case'), grammarFieldValue(fields, 'Number'), grammarFieldValue(fields, 'Gender')]);
+    return [pos, nominal].filter(Boolean).join(' — ');
+  }
+  return cleanReaderTokenValue(info.parseExplanation) && cleanReaderTokenValue(info.parseExplanation) !== cleanReaderTokenValue(info.parse)
+    ? cleanReaderTokenValue(info.parseExplanation)
+    : pos;
+}
+function renderReaderGrammar(info = {}, partOfSpeech = ''){
+  const rawParse = cleanReaderTokenValue(info.parse);
+  const language = info.language || readerState.language || 'greek';
+  const fields = readerMorphologyFields(info)
+    .filter(field => cleanReaderTokenValue(field.value))
+    .map(field => ({ label: language === 'hebrew' && field.label === 'Prefixes' ? 'Prefix' : field.label, value: field.value }));
+  const summary = readerGrammarSummary(info, partOfSpeech);
+  if(!rawParse && !summary && !fields.length) return '';
+  return `
+        <section class="word-page-section" aria-labelledby="wordPageGrammarHeading">
+          <h2 id="wordPageGrammarHeading">Grammar</h2>
+          ${summary ? `<p class="word-page-grammar-summary">${escHtml(summary)}</p>` : ''}
+          ${fields.length ? `<dl class="word-page-grammar-details">${fields.map(field => readerWordPageMeta(field.label, field.value)).join('')}</dl>` : ''}
+          ${rawParse ? `<p class="word-page-parse-code">Parse code: ${escHtml(rawParse)}</p>` : ''}
+        </section>`;
 }
 function readerLemmaIndex(item = {}, lemma = ''){
   const target = normalizeReaderText(lemma);
@@ -446,7 +675,7 @@ function renderReaderVerse(verse, data = readerState.chapterData || {}){
 }
 function renderReaderTokens(tokens, reference = {}){
   return tokens.map((token, index) => {
-    return `<button class="reader-token" type="button" data-surface="${escReaderAttr(token.surface || '')}" data-lemma="${escReaderAttr(token.lemma || '')}" data-parse="${escReaderAttr(token.parse || '')}" data-book="${escReaderAttr(reference.book || '')}" data-book-name="${escReaderAttr(reference.bookName || '')}" data-chapter="${escReaderAttr(reference.chapter || '')}" data-verse="${escReaderAttr(reference.verse || '')}" aria-label="${escReaderAttr(`Show word info for ${token.surface || `token ${index + 1}`}`)}">${escHtml(token.surface)}</button>`;
+    return `<button class="reader-token" type="button" data-surface="${escReaderAttr(token.surface || '')}" data-lemma="${escReaderAttr(token.lemma || '')}" data-parse="${escReaderAttr(token.parse || '')}" data-source-lemma="${escReaderAttr(token.sourceLemma || '')}" data-book="${escReaderAttr(reference.book || '')}" data-book-name="${escReaderAttr(reference.bookName || '')}" data-chapter="${escReaderAttr(reference.chapter || '')}" data-verse="${escReaderAttr(reference.verse || '')}" aria-label="${escReaderAttr(`Show word info for ${token.surface || `token ${index + 1}`}`)}">${escHtml(token.surface)}</button>`;
   }).join(' ');
 }
 function wireReaderControls(){
@@ -470,7 +699,7 @@ function wireReaderControls(){
 }
 function handleReaderPopupKeydown(event){ if(event.key === 'Escape') closeReaderWordPopup(); }
 async function openReaderTokenPopup(button){
-  const token = { surface: button.dataset.surface || '', lemma: button.dataset.lemma || '', parse: button.dataset.parse || '' };
+  const token = { surface: button.dataset.surface || '', lemma: button.dataset.lemma || '', parse: button.dataset.parse || '', sourceLemma: button.dataset.sourceLemma || '' };
   readerPopupLastTrigger = button;
   const reference = {
     language: readerState.language,
@@ -479,7 +708,7 @@ async function openReaderTokenPopup(button){
     chapter: Number(button.dataset.chapter) || readerState.chapter,
     verse: button.dataset.verse || ''
   };
-  readerState.activeToken = { loading: true, info: { surface: token.surface, lemma: token.lemma, parse: token.parse, reference: readerReferenceLabel(reference) } };
+  readerState.activeToken = { loading: true, info: { surface: token.surface, lemma: token.lemma, parse: token.parse, sourceLemma: token.sourceLemma, reference: readerReferenceLabel(reference), language: readerState.language } };
   renderReaderWordPopup();
   readerState.activeToken = { loading: false, info: await lookupReaderWordInfo(token, reference, readerState.language) };
   renderReaderWordPopup();
@@ -533,8 +762,10 @@ function renderReaderWordPageContextContent(occurrences = [], loading = false){
 function renderReaderWordPageContext(occurrences = [], loading = false){
   return `
         <section class="word-page-section word-page-context" aria-labelledby="wordPageContextHeading">
-          <h2 id="wordPageContextHeading">Read in Context</h2>
+          <h2 id="wordPageContextHeading">Occurrences</h2>
+          <p class="word-page-context-kicker">Read in Context</p>
           <div id="wordPageContextList">${renderReaderWordPageContextContent(occurrences, loading)}</div>
+          <div id="wordPageReaderExamplesSlot" class="word-page-reader-examples-slot" hidden></div>
         </section>`;
 }
 function attachReaderWordPageContextHandlers(root){
@@ -558,19 +789,35 @@ function renderReaderWordPage(){
   const root = $('#wordPageShell'); if(!root) return;
   const info = readerState.wordPageInfo || {};
   const meta = getReaderLanguageMeta(info.language || readerState.language);
-  const config = getReaderConfig(info.language || readerState.language);
   const headwordAttrs = meta.dir === 'rtl' ? ` lang="${escReaderAttr(meta.htmlLang)}" dir="${escReaderAttr(meta.dir)}"` : '';
   const lemma = cleanReaderTokenValue(info.lemma || info.surface);
-  const headword = config.useSurfaceForNumericLemmaHeadword && /^\d+$/.test(lemma) ? cleanReaderTokenValue(info.surface) || lemma : lemma;
+  const surface = cleanReaderTokenValue(info.surface);
+  const displayLemma = readerDisplayLemma(info);
+  const headword = surface || displayLemma || lemma;
+  const showLemmaSection = displayLemma && cleanReaderTokenValue(displayLemma) !== cleanReaderTokenValue(headword);
+  const strongId = readerStrongId(info);
   const primaryGloss = cleanReaderTokenValue(info.primaryGloss);
   const alternateGlosses = Array.isArray(info.alternateGlosses) ? info.alternateGlosses.map(cleanReaderTokenValue).filter(Boolean) : [];
   const partOfSpeech = readerPartOfSpeechForInfo(info);
   const links = readerGrammarLinksForInfo(info);
-  const grammarHtml = links.length ? `
-        <section class="word-page-section" aria-labelledby="wordPageGrammarHeading">
-          <h2 id="wordPageGrammarHeading">Grammar</h2>
+  const relatedItems = [
+    ['Current Reference', info.reference],
+    ['Strong’s ID', strongId],
+    ['Vocabulary Status', readerLearningStatusForInfo(info)],
+    ['Grammar Reference', links.map(link => link.label).join(', ')],
+    ['Paradigm Reference', readerParseKind(info.parse, info.parseExplanation) ? partOfSpeech : '']
+  ].filter(([, value]) => cleanReaderTokenValue(value));
+  const relatedHtml = relatedItems.length ? `
+        <section class="word-page-section" aria-labelledby="wordPageRelatedHeading">
+          <h2 id="wordPageRelatedHeading">Related Information</h2>
+          <dl class="word-page-meta word-page-meta-secondary">${relatedItems.map(([label, value]) => readerWordPageMeta(label, value)).join('')}</dl>
+        </section>` : '';
+  const linksHtml = links.length ? `
+        <section class="word-page-section" aria-labelledby="wordPageLinksHeading">
+          <h2 id="wordPageLinksHeading">Links</h2>
           <div class="reader-word-links word-page-links" aria-label="Related grammar links">${links.map(link => `<button class="reader-word-link" type="button" data-topic-id="${escHtml(link.topicId)}">${escHtml(link.label)}</button>`).join('')}</div>
         </section>` : '';
+  const grammarHtml = renderReaderGrammar(info, partOfSpeech);
   root.innerHTML = `
     <section class="panel word-page-panel" aria-labelledby="wordPageTitle">
       <header class="word-page-header">
@@ -578,18 +825,23 @@ function renderReaderWordPage(){
         ${partOfSpeech ? `<div class="word-page-pos">${escHtml(partOfSpeech)}</div>` : ''}
       </header>
       ${lemma ? `
+        ${showLemmaSection ? `<section class="word-page-section" aria-labelledby="wordPageLemmaHeading">
+          <h2 id="wordPageLemmaHeading">Lemma</h2>
+          <p class="word-page-lemma"${headwordAttrs}>${escHtml(displayLemma)}</p>
+        </section>` : ''}
         <section class="word-page-section" aria-labelledby="wordPageMeaningHeading">
-          <h2 id="wordPageMeaningHeading">Meaning</h2>
+          <h2 id="wordPageMeaningHeading">Gloss</h2>
           <p class="word-page-primary-gloss">${escHtml(primaryGloss || '-')}</p>
           ${alternateGlosses.length ? `<div class="word-page-also"><div>Also translated as</div><p>${escHtml(alternateGlosses.join(' • '))}</p></div>` : ''}
         </section>
+        ${renderReaderWordLearning(info)}
+        ${grammarHtml}
         <dl class="word-page-meta">
           ${readerWordPageMeta('Frequency', info.frequency ? `${info.frequency}×` : '')}
-          ${readerWordPageMeta('Current Reference', info.reference)}
         </dl>
-        ${grammarHtml}
         ${renderReaderWordPageContext([], true)}
-        ${renderReaderWordLearning(info)}` : `<p class="word-page-empty">Open a word from the Reader to build this page.</p>`}
+        ${relatedHtml}
+        ${linksHtml}` : `<p class="word-page-empty">Open a word from the Reader to build this page.</p>`}
       <button class="btn btn-primary" id="wordPageBackToReader">Back to Reader</button>
     </section>`;
   $('#wordPageBackToReader', root)?.addEventListener('click', () => {
@@ -668,5 +920,5 @@ async function runReaderSearch(query){
   return results;
 }
 async function initReader(){ const loc = loadReaderLocation(); readerState = { ...readerState, ...loc }; await setReaderLocation(loc); }
-if(typeof window !== 'undefined') Object.assign(window, { ReaderConfig, readerState, readerChapterCache, readerManifestCache, readerLoadCounts, getReaderChapterPath, getReaderLanguageMeta, loadReaderManifest, loadReaderChapter, setReaderLocation, getAdjacentReaderLocation, renderReader, renderReaderChapter, renderReaderVerse, renderReaderTokens, initReader, runReaderSearch, loadReaderLocation, saveReaderLocation, parseReaderReference, openReaderTokenPopup, closeReaderWordPopup, openReaderWordPage, renderReaderWordPage, lookupReaderWordInfo, explainReaderParse, readerGrammarLinksForInfo, readerPartOfSpeechForInfo, getReaderLemmaOccurrences, openReaderContextOccurrence, openReaderBookProgress, renderReaderWordLearning, readerLearningStatusForInfo, introduceReaderWordFromPage, reviewReaderWordFromPage });
-if(typeof module !== 'undefined') module.exports = { ReaderConfig, readerState: () => readerState, readerChapterCache, readerManifestCache, readerLoadCounts, getReaderChapterPath, getReaderLanguageMeta, loadReaderManifest, normalizeReaderManifest, getReaderBookChapters, loadReaderChapter, setReaderLocation, getAdjacentReaderLocation, renderReaderChapter, renderReaderVerse, renderReaderTokens, runReaderSearch, loadReaderLocation, saveReaderLocation, parseReaderReference, normalizeReaderText, lookupReaderWordInfo, explainReaderParse, readerGrammarLinksForInfo, readerParseKind, readerPartOfSpeechForInfo, openReaderTokenPopup, closeReaderWordPopup, openReaderWordPage, renderReaderWordPage, loadReaderSearchIndex, representativeReaderOccurrences, getReaderLemmaOccurrences, readerOccurrenceSnippet, renderReaderWordPageContext, renderReaderWordPageContextContent, attachReaderWordPageContextHandlers, openReaderContextOccurrence, openReaderBookProgress, renderReaderWordLearning, readerLearningStatusForInfo, introduceReaderWordFromPage, reviewReaderWordFromPage };
+if(typeof window !== 'undefined') Object.assign(window, { ReaderConfig, readerState, readerChapterCache, readerManifestCache, readerLoadCounts, getReaderChapterPath, getReaderLanguageMeta, loadReaderManifest, loadReaderChapter, setReaderLocation, getAdjacentReaderLocation, renderReader, renderReaderChapter, renderReaderVerse, renderReaderTokens, initReader, runReaderSearch, loadReaderLocation, saveReaderLocation, parseReaderReference, openReaderTokenPopup, closeReaderWordPopup, openReaderWordPage, renderReaderWordPage, lookupReaderWordInfo, explainReaderParse, readerGrammarLinksForInfo, readerPartOfSpeechForInfo, readerMorphologyFields, renderReaderMorphology, renderReaderGrammar, getReaderLemmaOccurrences, openReaderContextOccurrence, openReaderBookProgress, renderReaderWordLearning, readerLearningStatusForInfo, introduceReaderWordFromPage, reviewReaderWordFromPage });
+if(typeof module !== 'undefined') module.exports = { ReaderConfig, readerState: () => readerState, readerChapterCache, readerManifestCache, readerLoadCounts, getReaderChapterPath, getReaderLanguageMeta, loadReaderManifest, normalizeReaderManifest, getReaderBookChapters, loadReaderChapter, setReaderLocation, getAdjacentReaderLocation, renderReaderChapter, renderReaderVerse, renderReaderTokens, runReaderSearch, loadReaderLocation, saveReaderLocation, parseReaderReference, normalizeReaderText, lookupReaderWordInfo, explainReaderParse, readerGrammarLinksForInfo, readerParseKind, readerPartOfSpeechForInfo, readerMorphologyFields, renderReaderMorphology, renderReaderGrammar, openReaderTokenPopup, closeReaderWordPopup, openReaderWordPage, renderReaderWordPage, loadReaderSearchIndex, representativeReaderOccurrences, getReaderLemmaOccurrences, readerOccurrenceSnippet, renderReaderWordPageContext, renderReaderWordPageContextContent, attachReaderWordPageContextHandlers, openReaderContextOccurrence, openReaderBookProgress, renderReaderWordLearning, readerLearningStatusForInfo, introduceReaderWordFromPage, reviewReaderWordFromPage };

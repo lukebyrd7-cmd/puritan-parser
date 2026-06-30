@@ -48,6 +48,19 @@ This keeps Word Pages aligned with the rest of the app's screen model instead of
 
 The purpose of a Word Page is not to detain the user. It should answer focused questions about a word and then help the user return to the passage.
 
+The v4.2.8 Word Page philosophy is:
+
+- Reader reads.
+- Word Pages explain.
+- Reference teaches.
+- Learn practices.
+
+Word Pages should be the best place to understand an individual word while reading Scripture. They consume existing Reader token metadata, gloss sources, vocabulary learning status, parser explanations, Reference grammar links, and Reader search indexes rather than duplicating those systems.
+
+The page organization should remain scannable and predictable across Greek and Hebrew: word, lemma, gloss, learning status, parsing, morphology, frequency, occurrences, related information, and links. Greek and Hebrew do not need identical fields, but they should share the same quiet visual grammar. Morphology must display only data already present in source tokens, parser output, or vocabulary entries; missing prefixes, suffixes, principal parts, or other details should be omitted rather than inferred.
+
+Occurrences are the natural home for future Reader Examples. v4.2.8 prepares the page structure for that addition but does not implement example selection, advanced syntax, or weak-verb expansion.
+
 ## Reader
 
 The Reader is shared infrastructure for both Greek and Hebrew.

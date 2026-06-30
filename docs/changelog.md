@@ -2,6 +2,17 @@
 
 This changelog is a human-readable project history, not a Git log. Future entries should summarize meaningful releases rather than individual commits.
 
+## v4.2.8
+
+- Refined Word Pages into a scannable word-first explanation surface: word, lemma, gloss, learning status, parsing, morphology, frequency, occurrences, related information, and links.
+- Added clearer Greek morphology rows for tense, voice, mood, person, number, gender, case, and principal part when those fields already exist.
+- Added clearer Hebrew morphology rows for prefixes, suffixes, stem, conjugation, person, gender, and number where source token data already provides them.
+- Preserved the Reader popup workflow while passing existing token metadata through to Word Pages for better Hebrew prefix handling.
+- Kept Word Pages connected to existing Vocabulary Learning, Reference grammar links, Reader search occurrences, and parser decoding rather than creating duplicate services.
+- Prepared the Word Page occurrence area for future Reader Examples without implementing Reader Examples in this release.
+- Added tests for Greek morphology, Hebrew morphology, prefix handling, suffix handling, Word Page layout, and existing Reader integration.
+- Left Reader redesign, Reference redesign, advanced syntax, weak-verb expansion, accounts, sync, and gamification out of scope.
+
 ## v4.2.7
 
 - Added a new Progress section with Overview as the default page and Statistics as a quieter secondary page.

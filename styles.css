@@ -703,6 +703,70 @@ button:focus-visible, input:focus-visible, select:focus-visible {
   line-height: 1.15;
   color: var(--text);
 }
+.word-page-lemma {
+  font-family: var(--font-serif);
+  font-size: 22px;
+  line-height: 1.2;
+  color: var(--text);
+}
+.word-page-grammar-summary {
+  font-size: 15px;
+  line-height: 1.45;
+  color: var(--text);
+}
+.word-page-parse-code {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+}
+.word-page-grammar-details {
+  display: grid;
+  gap: 5px;
+}
+.word-page-grammar-details div {
+  display: grid;
+  grid-template-columns: minmax(92px, auto) 1fr;
+  gap: 10px;
+  align-items: baseline;
+}
+.word-page-grammar-details dt {
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.word-page-grammar-details dd {
+  color: var(--text);
+  font-size: 15px;
+  font-weight: 700;
+}
+.word-page-morphology {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0 16px;
+  border-top: 1px solid var(--border);
+}
+.word-page-morphology div {
+  display: grid;
+  grid-template-columns: minmax(88px, .7fr) 1fr;
+  gap: 10px;
+  align-items: baseline;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border);
+}
+.word-page-morphology dt {
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.word-page-morphology dd {
+  color: var(--text);
+  font-size: 14px;
+  font-weight: 650;
+}
 .word-page-also {
   color: var(--muted);
   font-size: 13px;
@@ -741,7 +805,17 @@ button:focus-visible, input:focus-visible, select:focus-visible {
   font-weight: 700;
   color: var(--text);
 }
+.word-page-meta-secondary dd {
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 700;
+}
 .word-page-links { margin-top: 2px; }
+.word-page-context-kicker {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+}
 .word-page-context-list {
   display: grid;
   gap: 7px;
@@ -1184,6 +1258,7 @@ button:focus-visible, input:focus-visible, select:focus-visible {
   .word-page-headword { font-size: 46px; }
   .word-page-header { display: grid; gap: 8px; }
   .word-page-meta { grid-template-columns: 1fr; }
+  .word-page-morphology { grid-template-columns: 1fr; }
   .learn-header { display: grid; gap: 10px; }
   .learn-header h1 { font-size: 30px; }
   .learn-card-grid { grid-template-columns: 1fr; }
