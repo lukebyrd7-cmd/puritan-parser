@@ -35,6 +35,23 @@ Introduce language-specific implementations only when Greek and Hebrew genuinely
 
 Prefer incremental improvements that preserve behavior. Large rewrites should be rare and justified by a clear architectural simplification.
 
+## Navigation Philosophy
+
+The primary navigation is intentionally small:
+
+- Learn is the center for study workflows.
+- Reader is for reading the biblical text.
+- Reference is for grammar and paradigm reference.
+- Progress is for learning progress and next actions.
+
+Older study surfaces such as the vocabulary list, flashcards, parsing drills, dashboard, and profile placeholder may remain as internal views or legacy routes, but they should not compete as duplicate top-level destinations. New study capability should normally enter through Learn unless it is clearly reading, reference, or progress oriented.
+
+The root route (`/`) opens Learn. Legacy deep links such as `/list`, `/flashcards`, and `/parsing` remain available so existing tests, bookmarks, and internal workflows continue to function.
+
+The application chrome should not include a global Greek/Hebrew toggle. Reader owns its reading-language flow, Reference owns its local language selector, and Learn presents language choices only inside study workflows where the choice is part of the task.
+
+The header should also avoid progress counters, streak indicators, or other motivational widgets. Progress information belongs in the Progress section.
+
 ## Word Pages
 
 Word Pages exist because routing-heavy implementations proved too fragile for the desired workflow. The successful model is view-first:
@@ -56,6 +73,8 @@ The v4.2.8 Word Page philosophy is:
 - Learn practices.
 
 Word Pages should be the best place to understand an individual word while reading Scripture. They consume existing Reader token metadata, gloss sources, vocabulary learning status, parser explanations, Reference grammar links, and Reader search indexes rather than duplicating those systems.
+
+Every Word Page should expose Back to Reader near both the top and bottom of the page. Users should never need to scroll to resume reading.
 
 The page organization should remain scannable and predictable across Greek and Hebrew: word, lemma, gloss, learning status, parsing, morphology, frequency, occurrences, related information, and links. Greek and Hebrew do not need identical fields, but they should share the same quiet visual grammar. Morphology must display only data already present in source tokens, parser output, or vocabulary entries; missing prefixes, suffixes, principal parts, or other details should be omitted rather than inferred.
 
@@ -87,7 +106,10 @@ Learn is a permanent shell, not a temporary placeholder. It owns navigation home
 
 - Vocabulary study paths;
 - Greek and Hebrew paradigm recognition categories;
+- Parsing Drills as an additional paradigm study tool using the legacy parsing view;
 - Reading Readiness entry points.
+
+Vocabulary paths may offer a confirmed Mark Path as Known action for users who already know the current path. This must only update Not Learned words in that path, record them as Known, and avoid creating due review cards.
 
 The Learn shell uses a single `learnView` under the existing app navigation model. Its internal pages are feature-local state rather than separate routes, matching the view-first philosophy that worked for Reader-adjacent Word Pages. Future releases should plug capability into the existing Learn areas instead of replacing the shell.
 
@@ -132,7 +154,7 @@ Reference lives in `src/features/grammar/` and is the source foundation for futu
 
 Reference organization is practical rather than encyclopedic: verbs first, then high-value noun/article/pronoun material, with less commonly needed material later. Greek is organized as Verbs, Nouns, Articles, Pronouns, and Other paradigms. Hebrew is organized as Verbs, Nouns, and Other paradigms.
 
-Reference uses the global application language (`state.lang`) as its only language source. It must not introduce a separate language selector or Reference-local language state.
+Reference owns a local Greek/Hebrew selector. It should continue showing one language at a time, independent of Reader and Learn language choices.
 
 Paradigm Recognition consumes existing Reference topic sections and paradigm tabs through the reference API instead of duplicating charts in Learn. The `futureGrammarHooks` entry for `paradigm-recognition-source` records this dependency. Reference remains static source content; recognition progress remains separate from Reference data.
 
@@ -301,20 +323,24 @@ User data includes:
 
 ### Routing system
 
-`src/core/router.js` registers all app routes in one `ROUTES` map. Navigation should call `navigateTo('/route')` or register a new route in that map rather than manually hiding and showing screens. The router maps browser paths to view IDs, supports `history.pushState`, responds to `popstate`, and normalizes unknown deep links back to `/list`.
+`src/core/router.js` registers all app routes in one `ROUTES` map. Navigation should call `navigateTo('/route')` or register a new route in that map rather than manually hiding and showing screens. The router maps browser paths to view IDs, supports `history.pushState`, responds to `popstate`, and normalizes unknown deep links back to `/learn`.
 
 Current routes are:
 
+- `/`
 - `/list`
 - `/flashcards`
 - `/parsing`
 - `/dashboard`
+- `/progress`
 - `/settings`
 - `/grammar`
-- `/bible`
+- `/reader`
+- `/word`
+- `/learn`
 - `/profile`
 
-Grammar, Bible, and Profile are placeholders only. They reserve routing and view architecture for future work without adding content, source text, login, cloud sync, or profile behavior.
+Legacy study routes remain functional, but the visible top navigation should stay focused on Learn, Reader, Reference, and Progress. Profile remains a placeholder only; it reserves view architecture for future work without adding login, cloud sync, or account behavior.
 
 ### Schema versioning
 
@@ -468,6 +494,6 @@ Gloss source records may provide `primaryGloss`, `alternateGlosses`, `glossSourc
 
 Future languages should follow the same pattern: add a morphology parser that produces normalized vocabulary rows, add a compact `data/glosses/<language>-glosses.json` file keyed by lemma, register that file in the shared gloss-source map, and let the existing `lang + lemma` merge apply source gloss metadata.
 
-## v3.5 Grammar & Reference Library
+## v3.5 Reference Library
 
-The Reference / Grammar library is a modular, local content feature for concise Greek and Hebrew grammar pages. Topic data lives in `src/features/grammar/reference-data.js`, rendering lives in `src/features/grammar/index.js`, and the app shell provides the `grammarView` route. See `docs/reference-library.md` for the content model, scope boundaries, search behavior, and instructions for adding topics.
+The Reference library is a modular, local content feature for concise Greek and Hebrew grammar pages. Topic data lives in `src/features/grammar/reference-data.js`, rendering lives in `src/features/grammar/index.js`, and the app shell provides the `grammarView` route. See `docs/reference-library.md` for the content model, scope boundaries, search behavior, and instructions for adding topics.

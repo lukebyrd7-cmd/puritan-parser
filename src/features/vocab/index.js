@@ -58,19 +58,13 @@ function setLang(lang){
   updatePosOptions();
   updateParsingFilterOptions();
   renderList(); updateDueBadge();
-  if(state.currentView==='grammarView' && typeof renderReferenceLibrary==='function') renderReferenceLibrary();
   if(typeof saveLastLanguage === 'function') saveLastLanguage(lang);
 }
 function getCurrentList(){ return state.data[state.lang]||[]; }
 function getCurrentStudyList(){ return typeof getStudyEntries === 'function' ? getStudyEntries(getCurrentList(), state.prefs.studyMode || 'lemma') : getCurrentList(); }
 
-/* ---------- Due badge ---------- */
-function updateDueBadge(){
-  const today = todayISO();
-  const due = getCurrentStudyList().filter(it=>it.due<=today).length;
-  const db = $('#dueBadge'); if(db){ db.textContent = `Due: ${due}`; db.style.display=due?'':'none'; }
-  const sb = $('#streakBadge'); if(sb) sb.textContent = `🔥 ${state.dashboard.streak||0}`;
-}
+/* ---------- Header progress hook (kept for legacy callers) ---------- */
+function updateDueBadge(){}
 
 /* ---------- Mastery ---------- */
 function computeMastery(item){
@@ -107,8 +101,6 @@ function renderList(){
   state.filtered = list;
   const ec = $('#filterEntriesCount');
   if(ec) ec.textContent = list.length > LIST_RENDER_LIMIT ? `${LIST_RENDER_LIMIT} of ${list.length} entries` : `${list.length} entries`;
-  const due = list.filter(it=>it.due<=today).length;
-  const db = $('#dueBadge'); if(db){ db.textContent=`Due: ${due}`; }
   const tbody = $('#wordsTbody'); if(!tbody) return;
   if(!list.length){
     tbody.innerHTML = `<tr><td colspan="7" class="empty-state"><div class="empty-icon">🔍</div><p>No entries found. Try expanding the frequency range or clearing the search.</p></td></tr>`;

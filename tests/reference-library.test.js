@@ -250,15 +250,15 @@ test('app shell includes reference controls and section rendering support', () =
   const ui = fs.readFileSync(path.join(__dirname, '../src/features/grammar/index.js'), 'utf8');
   const vocab = fs.readFileSync(path.join(__dirname, '../src/features/vocab/index.js'), 'utf8');
   assert.match(html, /id="referenceSearchInput"/);
-  assert.doesNotMatch(html, /id="referenceLanguageFilter"/);
-  assert.doesNotMatch(html, /Reference language filter/);
+  assert.match(html, /id="referenceLanguageSelect"/);
+  assert.match(html, /aria-label="Reference language"/);
   assert.match(html, /id="referenceTopicList"/);
   assert.match(html, /id="referencePage"/);
   assert.match(main, /src\/features\/grammar\/reference-data\.js/);
   assert.match(main, /src\/features\/grammar\/index\.js/);
-  assert.doesNotMatch(ui, /referenceLanguageFilter/);
-  assert.doesNotMatch(ui, /setReferenceLanguage/);
-  assert.match(vocab, /state\.currentView==='grammarView'[\s\S]*renderReferenceLibrary\(\)/);
+  assert.match(ui, /setReferenceLanguage/);
+  assert.match(ui, /referenceLanguageSelect/);
+  assert.doesNotMatch(vocab, /state\.currentView==='grammarView'[\s\S]*renderReferenceLibrary\(\)/);
   assert.doesNotMatch(vocab, /setReferenceLanguage/);
   assert.match(ui, /renderReferenceSection/);
   assert.match(ui, /renderSectionTabs/);
@@ -293,7 +293,24 @@ function renderGrammarHomeFor(language) {
   return context.__renderedGrammarHome;
 }
 
-test('v4.2.5 rendered Grammar Home follows the global language selection', () => {
+function renderGrammarHomeAfterLocalSelection(initialLanguage, selectedLanguage) {
+  const vm = require('node:vm');
+  const ui = fs.readFileSync(path.join(__dirname, '../src/features/grammar/index.js'), 'utf8');
+  const context = {
+    PuritanReferenceLibrary: library,
+    state: { lang: initialLanguage },
+    document: {},
+    localStorage: { getItem: () => null, setItem: () => {} },
+    $: () => null,
+    $$: () => [],
+    debounce: fn => fn
+  };
+  vm.createContext(context);
+  vm.runInContext(`${ui}; setReferenceLanguage('${selectedLanguage}', { render: false }); this.__renderedGrammarHome = renderGrammarHome();`, context);
+  return context.__renderedGrammarHome;
+}
+
+test('v4.2.9 Reference local language selector controls Grammar Home language', () => {
   const greek = renderGrammarHomeFor('greek');
   assert.match(greek, /<nav class="grammar-home" aria-label="Grammar handbook contents">/);
   assert.match(greek, /<section class="grammar-home-language"><h2>Greek<\/h2>[\s\S]*<h2>Verbs<\/h2>[\s\S]*>Verbs<[\s\S]*<h2>Nouns<\/h2>[\s\S]*>Nouns<[\s\S]*<h2>Articles<\/h2>[\s\S]*>Articles<[\s\S]*<h2>Pronouns<\/h2>[\s\S]*>Pronouns<[\s\S]*<h2>Other Parts of Speech<\/h2>[\s\S]*>Adjectives<[\s\S]*>Prepositions<[\s\S]*<h2>Advanced Topics<\/h2>/);
@@ -314,10 +331,20 @@ test('v4.2.5 rendered Grammar Home follows the global language selection', () =>
   assert.doesNotMatch(hebrew, /reference-card|reference-card-grid|reference-lang-chip|reference-segmented/);
 });
 
-test('v4.2.7 service worker cache version and app shell cache bust are bumped', () => {
+test('Reference local language selection is independent of global app language', () => {
+  const hebrew = renderGrammarHomeAfterLocalSelection('greek', 'hebrew');
+  assert.match(hebrew, /<section class="grammar-home-language"><h2>Hebrew<\/h2>/);
+  assert.doesNotMatch(hebrew, /<h2>Greek<\/h2>/);
+
+  const greek = renderGrammarHomeAfterLocalSelection('hebrew', 'greek');
+  assert.match(greek, /<section class="grammar-home-language"><h2>Greek<\/h2>/);
+  assert.doesNotMatch(greek, /<h2>Hebrew<\/h2>/);
+});
+
+test('v4.2.9 service worker cache version and app shell cache bust are bumped', () => {
   const sw = fs.readFileSync('sw.js', 'utf8');
   const html = fs.readFileSync('index.html', 'utf8');
-  assert.match(sw, /const CACHE = 'puritan-parser-v23-progress-statistics'/);
+  assert.match(sw, /const CACHE = 'puritan-parser-v26-final-polish'/);
   assert.doesNotMatch(sw, /puritan-parser-v13-reader-startup/);
-  assert.match(html, /src="src\/main\.js\?v=v4\.2\.7-progress-statistics"/);
+  assert.match(html, /src="src\/main\.js\?v=v4\.2\.9-final-polish"/);
 });

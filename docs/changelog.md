@@ -2,6 +2,24 @@
 
 This changelog is a human-readable project history, not a Git log. Future entries should summarize meaningful releases rather than individual commits.
 
+## v4.2.9
+
+- Refined top-level navigation around four clear centers: Learn, Reader, Reference, and Progress.
+- Made Learn the root destination and the central home for study workflows while keeping legacy study routes available.
+- Moved Parsing Drills under Learn → Paradigms as an additional study tool while preserving the existing parsing route.
+- Removed the global Greek/Hebrew toggle from the application chrome.
+- Added a local Greek/Hebrew selector to Reference so Reference owns its own language selection.
+- Clarified Reading Readiness messaging around Known vocabulary and book/chapter preparation paths.
+- Removed header Due and streak indicators so progress information lives in Progress instead of the application chrome.
+- Added a confirmed Mark Path as Known action for vocabulary paths so existing knowledge can update Reading Readiness and Progress without creating due review cards.
+- Added a Back to Reader action near the top of Word Pages while preserving the existing bottom action.
+- Removed duplicate visible entry points for Vocabulary, Flashcards, Parsing, Dashboard, and Profile from the top navigation.
+- Tightened terminology around Known, Learning, Due, Study, Recognition, Reference, and Readiness.
+- Smoothed learning session flows with clearer complete and empty states that lead back to useful next actions.
+- Updated button labels and shortcut labels for more consistent capitalization and action language.
+- Updated navigation, Learn, and Word Page tests for the refined UX pass.
+- Left accounts, sync, Reader Examples, advanced syntax, weak-verb drills, gamification, statistics expansion, and new study modes out of scope.
+
 ## v4.2.8
 
 - Refined Word Pages into a scannable word-first explanation surface: word, lemma, gloss, learning status, parsing, morphology, frequency, occurrences, related information, and links.

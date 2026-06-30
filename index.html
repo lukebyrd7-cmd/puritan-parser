@@ -64,24 +64,11 @@
 
   <!-- TOPBAR -->
   <div class="topbar" role="navigation">
-    <div class="lang-toggle" role="tablist">
-      <button class="lang-btn" data-lang="hebrew" id="btnHebrew" role="tab">Hebrew</button>
-      <button class="lang-btn" data-lang="greek" id="btnGreek" role="tab">Greek (GNT)</button>
-    </div>
     <div class="view-nav" id="viewNav">
-      <button class="nav-tab active" data-view="list">Vocabulary</button>
-      <button class="nav-tab" data-view="flashcards">Flashcards</button>
-      <button class="nav-tab" data-view="parsing">Parsing</button>
-      <button class="nav-tab" data-view="grammar">Grammar</button>
-      <button class="nav-tab" data-view="reader">Reader</button>
       <button class="nav-tab" data-view="learn">Learn</button>
+      <button class="nav-tab" data-view="reader">Reader</button>
+      <button class="nav-tab" data-view="grammar">Reference</button>
       <button class="nav-tab" data-view="progress">Progress</button>
-      <button class="nav-tab" data-view="dashboard">Dashboard</button>
-      <button class="nav-tab" data-view="profile">Profile</button>
-    </div>
-    <div class="topbar-right">
-      <div class="badge due-badge" id="dueBadge">Due: 0</div>
-      <div class="badge streak-badge" id="streakBadge">🔥 0</div>
     </div>
   </div>
 
@@ -172,8 +159,8 @@
               <option value="gloss2word">Gloss → Word</option>
             </select>
           </div>
-          <button class="btn btn-primary" id="startFlashBtn">▶ Start Session</button>
-          <button class="btn btn-ghost btn-sm hidden" id="endFlashBtn">✕ End</button>
+          <button class="btn btn-primary" id="startFlashBtn">Start Study</button>
+          <button class="btn btn-ghost btn-sm hidden" id="endFlashBtn">End Study</button>
           <div class="muted small" style="margin-left:auto"><kbd>Space</kbd> flip  <kbd>0–5</kbd> rate</div>
         </div>
       </div>
@@ -213,10 +200,10 @@
           <!-- Session complete -->
           <div id="flashComplete" class="session-complete hidden">
             <div class="big-check">✅</div>
-            <h3>Session Complete!</h3>
+            <h3>Study Complete</h3>
             <div id="flashCompleteStats" class="muted small"></div>
             <div id="flashMissedList" class="session-missed-list hidden"></div>
-            <button class="btn btn-primary" id="flashCompleteBack">Back to List</button>
+            <button class="btn btn-primary" id="flashCompleteBack">Back to Learn</button>
           </div>
         </div>
       </div>
@@ -226,7 +213,7 @@
         <div class="empty-state">
           <div class="empty-icon">🎴</div>
           <p style="font-size:15px;font-weight:600;color:var(--text);margin-bottom:6px">Ready to study?</p>
-          <p>Select a mode above and hit <strong>Start Session</strong>.</p>
+          <p>Select a mode above and start study.</p>
           <p class="small muted" style="margin-top:8px">Use <kbd>Space</kbd> to flip, <kbd>0–5</kbd> to rate. Swipe on mobile.</p>
         </div>
       </div>
@@ -254,8 +241,8 @@
             <span class="small muted">Count</span>
             <input id="parsingCount" type="number" class="input" value="10" min="5" max="100" style="width:70px" />
           </div>
-          <button class="btn btn-primary" id="startParsing">▶ Start</button>
-          <button class="btn btn-ghost btn-sm hidden" id="endParsing">✕ End</button>
+          <button class="btn btn-primary" id="startParsing">Start Study</button>
+          <button class="btn btn-ghost btn-sm hidden" id="endParsing">End Study</button>
         </div>
         <div class="parsing-filters-panel" aria-label="Parsing filters">
           <div class="parsing-filters-title">Parsing Filters</div>
@@ -299,8 +286,8 @@
           <div class="fc-meta-row" id="parsingMeta" style="justify-content:center;margin-bottom:8px"></div>
           <div class="parsing-form" id="parsingForm"></div>
           <div style="display:flex;gap:8px;margin-top:4px">
-            <button class="btn btn-primary" id="parsingSubmit">Check →</button>
-            <button class="btn btn-ghost btn-sm" id="parsingReveal">Show answer</button>
+            <button class="btn btn-primary" id="parsingSubmit">Check</button>
+            <button class="btn btn-ghost btn-sm" id="parsingReveal">Reveal Answer</button>
           </div>
           <div id="parsingResult" class="hidden parsing-result"></div>
           <div style="display:flex;justify-content:flex-end;margin-top:8px">
@@ -318,7 +305,7 @@
           <div class="stat-card"><div class="stat-num" id="dashDue">0</div><div class="stat-label">Due Today</div></div>
           <div class="stat-card"><div class="stat-num" id="dashStreak">0</div><div class="stat-label">Day Streak 🔥</div></div>
           <div class="stat-card"><div class="stat-num" id="dashTotal">0</div><div class="stat-label">Total Words</div></div>
-          <div class="stat-card"><div class="stat-num" id="dashLearned">0</div><div class="stat-label">Mastered</div></div>
+          <div class="stat-card"><div class="stat-num" id="dashLearned">0</div><div class="stat-label">Known</div></div>
           <div class="stat-card"><div class="stat-num" id="dashRevWeek">0</div><div class="stat-label">Reviews (7d)</div></div>
           <div class="stat-card"><div class="stat-num" id="dashAvgEase">—</div><div class="stat-label">Avg Ease</div></div>
         </div>
@@ -459,9 +446,9 @@
           <div class="settings-section">
             <div class="settings-label">Keyboard Shortcuts</div>
             <div class="small muted" style="display:grid;grid-template-columns:1fr 1fr;gap:4px">
-              <div><kbd>F</kbd> Flashcards</div>
-              <div><kbd>P</kbd> Parsing</div>
-              <div><kbd>D</kbd> Dashboard</div>
+              <div><kbd>L</kbd> Learn</div>
+              <div><kbd>R</kbd> Reader</div>
+              <div><kbd>P</kbd> Progress</div>
               <div><kbd>S</kbd> Settings</div>
               <div><kbd>Space</kbd> Flip card</div>
               <div><kbd>0–5</kbd> Rate card</div>
@@ -477,9 +464,13 @@
     <div id="grammarView" class="hidden fade-in">
       <div class="reference-shell">
         <section class="panel reference-sidebar" aria-label="Reference topics">
-          <div class="panel-title">Reference / Grammar</div>
+          <div class="panel-title">Reference</div>
           <div class="panel-sub">Concise grammar topics for the selected language</div>
           <div class="reference-controls">
+            <select class="input" id="referenceLanguageSelect" aria-label="Reference language">
+              <option value="greek">Greek</option>
+              <option value="hebrew">Hebrew</option>
+            </select>
             <input class="input" id="referenceSearchInput" placeholder="Search reference…" autocomplete="off" />
           </div>
           <div id="referenceTopicList" class="reference-topic-list"></div>
@@ -520,6 +511,6 @@
 const svgFallback = `<svg xmlns="http://www.w3.org/2000/svg" width="38" height="38" viewBox="0 0 64 64"><rect width="64" height="64" rx="12" fill="#4e8f6e"/><text x="50%" y="54%" font-size="26" text-anchor="middle" fill="#fff" font-family="serif" font-weight="700">PP</text></svg>`;
 </script>
 
-<script src="src/main.js?v=v4.2.7-progress-statistics"></script>
+<script src="src/main.js?v=v4.2.9-final-polish"></script>
 </body>
 </html>

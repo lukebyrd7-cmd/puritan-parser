@@ -25,20 +25,7 @@ Puritan Parser is a local-first Biblical Greek and Hebrew reading and study app.
 
 ## Current Focus
 
-The current product focus is v4.2: implementing the Learn section and the workflows that help users become more prepared readers.
-
-The Learn system has been conceptually designed in `docs/educational-philosophy.md`. Implementation should preserve its reading-first model: focused vocabulary study paths, recognition-first paradigm practice, objective Reading Readiness, and progress that measures ability rather than app activity.
-
-- Vocabulary review and New Words frequency study
-- Reading Readiness for book and chapter preparation
-- Reader ↔ Learn navigation
-- Paradigm recognition practice
-- Unified Progress overview and quieter Statistics page
-- Flashcard improvements
-- Multiple accepted glosses
-- Reader polish, performed alongside Reader-related work
-- Grammar polish, performed alongside Grammar-related work
-- UI polish folded naturally into related feature work
+The v4.2 Learn build is complete. The current focus is v5.0 Public Release: verification, release readiness, and avoiding new learning systems before launch.
 
 ## Upcoming
 
@@ -58,13 +45,7 @@ The Learn system has been conceptually designed in `docs/educational-philosophy.
 - v4.2.6: Paradigm Recognition — complete
 - v4.2.7: Progress & Statistics — complete
 - v4.2.8: Word Page Excellence — complete
-- v4.2.9: Learning Refinement
-  - Navigation audit
-  - UX audit
-  - Terminology audit
-  - Button audit
-  - Session flow
-  - Final polish
+- v4.2.9: Learning Refinement — complete
 - v5.0: Public Release
 
 ## Release Gates

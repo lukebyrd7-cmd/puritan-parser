@@ -175,6 +175,35 @@
     next.records[id] = normalizeRecord(base);
     return next;
   }
+  function markEntryKnown(store, entry, source = {}, dateISO = todayISO()){
+    const next = normalizeStore(store);
+    const id = lemmaId(entry);
+    const existing = next.records[id] ? normalizeRecord(next.records[id]) : null;
+    const record = existing || {
+      id,
+      lemma: clean(entry.lemma) || clean(entry.word),
+      lang: clean(entry.lang).toLowerCase(),
+      introducedAt: dateISO,
+      introducedBy: { ...source },
+      history: []
+    };
+    record.status = STATUS.KNOWN;
+    record.successCount = Math.max(3, Number(record.successCount) || 0);
+    record.intervalDays = Math.max(0, Number(record.intervalDays) || 0);
+    record.due = '9999-12-31';
+    record.introducedAt = clean(record.introducedAt) || dateISO;
+    record.introducedBy = record.introducedBy || { ...source };
+    record.history = Array.isArray(record.history) ? record.history : [];
+    record.history.push({ date: dateISO, result: 'marked-known', source: source?.type || '', due: record.due });
+    next.records[id] = normalizeRecord(record);
+    return next;
+  }
+  function markPathKnown(entries = [], store, path = {}, dateISO = todayISO()){
+    const normalized = normalizeStore(store);
+    const targets = notLearnedEntries(entries, normalized, path);
+    const next = targets.reduce((current, entry) => markEntryKnown(current, entry, path, dateISO), normalized);
+    return { store: next, count: targets.length, ids: targets.map(lemmaId) };
+  }
   function dueEntries(entries = [], store, dateISO = todayISO()){
     const normalized = normalizeStore(store);
     return sortedFrequencyEntries(entries).filter(entry => {
@@ -208,6 +237,8 @@
     remainingNotLearnedCount,
     introduceEntry,
     reviewEntry,
+    markEntryKnown,
+    markPathKnown,
     dueEntries,
     persistIntroduceEntry,
     persistReviewEntry

@@ -721,6 +721,8 @@ function closeReaderWordPopup(){
 }
 function navigateReaderGrammarLink(topicId){
   closeReaderWordPopup();
+  const topic = (typeof PuritanReferenceLibrary !== 'undefined') ? PuritanReferenceLibrary.getReferenceTopic?.(topicId) : null;
+  if(topic?.language && typeof setReferenceLanguage === 'function') setReferenceLanguage(topic.language, { render: false });
   if(typeof navigateTo === 'function') navigateTo('/grammar');
   else if(typeof showView === 'function') showView('grammarView');
   if(typeof renderReferenceLibrary === 'function') setTimeout(() => renderReferenceLibrary(topicId), 0);
@@ -820,6 +822,9 @@ function renderReaderWordPage(){
   const grammarHtml = renderReaderGrammar(info, partOfSpeech);
   root.innerHTML = `
     <section class="panel word-page-panel" aria-labelledby="wordPageTitle">
+      <div class="word-page-top-actions">
+        <button class="btn btn-primary" type="button" data-word-page-back-to-reader="true">Back to Reader</button>
+      </div>
       <header class="word-page-header">
         ${lemma ? `<h1 id="wordPageTitle" class="word-page-headword"${headwordAttrs}>${escHtml(headword)}</h1>` : `<h1 id="wordPageTitle" class="word-page-headword word-page-empty-title">Choose a word</h1>`}
         ${partOfSpeech ? `<div class="word-page-pos">${escHtml(partOfSpeech)}</div>` : ''}
@@ -842,11 +847,11 @@ function renderReaderWordPage(){
         ${renderReaderWordPageContext([], true)}
         ${relatedHtml}
         ${linksHtml}` : `<p class="word-page-empty">Open a word from the Reader to build this page.</p>`}
-      <button class="btn btn-primary" id="wordPageBackToReader">Back to Reader</button>
+      <button class="btn btn-primary" id="wordPageBackToReader" data-word-page-back-to-reader="true">Back to Reader</button>
     </section>`;
-  $('#wordPageBackToReader', root)?.addEventListener('click', () => {
+  $$('[data-word-page-back-to-reader]', root).forEach(button => button.addEventListener('click', () => {
     if(typeof showView === 'function') showView('readerView');
-  });
+  }));
   $$('.reader-word-link', root).forEach(btn => btn.addEventListener('click', () => navigateReaderGrammarLink(btn.dataset.topicId)));
   $$('[data-word-learn-action]', root).forEach(btn => btn.addEventListener('click', () => {
     if(btn.dataset.wordLearnAction === 'learn') introduceReaderWordFromPage(info);
@@ -890,7 +895,7 @@ function renderReaderWordPopup(){
         </div>
         ${grammarHtml}
         ${rawParse ? `<div class="reader-word-parse-code">${hasDecodedParse ? 'Parse: ' : ''}${escHtml(rawParse)}</div>` : ''}
-        <button class="reader-word-page-action" type="button">Open Word Page</button>
+        <button class="reader-word-page-action btn btn-primary" type="button">Open Word Page</button>
       </section>
     </div>`;
   $('.reader-word-close', root)?.addEventListener('click', closeReaderWordPopup);

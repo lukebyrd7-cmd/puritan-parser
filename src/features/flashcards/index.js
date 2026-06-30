@@ -222,5 +222,4 @@ function recordReview(quality){
   state.dashboard.streak = streak;
   state.dashboard.lastStudied = today;
   saveDashboard();
-  const sb=$('#streakBadge'); if(sb) sb.textContent=`🔥 ${streak}`;
 }

@@ -58,8 +58,8 @@ test('Learn home opens the three permanent study areas', () => {
   assert.match(html, /Paradigms/);
   assert.match(html, /Strengthen recognition of Greek and Hebrew grammar/);
   assert.match(html, /Reading Readiness/);
-  assert.match(html, /See how prepared you are to read books and chapters/);
-  assert.match(html, /id="learnBackBtn"/);
+  assert.match(html, /Track your reading readiness and study book or chapter vocabulary paths/);
+  assert.doesNotMatch(html, /id="learnBackBtn"/);
   assert.doesNotMatch(html, /alert\(/);
 });
 
@@ -240,6 +240,60 @@ test('Frequency path starts learning and Learn Another Word advances with remain
   assert.match(renderedText(html), /adelphos/);
 });
 
+test('Mark Path as Known confirms and marks only current path words without due reviews', () => {
+  storage.delete(VocabularyLearning.STORAGE_KEY);
+  let confirmMessage = '';
+  global.confirm = message => { confirmMessage = message; return true; };
+
+  const html = renderPage('vocabulary:frequency:greek:25');
+  assert.match(html, /Mark Path as Known/);
+  assert.match(html, /data-learn-mark-path-known="true"/);
+  assert.match(html, /btn btn-ghost btn-sm/);
+
+  const result = learn.markLearnPathKnown('greek', '25', 'vocabulary:frequency:greek:25');
+  assert.equal(confirmMessage, 'Mark all words in this path as Known? This will update Reading Readiness and Progress.');
+  assert.equal(result.count, 4);
+
+  const store = VocabularyLearning.loadStore();
+  global.state.data.greek.forEach(entry => {
+    assert.equal(VocabularyLearning.learningStatus(store, entry, '2026-06-26'), 'Known');
+  });
+  assert.equal(VocabularyLearning.dueEntries(global.state.data.greek, store, '2026-06-26').length, 0);
+  assert.match(renderedText(learn.renderLearnPage()), /0 words remaining in this path/);
+
+  delete global.confirm;
+});
+
+test('Mark Path as Known can be cancelled without changing the path', () => {
+  storage.delete(VocabularyLearning.STORAGE_KEY);
+  global.confirm = () => false;
+  const result = learn.markLearnPathKnown('hebrew', '60', 'vocabulary:frequency:hebrew:60');
+  assert.equal(result, null);
+  const store = VocabularyLearning.loadStore();
+  assert.equal(VocabularyLearning.learningStatus(store, global.state.data.hebrew[1], '2026-06-26'), 'Not Learned');
+  delete global.confirm;
+});
+
+test('Mark Path as Known updates scoped chapter readiness for the current path only', async () => {
+  storage.delete(VocabularyLearning.STORAGE_KEY);
+  global.confirm = () => true;
+  learn.learnState.progressCache['chapter:greek:romans:8'] = await BookProgress.chapterProgress('greek', 'romans', 8);
+  const before = learn.learnState.progressCache['chapter:greek:romans:8'].frequency.find(item => String(item.threshold) === '5');
+  assert.ok(before.remaining > 0);
+
+  const page = 'reading-readiness:new-testament:romans:chapter:8:5';
+  const result = learn.markLearnPathKnown('greek', '5', page);
+  assert.ok(result.count > 0);
+  assert.equal(learn.learnState.progressCache['chapter:greek:romans:8'], undefined);
+
+  const after = await BookProgress.chapterProgress('greek', 'romans', 8);
+  const afterFive = after.frequency.find(item => String(item.threshold) === '5');
+  assert.equal(afterFive.remaining, 0);
+  assert.equal(VocabularyLearning.dueEntries(afterFive.vocabulary.map(item => item.entry), VocabularyLearning.loadStore(), '2026-06-26').length, 0);
+
+  delete global.confirm;
+});
+
 test('Language review pages separate Greek and Hebrew due queues from the shared model', () => {
   storage.delete(VocabularyLearning.STORAGE_KEY);
   let store = VocabularyLearning.normalizeStore();
@@ -334,8 +388,44 @@ test('Review gloss display splits embedded separators before deduping alternates
   assert.equal((html.match(/<span>for<\/span>/g) || []).length, 1);
 });
 
-test('Paradigms shell is organized by language and emphasizes verbs', () => {
+test('Paradigms shell emphasizes Recognition Practice and exposes Parsing Drills', () => {
   const html = renderPage('paradigms');
+  assert.match(renderedText(html), /Recognition Practice/);
+  assert.match(renderedText(html), /Parsing Drills/);
+  assert.match(html, /data-learn-page="paradigms:recognition-practice"/);
+  assert.match(html, /data-learn-page="paradigms:parsing-drills"/);
+  assert.equal((html.match(/learn-card-emphasis/g) || []).length, 1);
+
+  const recognition = renderPage('paradigms:recognition-practice');
+  assert.match(renderedText(recognition), /Recognition Practice Recognition Practice is the primary paradigm study path/);
+  assert.match(recognition, /Greek/);
+  assert.match(recognition, /Hebrew/);
+  assert.equal((recognition.match(/learn-card-emphasis/g) || []).length, 2);
+  assert.match(recognition, /data-learn-page="paradigms:greek-verbs"/);
+  assert.match(recognition, /data-learn-page="paradigms:greek-nouns"/);
+  assert.match(recognition, /data-learn-page="paradigms:hebrew-verbs"/);
+  assert.match(recognition, /data-learn-page="paradigms:hebrew-nouns"/);
+
+  const parsingDrills = renderPage('paradigms:parsing-drills');
+  assert.match(renderedText(parsingDrills), /Greek Parsing Drills/);
+  assert.match(renderedText(parsingDrills), /Hebrew Parsing Drills/);
+  assert.match(parsingDrills, /data-learn-open-view="parsing"/);
+  assert.match(parsingDrills, /data-learn-open-lang="greek"/);
+  assert.match(parsingDrills, /data-learn-open-lang="hebrew"/);
+
+  assert.match(renderedText(renderPage('paradigms:greek-verbs')), /Greek Verbs Choose grouped practice or one paradigm/);
+  assert.match(renderPage('paradigms:greek-verbs'), /data-learn-recognition-start="greek-verbs"/);
+  assert.match(renderPage('paradigms:greek-verbs'), /data-learn-page="paradigms:greek-verbs:session:greek-present-active-indicative"/);
+  assert.match(renderedText(renderPage('paradigms:hebrew-nouns')), /Hebrew Nouns Choose grouped practice or one paradigm/);
+});
+
+test('Reading Readiness describes vocabulary-based book and chapter preparation', () => {
+  const html = renderPage('reading-readiness');
+  assert.match(renderedText(html), /Track your reading readiness and study book or chapter vocabulary paths/);
+});
+
+test('Legacy Paradigms recognition paths remain accessible', () => {
+  const html = renderPage('paradigms:recognition-practice');
   assert.match(html, /Greek/);
   assert.match(html, /Hebrew/);
   assert.equal((html.match(/learn-card-emphasis/g) || []).length, 2);
@@ -406,7 +496,7 @@ test('Reading Readiness opens Testament book lists from Reader manifests', () =>
   assert.match(renderPage('reading-readiness:new-testament'), /data-learn-page="reading-readiness:new-testament:matthew"/);
 });
 
-test('Learn back navigation returns through the Learn page stack and exits from home', () => {
+test('Learn back navigation returns through the Learn page stack and stays in Learn at home', () => {
   let shownView = '';
   global.showView = view => { shownView = view; };
   learn.learnState.page = 'home';
@@ -418,7 +508,8 @@ test('Learn back navigation returns through the Learn page stack and exits from 
   learn.backLearnPage();
   assert.equal(learn.learnState.page, 'home');
   learn.backLearnPage();
-  assert.equal(shownView, 'listView');
+  assert.equal(learn.learnState.page, 'home');
+  assert.equal(shownView, '');
   delete global.showView;
 });
 
@@ -564,4 +655,22 @@ test('Learn route and view navigation are wired into the app shell', () => {
   assert.equal(elements.get('learnView').classList.contains('hidden'), false);
   assert.equal(elements.get('listView').classList.contains('hidden'), true);
   assert.equal(context.renderLearnCalls, 1);
+});
+
+test('Top navigation keeps Learn central and removes duplicate study tabs', () => {
+  const html = fs.readFileSync('index.html', 'utf8');
+  assert.doesNotMatch(html, /class="lang-toggle"/);
+  assert.doesNotMatch(html, /id="btnHebrew"|id="btnGreek"/);
+  const navMatch = html.match(/<div class="view-nav" id="viewNav">([\s\S]*?)<\/div>/);
+  assert.ok(navMatch);
+  const labels = [...navMatch[1].matchAll(/data-view="([^"]+)"[^>]*>([^<]+)/g)].map(match => ({ view: match[1], label: match[2] }));
+  assert.deepEqual(labels, [
+    { view: 'learn', label: 'Learn' },
+    { view: 'reader', label: 'Reader' },
+    { view: 'grammar', label: 'Reference' },
+    { view: 'progress', label: 'Progress' }
+  ]);
+  ['Vocabulary', 'Flashcards', 'Parsing', 'Dashboard', 'Profile'].forEach(label => {
+    assert.equal(labels.some(item => item.label === label), false);
+  });
 });

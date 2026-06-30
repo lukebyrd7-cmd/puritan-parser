@@ -25,6 +25,10 @@ const LearnAreas = [
     id: 'paradigms',
     title: 'Paradigms',
     description: 'Strengthen recognition of Greek and Hebrew grammar.',
+    children: [
+      { id: 'recognition-practice', title: 'Recognition Practice', emphasis: true, description: 'Practice recognizing Greek and Hebrew paradigms from Reference.' },
+      { id: 'parsing-drills', title: 'Parsing Drills', description: 'Use the legacy parsing drills as an additional study tool.' }
+    ],
     groups: [
       {
         id: 'greek',
@@ -47,7 +51,7 @@ const LearnAreas = [
   {
     id: 'reading-readiness',
     title: 'Reading Readiness',
-    description: 'See how prepared you are to read books and chapters.',
+    description: 'Track your reading readiness and study book or chapter vocabulary paths.',
     children: [
       { id: 'old-testament', title: 'Old Testament', description: 'Hebrew Bible books from the Reader.' },
       { id: 'new-testament', title: 'New Testament', description: 'Greek New Testament books from the Reader.' }
@@ -153,8 +157,8 @@ function backLearnPage(){
     renderLearn();
     return;
   }
-  if(typeof showView === 'function') showView('listView');
-  else renderLearn();
+  learnState.page = 'home';
+  renderLearn();
 }
 function learnCard(item, page, extraClass = ''){
   return `
@@ -286,9 +290,10 @@ function renderLearnBreadcrumbs(page = learnState.page){
     </nav>`;
 }
 function renderLearnHeader(title, subtitle = '', headingId = 'learnPageTitle'){
+  const showBack = learnState.page !== 'home';
   return `
     <header class="learn-header">
-      <button class="btn btn-ghost btn-sm" id="learnBackBtn" type="button">← Back</button>
+      ${showBack ? '<button class="btn btn-ghost btn-sm" id="learnBackBtn" type="button">Back</button>' : ''}
       <div>
         <h1 id="${escHtml(headingId)}">${escHtml(title)}</h1>
         ${subtitle ? `<p>${escHtml(subtitle)}</p>` : ''}
@@ -538,6 +543,23 @@ function learnCurrentVocabularyWord(language, threshold, pathPage = ''){
   learnState.currentVocabularyWordId = '';
   renderLearn();
 }
+function markLearnPathKnown(language, threshold, pathPage = ''){
+  if(!VocabularyLearningModel) return null;
+  const page = pathPage || learnState.page;
+  const path = learnPathForPage(page, language, threshold);
+  const entries = learnEntriesForPath(path);
+  const message = 'Mark all words in this path as Known? This will update Reading Readiness and Progress.';
+  if(typeof confirm === 'function' && !confirm(message)) return null;
+  const result = VocabularyLearningModel.markPathKnown(entries, learnVocabularyStore(), path);
+  VocabularyLearningModel.saveStore(result.store);
+  learnState.currentVocabularyWordId = '';
+  learnState.focusedReviewWordId = '';
+  learnState.reviewReveal = false;
+  learnState.progressCache = {};
+  learnState.progressLoading = {};
+  renderLearn();
+  return result;
+}
 function revealLearnReview(){
   learnState.reviewReveal = true;
   renderLearn();
@@ -620,6 +642,10 @@ function renderLanguageReviewPage(area, language){
         : `<section class="word-page-section learn-explainer">
             <h2>No reviews available</h2>
             <p>${escHtml(learnLanguageTitle(language))} words you are learning will appear here when they are ready to review.</p>
+            <div class="learn-vocab-actions">
+              <button class="btn btn-primary btn-sm" type="button" data-learn-page="vocabulary:new-words">Start New Words</button>
+              <button class="btn btn-ghost btn-sm" type="button" data-learn-page="home">Back to Learn</button>
+            </div>
           </section>`}
       </section>`;
   }
@@ -689,16 +715,23 @@ function renderFrequencyPlaceholder(language, threshold, contextTitle = ''){
         ${started ? (current ? `
           ${renderVocabularyLearningCard(current)}
           <div class="learn-vocab-actions">
-            <button class="btn" type="button" data-learn-word-learned="true" data-lang="${escHtml(language)}" data-threshold="${escHtml(threshold)}" data-path-page="${escHtml(page)}">Learn Another Word</button>
+            <button class="btn btn-primary" type="button" data-learn-word-learned="true" data-lang="${escHtml(language)}" data-threshold="${escHtml(threshold)}" data-path-page="${escHtml(page)}">Learn Another Word</button>
           </div>`
         : `<section class="word-page-section learn-explainer">
             <h2>Path complete</h2>
             <p>There are no Not Learned words remaining in this frequency path.</p>
+            <div class="learn-vocab-actions">
+              <button class="btn btn-primary btn-sm" type="button" data-learn-page="vocabulary:review:${escHtml(language)}">Review Due Words</button>
+              <button class="btn btn-ghost btn-sm" type="button" data-learn-page="home">Back to Learn</button>
+            </div>
           </section>`)
         : `<section class="word-page-section learn-explainer">
             <h2>${escHtml(title)}</h2>
             <p>${escHtml(learnFrequencyDescription(language, threshold))}</p>
-            <button class="btn btn-primary learn-start-learning-action" type="button" data-learn-start-path="${escHtml(page)}">Start Learning</button>
+            <div class="learn-vocab-actions">
+              <button class="btn btn-primary learn-start-learning-action" type="button" data-learn-start-path="${escHtml(page)}">Start Learning</button>
+              <button class="btn btn-ghost btn-sm" type="button" data-learn-mark-path-known="true" data-lang="${escHtml(language)}" data-threshold="${escHtml(threshold)}" data-path-page="${escHtml(page)}">Mark Path as Known</button>
+            </div>
           </section>`}
       </section>`;
   }
@@ -809,6 +842,16 @@ function renderParadigmsPage(area){
   return `
     <section class="panel learn-panel" aria-labelledby="learnParadigmsTitle">
       ${renderLearnHeader(area.title, area.description, 'learnParadigmsTitle')}
+      <div class="learn-card-grid">
+        ${learnCard(area.children[0], 'paradigms:recognition-practice', 'learn-card-emphasis')}
+        ${learnCard(area.children[1], 'paradigms:parsing-drills')}
+      </div>
+    </section>`;
+}
+function renderRecognitionPracticePage(area){
+  return `
+    <section class="panel learn-panel" aria-labelledby="learnRecognitionPracticeTitle">
+      ${renderLearnHeader('Recognition Practice', 'Recognition Practice is the primary paradigm study path.', 'learnRecognitionPracticeTitle')}
       <div class="learn-language-grid">
         ${area.groups.map(group => `
           <section class="learn-language-group" aria-labelledby="learn-${escHtml(group.id)}">
@@ -817,6 +860,22 @@ function renderParadigmsPage(area){
               ${group.children.map(item => learnCard(item, `${area.id}:${item.id}`, item.emphasis ? 'learn-card-emphasis' : '')).join('')}
             </div>
           </section>`).join('')}
+      </div>
+    </section>`;
+}
+function renderParsingDrillsPage(){
+  return `
+    <section class="panel learn-panel" aria-labelledby="learnParsingDrillsTitle">
+      ${renderLearnHeader('Parsing Drills', 'Additional practice using the existing parsing drill tool.', 'learnParsingDrillsTitle')}
+      <div class="learn-card-grid learn-language-choice-grid">
+        <button class="learn-card" type="button" data-learn-open-view="parsing" data-learn-open-lang="greek">
+          <span class="learn-card-title">Greek Parsing Drills</span>
+          <span class="learn-card-description">Practice Greek forms with the existing drill interface.</span>
+        </button>
+        <button class="learn-card" type="button" data-learn-open-view="parsing" data-learn-open-lang="hebrew">
+          <span class="learn-card-title">Hebrew Parsing Drills</span>
+          <span class="learn-card-description">Practice Hebrew forms with the existing drill interface.</span>
+        </button>
       </div>
     </section>`;
 }
@@ -868,6 +927,7 @@ function openLearnReference(topicId, sectionId = ''){
   if(typeof state !== 'undefined' && topicId){
     const topic = api?.getReferenceTopic?.(topicId);
     if(topic?.language === 'greek' || topic?.language === 'hebrew') state.lang = topic.language;
+    if(topic?.language && typeof setReferenceLanguage === 'function') setReferenceLanguage(topic.language, { render: false });
   }
   if(typeof showView === 'function') showView('grammarView');
   if(typeof navigateTo === 'function') navigateTo('/grammar');
@@ -893,7 +953,7 @@ function renderRecognitionCategoryPage(categoryId){
         <section class="word-page-section learn-explainer">
           <h2>${escHtml(groupedTarget.title)}</h2>
           <p>${escHtml(groupedTarget.description)}</p>
-          <button class="btn btn-primary learn-start-learning-action" type="button" data-learn-recognition-start="${escHtml(groupedTarget.id)}" data-learn-recognition-category="${escHtml(categoryId)}">Start Grouped Practice</button>
+          <button class="btn btn-primary learn-start-learning-action" type="button" data-learn-recognition-start="${escHtml(groupedTarget.id)}" data-learn-recognition-category="${escHtml(categoryId)}">Start Recognition</button>
         </section>` : ''}
       <section class="learn-language-group">
         <h2>Paradigms</h2>
@@ -924,7 +984,10 @@ function renderRecognitionSessionPage(categoryId, targetId){
         <section class="word-page-section learn-explainer">
           <h2>Session complete</h2>
           <p>Recognized ${escHtml(String(sessionState.recognized))}; missed ${escHtml(String(sessionState.missed))}.</p>
-          <button class="btn btn-primary learn-start-learning-action" type="button" data-learn-recognition-start="${escHtml(targetId)}" data-learn-recognition-category="${escHtml(categoryId)}">Restart Session</button>
+          <div class="learn-vocab-actions">
+            <button class="btn btn-primary learn-start-learning-action" type="button" data-learn-recognition-start="${escHtml(targetId)}" data-learn-recognition-category="${escHtml(categoryId)}">Restart Recognition</button>
+            <button class="btn btn-ghost btn-sm" type="button" data-learn-page="paradigms:${escHtml(categoryId)}">Choose Another Paradigm</button>
+          </div>
         </section>` : `
         <article class="learn-vocab-card learn-recognition-card" dir="${target?.language === 'hebrew' ? 'rtl' : 'ltr'}">
           <p class="learn-recognition-prompt">${escHtml(current.prompt)}</p>
@@ -1017,6 +1080,8 @@ function renderLearnPage(){
   }
   if(area.id === 'paradigms' && childId && thirdId === 'session' && fourthId) return renderRecognitionSessionPage(childId, fourthId);
   if(area.id === 'paradigms' && childId && ['greek-verbs','greek-nouns','hebrew-verbs','hebrew-nouns'].includes(childId)) return renderRecognitionCategoryPage(childId);
+  if(area.id === 'paradigms' && childId === 'recognition-practice') return renderRecognitionPracticePage(area);
+  if(area.id === 'paradigms' && childId === 'parsing-drills') return renderParsingDrillsPage();
   if(childId) return renderLearnPlaceholder(area, learnChild(area, childId) || area);
   if(area.id === 'vocabulary') return renderVocabularyPage(area);
   if(area.id === 'paradigms') return renderParadigmsPage(area);
@@ -1029,12 +1094,19 @@ function wireLearn(){
   $$('.learn-breadcrumbs [data-learn-page]', root).forEach(crumb => crumb.addEventListener('click', () => setLearnPage(crumb.dataset.learnPage)));
   $$('[data-learn-start-path]', root).forEach(button => button.addEventListener('click', () => startLearnVocabularyPath(button.dataset.learnStartPath)));
   $$('[data-learn-word-learned]', root).forEach(button => button.addEventListener('click', () => learnCurrentVocabularyWord(button.dataset.lang, button.dataset.threshold, button.dataset.pathPage)));
+  $$('[data-learn-mark-path-known]', root).forEach(button => button.addEventListener('click', () => markLearnPathKnown(button.dataset.lang, button.dataset.threshold, button.dataset.pathPage)));
   $('#learnRevealMeaningBtn', root)?.addEventListener('click', revealLearnReview);
   $$('[data-learn-review-grade]', root).forEach(button => button.addEventListener('click', () => gradeLearnReview(button.dataset.lang, button.dataset.wordId, button.dataset.learnReviewGrade)));
   $$('[data-learn-recognition-start]', root).forEach(button => button.addEventListener('click', () => startRecognitionSession(button.dataset.learnRecognitionStart, button.dataset.learnRecognitionCategory || '')));
   $$('[data-learn-recognition-reveal]', root).forEach(button => button.addEventListener('click', revealRecognitionAnswer));
   $$('[data-learn-recognition-grade]', root).forEach(button => button.addEventListener('click', () => gradeRecognitionAnswer(button.dataset.learnRecognitionGrade)));
   $$('[data-learn-reference-topic]', root).forEach(button => button.addEventListener('click', () => openLearnReference(button.dataset.learnReferenceTopic, button.dataset.learnReferenceSection || '')));
+  $$('[data-learn-open-view]', root).forEach(button => button.addEventListener('click', () => {
+    if(button.dataset.learnOpenLang && typeof setLang === 'function') setLang(button.dataset.learnOpenLang);
+    const target = button.dataset.learnOpenView === 'parsing' ? '/parsing' : `/${button.dataset.learnOpenView}`;
+    if(typeof navigateTo === 'function') navigateTo(target);
+    else if(typeof showView === 'function') showView(button.dataset.learnOpenView === 'parsing' ? 'parsingView' : button.dataset.learnOpenView);
+  }));
   $$('.learn-custom-frequency-form', root).forEach(form => form.addEventListener('submit', event => {
     event.preventDefault();
     setLearnCustomFrequency(form.dataset.learnCustomBase, form.querySelector('.learn-custom-frequency-input')?.value || '');
@@ -1047,5 +1119,5 @@ function renderLearn(){
   wireLearn();
 }
 
-if(typeof window !== 'undefined') Object.assign(window, { LearnAreas, learnState, learnArea, learnChild, learnPageTitle, learnBreadcrumbs, parseLearnCustomFrequency, setLearnCustomFrequency, resetLearn, setLearnPage, backLearnPage, renderLearn, renderLearnPage, learnBookList, learnPathForPage, startLearnVocabularyPath, learnCurrentVocabularyWord, reviewLearnVocabularyWord, revealLearnReview, gradeLearnReview, recognitionTargetsForLearn, startRecognitionSession, revealRecognitionAnswer, gradeRecognitionAnswer, openLearnReference });
-if(typeof module !== 'undefined') module.exports = { LearnAreas, LearnFrequencyThresholds, learnState, learnArea, learnChild, learnPageTitle, learnBreadcrumbs, parseLearnCustomFrequency, setLearnCustomFrequency, resetLearn, learnBookList, learnPathForPage, setLearnPage, backLearnPage, renderLearnPage, startLearnVocabularyPath, learnCurrentVocabularyWord, reviewLearnVocabularyWord, revealLearnReview, gradeLearnReview, recognitionTargetsForLearn, startRecognitionSession, revealRecognitionAnswer, gradeRecognitionAnswer, openLearnReference };
+if(typeof window !== 'undefined') Object.assign(window, { LearnAreas, learnState, learnArea, learnChild, learnPageTitle, learnBreadcrumbs, parseLearnCustomFrequency, setLearnCustomFrequency, resetLearn, setLearnPage, backLearnPage, renderLearn, renderLearnPage, learnBookList, learnPathForPage, startLearnVocabularyPath, learnCurrentVocabularyWord, markLearnPathKnown, reviewLearnVocabularyWord, revealLearnReview, gradeLearnReview, recognitionTargetsForLearn, startRecognitionSession, revealRecognitionAnswer, gradeRecognitionAnswer, openLearnReference });
+if(typeof module !== 'undefined') module.exports = { LearnAreas, LearnFrequencyThresholds, learnState, learnArea, learnChild, learnPageTitle, learnBreadcrumbs, parseLearnCustomFrequency, setLearnCustomFrequency, resetLearn, learnBookList, learnPathForPage, setLearnPage, backLearnPage, renderLearnPage, startLearnVocabularyPath, learnCurrentVocabularyWord, markLearnPathKnown, reviewLearnVocabularyWord, revealLearnReview, gradeLearnReview, recognitionTargetsForLearn, startRecognitionSession, revealRecognitionAnswer, gradeRecognitionAnswer, openLearnReference };

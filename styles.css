@@ -107,24 +107,6 @@ a { color: var(--accent); }
   border: 1px solid var(--border);
   box-shadow: var(--shadow-sm);
 }
-.lang-toggle { display: flex; gap: 4px; background: var(--surface-2); border-radius: 8px; padding: 3px; }
-.lang-btn {
-  padding: 6px 14px; border-radius: 6px; font-size: 13px; font-weight: 600;
-  color: var(--muted); transition: all 150ms;
-  border: 1px solid transparent;
-}
-.lang-btn.active {
-  background: var(--accent); color: #fff;
-  box-shadow: 0 2px 6px var(--accent-glow);
-}
-.topbar-right { margin-left: auto; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
-.badge {
-  padding: 5px 10px; border-radius: 999px; font-size: 12px; font-weight: 600;
-  background: var(--surface-2); border: 1px solid var(--border); color: var(--muted);
-}
-.badge.due-badge { background: var(--accent-glow); border-color: rgba(78,143,110,0.3); color: var(--accent-dark); }
-.badge.streak-badge { background: rgba(201,124,6,0.12); border-color: rgba(201,124,6,0.3); color: var(--warn); }
-
 /* ===== BUTTONS ===== */
 .btn {
   padding: 7px 14px; border-radius: 8px; font-size: 13px; font-weight: 600;
@@ -641,7 +623,6 @@ button:focus-visible, input:focus-visible, select:focus-visible {
   .fc-gloss { font-size: 22px; }
   .fc-back-word { font-size: 24px; }
   .header-actions { width: 100%; margin-left: 0; justify-content: flex-end; }
-  .topbar-right .badge { display: none; }
   .fc-face { padding: 24px 16px; }
   .panel { padding: 12px; }
   .parsing-question-word { font-size: 36px; }
@@ -658,6 +639,10 @@ button:focus-visible, input:focus-visible, select:focus-visible {
   display: grid;
   gap: 16px;
   padding: 20px;
+}
+.word-page-top-actions {
+  display: flex;
+  justify-content: flex-start;
 }
 .word-page-header {
   display: flex;
@@ -1477,16 +1462,12 @@ button:focus-visible, input:focus-visible, select:focus-visible {
 .reader-word-page-action {
   width: 100%;
   margin-top: 12px;
-  border: 1px solid var(--border-strong);
-  border-radius: 8px;
   padding: 8px 10px;
-  background: var(--surface-2);
-  color: var(--text);
   font-size: 13px;
   font-weight: 800;
+  justify-content: center;
 }
-.reader-word-page-action:hover,
-.reader-word-page-action:focus-visible { border-color: var(--accent); outline: none; }
+.reader-word-page-action:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 @media (max-width: 640px) {
   .reader-controls .input,
   .reader-controls .btn { flex: 1 1 46%; }

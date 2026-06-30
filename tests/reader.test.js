@@ -258,7 +258,14 @@ test('clicking Open Word Page closes the popup and opens a dynamic Word Page vie
       if(selector === '#wordPageBackToReader') return { addEventListener(type, handler){ if(type === 'click') backHandler = handler; } };
       return null;
     },
-    querySelectorAll: selector => selector === '.reader-word-link' ? [{ dataset: { topicId: 'greek-nouns' }, addEventListener(){} }] : []
+    querySelectorAll: selector => {
+      if(selector === '.reader-word-link') return [{ dataset: { topicId: 'greek-nouns' }, addEventListener(){} }];
+      if(selector === '[data-word-page-back-to-reader]') return [
+        { addEventListener(type, handler){ if(type === 'click') backHandler = handler; } },
+        { addEventListener(type, handler){ if(type === 'click') backHandler = handler; } }
+      ];
+      return [];
+    }
   };
   global.$ = (selector, scope) => {
     if(scope?.querySelector) return scope.querySelector(selector);
@@ -285,6 +292,8 @@ test('clicking Open Word Page closes the popup and opens a dynamic Word Page vie
   assert.equal(shownView, 'wordPageView');
   assert.equal(toastMessage, '');
   assert.match(wordPageHtml, /<h1 id="wordPageTitle" class="word-page-headword">λόγος<\/h1>/);
+  assert.ok(wordPageHtml.indexOf('data-word-page-back-to-reader="true"') < wordPageHtml.indexOf('word-page-header'));
+  assert.equal((wordPageHtml.match(/Back to Reader/g) || []).length, 2);
   assert.match(wordPageHtml, /word-page-pos">Noun<\/div>/);
   assert.doesNotMatch(wordPageHtml, /wordPageLemmaHeading/);
   assert.match(wordPageHtml, /word-page-primary-gloss">word<\/p>/);

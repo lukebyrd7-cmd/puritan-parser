@@ -29,7 +29,7 @@ function wireEvents(){
   $('#endFlashBtn').addEventListener('click',endFlash);
   $('#fcFlipToBack').addEventListener('click',()=>setCardFlipped(true));
   $('#fcFlipToFront').addEventListener('click',()=>setCardFlipped(false));
-  $('#flashCompleteBack').addEventListener('click',()=>{ endFlash(); showView('listView'); });
+  $('#flashCompleteBack').addEventListener('click',()=>{ endFlash(); showView('learnView'); });
 
   // Swipe
   wireSwipe();
@@ -117,11 +117,10 @@ function wireEvents(){
     if(!inInput){
       const fv = document.getElementById('flashView');
       const inFlash = fv&&!fv.classList.contains('hidden');
-      if(e.key==='f'||e.key==='F'){ e.preventDefault(); showView('flashView'); }
-      else if(e.key==='p'||e.key==='P'){ e.preventDefault(); showView('parsingView'); }
-      else if(e.key==='d'||e.key==='D'){ e.preventDefault(); showView('dashboardView'); }
+      if(e.key==='l'||e.key==='L'){ e.preventDefault(); showView('learnView'); }
+      else if(e.key==='r'||e.key==='R'){ e.preventDefault(); showView('readerView'); }
+      else if(e.key==='p'||e.key==='P'){ e.preventDefault(); showView('progressView'); }
       else if(e.key==='s'||e.key==='S'){ e.preventDefault(); showView('settingsView'); }
-      else if(e.key==='l'||e.key==='L'){ e.preventDefault(); showView('listView'); }
       if(inFlash&&state.session.queue.length){
         if(e.key===' '){ e.preventDefault(); setCardFlipped(!state.session.flipped); }
         if(state.session.flipped){

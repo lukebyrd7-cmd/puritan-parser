@@ -10,10 +10,11 @@ test('smoke: app shell loads required views and controls', () => {
   });
 });
 
-test('smoke: Greek/Hebrew switching and word list controls are present', () => {
-  assert.match(html, /data-lang="greek"/);
-  assert.match(html, /data-lang="hebrew"/);
-  assert.match(html, /data-lang="hebrew"[\s\S]*data-lang="greek"/);
+test('smoke: global language toggle is removed and word list controls are present', () => {
+  assert.doesNotMatch(html, /class="lang-toggle"/);
+  assert.doesNotMatch(html, /id="btnGreek"|id="btnHebrew"/);
+  assert.doesNotMatch(html, /id="dueBadge"|id="streakBadge"/);
+  assert.doesNotMatch(html, /class="topbar-right"/);
   assert.match(html, /id="wordsTbody"/);
 });
 

@@ -65,7 +65,7 @@ test('router changes routes and selects views', () => {
   assert.equal(app.routeForView('wordPageView'), '/word');
 });
 
-test('router treats root as the list view', () => {
+test('router treats root as the Learn view', () => {
   const shown = [];
   const app = loadBrowserScripts(['src/core/router.js'], {
     window: { location: { pathname: '/' }, addEventListener() {} },
@@ -75,7 +75,7 @@ test('router treats root as the list view', () => {
 
   app.initRouter();
   assert.equal(app.window.location.pathname, '/');
-  assert.equal(shown.at(-1), 'listView');
+  assert.equal(shown.at(-1), 'learnView');
 });
 
 test('showView can display the static Word Page view', () => {

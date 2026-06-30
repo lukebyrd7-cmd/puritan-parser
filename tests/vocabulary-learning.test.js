@@ -73,6 +73,23 @@ test('Missed updates review state by returning the word to Learning sooner', () 
   assert.equal(record.due, '2026-06-28');
 });
 
+test('Mark Path as Known marks only Not Learned path entries without due reviews', () => {
+  let store = VocabularyLearning.introduceEntry(VocabularyLearning.normalizeStore(), entries[0], greek25, '2026-06-26');
+  const result = VocabularyLearning.markPathKnown(entries, store, greek25, '2026-06-26');
+  store = result.store;
+
+  assert.equal(result.count, 2);
+  assert.equal(VocabularyLearning.learningStatus(store, entries[0], '2026-06-26'), 'Learning');
+  assert.equal(VocabularyLearning.learningStatus(store, entries[1], '2026-06-26'), 'Known');
+  assert.equal(VocabularyLearning.learningStatus(store, entries[2], '2026-06-26'), 'Known');
+  assert.equal(VocabularyLearning.learningStatus(store, entries[3], '2026-06-26'), 'Not Learned');
+  assert.deepEqual(VocabularyLearning.dueEntries(entries, store, '2026-06-26').map(entry => entry.lemma), ['logos']);
+
+  const marked = VocabularyLearning.getRecord(store, entries[1]);
+  assert.equal(marked.due, '9999-12-31');
+  assert.equal(marked.history.at(-1).result, 'marked-known');
+});
+
 test('localStorage persistence uses one global vocabulary learning collection without decks', () => {
   const saved = new Map();
   global.localStorage = {

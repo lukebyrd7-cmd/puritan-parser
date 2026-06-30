@@ -1,6 +1,6 @@
 // Service worker for the static Puritan Parser app.
 // Keep this file next to index.html so navigator.serviceWorker.register('./sw.js') works.
-const CACHE = 'puritan-parser-v23-progress-statistics';
+const CACHE = 'puritan-parser-v26-final-polish';
 const FILES = [
   './',
   './index.html',
