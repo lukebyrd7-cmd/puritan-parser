@@ -93,9 +93,14 @@ test('Adaptive Reader settings render from the Reader and persist locally', () =
   assert.match(html, /WEB/);
   assert.match(html, /Assistance/);
   assert.match(html, /Hide Known Words/);
-  assert.match(html, /Floating Translation Toggle/);
+  assert.match(html, /Reader Settings/);
+  assert.match(html, /Show Translation Toggle/);
   assert.match(html, /Indicator/);
-  assert.match(html, /Interlinear • 30\+ • Hide Known/);
+  assert.match(html, /Interlinear • OEB • 30\+ • Hide Known/);
+  assert.match(html, /id="readerSearchToggle"[\s\S]*>Search<\/button>/);
+  assert.match(html, /reader-search hidden/);
+  assert.match(html, /Book Progress/);
+  assert.doesNotMatch(html, /View Book Progress/);
   assert.ok(storage.has('pp_reader_adaptive_settings'));
 });
 
@@ -125,42 +130,44 @@ test('Adaptive Reader panel stays open after setting changes and closes intentio
   assert.doesNotMatch(html, /id="readerSettingsPanel" open/);
 });
 
-test('Floating Reader Controls is optional and persists with Adaptive Reader settings', async () => {
+test('Reader controls stay fixed in the reader shell and search expands only when requested', async () => {
   storageHarness();
   let html = '';
   const shell = { set innerHTML(value){ html = value; }, get innerHTML(){ return html; } };
   global.$ = selector => selector === '#readerShell' ? shell : null;
   global.$$ = () => [];
 
-  reader.saveReaderSettings({ ...reader.ReaderDefaultSettings, floatingControls: false }, 'greek');
   await reader.setReaderLocation({ language: 'greek', book: 'matthew', chapter: 1 });
-  assert.doesNotMatch(html, /reader-controls-floating/);
-  assert.match(html, /Floating Reader Controls/);
+  assert.match(html, /class="panel reader-controls"/);
+  assert.match(html, /id="readerPrevBtn"[\s\S]*id="readerNextBtn"/);
+  assert.match(html, /id="readerSearchToggle" type="button" aria-expanded="false"/);
+  assert.match(html, /reader-search hidden/);
 
-  reader.openReaderSettingsPanel();
-  reader.updateReaderSetting('floatingControls', true);
-  assert.equal(reader.loadReaderSettings('greek').floatingControls, true);
-  assert.match(html, /class="panel reader-controls reader-controls-floating"/);
-  assert.match(html, /id="readerSettingsPanel" open/);
-  reader.closeReaderSettingsPanel();
+  reader.openReaderSearch();
+  assert.match(html, /id="readerSearchToggle" type="button" aria-expanded="true"/);
+  assert.match(html, /class="panel reader-search"/);
+  assert.doesNotMatch(html, /reader-search hidden/);
+
+  reader.closeReaderSearch();
+  assert.match(html, /reader-search hidden/);
 });
 
-test('Floating Translation Toggle is optional and persists with Adaptive Reader settings', async () => {
+test('Show Translation Toggle is optional and persists with Adaptive Reader settings', async () => {
   storageHarness();
   let html = '';
   const shell = { set innerHTML(value){ html = value; }, get innerHTML(){ return html; } };
   global.$ = selector => selector === '#readerShell' ? shell : null;
   global.$$ = () => [];
 
-  reader.saveReaderSettings({ ...reader.ReaderDefaultSettings, translation: 'on', floatingTranslationToggle: false }, 'greek');
+  reader.saveReaderSettings({ ...reader.ReaderDefaultSettings, translation: 'on', showTranslationToggle: true }, 'greek');
   await reader.setReaderLocation({ language: 'greek', book: 'john', chapter: 1 });
-  assert.doesNotMatch(html, /reader-translation-bar-floating/);
-  assert.match(html, /Floating Translation Toggle/);
+  assert.match(html, /class="reader-translation-bar"/);
+  assert.match(html, /Show Translation Toggle/);
 
   reader.openReaderSettingsPanel();
-  reader.updateReaderSetting('floatingTranslationToggle', true);
-  assert.equal(reader.loadReaderSettings('greek').floatingTranslationToggle, true);
-  assert.match(html, /reader-translation-bar reader-translation-bar-floating/);
+  reader.updateReaderSetting('showTranslationToggle', false);
+  assert.equal(reader.loadReaderSettings('greek').showTranslationToggle, false);
+  assert.doesNotMatch(html, /data-reader-text-mode="english"/);
   assert.match(html, /id="readerSettingsPanel" open/);
   reader.closeReaderSettingsPanel();
 });
@@ -279,12 +286,17 @@ test('Reader falls back to WEB when OEB is selected but unavailable', async () =
   await reader.setReaderLocation({ language: 'greek', book: 'john', chapter: 1 });
 });
 
-test('Reader persists translation provider selection by language', () => {
+test('Reader shares settings across languages except assistance threshold', () => {
   storageHarness();
-  reader.saveReaderSettings({ ...reader.ReaderDefaultSettings, translationProvider: 'web', floatingTranslationToggle: true }, 'hebrew');
+  reader.saveReaderSettings({ ...reader.ReaderDefaultSettings, translationProvider: 'web', display: 'interlinear', assistance: '20', showTranslationToggle: false }, 'hebrew');
   assert.equal(reader.loadReaderSettings('hebrew').translationProvider, 'web');
-  assert.equal(reader.loadReaderSettings('hebrew').floatingTranslationToggle, true);
-  assert.equal(reader.loadReaderSettings('greek').translationProvider, 'oeb');
+  assert.equal(reader.loadReaderSettings('hebrew').display, 'interlinear');
+  assert.equal(reader.loadReaderSettings('hebrew').assistance, '20');
+  assert.equal(reader.loadReaderSettings('hebrew').showTranslationToggle, false);
+  assert.equal(reader.loadReaderSettings('greek').translationProvider, 'web');
+  assert.equal(reader.loadReaderSettings('greek').display, 'interlinear');
+  assert.equal(reader.loadReaderSettings('greek').assistance, 'everything');
+  assert.equal(reader.loadReaderSettings('greek').showTranslationToggle, false);
 });
 
 test('Adaptive Reader assistance thresholds, custom validation, and indicators work together', () => {

@@ -8,7 +8,7 @@ const ReaderTranslationOptions = [
 ];
 const ReaderDefaultSettings = {
   display: 'original',
-  translation: 'off',
+  translation: 'on',
   translationProvider: 'oeb',
   textMode: 'original',
   assistance: 'everything',
@@ -16,8 +16,10 @@ const ReaderDefaultSettings = {
   hideKnown: false,
   indicator: 'none',
   floatingControls: false,
-  floatingTranslationToggle: false
+  floatingTranslationToggle: false,
+  showTranslationToggle: true
 };
+const ReaderSharedSettingKeys = ['display', 'translation', 'translationProvider', 'textMode', 'hideKnown', 'indicator', 'floatingControls', 'floatingTranslationToggle', 'showTranslationToggle'];
 const ReaderConfig = {
   hebrew: {
     label: 'Hebrew Bible',
@@ -92,6 +94,7 @@ const readerSearchIndexCache = new Map();
 let readerPopupLastTrigger = null;
 let readerHiddenToastAt = 0;
 let readerSettingsPanelOpen = false;
+let readerSearchOpen = false;
 
 function normalizeReaderBook(book){
   const chapters = Array.isArray(book.chapters) ? book.chapters.map(Number).filter(Boolean).sort((a, b) => a - b) : Array.from({ length: Number(book.chapters) || 0 }, (_, i) => i + 1);
@@ -160,6 +163,7 @@ function sanitizeReaderSettings(settings = {}){
   next.indicator = ['none', 'tint', 'underline', 'footnote'].includes(next.indicator) ? next.indicator : ReaderDefaultSettings.indicator;
   next.floatingControls = Boolean(next.floatingControls);
   next.floatingTranslationToggle = Boolean(next.floatingTranslationToggle);
+  next.showTranslationToggle = next.showTranslationToggle !== false;
   if(next.translation === 'off') next.textMode = 'original';
   return next;
 }
@@ -176,13 +180,25 @@ function saveAllReaderSettings(settingsByLanguage = {}){
 }
 function loadReaderSettings(language = readerState.language){
   const all = loadAllReaderSettings();
-  return sanitizeReaderSettings(all[language] || all.global || {});
+  const legacyLanguage = all[language] && typeof all[language] === 'object' ? all[language] : {};
+  const shared = all.shared && typeof all.shared === 'object'
+    ? all.shared
+    : Object.fromEntries(ReaderSharedSettingKeys.filter(key => Object.prototype.hasOwnProperty.call(legacyLanguage, key)).map(key => [key, legacyLanguage[key]]));
+  return sanitizeReaderSettings({ ...shared, assistance: legacyLanguage.assistance, customThreshold: legacyLanguage.customThreshold });
 }
 function saveReaderSettings(settings = loadReaderSettings(), language = readerState.language){
   const all = loadAllReaderSettings();
-  all[language] = sanitizeReaderSettings(settings);
+  const clean = sanitizeReaderSettings(settings);
+  const existingLanguage = all[language] && typeof all[language] === 'object' ? all[language] : {};
+  all.shared = { ...(all.shared || {}) };
+  ReaderSharedSettingKeys.forEach(key => { all.shared[key] = clean[key]; });
+  all[language] = {
+    assistance: clean.assistance,
+    customThreshold: clean.customThreshold,
+    ...(Object.prototype.hasOwnProperty.call(existingLanguage, 'legacy') ? { legacy: existingLanguage.legacy } : {})
+  };
   saveAllReaderSettings(all);
-  return all[language];
+  return clean;
 }
 function getActiveReaderSettings(){ return loadReaderSettings(readerState.language); }
 function readerAssistanceThreshold(settings = getActiveReaderSettings()){
@@ -792,26 +808,32 @@ function renderReader(){
   const data = readerState.chapterData;
   const settings = getActiveReaderSettings();
   root.innerHTML = `
-    <section class="panel reader-controls${settings.floatingControls ? ' reader-controls-floating' : ''}" aria-label="Reader controls">
-      <select id="readerLanguageSelect" class="input" aria-label="Reader language selector">${Object.entries(ReaderConfig).map(([key, item]) => `<option value="${key}" ${key===readerState.language?'selected':''}>${escHtml(item.shortLabel || item.label)}</option>`).join('')}</select>
-      <select id="readerBookSelect" class="input" aria-label="Book selector">${books.map(item => `<option value="${item.id}" ${item.id===readerState.book?'selected':''}>${escHtml(item.name)}</option>`).join('')}</select>
-      <select id="readerChapterSelect" class="input" aria-label="Chapter selector">${chapters.map(ch => `<option value="${ch}" ${ch===readerState.chapter?'selected':''}>Chapter ${ch}</option>`).join('')}</select>
-      <button class="btn btn-ghost btn-sm" id="readerPrevBtn" ${getAdjacentReaderLocation(-1)?'':'disabled'}>← Previous</button>
-      <button class="btn btn-ghost btn-sm" id="readerNextBtn" ${getAdjacentReaderLocation(1)?'':'disabled'}>Next →</button>
-      <details class="reader-settings" id="readerSettingsPanel" ${readerSettingsPanelOpen ? 'open' : ''}>
-        <summary class="btn btn-ghost btn-sm">Reader</summary>
-        ${renderReaderSettingsPanel(settings)}
-      </details>
-      <button class="btn btn-ghost btn-sm" id="readerBookProgressBtn" type="button">View Book Progress</button>
-      <div class="reader-reference" id="readerReference"><span>${escHtml(book.name)} ${readerState.chapter}</span><small>${escHtml(renderReaderStatus(settings))}</small></div>
+    <section class="panel reader-controls" aria-label="Reader controls">
+      <div class="reader-control-row reader-control-selects">
+        <select id="readerLanguageSelect" class="input" aria-label="Reader language selector">${Object.entries(ReaderConfig).map(([key, item]) => `<option value="${key}" ${key===readerState.language?'selected':''}>${escHtml(item.shortLabel || item.label)}</option>`).join('')}</select>
+        <select id="readerBookSelect" class="input" aria-label="Book selector">${books.map(item => `<option value="${item.id}" ${item.id===readerState.book?'selected':''}>${escHtml(item.name)}</option>`).join('')}</select>
+        <select id="readerChapterSelect" class="input" aria-label="Chapter selector">${chapters.map(ch => `<option value="${ch}" ${ch===readerState.chapter?'selected':''}>Chapter ${ch}</option>`).join('')}</select>
+      </div>
+      <div class="reader-control-row reader-control-actions">
+        <button class="btn btn-ghost btn-sm" id="readerPrevBtn" ${getAdjacentReaderLocation(-1)?'':'disabled'}>← Previous</button>
+        <button class="btn btn-ghost btn-sm" id="readerNextBtn" ${getAdjacentReaderLocation(1)?'':'disabled'}>Next →</button>
+        <details class="reader-settings" id="readerSettingsPanel" ${readerSettingsPanelOpen ? 'open' : ''}>
+          <summary class="btn btn-ghost btn-sm">Reader Settings</summary>
+          ${renderReaderSettingsPanel(settings)}
+        </details>
+        <button class="reader-search-toggle" id="readerSearchToggle" type="button" aria-expanded="${readerSearchOpen ? 'true' : 'false'}">Search</button>
+        <button class="reader-progress-link" id="readerBookProgressBtn" type="button">Book Progress</button>
+        <div class="reader-reference" id="readerReference"><span>${escHtml(book.name)} ${readerState.chapter}</span><small>${escHtml(renderReaderStatus(settings))}</small></div>
+      </div>
     </section>
-    ${settings.translation === 'on' ? renderReaderTranslationToggle(settings, data) : ''}
-    <section class="panel reader-search" aria-label="${escReaderAttr(config.shortLabel || meta.label)} reader search">
+    ${settings.translation === 'on' && settings.showTranslationToggle ? renderReaderTranslationToggle(settings, data) : ''}
+    <section class="panel reader-search${readerSearchOpen ? '' : ' hidden'}" aria-label="${escReaderAttr(config.shortLabel || meta.label)} reader search">
       <input id="readerSearchInput" class="input" placeholder="${escReaderAttr(config.searchPlaceholder)}" autocomplete="off" />
       <button class="btn btn-primary btn-sm" id="readerSearchBtn">Search</button>
+      <button class="btn btn-ghost btn-sm" id="readerSearchClose" type="button">Close</button>
       <div id="readerSearchResults" class="reader-search-results"></div>
     </section>
-    <article class="reader-text reader-text-${escReaderAttr(meta.language)}" aria-live="polite">
+    <article class="reader-text reader-text-${escReaderAttr(meta.language)}" aria-live="polite" tabindex="0">
       ${readerState.loading ? '<div class="empty-state">Loading chapter…</div>' : ''}
       ${readerState.error ? `<div class="empty-state danger">${escHtml(readerState.error)}</div>` : ''}
       ${!readerState.loading && !readerState.error && data ? renderReaderChapter(data, settings) : ''}
@@ -848,8 +870,7 @@ function renderReaderSettingsPanel(settings = getActiveReaderSettings()){
             <input class="input reader-custom-threshold" id="readerCustomThreshold" inputmode="numeric" pattern="[0-9]*" placeholder="Exact threshold" value="${escReaderAttr(settings.customThreshold)}" ${settings.assistance === 'custom' ? '' : 'hidden'} aria-invalid="${customInvalid ? 'true' : 'false'}" />
           </div>
           <label class="reader-setting-check"><input type="checkbox" id="readerHideKnownToggle" ${settings.hideKnown ? 'checked' : ''} /> Hide Known Words</label>
-          <label class="reader-setting-check"><input type="checkbox" id="readerFloatingControlsToggle" ${settings.floatingControls ? 'checked' : ''} /> Floating Reader Controls</label>
-          <label class="reader-setting-check"><input type="checkbox" id="readerFloatingTranslationToggle" ${settings.floatingTranslationToggle ? 'checked' : ''} /> Floating Translation Toggle</label>
+          <label class="reader-setting-check"><input type="checkbox" id="readerShowTranslationToggle" ${settings.showTranslationToggle ? 'checked' : ''} /> Show Translation Toggle</label>
           <div class="reader-setting-group">
             <div class="reader-setting-label">Indicator</div>
             <div class="reader-setting-row reader-setting-row-wrap">
@@ -926,6 +947,8 @@ function wireReaderControls(){
   $('#readerPrevBtn')?.addEventListener('click', () => { const loc = getAdjacentReaderLocation(-1); if(loc) setReaderLocation(loc); });
   $('#readerNextBtn')?.addEventListener('click', () => { const loc = getAdjacentReaderLocation(1); if(loc) setReaderLocation(loc); });
   $('#readerBookProgressBtn')?.addEventListener('click', openReaderBookProgress);
+  $('#readerSearchToggle')?.addEventListener('click', openReaderSearch);
+  $('#readerSearchClose')?.addEventListener('click', closeReaderSearch);
   $('#readerSearchBtn')?.addEventListener('click', () => runReaderSearch($('#readerSearchInput')?.value || ''));
   $('#readerSearchInput')?.addEventListener('keydown', e => { if(e.key === 'Enter') runReaderSearch(e.target.value); });
   $('#readerSettingsPanel summary')?.addEventListener('click', event => {
@@ -935,8 +958,7 @@ function wireReaderControls(){
   $('#readerSettingsClose')?.addEventListener('click', closeReaderSettingsPanel);
   $$('[data-reader-setting]').forEach(btn => btn.addEventListener('click', () => updateReaderSetting(btn.dataset.readerSetting, btn.dataset.readerValue)));
   $('#readerHideKnownToggle')?.addEventListener('change', e => updateReaderSetting('hideKnown', e.target.checked));
-  $('#readerFloatingControlsToggle')?.addEventListener('change', e => updateReaderSetting('floatingControls', e.target.checked));
-  $('#readerFloatingTranslationToggle')?.addEventListener('change', e => updateReaderSetting('floatingTranslationToggle', e.target.checked));
+  $('#readerShowTranslationToggle')?.addEventListener('change', e => updateReaderSetting('showTranslationToggle', e.target.checked));
   $('#readerCustomThreshold')?.addEventListener('change', e => updateReaderSetting('customThreshold', e.target.value));
   $$('[data-reader-text-mode]').forEach(btn => btn.addEventListener('click', () => updateReaderSetting('textMode', btn.dataset.readerTextMode)));
   $$('.reader-token').forEach(btn => btn.addEventListener('click', () => openReaderTokenPopup(btn)));
@@ -946,6 +968,15 @@ function wireReaderControls(){
     document.removeEventListener?.('click', handleReaderDocumentClick);
     document.addEventListener?.('click', handleReaderDocumentClick);
   }
+}
+function openReaderSearch(){
+  readerSearchOpen = true;
+  renderReader();
+  setTimeout(() => $('#readerSearchInput')?.focus?.(), 0);
+}
+function closeReaderSearch(){
+  readerSearchOpen = false;
+  renderReader();
 }
 function openReaderSettingsPanel(){
   if(readerSettingsPanelOpen) return;
@@ -969,6 +1000,7 @@ function updateReaderSetting(key, value){
   if(key === 'hideKnown') next.hideKnown = Boolean(value);
   else if(key === 'floatingControls') next.floatingControls = Boolean(value);
   else if(key === 'floatingTranslationToggle') next.floatingTranslationToggle = Boolean(value);
+  else if(key === 'showTranslationToggle') next.showTranslationToggle = Boolean(value);
   else if(key === 'customThreshold'){
     const clean = String(value || '').trim();
     if(clean && !/^[1-9]\d*$/.test(clean)){
@@ -1236,16 +1268,19 @@ async function runReaderSearch(query){
   const language = readerState.language;
   const meta = getReaderLanguageMeta(language);
   const direct = parseReaderReference(query, language);
-  if(direct){ await setReaderLocation(direct); return [direct]; }
+  if(direct){ await setReaderLocation(direct); closeReaderSearch(); return [direct]; }
   const q = normalizeReaderText(query);
   if(q.length < 2){ box.innerHTML = '<div class="small muted">Enter at least 2 characters.</div>'; return []; }
   let index = [];
   try { index = await loadReaderSearchIndex(language); } catch(e) { box.innerHTML = '<div class="small muted">Search index unavailable.</div>'; return []; }
   const results = index.filter(item => normalizeReaderText(`${item.text} ${item.lemmas?.join(' ')}`).includes(q)).slice(0, 20);
   box.innerHTML = results.length ? results.map(item => `<button class="reader-result" data-language="${escReaderAttr(language)}" data-book="${escReaderAttr(item.book)}" data-chapter="${escReaderAttr(item.chapter)}" data-verse="${escReaderAttr(item.verse)}"><strong>${escHtml(item.bookName)} ${item.chapter}:${item.verse}</strong> <span lang="${escReaderAttr(meta.htmlLang)}" dir="${escReaderAttr(meta.dir)}">${escHtml(item.text)}</span></button>`).join('') : '<div class="small muted">No verses found.</div>';
-  $$('.reader-result', box).forEach(btn => btn.addEventListener('click', () => setReaderLocation({ language: btn.dataset.language || language, book: btn.dataset.book, chapter: Number(btn.dataset.chapter), verse: btn.dataset.verse })));
+  $$('.reader-result', box).forEach(btn => btn.addEventListener('click', async () => {
+    await setReaderLocation({ language: btn.dataset.language || language, book: btn.dataset.book, chapter: Number(btn.dataset.chapter), verse: btn.dataset.verse });
+    closeReaderSearch();
+  }));
   return results;
 }
 async function initReader(){ const loc = loadReaderLocation(); readerState = { ...readerState, ...loc }; await setReaderLocation(loc); }
-if(typeof window !== 'undefined') Object.assign(window, { ReaderConfig, ReaderTranslationOptions, ReaderDefaultSettings, readerState, readerChapterCache, readerTranslationLoadCounts, readerManifestCache, readerLoadCounts, getReaderChapterPath, getReaderLanguageMeta, loadReaderManifest, loadReaderChapter, loadReaderTranslationChapter, ensureReaderTranslationLoaded, setReaderLocation, getAdjacentReaderLocation, renderReader, renderReaderChapter, renderReaderVerse, renderReaderTokens, initReader, runReaderSearch, loadReaderLocation, saveReaderLocation, loadReaderSettings, saveReaderSettings, getActiveReaderSettings, updateReaderSetting, openReaderSettingsPanel, closeReaderSettingsPanel, readerTokenQualifiesForAssistance, renderReaderSettingsPanel, renderReaderTranslationToggle, parseReaderReference, openReaderTokenPopup, closeReaderWordPopup, openReaderWordPage, renderReaderWordPage, lookupReaderWordInfo, explainReaderParse, readerGrammarLinksForInfo, readerPartOfSpeechForInfo, readerMorphologyFields, renderReaderMorphology, renderReaderGrammar, getReaderLemmaOccurrences, openReaderContextOccurrence, openReaderBookProgress, renderReaderWordLearning, readerLearningStatusForInfo, introduceReaderWordFromPage, reviewReaderWordFromPage });
-if(typeof module !== 'undefined') module.exports = { ReaderConfig, ReaderTranslationOptions, ReaderDefaultSettings, readerState: () => readerState, readerChapterCache, readerTranslationLoadCounts, readerManifestCache, readerLoadCounts, getReaderChapterPath, getReaderLanguageMeta, loadReaderManifest, normalizeReaderManifest, getReaderBookChapters, loadReaderChapter, loadReaderTranslationChapter, ensureReaderTranslationLoaded, setReaderLocation, getAdjacentReaderLocation, renderReader, renderReaderChapter, renderReaderVerse, renderReaderTokens, runReaderSearch, loadReaderLocation, saveReaderLocation, loadReaderSettings, saveReaderSettings, getActiveReaderSettings, updateReaderSetting, openReaderSettingsPanel, closeReaderSettingsPanel, handleReaderPopupKeydown, handleReaderDocumentClick, readerAssistanceThreshold, readerTokenFrequency, readerTokenQualifiesForAssistance, renderReaderSettingsPanel, renderReaderTranslationToggle, readerChapterHasEnglish, readerTranslationVerseEnglish, parseReaderReference, normalizeReaderText, lookupReaderWordInfo, explainReaderParse, readerGrammarLinksForInfo, readerParseKind, readerPartOfSpeechForInfo, readerMorphologyFields, renderReaderMorphology, renderReaderGrammar, openReaderTokenPopup, closeReaderWordPopup, openReaderWordPage, renderReaderWordPage, loadReaderSearchIndex, representativeReaderOccurrences, getReaderLemmaOccurrences, readerOccurrenceSnippet, renderReaderWordPageContext, renderReaderWordPageContextContent, attachReaderWordPageContextHandlers, openReaderContextOccurrence, openReaderBookProgress, renderReaderWordLearning, readerLearningStatusForInfo, introduceReaderWordFromPage, reviewReaderWordFromPage };
+if(typeof window !== 'undefined') Object.assign(window, { ReaderConfig, ReaderTranslationOptions, ReaderDefaultSettings, readerState, readerChapterCache, readerTranslationLoadCounts, readerManifestCache, readerLoadCounts, getReaderChapterPath, getReaderLanguageMeta, loadReaderManifest, loadReaderChapter, loadReaderTranslationChapter, ensureReaderTranslationLoaded, setReaderLocation, getAdjacentReaderLocation, renderReader, renderReaderChapter, renderReaderVerse, renderReaderTokens, initReader, runReaderSearch, loadReaderLocation, saveReaderLocation, loadReaderSettings, saveReaderSettings, getActiveReaderSettings, updateReaderSetting, openReaderSettingsPanel, closeReaderSettingsPanel, openReaderSearch, closeReaderSearch, readerTokenQualifiesForAssistance, renderReaderSettingsPanel, renderReaderTranslationToggle, parseReaderReference, openReaderTokenPopup, closeReaderWordPopup, openReaderWordPage, renderReaderWordPage, lookupReaderWordInfo, explainReaderParse, readerGrammarLinksForInfo, readerPartOfSpeechForInfo, readerMorphologyFields, renderReaderMorphology, renderReaderGrammar, getReaderLemmaOccurrences, openReaderContextOccurrence, openReaderBookProgress, renderReaderWordLearning, readerLearningStatusForInfo, introduceReaderWordFromPage, reviewReaderWordFromPage });
+if(typeof module !== 'undefined') module.exports = { ReaderConfig, ReaderTranslationOptions, ReaderDefaultSettings, readerState: () => readerState, readerChapterCache, readerTranslationLoadCounts, readerManifestCache, readerLoadCounts, getReaderChapterPath, getReaderLanguageMeta, loadReaderManifest, normalizeReaderManifest, getReaderBookChapters, loadReaderChapter, loadReaderTranslationChapter, ensureReaderTranslationLoaded, setReaderLocation, getAdjacentReaderLocation, renderReader, renderReaderChapter, renderReaderVerse, renderReaderTokens, runReaderSearch, loadReaderLocation, saveReaderLocation, loadReaderSettings, saveReaderSettings, getActiveReaderSettings, updateReaderSetting, openReaderSettingsPanel, closeReaderSettingsPanel, openReaderSearch, closeReaderSearch, handleReaderPopupKeydown, handleReaderDocumentClick, readerAssistanceThreshold, readerTokenFrequency, readerTokenQualifiesForAssistance, renderReaderSettingsPanel, renderReaderTranslationToggle, readerChapterHasEnglish, readerTranslationVerseEnglish, parseReaderReference, normalizeReaderText, lookupReaderWordInfo, explainReaderParse, readerGrammarLinksForInfo, readerParseKind, readerPartOfSpeechForInfo, readerMorphologyFields, renderReaderMorphology, renderReaderGrammar, openReaderTokenPopup, closeReaderWordPopup, openReaderWordPage, renderReaderWordPage, loadReaderSearchIndex, representativeReaderOccurrences, getReaderLemmaOccurrences, readerOccurrenceSnippet, renderReaderWordPageContext, renderReaderWordPageContextContent, attachReaderWordPageContextHandlers, openReaderContextOccurrence, openReaderBookProgress, renderReaderWordLearning, readerLearningStatusForInfo, introduceReaderWordFromPage, reviewReaderWordFromPage };
