@@ -1389,6 +1389,20 @@ button:focus-visible, input:focus-visible, select:focus-visible {
   justify-content: center;
   flex-wrap: wrap;
 }
+.reader-translation-bar-floating {
+  position: sticky;
+  top: 74px;
+  z-index: 105;
+  width: fit-content;
+  max-width: calc(100vw - 28px);
+  margin: 0 auto;
+  padding: 4px 8px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--card) 94%, transparent);
+  box-shadow: 0 6px 14px rgba(42, 31, 17, .07);
+  backdrop-filter: blur(10px);
+}
 .reader-translation-toggle {
   display: inline-flex;
   gap: 2px;

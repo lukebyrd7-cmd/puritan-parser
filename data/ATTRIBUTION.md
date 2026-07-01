@@ -15,13 +15,18 @@ The expanded parsing dataset is generated from openly available morphology proje
 - Repository: https://github.com/openscriptures/morphhb
 - Notes: OSHB/OSHM metadata in the source files identifies the morphology project under Creative Commons Attribution 4.0. The Westminster Leningrad Codex text is identified as public domain in the source metadata.
 
-## English Translation
+## English Translations
 
 - Source: Open English Bible
 - Repository: https://github.com/openenglishbible/Open-English-Bible
 - Artifact: `artifacts/us/usfm`
 - License: CC0-1.0
 - Notes: OEB chapter JSON under `data/translations/oeb/` is generated from the public US development USFM artifact.
+
+- Source: World English Bible
+- Artifact: https://ebible.org/Scriptures/engwebp_usfm.zip
+- License: Public Domain
+- Notes: WEB chapter JSON under `data/translations/web/` is generated from the Protestant USFM artifact and is used as the complete built-in English fallback when OEB does not include a passage.
 
 ## Generated File
 

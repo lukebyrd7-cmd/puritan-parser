@@ -89,8 +89,11 @@ test('Adaptive Reader settings render from the Reader and persist locally', () =
   assert.match(html, /Adaptive Reader settings/);
   assert.match(html, /Display/);
   assert.match(html, /Translation/);
+  assert.match(html, /English Translation/);
+  assert.match(html, /WEB/);
   assert.match(html, /Assistance/);
   assert.match(html, /Hide Known Words/);
+  assert.match(html, /Floating Translation Toggle/);
   assert.match(html, /Indicator/);
   assert.match(html, /Interlinear • 30\+ • Hide Known/);
   assert.ok(storage.has('pp_reader_adaptive_settings'));
@@ -142,6 +145,26 @@ test('Floating Reader Controls is optional and persists with Adaptive Reader set
   reader.closeReaderSettingsPanel();
 });
 
+test('Floating Translation Toggle is optional and persists with Adaptive Reader settings', async () => {
+  storageHarness();
+  let html = '';
+  const shell = { set innerHTML(value){ html = value; }, get innerHTML(){ return html; } };
+  global.$ = selector => selector === '#readerShell' ? shell : null;
+  global.$$ = () => [];
+
+  reader.saveReaderSettings({ ...reader.ReaderDefaultSettings, translation: 'on', floatingTranslationToggle: false }, 'greek');
+  await reader.setReaderLocation({ language: 'greek', book: 'john', chapter: 1 });
+  assert.doesNotMatch(html, /reader-translation-bar-floating/);
+  assert.match(html, /Floating Translation Toggle/);
+
+  reader.openReaderSettingsPanel();
+  reader.updateReaderSetting('floatingTranslationToggle', true);
+  assert.equal(reader.loadReaderSettings('greek').floatingTranslationToggle, true);
+  assert.match(html, /reader-translation-bar reader-translation-bar-floating/);
+  assert.match(html, /id="readerSettingsPanel" open/);
+  reader.closeReaderSettingsPanel();
+});
+
 test('Adaptive Reader display modes render original and clean interlinear text', () => {
   global.state = { data: { greek: [
     { lang: 'greek', lemma: 'λόγος', word: 'λόγος', primaryGloss: 'word', gloss: 'word', freq: 3 }
@@ -178,8 +201,8 @@ test('Adaptive Reader translation mode shows the Original English toggle and dis
   assert.match(english, /In the beginning was the Word/);
   assert.doesNotMatch(english, /Ἐν ἀρχῇ/);
 
-  const unavailable = reader.renderReaderChapter({ ...chapter, verses: [{ verse: 1, text: 'λόγος' }] }, { ...reader.ReaderDefaultSettings, translation: 'on', textMode: 'english' });
-  assert.match(unavailable, /English translation is unavailable/);
+  const unavailable = reader.renderReaderChapter({ ...chapter, verses: [{ verse: 99, text: 'λόγος' }] }, { ...reader.ReaderDefaultSettings, translation: 'on', textMode: 'english' });
+  assert.match(unavailable, /English unavailable for this passage/);
 });
 
 test('Reader render hides the translation toggle when Translation is Off', async () => {
@@ -201,6 +224,7 @@ test('Reader loads OEB English through the translation provider and preserves lo
   global.$ = selector => selector === '#readerShell' ? shell : null;
   global.$$ = () => [];
 
+  const beforeLoads = reader.readerTranslationLoadCounts['oeb/john/1'] || 0;
   await reader.setReaderLocation({ language: 'greek', book: 'john', chapter: 1, verse: '1' });
   assert.equal(reader.readerState().language, 'greek');
   assert.equal(reader.readerState().book, 'john');
@@ -215,7 +239,52 @@ test('Reader loads OEB English through the translation provider and preserves lo
   assert.equal(reader.readerState().chapter, 1);
   assert.match(html, /Ἐν/);
   assert.doesNotMatch(html, /In the beginning the Word was/);
-  assert.equal(reader.readerTranslationLoadCounts['oeb/john/1'], 1);
+  assert.equal(reader.readerTranslationLoadCounts['oeb/john/1'], beforeLoads + 1);
+});
+
+test('Reader uses WEB directly when selected', async () => {
+  storageHarness();
+  reader.saveReaderSettings({ ...reader.ReaderDefaultSettings, translation: 'on', translationProvider: 'web', textMode: 'english' }, 'greek');
+  let html = '';
+  const shell = { set innerHTML(value){ html = value; }, get innerHTML(){ return html; } };
+  global.$ = selector => selector === '#readerShell' ? shell : null;
+  global.$$ = () => [];
+
+  await reader.setReaderLocation({ language: 'greek', book: 'john', chapter: 1 });
+  assert.match(html, /In the beginning was the Word, and the Word was with God/);
+  assert.doesNotMatch(html, /OEB unavailable here/);
+  assert.equal(reader.readerState().translationData.translation, 'web');
+  assert.equal(reader.readerState().translationStatus.active, 'web');
+  assert.equal(reader.readerState().translationStatus.fallback, false);
+  assert.equal(reader.readerTranslationLoadCounts['web/john/1'], 1);
+});
+
+test('Reader falls back to WEB when OEB is selected but unavailable', async () => {
+  storageHarness();
+  reader.saveReaderSettings({ ...reader.ReaderDefaultSettings, translation: 'on', translationProvider: 'oeb', textMode: 'english' }, 'hebrew');
+  let html = '';
+  const shell = { set innerHTML(value){ html = value; }, get innerHTML(){ return html; } };
+  global.$ = selector => selector === '#readerShell' ? shell : null;
+  global.$$ = () => [];
+
+  await reader.setReaderLocation({ language: 'hebrew', book: 'exodus', chapter: 1 });
+  assert.match(html, /OEB unavailable here\. Showing WEB\./);
+  assert.match(html, /Now these are the names of the sons of Israel/);
+  assert.equal(reader.readerState().translationData.translation, 'web');
+  assert.equal(reader.readerState().translationStatus.requested, 'oeb');
+  assert.equal(reader.readerState().translationStatus.active, 'web');
+  assert.equal(reader.readerState().translationStatus.fallback, true);
+  assert.ok(reader.readerTranslationLoadCounts['oeb/exodus/1'] >= 1);
+  assert.ok(reader.readerTranslationLoadCounts['web/exodus/1'] >= 1);
+  await reader.setReaderLocation({ language: 'greek', book: 'john', chapter: 1 });
+});
+
+test('Reader persists translation provider selection by language', () => {
+  storageHarness();
+  reader.saveReaderSettings({ ...reader.ReaderDefaultSettings, translationProvider: 'web', floatingTranslationToggle: true }, 'hebrew');
+  assert.equal(reader.loadReaderSettings('hebrew').translationProvider, 'web');
+  assert.equal(reader.loadReaderSettings('hebrew').floatingTranslationToggle, true);
+  assert.equal(reader.loadReaderSettings('greek').translationProvider, 'oeb');
 });
 
 test('Adaptive Reader assistance thresholds, custom validation, and indicators work together', () => {

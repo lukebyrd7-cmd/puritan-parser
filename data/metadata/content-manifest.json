@@ -88,6 +88,18 @@
       "loadStrategy": "runtime-cache"
     },
     {
+      "id": "translation-web",
+      "language": "english",
+      "type": "bible",
+      "path": "data/translations/web/manifest.json",
+      "version": "2026-06-30",
+      "source": "World English Bible Protestant USFM artifact",
+      "sourceUrl": "https://ebible.org/Scriptures/engwebp_usfm.zip",
+      "license": "Public Domain",
+      "attribution": "World English Bible contributors via eBible.org",
+      "loadStrategy": "runtime-cache"
+    },
+    {
       "id": "future-search-indexes",
       "language": "greek-hebrew",
       "type": "search-index",
