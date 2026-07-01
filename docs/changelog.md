@@ -12,6 +12,8 @@ This changelog is a human-readable project history, not a Git log. Future entrie
 - Added quiet assisted-word indicators: none, text tint, dotted underline, and footnote marker.
 - Made Reader token taps respect assistance settings, including a throttled quiet message when help is hidden.
 - Persisted Adaptive Reader settings locally by language and added a subtle Reader status label.
+- Refined the Adaptive Reader panel so it stays open while changing settings and closes only by explicit close, Escape, or outside click.
+- Added an optional Floating Reader Controls setting so Reader controls/status can stay accessible while scrolling.
 - Added tests for settings access, display modes, translation toggling, thresholds, custom validation, Hide Known Words, indicator rendering, tap behavior, persistence, and existing Reader behavior.
 - Left accounts, sync, saved reader profiles, AI translation, new vocabulary data, new grammar data, Reader Examples, and gamification out of scope.
 

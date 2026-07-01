@@ -9,7 +9,8 @@ const ReaderDefaultSettings = {
   assistance: 'everything',
   customThreshold: '',
   hideKnown: false,
-  indicator: 'none'
+  indicator: 'none',
+  floatingControls: false
 };
 const ReaderConfig = {
   hebrew: {
@@ -78,6 +79,7 @@ const readerGlossSourceCache = new Map();
 const readerSearchIndexCache = new Map();
 let readerPopupLastTrigger = null;
 let readerHiddenToastAt = 0;
+let readerSettingsPanelOpen = false;
 
 function normalizeReaderBook(book){
   const chapters = Array.isArray(book.chapters) ? book.chapters.map(Number).filter(Boolean).sort((a, b) => a - b) : Array.from({ length: Number(book.chapters) || 0 }, (_, i) => i + 1);
@@ -140,6 +142,7 @@ function sanitizeReaderSettings(settings = {}){
   next.customThreshold = String(next.customThreshold || '').trim();
   next.hideKnown = Boolean(next.hideKnown);
   next.indicator = ['none', 'tint', 'underline', 'footnote'].includes(next.indicator) ? next.indicator : ReaderDefaultSettings.indicator;
+  next.floatingControls = Boolean(next.floatingControls);
   if(next.translation === 'off') next.textMode = 'original';
   return next;
 }
@@ -734,13 +737,13 @@ function renderReader(){
   const data = readerState.chapterData;
   const settings = getActiveReaderSettings();
   root.innerHTML = `
-    <section class="panel reader-controls" aria-label="Reader controls">
+    <section class="panel reader-controls${settings.floatingControls ? ' reader-controls-floating' : ''}" aria-label="Reader controls">
       <select id="readerLanguageSelect" class="input" aria-label="Reader language selector">${Object.entries(ReaderConfig).map(([key, item]) => `<option value="${key}" ${key===readerState.language?'selected':''}>${escHtml(item.shortLabel || item.label)}</option>`).join('')}</select>
       <select id="readerBookSelect" class="input" aria-label="Book selector">${books.map(item => `<option value="${item.id}" ${item.id===readerState.book?'selected':''}>${escHtml(item.name)}</option>`).join('')}</select>
       <select id="readerChapterSelect" class="input" aria-label="Chapter selector">${chapters.map(ch => `<option value="${ch}" ${ch===readerState.chapter?'selected':''}>Chapter ${ch}</option>`).join('')}</select>
       <button class="btn btn-ghost btn-sm" id="readerPrevBtn" ${getAdjacentReaderLocation(-1)?'':'disabled'}>← Previous</button>
       <button class="btn btn-ghost btn-sm" id="readerNextBtn" ${getAdjacentReaderLocation(1)?'':'disabled'}>Next →</button>
-      <details class="reader-settings" id="readerSettingsPanel">
+      <details class="reader-settings" id="readerSettingsPanel" ${readerSettingsPanelOpen ? 'open' : ''}>
         <summary class="btn btn-ghost btn-sm">Reader</summary>
         ${renderReaderSettingsPanel(settings)}
       </details>
@@ -768,6 +771,7 @@ function renderReaderSettingsPanel(settings = getActiveReaderSettings()){
   const button = (name, value, label, active) => `<button class="reader-setting-choice${active ? ' active' : ''}" type="button" data-reader-setting="${escReaderAttr(name)}" data-reader-value="${escReaderAttr(value)}">${escHtml(label)}</button>`;
   return `
         <div class="reader-settings-panel" role="group" aria-label="Adaptive Reader settings">
+          <button class="reader-settings-close" id="readerSettingsClose" type="button" aria-label="Close Adaptive Reader settings">✕</button>
           <div class="reader-setting-group">
             <div class="reader-setting-label">Display</div>
             <div class="reader-setting-row">${button('display', 'original', 'Original', settings.display === 'original')}${button('display', 'interlinear', 'Interlinear', settings.display === 'interlinear')}</div>
@@ -785,6 +789,7 @@ function renderReaderSettingsPanel(settings = getActiveReaderSettings()){
             <input class="input reader-custom-threshold" id="readerCustomThreshold" inputmode="numeric" pattern="[0-9]*" placeholder="Exact threshold" value="${escReaderAttr(settings.customThreshold)}" ${settings.assistance === 'custom' ? '' : 'hidden'} aria-invalid="${customInvalid ? 'true' : 'false'}" />
           </div>
           <label class="reader-setting-check"><input type="checkbox" id="readerHideKnownToggle" ${settings.hideKnown ? 'checked' : ''} /> Hide Known Words</label>
+          <label class="reader-setting-check"><input type="checkbox" id="readerFloatingControlsToggle" ${settings.floatingControls ? 'checked' : ''} /> Floating Reader Controls</label>
           <div class="reader-setting-group">
             <div class="reader-setting-label">Indicator</div>
             <div class="reader-setting-row reader-setting-row-wrap">
@@ -855,24 +860,50 @@ function wireReaderControls(){
   $('#readerBookProgressBtn')?.addEventListener('click', openReaderBookProgress);
   $('#readerSearchBtn')?.addEventListener('click', () => runReaderSearch($('#readerSearchInput')?.value || ''));
   $('#readerSearchInput')?.addEventListener('keydown', e => { if(e.key === 'Enter') runReaderSearch(e.target.value); });
+  $('#readerSettingsPanel summary')?.addEventListener('click', event => {
+    event.preventDefault();
+    openReaderSettingsPanel();
+  });
+  $('#readerSettingsClose')?.addEventListener('click', closeReaderSettingsPanel);
   $$('[data-reader-setting]').forEach(btn => btn.addEventListener('click', () => updateReaderSetting(btn.dataset.readerSetting, btn.dataset.readerValue)));
   $('#readerHideKnownToggle')?.addEventListener('change', e => updateReaderSetting('hideKnown', e.target.checked));
+  $('#readerFloatingControlsToggle')?.addEventListener('change', e => updateReaderSetting('floatingControls', e.target.checked));
   $('#readerCustomThreshold')?.addEventListener('change', e => updateReaderSetting('customThreshold', e.target.value));
   $$('[data-reader-text-mode]').forEach(btn => btn.addEventListener('click', () => updateReaderSetting('textMode', btn.dataset.readerTextMode)));
   $$('.reader-token').forEach(btn => btn.addEventListener('click', () => openReaderTokenPopup(btn)));
   if(typeof document !== 'undefined'){
     document.removeEventListener?.('keydown', handleReaderPopupKeydown);
     document.addEventListener?.('keydown', handleReaderPopupKeydown);
+    document.removeEventListener?.('click', handleReaderDocumentClick);
+    document.addEventListener?.('click', handleReaderDocumentClick);
   }
+}
+function openReaderSettingsPanel(){
+  if(readerSettingsPanelOpen) return;
+  readerSettingsPanelOpen = true;
+  renderReader();
+}
+function closeReaderSettingsPanel(){
+  if(!readerSettingsPanelOpen) return;
+  readerSettingsPanelOpen = false;
+  renderReader();
+}
+function handleReaderDocumentClick(event){
+  if(!readerSettingsPanelOpen) return;
+  const panel = event.target?.closest?.('#readerSettingsPanel');
+  if(panel) return;
+  closeReaderSettingsPanel();
 }
 function updateReaderSetting(key, value){
   const settings = getActiveReaderSettings();
   const next = { ...settings };
   if(key === 'hideKnown') next.hideKnown = Boolean(value);
+  else if(key === 'floatingControls') next.floatingControls = Boolean(value);
   else if(key === 'customThreshold'){
     const clean = String(value || '').trim();
     if(clean && !/^[1-9]\d*$/.test(clean)){
       if(typeof toast === 'function') toast('Enter a positive whole number.');
+      readerSettingsPanelOpen = true;
       renderReader();
       return settings;
     }
@@ -892,10 +923,18 @@ function updateReaderSetting(key, value){
     next.indicator = ['none', 'tint', 'underline', 'footnote'].includes(value) ? value : 'none';
   }
   const saved = saveReaderSettings(next, readerState.language);
+  readerSettingsPanelOpen = true;
   renderReader();
   return saved;
 }
-function handleReaderPopupKeydown(event){ if(event.key === 'Escape') closeReaderWordPopup(); }
+function handleReaderPopupKeydown(event){
+  if(event.key !== 'Escape') return;
+  if(readerSettingsPanelOpen){
+    closeReaderSettingsPanel();
+    return;
+  }
+  closeReaderWordPopup();
+}
 function showReaderHiddenBySettings(){
   const now = Date.now();
   if(now - readerHiddenToastAt < 2500) return;
@@ -1133,5 +1172,5 @@ async function runReaderSearch(query){
   return results;
 }
 async function initReader(){ const loc = loadReaderLocation(); readerState = { ...readerState, ...loc }; await setReaderLocation(loc); }
-if(typeof window !== 'undefined') Object.assign(window, { ReaderConfig, ReaderDefaultSettings, readerState, readerChapterCache, readerManifestCache, readerLoadCounts, getReaderChapterPath, getReaderLanguageMeta, loadReaderManifest, loadReaderChapter, setReaderLocation, getAdjacentReaderLocation, renderReader, renderReaderChapter, renderReaderVerse, renderReaderTokens, initReader, runReaderSearch, loadReaderLocation, saveReaderLocation, loadReaderSettings, saveReaderSettings, getActiveReaderSettings, updateReaderSetting, readerTokenQualifiesForAssistance, renderReaderSettingsPanel, renderReaderTranslationToggle, parseReaderReference, openReaderTokenPopup, closeReaderWordPopup, openReaderWordPage, renderReaderWordPage, lookupReaderWordInfo, explainReaderParse, readerGrammarLinksForInfo, readerPartOfSpeechForInfo, readerMorphologyFields, renderReaderMorphology, renderReaderGrammar, getReaderLemmaOccurrences, openReaderContextOccurrence, openReaderBookProgress, renderReaderWordLearning, readerLearningStatusForInfo, introduceReaderWordFromPage, reviewReaderWordFromPage });
-if(typeof module !== 'undefined') module.exports = { ReaderConfig, ReaderDefaultSettings, readerState: () => readerState, readerChapterCache, readerManifestCache, readerLoadCounts, getReaderChapterPath, getReaderLanguageMeta, loadReaderManifest, normalizeReaderManifest, getReaderBookChapters, loadReaderChapter, setReaderLocation, getAdjacentReaderLocation, renderReader, renderReaderChapter, renderReaderVerse, renderReaderTokens, runReaderSearch, loadReaderLocation, saveReaderLocation, loadReaderSettings, saveReaderSettings, getActiveReaderSettings, updateReaderSetting, readerAssistanceThreshold, readerTokenFrequency, readerTokenQualifiesForAssistance, renderReaderSettingsPanel, renderReaderTranslationToggle, readerChapterHasEnglish, parseReaderReference, normalizeReaderText, lookupReaderWordInfo, explainReaderParse, readerGrammarLinksForInfo, readerParseKind, readerPartOfSpeechForInfo, readerMorphologyFields, renderReaderMorphology, renderReaderGrammar, openReaderTokenPopup, closeReaderWordPopup, openReaderWordPage, renderReaderWordPage, loadReaderSearchIndex, representativeReaderOccurrences, getReaderLemmaOccurrences, readerOccurrenceSnippet, renderReaderWordPageContext, renderReaderWordPageContextContent, attachReaderWordPageContextHandlers, openReaderContextOccurrence, openReaderBookProgress, renderReaderWordLearning, readerLearningStatusForInfo, introduceReaderWordFromPage, reviewReaderWordFromPage };
+if(typeof window !== 'undefined') Object.assign(window, { ReaderConfig, ReaderDefaultSettings, readerState, readerChapterCache, readerManifestCache, readerLoadCounts, getReaderChapterPath, getReaderLanguageMeta, loadReaderManifest, loadReaderChapter, setReaderLocation, getAdjacentReaderLocation, renderReader, renderReaderChapter, renderReaderVerse, renderReaderTokens, initReader, runReaderSearch, loadReaderLocation, saveReaderLocation, loadReaderSettings, saveReaderSettings, getActiveReaderSettings, updateReaderSetting, openReaderSettingsPanel, closeReaderSettingsPanel, readerTokenQualifiesForAssistance, renderReaderSettingsPanel, renderReaderTranslationToggle, parseReaderReference, openReaderTokenPopup, closeReaderWordPopup, openReaderWordPage, renderReaderWordPage, lookupReaderWordInfo, explainReaderParse, readerGrammarLinksForInfo, readerPartOfSpeechForInfo, readerMorphologyFields, renderReaderMorphology, renderReaderGrammar, getReaderLemmaOccurrences, openReaderContextOccurrence, openReaderBookProgress, renderReaderWordLearning, readerLearningStatusForInfo, introduceReaderWordFromPage, reviewReaderWordFromPage });
+if(typeof module !== 'undefined') module.exports = { ReaderConfig, ReaderDefaultSettings, readerState: () => readerState, readerChapterCache, readerManifestCache, readerLoadCounts, getReaderChapterPath, getReaderLanguageMeta, loadReaderManifest, normalizeReaderManifest, getReaderBookChapters, loadReaderChapter, setReaderLocation, getAdjacentReaderLocation, renderReader, renderReaderChapter, renderReaderVerse, renderReaderTokens, runReaderSearch, loadReaderLocation, saveReaderLocation, loadReaderSettings, saveReaderSettings, getActiveReaderSettings, updateReaderSetting, openReaderSettingsPanel, closeReaderSettingsPanel, handleReaderPopupKeydown, handleReaderDocumentClick, readerAssistanceThreshold, readerTokenFrequency, readerTokenQualifiesForAssistance, renderReaderSettingsPanel, renderReaderTranslationToggle, readerChapterHasEnglish, parseReaderReference, normalizeReaderText, lookupReaderWordInfo, explainReaderParse, readerGrammarLinksForInfo, readerParseKind, readerPartOfSpeechForInfo, readerMorphologyFields, renderReaderMorphology, renderReaderGrammar, openReaderTokenPopup, closeReaderWordPopup, openReaderWordPage, renderReaderWordPage, loadReaderSearchIndex, representativeReaderOccurrences, getReaderLemmaOccurrences, readerOccurrenceSnippet, renderReaderWordPageContext, renderReaderWordPageContextContent, attachReaderWordPageContextHandlers, openReaderContextOccurrence, openReaderBookProgress, renderReaderWordLearning, readerLearningStatusForInfo, introduceReaderWordFromPage, reviewReaderWordFromPage };

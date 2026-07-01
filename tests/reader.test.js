@@ -96,6 +96,52 @@ test('Adaptive Reader settings render from the Reader and persist locally', () =
   assert.ok(storage.has('pp_reader_adaptive_settings'));
 });
 
+test('Adaptive Reader panel stays open after setting changes and closes intentionally', () => {
+  storageHarness();
+  let html = '';
+  const shell = { set innerHTML(value){ html = value; }, get innerHTML(){ return html; } };
+  global.$ = selector => selector === '#readerShell' ? shell : null;
+  global.$$ = () => [];
+
+  reader.openReaderSettingsPanel();
+  assert.match(html, /id="readerSettingsPanel" open/);
+
+  reader.updateReaderSetting('display', 'interlinear');
+  assert.match(html, /id="readerSettingsPanel" open/);
+  assert.equal(reader.loadReaderSettings('greek').display, 'interlinear');
+
+  reader.handleReaderPopupKeydown({ key: 'Escape' });
+  assert.doesNotMatch(html, /id="readerSettingsPanel" open/);
+
+  reader.openReaderSettingsPanel();
+  reader.handleReaderDocumentClick({ target: { closest: () => null } });
+  assert.doesNotMatch(html, /id="readerSettingsPanel" open/);
+
+  reader.openReaderSettingsPanel();
+  reader.closeReaderSettingsPanel();
+  assert.doesNotMatch(html, /id="readerSettingsPanel" open/);
+});
+
+test('Floating Reader Controls is optional and persists with Adaptive Reader settings', async () => {
+  storageHarness();
+  let html = '';
+  const shell = { set innerHTML(value){ html = value; }, get innerHTML(){ return html; } };
+  global.$ = selector => selector === '#readerShell' ? shell : null;
+  global.$$ = () => [];
+
+  reader.saveReaderSettings({ ...reader.ReaderDefaultSettings, floatingControls: false }, 'greek');
+  await reader.setReaderLocation({ language: 'greek', book: 'matthew', chapter: 1 });
+  assert.doesNotMatch(html, /reader-controls-floating/);
+  assert.match(html, /Floating Reader Controls/);
+
+  reader.openReaderSettingsPanel();
+  reader.updateReaderSetting('floatingControls', true);
+  assert.equal(reader.loadReaderSettings('greek').floatingControls, true);
+  assert.match(html, /class="panel reader-controls reader-controls-floating"/);
+  assert.match(html, /id="readerSettingsPanel" open/);
+  reader.closeReaderSettingsPanel();
+});
+
 test('Adaptive Reader display modes render original and clean interlinear text', () => {
   global.state = { data: { greek: [
     { lang: 'greek', lemma: 'λόγος', word: 'λόγος', primaryGloss: 'word', gloss: 'word', freq: 3 }

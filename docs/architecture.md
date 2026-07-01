@@ -102,6 +102,8 @@ Reader data is lazy-loaded one chapter at a time. Large JSON content must stay o
 
 Adaptive Reader settings live inside the Reader rather than global Settings because they shape the immediate reading experience. The settings are local-first user data under `pp_reader_adaptive_settings`, currently keyed by language so Greek and Hebrew can diverge without accounts or sync.
 
+The Reader settings panel should stay open while settings are changed. It closes only through an explicit close button, Escape, or an outside click/tap. This lets readers tune several options in one pass without the panel fighting them.
+
 Display, Translation, Assistance, and Indicators interact through one shared render path:
 
 - Display controls the original-language presentation. `Original` renders inline Greek or Hebrew. `Interlinear` keeps each original token primary and adds a small gloss beneath the word when existing gloss or vocabulary data provides one.
@@ -109,6 +111,7 @@ Display, Translation, Assistance, and Indicators interact through one shared ren
 - Assistance determines which tokens may open the Reader popup and Word Page flow. `Everything` allows all tokenized words, numeric presets allow words with frequency at or below the selected threshold, `Custom` uses a validated positive whole-number threshold, and `None` disables word help.
 - Hide Known Words composes with Assistance by consulting the shared `VocabularyLearning` model. A word qualifies only when it passes the frequency rule and is not Known. The Reader must not duplicate learning state.
 - Indicator style is purely visual and applies only to currently assisted words. The default is `None`; tint, dotted underline, and footnote markers are intentionally quiet.
+- Floating Reader Controls is optional and keeps the Reader controls/status sticky while scrolling. It should remain subtle and avoid covering the text aggressively.
 
 The same assistance helper gates both rendering and tap behavior. Tokens hidden by Reader settings do not open the Word Page flow; at most they produce a throttled quiet toast. This keeps the biblical text central while letting users choose exactly how much help they want.
 
