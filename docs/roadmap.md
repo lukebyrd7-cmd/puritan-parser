@@ -19,33 +19,22 @@ Puritan Parser is a local-first Biblical Greek and Hebrew reading and study app.
 - Word Page learning status and handoff into Vocabulary Learning
 - Read in Context flows from word-level study back to the Reader
 - Reader handoff into current-book Reading Readiness
+- Adaptive Reader display, translation, assistance, known-word filtering, and indicators
 - Shared Reader infrastructure for Greek and Hebrew
 - Generated data pipelines for vocabulary, glosses, and Reader chapter files
 - Local import/export and versioned storage migrations
 
 ## Current Focus
 
-The v4.2 Learn build is complete. The current focus is v5.0 Public Release: verification, release readiness, and avoiding new learning systems before launch.
+The v4.3 Adaptive Reader build is complete. The current focus is finishing grammar learning, improving learning-engine transparency, and polishing the Reader before release-candidate review.
 
 ## Upcoming
 
-- v4.2.3: Book Progress & Reading Readiness — complete
-- v4.2.4: Reader ↔ Learn Integration — complete
-- v4.2.5: Reference Foundation
-  - Phase A
-    - Reference organization
-    - UI consistency
-    - Known Hebrew fix
-    - New Words language selection
-  - Phase B
-    - Scholarly grammar audit
-    - Grammar verification
-    - Regression tests
-    - `docs/grammar-audit.md`
-- v4.2.6: Paradigm Recognition — complete
-- v4.2.7: Progress & Statistics — complete
-- v4.2.8: Word Page Excellence — complete
-- v4.2.9: Learning Refinement — complete
+- v4.3: Adaptive Reader — complete
+- v4.4: Complete Grammar Learning
+- v4.5: Learning Engine / SRS Transparency
+- v4.6: Reader Polish
+- v4.7: Release Candidate Review
 - v5.0: Public Release
 
 ## Release Gates

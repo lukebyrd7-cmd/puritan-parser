@@ -2,6 +2,19 @@
 
 This changelog is a human-readable project history, not a Git log. Future entries should summarize meaningful releases rather than individual commits.
 
+## v4.3
+
+- Added Adaptive Reader controls inside the Reader for display, translation, assistance, known-word filtering, and indicator style.
+- Added Original and Interlinear display modes, with interlinear glosses drawn from existing gloss and vocabulary data.
+- Added Translation settings that show an Original / English toggle only when enabled and render a quiet unavailable state when no English passage data exists.
+- Added assistance presets for Everything, 50+, 30+, 20+, 10+, 5+, 2+, 1+, None, plus validated custom thresholds.
+- Connected Hide Known Words to the shared Vocabulary Learning state instead of duplicating learning records.
+- Added quiet assisted-word indicators: none, text tint, dotted underline, and footnote marker.
+- Made Reader token taps respect assistance settings, including a throttled quiet message when help is hidden.
+- Persisted Adaptive Reader settings locally by language and added a subtle Reader status label.
+- Added tests for settings access, display modes, translation toggling, thresholds, custom validation, Hide Known Words, indicator rendering, tap behavior, persistence, and existing Reader behavior.
+- Left accounts, sync, saved reader profiles, AI translation, new vocabulary data, new grammar data, Reader Examples, and gamification out of scope.
+
 ## v4.2.9
 
 - Refined top-level navigation around four clear centers: Learn, Reader, Reference, and Progress.

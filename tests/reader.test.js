@@ -69,6 +69,162 @@ test('reader falls back to plain verse text when token metadata is unavailable',
   assert.doesNotMatch(html, /reader-token/);
 });
 
+test('Adaptive Reader settings render from the Reader and persist locally', () => {
+  const storage = storageHarness();
+  let html = '';
+  const shell = { set innerHTML(value){ html = value; }, get innerHTML(){ return html; } };
+  global.$ = selector => selector === '#readerShell' ? shell : null;
+  global.$$ = () => [];
+
+  reader.saveReaderSettings({ display: 'interlinear', assistance: '30', hideKnown: true }, 'greek');
+  assert.deepEqual(reader.loadReaderSettings('greek'), {
+    ...reader.ReaderDefaultSettings,
+    display: 'interlinear',
+    assistance: '30',
+    hideKnown: true
+  });
+
+  reader.renderReader();
+  assert.match(html, /id="readerSettingsPanel"/);
+  assert.match(html, /Adaptive Reader settings/);
+  assert.match(html, /Display/);
+  assert.match(html, /Translation/);
+  assert.match(html, /Assistance/);
+  assert.match(html, /Hide Known Words/);
+  assert.match(html, /Indicator/);
+  assert.match(html, /Interlinear • 30\+ • Hide Known/);
+  assert.ok(storage.has('pp_reader_adaptive_settings'));
+});
+
+test('Adaptive Reader display modes render original and clean interlinear text', () => {
+  global.state = { data: { greek: [
+    { lang: 'greek', lemma: 'λόγος', word: 'λόγος', primaryGloss: 'word', gloss: 'word', freq: 3 }
+  ] } };
+  const verse = { verse: 1, text: 'λόγος', tokens: [{ surface: 'λόγος', lemma: 'λόγος', parse: 'N-NSM' }] };
+  const original = reader.renderReaderVerse(verse, { book: 'john', bookName: 'John', chapter: 1 }, { ...reader.ReaderDefaultSettings, display: 'original' });
+  assert.match(original, /class="reader-token"/);
+  assert.doesNotMatch(original, /reader-token-gloss/);
+
+  const interlinear = reader.renderReaderVerse(verse, { book: 'john', bookName: 'John', chapter: 1 }, { ...reader.ReaderDefaultSettings, display: 'interlinear' });
+  assert.match(interlinear, /reader-token-interlinear/);
+  assert.match(interlinear, /reader-token-surface">λόγος/);
+  assert.match(interlinear, /reader-token-gloss">word/);
+  delete global.state;
+});
+
+test('Adaptive Reader translation mode shows the Original English toggle and displays one text', () => {
+  const chapter = {
+    book: 'john',
+    bookName: 'John',
+    chapter: 1,
+    verses: [{
+      verse: 1,
+      text: 'Ἐν ἀρχῇ ἦν ὁ λόγος.',
+      english: 'In the beginning was the Word.',
+      tokens: [{ surface: 'Ἐν', lemma: 'ἐν', parse: 'P' }]
+    }]
+  };
+  assert.match(reader.renderReaderTranslationToggle({ ...reader.ReaderDefaultSettings, translation: 'on' }, chapter), /data-reader-text-mode="english"/);
+  const original = reader.renderReaderChapter(chapter, { ...reader.ReaderDefaultSettings, translation: 'on', textMode: 'original' });
+  assert.match(original, /Ἐν/);
+  assert.doesNotMatch(original, /In the beginning/);
+  const english = reader.renderReaderChapter(chapter, { ...reader.ReaderDefaultSettings, translation: 'on', textMode: 'english' });
+  assert.match(english, /In the beginning was the Word/);
+  assert.doesNotMatch(english, /Ἐν ἀρχῇ/);
+
+  const unavailable = reader.renderReaderChapter({ ...chapter, verses: [{ verse: 1, text: 'λόγος' }] }, { ...reader.ReaderDefaultSettings, translation: 'on', textMode: 'english' });
+  assert.match(unavailable, /English translation is unavailable/);
+});
+
+test('Reader render hides the translation toggle when Translation is Off', async () => {
+  storageHarness();
+  reader.saveReaderSettings({ ...reader.ReaderDefaultSettings, translation: 'off' }, 'greek');
+  let html = '';
+  const shell = { set innerHTML(value){ html = value; }, get innerHTML(){ return html; } };
+  global.$ = selector => selector === '#readerShell' ? shell : null;
+  global.$$ = () => [];
+  await reader.setReaderLocation({ language: 'greek', book: 'matthew', chapter: 1 });
+  assert.doesNotMatch(html, /data-reader-text-mode="english"/);
+});
+
+test('Adaptive Reader assistance thresholds, custom validation, and indicators work together', () => {
+  const storage = storageHarness();
+  let toastMessage = '';
+  global.toast = message => { toastMessage = message; };
+  global.$ = () => null;
+  global.$$ = () => [];
+  global.state = { data: { greek: [
+    { lang: 'greek', lemma: 'λόγος', word: 'λόγος', primaryGloss: 'word', freq: 3 },
+    { lang: 'greek', lemma: 'πολύς', word: 'πολύς', primaryGloss: 'many', freq: 9 }
+  ] } };
+  const token = { surface: 'λόγος', lemma: 'λόγος', parse: 'N-NSM' };
+  assert.equal(reader.readerTokenQualifiesForAssistance(token, { ...reader.ReaderDefaultSettings, assistance: 'everything' }, 'greek'), true);
+  assert.equal(reader.readerTokenQualifiesForAssistance(token, { ...reader.ReaderDefaultSettings, assistance: 'none' }, 'greek'), false);
+  assert.equal(reader.readerTokenQualifiesForAssistance(token, { ...reader.ReaderDefaultSettings, assistance: '5' }, 'greek'), true);
+  assert.equal(reader.readerTokenQualifiesForAssistance({ lemma: 'πολύς' }, { ...reader.ReaderDefaultSettings, assistance: '5' }, 'greek'), false);
+  assert.equal(reader.readerTokenQualifiesForAssistance(token, { ...reader.ReaderDefaultSettings, assistance: 'custom', customThreshold: '3' }, 'greek'), true);
+
+  reader.saveReaderSettings({ ...reader.ReaderDefaultSettings, assistance: 'everything' }, 'greek');
+  reader.updateReaderSetting('customThreshold', '0');
+  assert.equal(toastMessage, 'Enter a positive whole number.');
+  assert.equal(reader.loadReaderSettings('greek').assistance, 'everything');
+  reader.updateReaderSetting('customThreshold', '8');
+  assert.equal(reader.loadReaderSettings('greek').assistance, 'custom');
+  assert.equal(reader.loadReaderSettings('greek').customThreshold, '8');
+  assert.ok(storage.has('pp_reader_adaptive_settings'));
+
+  const tinted = reader.renderReaderTokens([token], {}, { ...reader.ReaderDefaultSettings, indicator: 'tint' }, 'greek');
+  assert.match(tinted, /reader-token-tint/);
+  const underlined = reader.renderReaderTokens([token], {}, { ...reader.ReaderDefaultSettings, indicator: 'underline' }, 'greek');
+  assert.match(underlined, /reader-token-underline/);
+  const footnoted = reader.renderReaderTokens([token], {}, { ...reader.ReaderDefaultSettings, indicator: 'footnote' }, 'greek');
+  assert.match(footnoted, /reader-token-marker/);
+  delete global.toast;
+  delete global.state;
+});
+
+test('Hide Known Words uses vocabulary learning state and token taps respect assistance', async () => {
+  const storage = new Map();
+  global.localStorage = {
+    getItem: key => storage.get(key) || null,
+    setItem: (key, value) => storage.set(key, value),
+    removeItem: key => storage.delete(key)
+  };
+  global.todayISO = () => '2026-06-30';
+  global.state = { data: { greek: [
+    { id: 'lemma:greek:λόγος', lang: 'greek', lemma: 'λόγος', word: 'λόγος', primaryGloss: 'word', freq: 3 }
+  ] } };
+  global.getStudyEntries = entries => entries;
+  VocabularyLearning.saveStore(VocabularyLearning.markEntryKnown(VocabularyLearning.loadStore(), global.state.data.greek[0]));
+  const settings = { ...reader.ReaderDefaultSettings, assistance: '5', hideKnown: true };
+  assert.equal(reader.readerTokenQualifiesForAssistance({ lemma: 'λόγος' }, settings, 'greek'), false);
+  assert.equal(reader.readerTokenQualifiesForAssistance({ lemma: 'λόγος' }, { ...settings, hideKnown: false }, 'greek'), true);
+
+  let popupHtml = '';
+  let toastMessage = '';
+  const root = {
+    set innerHTML(value){ popupHtml = value; },
+    get innerHTML(){ return popupHtml; },
+    querySelector: selector => selector === '.reader-word-close' ? { addEventListener(){}, focus(){} } : null,
+    querySelectorAll: () => []
+  };
+  global.$ = selector => selector === '#readerWordPopupRoot' ? root : null;
+  global.$$ = () => [];
+  global.toast = message => { toastMessage = message; };
+  await reader.openReaderTokenPopup({ dataset: { readerAssisted: 'false', surface: 'λόγος', lemma: 'λόγος' }, focus(){} });
+  assert.equal(popupHtml, '');
+  assert.equal(toastMessage, 'Hidden by Reader settings.');
+
+  await reader.openReaderTokenPopup({ dataset: { readerAssisted: 'true', surface: 'λόγος', lemma: 'λόγος', parse: 'N-NSM', bookName: 'John', chapter: '1', verse: '1' }, focus(){} });
+  assert.match(popupHtml, /reader-word-popup/);
+  reader.closeReaderWordPopup();
+  delete global.localStorage;
+  delete global.todayISO;
+  delete global.state;
+  delete global.getStudyEntries;
+  delete global.toast;
+});
+
 test('reader word lookup shows gloss, parsing explanation, aggregate frequency, and reference', async () => {
   global.state = {
     data: {
