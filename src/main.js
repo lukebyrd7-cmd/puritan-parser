@@ -27,6 +27,7 @@ const PURITAN_PARSER_SCRIPTS = [
   'src/core/source-data/parser-source.js',
   'src/core/content/content-metadata.js',
   'src/core/content/content-loader.js',
+  'src/core/translations/translation-provider.js',
   'src/core/data-loader.js',
   'src/ui/theme.js',
   'src/core/filters.js',

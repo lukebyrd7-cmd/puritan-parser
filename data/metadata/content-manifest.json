@@ -76,6 +76,18 @@
       "loadStrategy": "lazy"
     },
     {
+      "id": "translation-oeb",
+      "language": "english",
+      "type": "bible",
+      "path": "data/translations/oeb/manifest.json",
+      "version": "2025.6-development",
+      "source": "Open English Bible US development USFM artifact",
+      "sourceUrl": "https://github.com/openenglishbible/Open-English-Bible/tree/master/artifacts/us/usfm",
+      "license": "CC0-1.0",
+      "attribution": "Open English Bible contributors",
+      "loadStrategy": "runtime-cache"
+    },
+    {
       "id": "future-search-indexes",
       "language": "greek-hebrew",
       "type": "search-index",

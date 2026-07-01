@@ -2,6 +2,18 @@
 
 This changelog is a human-readable project history, not a Git log. Future entries should summarize meaningful releases rather than individual commits.
 
+## v4.3.1
+
+- Added the Open English Bible as the first built-in English translation provider.
+- Added reusable translation provider infrastructure under `src/core/translations/`.
+- Generated offline OEB chapter JSON under `data/translations/oeb/books/`, with a manifest for source, license, attribution, books, chapters, and verse counts.
+- Updated the Reader so English mode loads the current translation chapter through the provider instead of relying on embedded verse fields.
+- Preserved current book, chapter, and focused verse when switching Original / English.
+- Kept only one text visible at a time and kept Translation Off hiding the Original / English toggle.
+- Updated the service worker cache version and precached the provider plus OEB manifest; translation chapter JSON continues through the runtime JSON cache.
+- Added tests for OEB import validation, translation provider loading, verse mapping, Reader Original / English switching, position preservation, translation loading, and offline caching hooks.
+- Left translation selection UI, parallel text, split screen, comparison tools, accounts, sync, and new learning systems out of scope.
+
 ## v4.3
 
 - Added Adaptive Reader controls inside the Reader for display, translation, assistance, known-word filtering, and indicator style.

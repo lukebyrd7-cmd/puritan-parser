@@ -60,12 +60,16 @@ const FallbackReaderBooks = {
 const ReaderVocabularyLearningModel = (typeof VocabularyLearning !== 'undefined')
   ? VocabularyLearning
   : (typeof require === 'function' ? require('../../models/vocabulary-learning') : null);
+const ReaderTranslationApi = (typeof getTranslationProvider !== 'undefined')
+  ? { getTranslationProvider, translationVerseText }
+  : (typeof require === 'function' ? require('../../core/translations/translation-provider') : null);
 
 let readerState = {
   language: 'greek',
   book: 'matthew',
   chapter: 1,
   chapterData: null,
+  translationData: null,
   loading: false,
   error: '',
   focusVerse: '',
@@ -73,6 +77,7 @@ let readerState = {
   wordPageInfo: null
 };
 const readerChapterCache = new Map();
+const readerTranslationLoadCounts = {};
 const readerManifestCache = new Map();
 const readerLoadCounts = {};
 const readerGlossSourceCache = new Map();
@@ -98,6 +103,8 @@ function getReaderBooks(language = readerState.language){ return getReaderConfig
 function getReaderBook(language, bookId){ return getReaderBooks(language).find(book => book.id === bookId) || getReaderBooks(language)[0]; }
 function readerCacheKey(language, book, chapter){ return `${language}/${book}/${chapter}`; }
 function getReaderChapterPath(language, book, chapter){ return `${getReaderConfig(language).dataRoot}/${book}/${chapter}.json`; }
+function getReaderTranslationProvider(){ return ReaderTranslationApi?.getTranslationProvider?.('oeb'); }
+function readerTranslationCacheKey(book = readerState.book, chapter = readerState.chapter){ return `oeb/${book}/${chapter}`; }
 function normalizeReaderText(value){ return String(value || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, ''); }
 function cleanReaderTokenValue(value){ return String(value || '').trim(); }
 function escReaderAttr(value){ return escHtml(value).replace(/"/g, '&quot;').replace(/'/g, '&#39;'); }
@@ -697,15 +704,32 @@ async function loadReaderChapter(language = readerState.language, book = readerS
   readerChapterCache.set(key, data);
   return data;
 }
+async function loadReaderTranslationChapter(book = readerState.book, chapter = readerState.chapter){
+  const provider = getReaderTranslationProvider();
+  if(!provider) return null;
+  const key = readerTranslationCacheKey(book, chapter);
+  readerTranslationLoadCounts[key] = (readerTranslationLoadCounts[key] || 0) + 1;
+  return provider.loadChapter(book, chapter);
+}
+async function ensureReaderTranslationLoaded(settings = getActiveReaderSettings()){
+  if(settings.translation !== 'on' || !readerState.chapterData) return null;
+  try {
+    readerState.translationData = await loadReaderTranslationChapter(readerState.book, readerState.chapter);
+  } catch(error) {
+    readerState.translationData = null;
+  }
+  return readerState.translationData;
+}
 async function setReaderLocation(location = {}){
   const language = ReaderConfig[location.language || readerState.language] ? (location.language || readerState.language) : 'greek';
   await loadReaderManifest(language);
   const book = getReaderBook(language, location.book || readerState.book).id;
   const chapter = clampReaderChapter(language, book, location.chapter || readerState.chapter);
-  readerState = { ...readerState, language, book, chapter, loading: true, error: '', focusVerse: location.verse || '' };
+  readerState = { ...readerState, language, book, chapter, chapterData: null, translationData: null, loading: true, error: '', focusVerse: location.verse || '' };
   renderReader();
   try {
     readerState.chapterData = await loadReaderChapter(language, book, chapter);
+    await ensureReaderTranslationLoaded();
     readerState.loading = false;
     saveReaderLocation(readerState);
   } catch(error) {
@@ -801,15 +825,21 @@ function renderReaderSettingsPanel(settings = getActiveReaderSettings()){
           </div>
         </div>`;
 }
-function readerVerseEnglish(verse = {}){
+function readerVerseEnglish(verse = {}, translationData = readerState.translationData){
   return cleanReaderTokenValue(verse.english || verse.translation || verse.kjv || verse.web || verse.asv || verse.textEnglish);
 }
-function readerChapterHasEnglish(data = {}){
+function readerTranslationVerseEnglish(verse = {}, translationData = readerState.translationData){
+  const embedded = readerVerseEnglish(verse, translationData);
+  if(embedded) return embedded;
+  const number = verse.number || verse.verse;
+  return cleanReaderTokenValue(ReaderTranslationApi?.translationVerseText?.(translationData, number));
+}
+function readerChapterHasEnglish(data = {}, translationData = readerState.translationData){
   const verses = (data.paragraphs || [{ verses: data.verses || [] }]).flatMap(paragraph => paragraph.verses || []);
-  return verses.some(readerVerseEnglish);
+  return verses.some(verse => readerTranslationVerseEnglish(verse, translationData));
 }
 function renderReaderTranslationToggle(settings = getActiveReaderSettings(), data = readerState.chapterData){
-  const unavailable = data && !readerChapterHasEnglish(data);
+  const unavailable = data && !readerChapterHasEnglish(data, readerState.translationData);
   return `<section class="reader-translation-bar" aria-label="Translation">
       <div class="reader-translation-toggle" role="group" aria-label="Translation">
         <button class="${settings.textMode === 'original' ? 'active' : ''}" type="button" data-reader-text-mode="original">Original</button>
@@ -822,14 +852,14 @@ function renderReaderChapter(data, settings = getActiveReaderSettings()){
   const paragraphs = data.paragraphs || [{ verses: data.verses || [] }];
   const meta = getReaderLanguageMeta(data.language || readerState.language);
   if(settings.translation === 'on' && settings.textMode === 'english'){
-    if(!readerChapterHasEnglish(data)) return `<h2 class="reader-chapter-heading" dir="ltr">${escHtml(data.bookName)} ${data.chapter}</h2><div class="empty-state">English translation is unavailable for this passage.</div>`;
+    if(!readerChapterHasEnglish(data, readerState.translationData)) return `<h2 class="reader-chapter-heading" dir="ltr">${escHtml(data.bookName)} ${data.chapter}</h2><div class="empty-state">English translation is unavailable for this passage.</div>`;
     return `<h2 class="reader-chapter-heading" dir="ltr">${escHtml(data.bookName)} ${data.chapter}</h2>` + paragraphs.map(paragraph => `<p class="reader-paragraph reader-paragraph-english" lang="en" dir="ltr">${paragraph.verses.map(verse => renderReaderVerse(verse, data, settings)).join(' ')}</p>`).join('');
   }
   return `<h2 class="reader-chapter-heading" dir="ltr">${escHtml(data.bookName)} ${data.chapter}</h2>` + paragraphs.map(paragraph => `<p class="reader-paragraph" lang="${escReaderAttr(meta.htmlLang)}" dir="${escReaderAttr(meta.dir)}">${paragraph.verses.map(verse => renderReaderVerse(verse, data, settings)).join(' ')}</p>`).join('');
 }
 function renderReaderVerse(verse, data = readerState.chapterData || {}, settings = getActiveReaderSettings()){
   const number = verse.number || verse.verse;
-  if(settings.translation === 'on' && settings.textMode === 'english') return `<span class="reader-verse reader-verse-english" id="readerVerse-${number}"><sup>${number}</sup>${escHtml(readerVerseEnglish(verse) || '')}</span>`;
+  if(settings.translation === 'on' && settings.textMode === 'english') return `<span class="reader-verse reader-verse-english" id="readerVerse-${number}"><sup>${number}</sup>${escHtml(readerTranslationVerseEnglish(verse, readerState.translationData) || '')}</span>`;
   const tokens = Array.isArray(verse.tokens) ? verse.tokens.filter(token => token?.surface && (token.lemma || token.parse)) : [];
   const text = tokens.length ? renderReaderTokens(tokens, { book: data.book, bookName: data.bookName, chapter: data.chapter, verse: number }, settings, data.language || readerState.language) : escHtml(verse.text);
   return `<span class="reader-verse" id="readerVerse-${number}"><sup>${number}</sup>${text}</span>`;
@@ -924,6 +954,9 @@ function updateReaderSetting(key, value){
   }
   const saved = saveReaderSettings(next, readerState.language);
   readerSettingsPanelOpen = true;
+  if(saved.translation === 'on' && (key === 'translation' || (key === 'textMode' && saved.textMode === 'english'))){
+    ensureReaderTranslationLoaded(saved).then(() => renderReader());
+  }
   renderReader();
   return saved;
 }
@@ -1172,5 +1205,5 @@ async function runReaderSearch(query){
   return results;
 }
 async function initReader(){ const loc = loadReaderLocation(); readerState = { ...readerState, ...loc }; await setReaderLocation(loc); }
-if(typeof window !== 'undefined') Object.assign(window, { ReaderConfig, ReaderDefaultSettings, readerState, readerChapterCache, readerManifestCache, readerLoadCounts, getReaderChapterPath, getReaderLanguageMeta, loadReaderManifest, loadReaderChapter, setReaderLocation, getAdjacentReaderLocation, renderReader, renderReaderChapter, renderReaderVerse, renderReaderTokens, initReader, runReaderSearch, loadReaderLocation, saveReaderLocation, loadReaderSettings, saveReaderSettings, getActiveReaderSettings, updateReaderSetting, openReaderSettingsPanel, closeReaderSettingsPanel, readerTokenQualifiesForAssistance, renderReaderSettingsPanel, renderReaderTranslationToggle, parseReaderReference, openReaderTokenPopup, closeReaderWordPopup, openReaderWordPage, renderReaderWordPage, lookupReaderWordInfo, explainReaderParse, readerGrammarLinksForInfo, readerPartOfSpeechForInfo, readerMorphologyFields, renderReaderMorphology, renderReaderGrammar, getReaderLemmaOccurrences, openReaderContextOccurrence, openReaderBookProgress, renderReaderWordLearning, readerLearningStatusForInfo, introduceReaderWordFromPage, reviewReaderWordFromPage });
-if(typeof module !== 'undefined') module.exports = { ReaderConfig, ReaderDefaultSettings, readerState: () => readerState, readerChapterCache, readerManifestCache, readerLoadCounts, getReaderChapterPath, getReaderLanguageMeta, loadReaderManifest, normalizeReaderManifest, getReaderBookChapters, loadReaderChapter, setReaderLocation, getAdjacentReaderLocation, renderReader, renderReaderChapter, renderReaderVerse, renderReaderTokens, runReaderSearch, loadReaderLocation, saveReaderLocation, loadReaderSettings, saveReaderSettings, getActiveReaderSettings, updateReaderSetting, openReaderSettingsPanel, closeReaderSettingsPanel, handleReaderPopupKeydown, handleReaderDocumentClick, readerAssistanceThreshold, readerTokenFrequency, readerTokenQualifiesForAssistance, renderReaderSettingsPanel, renderReaderTranslationToggle, readerChapterHasEnglish, parseReaderReference, normalizeReaderText, lookupReaderWordInfo, explainReaderParse, readerGrammarLinksForInfo, readerParseKind, readerPartOfSpeechForInfo, readerMorphologyFields, renderReaderMorphology, renderReaderGrammar, openReaderTokenPopup, closeReaderWordPopup, openReaderWordPage, renderReaderWordPage, loadReaderSearchIndex, representativeReaderOccurrences, getReaderLemmaOccurrences, readerOccurrenceSnippet, renderReaderWordPageContext, renderReaderWordPageContextContent, attachReaderWordPageContextHandlers, openReaderContextOccurrence, openReaderBookProgress, renderReaderWordLearning, readerLearningStatusForInfo, introduceReaderWordFromPage, reviewReaderWordFromPage };
+if(typeof window !== 'undefined') Object.assign(window, { ReaderConfig, ReaderDefaultSettings, readerState, readerChapterCache, readerTranslationLoadCounts, readerManifestCache, readerLoadCounts, getReaderChapterPath, getReaderLanguageMeta, loadReaderManifest, loadReaderChapter, loadReaderTranslationChapter, ensureReaderTranslationLoaded, setReaderLocation, getAdjacentReaderLocation, renderReader, renderReaderChapter, renderReaderVerse, renderReaderTokens, initReader, runReaderSearch, loadReaderLocation, saveReaderLocation, loadReaderSettings, saveReaderSettings, getActiveReaderSettings, updateReaderSetting, openReaderSettingsPanel, closeReaderSettingsPanel, readerTokenQualifiesForAssistance, renderReaderSettingsPanel, renderReaderTranslationToggle, parseReaderReference, openReaderTokenPopup, closeReaderWordPopup, openReaderWordPage, renderReaderWordPage, lookupReaderWordInfo, explainReaderParse, readerGrammarLinksForInfo, readerPartOfSpeechForInfo, readerMorphologyFields, renderReaderMorphology, renderReaderGrammar, getReaderLemmaOccurrences, openReaderContextOccurrence, openReaderBookProgress, renderReaderWordLearning, readerLearningStatusForInfo, introduceReaderWordFromPage, reviewReaderWordFromPage });
+if(typeof module !== 'undefined') module.exports = { ReaderConfig, ReaderDefaultSettings, readerState: () => readerState, readerChapterCache, readerTranslationLoadCounts, readerManifestCache, readerLoadCounts, getReaderChapterPath, getReaderLanguageMeta, loadReaderManifest, normalizeReaderManifest, getReaderBookChapters, loadReaderChapter, loadReaderTranslationChapter, ensureReaderTranslationLoaded, setReaderLocation, getAdjacentReaderLocation, renderReader, renderReaderChapter, renderReaderVerse, renderReaderTokens, runReaderSearch, loadReaderLocation, saveReaderLocation, loadReaderSettings, saveReaderSettings, getActiveReaderSettings, updateReaderSetting, openReaderSettingsPanel, closeReaderSettingsPanel, handleReaderPopupKeydown, handleReaderDocumentClick, readerAssistanceThreshold, readerTokenFrequency, readerTokenQualifiesForAssistance, renderReaderSettingsPanel, renderReaderTranslationToggle, readerChapterHasEnglish, readerTranslationVerseEnglish, parseReaderReference, normalizeReaderText, lookupReaderWordInfo, explainReaderParse, readerGrammarLinksForInfo, readerParseKind, readerPartOfSpeechForInfo, readerMorphologyFields, renderReaderMorphology, renderReaderGrammar, openReaderTokenPopup, closeReaderWordPopup, openReaderWordPage, renderReaderWordPage, loadReaderSearchIndex, representativeReaderOccurrences, getReaderLemmaOccurrences, readerOccurrenceSnippet, renderReaderWordPageContext, renderReaderWordPageContextContent, attachReaderWordPageContextHandlers, openReaderContextOccurrence, openReaderBookProgress, renderReaderWordLearning, readerLearningStatusForInfo, introduceReaderWordFromPage, reviewReaderWordFromPage };

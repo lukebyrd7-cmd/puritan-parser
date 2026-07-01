@@ -341,10 +341,10 @@ test('Reference local language selection is independent of global app language',
   assert.doesNotMatch(greek, /<h2>Hebrew<\/h2>/);
 });
 
-test('v4.2.9 service worker cache version and app shell cache bust are bumped', () => {
+test('service worker cache version and app shell cache bust are bumped', () => {
   const sw = fs.readFileSync('sw.js', 'utf8');
   const html = fs.readFileSync('index.html', 'utf8');
-  assert.match(sw, /const CACHE = 'puritan-parser-v26-final-polish'/);
+  assert.match(sw, /const CACHE = 'puritan-parser-v27-oeb-translation'/);
   assert.doesNotMatch(sw, /puritan-parser-v13-reader-startup/);
-  assert.match(html, /src="src\/main\.js\?v=v4\.2\.9-final-polish"/);
+  assert.match(html, /src="src\/main\.js\?v=v4\.3\.1-oeb-translation"/);
 });

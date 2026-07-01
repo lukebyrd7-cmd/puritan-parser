@@ -193,6 +193,31 @@ test('Reader render hides the translation toggle when Translation is Off', async
   assert.doesNotMatch(html, /data-reader-text-mode="english"/);
 });
 
+test('Reader loads OEB English through the translation provider and preserves location', async () => {
+  storageHarness();
+  reader.saveReaderSettings({ ...reader.ReaderDefaultSettings, translation: 'on', textMode: 'english' }, 'greek');
+  let html = '';
+  const shell = { set innerHTML(value){ html = value; }, get innerHTML(){ return html; } };
+  global.$ = selector => selector === '#readerShell' ? shell : null;
+  global.$$ = () => [];
+
+  await reader.setReaderLocation({ language: 'greek', book: 'john', chapter: 1, verse: '1' });
+  assert.equal(reader.readerState().language, 'greek');
+  assert.equal(reader.readerState().book, 'john');
+  assert.equal(reader.readerState().chapter, 1);
+  assert.equal(reader.readerState().focusVerse, '1');
+  assert.match(html, /data-reader-text-mode="original"/);
+  assert.match(html, /In the beginning the Word was/);
+  assert.doesNotMatch(html, /Ἐν ἀρχῇ/);
+
+  reader.updateReaderSetting('textMode', 'original');
+  assert.equal(reader.readerState().book, 'john');
+  assert.equal(reader.readerState().chapter, 1);
+  assert.match(html, /Ἐν/);
+  assert.doesNotMatch(html, /In the beginning the Word was/);
+  assert.equal(reader.readerTranslationLoadCounts['oeb/john/1'], 1);
+});
+
 test('Adaptive Reader assistance thresholds, custom validation, and indicators work together', () => {
   const storage = storageHarness();
   let toastMessage = '';
