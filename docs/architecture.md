@@ -4,6 +4,8 @@ Puritan Parser is a local-first, static Biblical Greek and Hebrew reading app. I
 
 This document records not only what exists, but why it exists.
 
+For v5 product decisions, [Product Bible v5](product-bible-v5.md) is authoritative. This architecture document explains how the codebase should support that direction without implementing future behavior prematurely.
+
 ## Architectural Principles
 
 ### Reading-first architecture
@@ -17,6 +19,22 @@ User progress, preferences, review history, and future personal data belong to t
 ### Static data and user data stay separate
 
 Vocabulary source data, glosses, parsing data, grammar reference data, and Reader chapter files are source content. Review progress, preferences, custom glosses, and future notes are user data. Mixing these makes migrations, exports, and data refreshes brittle.
+
+## v5 Storage Provider Direction
+
+v5 remains local-first. Accounts and cloud sync are future possibilities, not current requirements, and should not be introduced by feature work unless explicitly requested.
+
+The target direction is a small storage-provider boundary:
+
+- `StorageProvider`: the interface feature code depends on.
+- `LocalStorageProvider`: the current browser-backed implementation.
+- `CloudProvider`: a future implementation that may sync the same user-data model.
+
+The important architectural rule is that learning systems should not know whether data is local-only or synced. Vocabulary progress, review history, Reader preferences, onboarding choices, Study Sets, and future account-backed data should read and write through feature-specific storage APIs backed by the provider layer.
+
+This protects the learning system from a future rewrite. If accounts arrive later, the work should be to add identity, conflict handling, migration, and a cloud-backed provider, not to redesign vocabulary learning, SRS history, Reader settings, or Progress calculations.
+
+Current storage modules under `src/core/storage/` are already a useful starting boundary. v5 feature work should continue consolidating direct `localStorage` access behind these modules. Do not implement a full provider abstraction until a feature naturally touches enough storage code to justify the migration.
 
 ### Shared before separate
 

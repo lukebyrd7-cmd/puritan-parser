@@ -4,6 +4,8 @@ This roadmap is a living document. Update it whenever meaningful features are co
 
 Avoid creating separate roadmap items for minor polish. Instead, incorporate polish naturally into related feature work.
 
+For v5 product direction, treat [Product Bible v5](product-bible-v5.md) as the source of truth. For implementation sequencing, use [v5 Implementation Plan](v5-implementation-plan.md).
+
 ## Current Status
 
 Puritan Parser is a local-first Biblical Greek and Hebrew reading and study app. Major completed milestones include:
@@ -27,18 +29,95 @@ Puritan Parser is a local-first Biblical Greek and Hebrew reading and study app.
 
 ## Current Focus
 
-The v4.3 Adaptive Reader build, v4.3.1 OEB Translation Integration, and v4.3.2 WEB Translation Option are complete. The current focus is finishing grammar learning, improving learning-engine transparency, and polishing the Reader before release-candidate review.
+The v4.3 Adaptive Reader build, v4.3.1 OEB Translation Integration, and v4.3.2 WEB Translation Option are complete. The current focus is v5 planning alignment: making the Product Bible, roadmap, architecture, and implementation plan coherent before the next larger implementation prompts.
 
-## Upcoming
+## v5 Roadmap
+
+### v5.0.0: Product Bible + Architecture Alignment
+
+- Create `docs/product-bible-v5.md` as the v5 source of truth.
+- Align roadmap, architecture, changelog, and planning docs around the Product Bible.
+- Document the future storage-provider target without implementing accounts or sync.
+- Audit current app gaps against the Product Bible.
+
+### v5.1: Reader UX + Adaptive Reader Completion
+
+- Polish fixed Reader chrome and Scripture-pane scrolling.
+- Keep Previous and Next chapter controls together.
+- Collapse Reader search by default.
+- Clarify Reader Settings / Adaptive Reader labeling.
+- Preserve Reader location through Word Pages, Book Progress, translation changes, and settings changes.
+- Move toward shared Greek/Hebrew Reader settings, with language-specific assistance thresholds.
+
+### v5.2: Learn Dashboard + Review Queue Redesign
+
+- Make Learn open to a dashboard instead of the last subsection.
+- Put Review Queue first, with Greek, Hebrew, and Mixed review entry points.
+- Add Continue Learning, Start Something New, Practice, and Study Sets areas in v5 priority order.
+- Keep Learn action-oriented and distinct from Progress.
+
+### v5.3: SRS Transparency + Language-Specific Review Targets
+
+- Add Greek and Hebrew daily review targets: Light, Standard, Heavy, and Custom.
+- Show today's queue separately from additional available backlog.
+- Explain SRS status, interval, next review, and review outcome movement.
+- Prevent self-reported Known words from flooding the daily review queue.
+- Add practice count-toward-SRS behavior with an explicit default prompt.
+
+### v5.4: Word Page Upgrade + Usage Examples Index
+
+- Upgrade Word Pages around Identity, This Occurrence, Learning, Reference, Usage Examples, and Navigation.
+- Add richer SRS and review-status transparency to Word Pages.
+- Improve Hebrew prefix/suffix/root/stem/form display using source data only.
+- Build a lazy occurrence index for contextual usage examples.
+- Prioritize current passage and current book examples before broader groupings.
+
+### v5.5: Reference Reorganization + Grammar Handbook Expansion
+
+- Reorganize Reference by consultation frequency.
+- Establish Tier 1: Quick Reference, Grammar Handbook, Paradigm Charts.
+- Establish Tier 2: Morphology Guide, Reading Helps, Parsing Abbreviations, Stem Summaries.
+- Keep supplemental material available without crowding the first screen.
+- Preserve Recognition engine compatibility with Reference-backed paradigm data.
+
+### v5.6: Progress Redesign
+
+- Redesign Progress around Reader Growth Summary, Reading Readiness, Vocabulary Growth, Grammar Growth, Reading History, Detailed Analytics, and Recommendations.
+- Add richer readiness and growth summaries without inventing unavailable data.
+- Keep recommendations pointing back to Learn or Reader.
+- Keep Progress distinct from the Learn dashboard.
+
+### v5.7: Onboarding + Self-Reported Proficiency
+
+- Add goal-based onboarding.
+- Let users choose Greek, Hebrew, or both.
+- Support optional trust-based proficiency surveys for each language.
+- Distinguish self-reported Known words from review-proven Known words.
+- End onboarding with a personalized Start Here screen.
+
+### v5.8: Study Sets + Practice Improvements
+
+- Add Study Sets as quiet custom learning paths.
+- Keep Study Sets under 30 seconds to create.
+- Add Mixed Practice MVP that combines vocabulary and grammar around a reading scope.
+- Improve practice routing across vocabulary, grammar, and mixed sessions.
+
+### v5.9: Global Search MVP + Release Polish
+
+- Add Global Search from the main app shell.
+- Search lemmas and glosses across Greek and Hebrew.
+- Show frequency and learning status.
+- Open matching results in Word Pages.
+- Keep Reference Search separate.
+- Perform release polish against the Product Bible design tests.
+
+## v4 Completion Context
 
 - v4.3: Adaptive Reader — complete
 - v4.3.1: OEB Translation Integration — complete
 - v4.3.2: WEB Translation Option and Floating Translation Toggle — complete
-- v4.4: Complete Grammar Learning
-- v4.5: Learning Engine / SRS Transparency
-- v4.6: Reader Polish
-- v4.7: Release Candidate Review
-- v5.0: Public Release
+- v4.4 through v4.7 planning has been superseded by the v5 roadmap above.
+- v5.0 public-release readiness should be judged against the Product Bible, not the older v4 release-candidate list.
 
 ## Release Gates
 

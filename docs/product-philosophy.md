@@ -1,5 +1,7 @@
 # Product Philosophy
 
+For v5, [Product Bible v5](product-bible-v5.md) is the canonical product document. This file preserves the enduring philosophy behind that Bible and should remain consistent with it.
+
 ## Mission
 
 Puritan Parser exists to help people become independent readers of Scripture in Biblical Greek and Hebrew.

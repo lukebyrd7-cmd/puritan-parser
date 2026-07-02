@@ -2,6 +2,8 @@
 
 This document guides future AI assistants working on Puritan Parser.
 
+For v5 work, read [Product Bible v5](product-bible-v5.md) first, then consult [v5 Implementation Plan](v5-implementation-plan.md), [Roadmap](roadmap.md), and [Architecture](architecture.md). The Product Bible is the source of truth for product decisions; the implementation plan translates it into epics.
+
 ## AI Roles
 
 The AI may serve as:
@@ -59,6 +61,8 @@ When in doubt, choose the path that helps the user return to the biblical text s
 
 At the conclusion of every meaningful implementation, determine whether these documents should be updated:
 
+- `docs/product-bible-v5.md`
+- `docs/v5-implementation-plan.md`
 - `docs/product-philosophy.md`
 - `docs/roadmap.md`
 - `docs/architecture.md`

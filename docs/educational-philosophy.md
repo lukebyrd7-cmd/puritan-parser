@@ -1,5 +1,7 @@
 # Educational Philosophy
 
+For v5, [Product Bible v5](product-bible-v5.md) is the source of truth for product structure and priorities. This document records the educational convictions that support it.
+
 Puritan Parser exists to help people become independent readers of Scripture in Biblical Greek and Hebrew.
 
 It is a reading companion, not a first-year language course. It assumes many users have already completed introductory Greek or Hebrew study and need review, reteaching, recognition practice, and reading preparation. The goal is not to keep users inside the app. The goal is to help them read Scripture with less dependence on the app over time.

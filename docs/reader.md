@@ -1,5 +1,7 @@
 # Reader Architecture (v3.6.2a Reader Popup Refinement)
 
+Historical note: this file records the v3.6 Reader architecture snapshot. Current Reader direction is governed by [Product Bible v5](product-bible-v5.md), with current shared Reader architecture summarized in [Architecture](architecture.md). Do not treat the older scope boundaries below as current v5 product limits.
+
 The Reader is a reading-first shell for the Greek New Testament. It intentionally avoids interlinear display, inline glosses, notes, highlighting, commentary, AI, accounts, sync, and Hebrew reading.
 
 ## UI placement
