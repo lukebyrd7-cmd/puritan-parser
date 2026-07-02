@@ -140,6 +140,9 @@ test('Reader controls stay fixed in the reader shell and search expands only whe
   await reader.setReaderLocation({ language: 'greek', book: 'matthew', chapter: 1 });
   assert.match(html, /class="panel reader-controls"/);
   assert.match(html, /id="readerPrevBtn"[\s\S]*id="readerNextBtn"/);
+  assert.ok(html.indexOf('class="reader-translation-bar"') > html.indexOf('id="readerNextBtn"'));
+  assert.ok(html.indexOf('class="reader-translation-bar"') < html.indexOf('id="readerSettingsPanel"'));
+  assert.ok(html.indexOf('class="reader-translation-bar"') < html.indexOf('class="panel reader-search hidden"'));
   assert.match(html, /id="readerSearchToggle" type="button" aria-expanded="false"/);
   assert.match(html, /reader-search hidden/);
 

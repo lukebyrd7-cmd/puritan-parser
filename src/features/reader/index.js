@@ -829,6 +829,7 @@ function renderReader(){
       <div class="reader-control-row reader-control-actions">
         <button class="btn btn-ghost btn-sm" id="readerPrevBtn" ${getAdjacentReaderLocation(-1)?'':'disabled'}>← Previous</button>
         <button class="btn btn-ghost btn-sm" id="readerNextBtn" ${getAdjacentReaderLocation(1)?'':'disabled'}>Next →</button>
+        ${settings.translation === 'on' && settings.showTranslationToggle ? renderReaderTranslationToggle(settings, data) : ''}
         <details class="reader-settings" id="readerSettingsPanel" ${readerSettingsPanelOpen ? 'open' : ''}>
           <summary class="btn btn-ghost btn-sm">Reader Settings</summary>
           ${renderReaderSettingsPanel(settings)}
@@ -838,7 +839,6 @@ function renderReader(){
         <div class="reader-reference" id="readerReference"><span>${escHtml(book.name)} ${readerState.chapter}</span><small>${escHtml(renderReaderStatus(settings))}</small></div>
       </div>
     </section>
-    ${settings.translation === 'on' && settings.showTranslationToggle ? renderReaderTranslationToggle(settings, data) : ''}
     <section class="panel reader-search${readerSearchOpen ? '' : ' hidden'}" aria-label="${escReaderAttr(config.shortLabel || meta.label)} reader search">
       <input id="readerSearchInput" class="input" placeholder="${escReaderAttr(config.searchPlaceholder)}" autocomplete="off" />
       <button class="btn btn-primary btn-sm" id="readerSearchBtn">Search</button>
@@ -911,13 +911,13 @@ function renderReaderTranslationToggle(settings = getActiveReaderSettings(), dat
   const unavailable = data && !readerChapterHasEnglish(data, readerState.translationData);
   const fallback = readerState.translationStatus?.fallback;
   const note = fallback ? 'OEB unavailable here. Showing WEB.' : (unavailable ? 'English unavailable for this passage.' : '');
-  return `<section class="reader-translation-bar${settings.floatingTranslationToggle ? ' reader-translation-bar-floating' : ''}" aria-label="Translation">
+  return `<div class="reader-translation-bar${settings.floatingTranslationToggle ? ' reader-translation-bar-floating' : ''}" aria-label="Translation">
       <div class="reader-translation-toggle" role="group" aria-label="Translation">
         <button class="${settings.textMode === 'original' ? 'active' : ''}" type="button" data-reader-text-mode="original">Original</button>
         <button class="${settings.textMode === 'english' ? 'active' : ''}" type="button" data-reader-text-mode="english" ${unavailable ? 'aria-describedby="readerTranslationUnavailable"' : ''}>English</button>
       </div>
       ${note ? `<span class="reader-translation-unavailable" id="readerTranslationUnavailable">${escHtml(note)}</span>` : ''}
-    </section>`;
+    </div>`;
 }
 function renderReaderChapter(data, settings = getActiveReaderSettings()){
   const paragraphs = data.paragraphs || [{ verses: data.verses || [] }];

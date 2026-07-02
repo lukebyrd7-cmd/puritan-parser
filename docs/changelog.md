@@ -4,6 +4,13 @@ This changelog is a human-readable project history, not a Git log. Future entrie
 
 ## Unreleased
 
+### v5.1.1 Reader Spaciousness Polish
+
+- Consolidated the Reader Original / English toggle into the main Reader controls row so Scripture begins sooner.
+- Reduced Reader-only vertical spacing, quieted Book Progress, and widened the Scripture pane while preserving comfortable original-language text.
+- Kept Previous/Next, Reader Settings, Search, Book Progress, translation toggling, and Reader state behavior intact.
+- Updated Reader layout coverage for the consolidated translation toggle.
+
 ### v5.0.0 Product Bible + Architecture Alignment
 
 - Added `docs/product-bible-v5.md` as the source of truth for v5 product direction.

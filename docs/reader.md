@@ -4,6 +4,10 @@ Historical note: this file records the v3.6 Reader architecture snapshot. Curren
 
 The Reader is a reading-first shell for the Greek New Testament. It intentionally avoids interlinear display, inline glosses, notes, highlighting, commentary, AI, accounts, sync, and Hebrew reading.
 
+## Current UX note
+
+v5.1.1 reduces stacked Reader controls and prioritizes visible Scripture space by keeping translation mode, chapter navigation, Reader Settings, Search, Book Progress, and chapter status in a more compact controls area.
+
 ## UI placement
 
 The top navigation includes `Vocabulary`, `Flashcards`, `Parsing`, `Grammar`, and `Reader`. The Reader route is `/reader` and renders `readerView`.
