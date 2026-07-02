@@ -510,6 +510,11 @@ test('Learn back navigation returns through the Learn page stack and stays in Le
   learn.backLearnPage();
   assert.equal(learn.learnState.page, 'home');
   assert.equal(shownView, '');
+
+  learn.learnState.page = 'reading-readiness:new-testament:matthew';
+  learn.learnState.history = ['__reader__'];
+  learn.backLearnPage();
+  assert.equal(shownView, 'readerView');
   delete global.showView;
 });
 

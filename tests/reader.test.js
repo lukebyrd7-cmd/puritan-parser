@@ -244,6 +244,7 @@ test('Reader loads OEB English through the translation provider and preserves lo
   reader.updateReaderSetting('textMode', 'original');
   assert.equal(reader.readerState().book, 'john');
   assert.equal(reader.readerState().chapter, 1);
+  assert.doesNotMatch(html, /id="readerSettingsPanel" open/);
   assert.match(html, /Ἐν/);
   assert.doesNotMatch(html, /In the beginning the Word was/);
   assert.equal(reader.readerTranslationLoadCounts['oeb/john/1'], beforeLoads + 1);
@@ -297,6 +298,59 @@ test('Reader shares settings across languages except assistance threshold', () =
   assert.equal(reader.loadReaderSettings('greek').display, 'interlinear');
   assert.equal(reader.loadReaderSettings('greek').assistance, 'everything');
   assert.equal(reader.loadReaderSettings('greek').showTranslationToggle, false);
+});
+
+test('Reader migrates legacy language settings into shared settings without merging thresholds', () => {
+  const storage = storageHarness();
+  storage.set('pp_reader_adaptive_settings', JSON.stringify({
+    greek: {
+      display: 'interlinear',
+      translation: 'off',
+      translationProvider: 'web',
+      textMode: 'english',
+      hideKnown: true,
+      indicator: 'underline',
+      showTranslationToggle: false,
+      assistance: '30'
+    },
+    hebrew: {
+      assistance: 'everything'
+    }
+  }));
+
+  const greekSettings = reader.loadReaderSettings('greek');
+  const hebrewSettings = reader.loadReaderSettings('hebrew');
+  assert.equal(greekSettings.display, 'interlinear');
+  assert.equal(greekSettings.translation, 'off');
+  assert.equal(greekSettings.textMode, 'original');
+  assert.equal(greekSettings.translationProvider, 'web');
+  assert.equal(greekSettings.hideKnown, true);
+  assert.equal(greekSettings.indicator, 'underline');
+  assert.equal(greekSettings.showTranslationToggle, false);
+  assert.equal(greekSettings.assistance, '30');
+  assert.equal(hebrewSettings.display, 'interlinear');
+  assert.equal(hebrewSettings.translationProvider, 'web');
+  assert.equal(hebrewSettings.assistance, 'everything');
+});
+
+test('Reader Book Progress records Reader as the return context', () => {
+  let learnPage = '';
+  let shownView = '';
+  global.learnState = { history: ['home'] };
+  global.setLearnPage = (page, options = {}) => {
+    learnPage = page;
+    assert.equal(options.skipHistory, true);
+  };
+  global.showView = viewId => { shownView = viewId; };
+
+  reader.openReaderBookProgress();
+  assert.match(learnPage, /^reading-readiness:new-testament:/);
+  assert.equal(shownView, 'learnView');
+  assert.deepEqual(global.learnState.history, ['__reader__']);
+
+  delete global.learnState;
+  delete global.setLearnPage;
+  delete global.showView;
 });
 
 test('Adaptive Reader assistance thresholds, custom validation, and indicators work together', () => {

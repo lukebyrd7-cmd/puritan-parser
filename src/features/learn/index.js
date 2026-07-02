@@ -153,6 +153,11 @@ function resetLearn(options = {}){
 function backLearnPage(){
   const previous = learnState.history.pop();
   if(previous){
+    if(previous === '__reader__'){
+      if(typeof showView === 'function') showView('readerView');
+      else if(typeof navigateTo === 'function') navigateTo('/reader');
+      return;
+    }
     learnState.page = previous;
     renderLearn();
     return;

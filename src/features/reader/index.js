@@ -174,6 +174,20 @@ function loadAllReaderSettings(){
   if(!stored || typeof stored !== 'object') return {};
   return stored;
 }
+function deriveSharedReaderSettings(all = {}, language = readerState.language){
+  if(all.shared && typeof all.shared === 'object') return all.shared;
+  const sources = [language, 'greek', 'hebrew']
+    .filter((item, index, list) => item && list.indexOf(item) === index)
+    .map(item => all[item])
+    .filter(item => item && typeof item === 'object');
+  const shared = {};
+  sources.forEach(source => {
+    ReaderSharedSettingKeys.forEach(key => {
+      if(!Object.prototype.hasOwnProperty.call(shared, key) && Object.prototype.hasOwnProperty.call(source, key)) shared[key] = source[key];
+    });
+  });
+  return shared;
+}
 function saveAllReaderSettings(settingsByLanguage = {}){
   if(typeof writeStorageJson === 'function') writeStorageJson(ReaderSettingsStorageKey, settingsByLanguage);
   else if(typeof localStorage !== 'undefined') localStorage.setItem(ReaderSettingsStorageKey, JSON.stringify(settingsByLanguage));
@@ -181,9 +195,7 @@ function saveAllReaderSettings(settingsByLanguage = {}){
 function loadReaderSettings(language = readerState.language){
   const all = loadAllReaderSettings();
   const legacyLanguage = all[language] && typeof all[language] === 'object' ? all[language] : {};
-  const shared = all.shared && typeof all.shared === 'object'
-    ? all.shared
-    : Object.fromEntries(ReaderSharedSettingKeys.filter(key => Object.prototype.hasOwnProperty.call(legacyLanguage, key)).map(key => [key, legacyLanguage[key]]));
+  const shared = deriveSharedReaderSettings(all, language);
   return sanitizeReaderSettings({ ...shared, assistance: legacyLanguage.assistance, customThreshold: legacyLanguage.customThreshold });
 }
 function saveReaderSettings(settings = loadReaderSettings(), language = readerState.language){
@@ -995,6 +1007,7 @@ function handleReaderDocumentClick(event){
   closeReaderSettingsPanel();
 }
 function updateReaderSetting(key, value){
+  const wasSettingsPanelOpen = readerSettingsPanelOpen;
   const settings = getActiveReaderSettings();
   const next = { ...settings };
   if(key === 'hideKnown') next.hideKnown = Boolean(value);
@@ -1027,7 +1040,7 @@ function updateReaderSetting(key, value){
     next.indicator = ['none', 'tint', 'underline', 'footnote'].includes(value) ? value : 'none';
   }
   const saved = saveReaderSettings(next, readerState.language);
-  readerSettingsPanelOpen = true;
+  readerSettingsPanelOpen = wasSettingsPanelOpen;
   if(saved.translation === 'on' && (key === 'translation' || key === 'translationProvider' || (key === 'textMode' && saved.textMode === 'english'))){
     ensureReaderTranslationLoaded(saved).then(() => renderReader());
   }
@@ -1083,6 +1096,7 @@ function navigateReaderGrammarLink(topicId){
 }
 function openReaderBookProgress(){
   const testamentId = readerState.language === 'hebrew' ? 'old-testament' : 'new-testament';
+  if(typeof learnState !== 'undefined' && Array.isArray(learnState.history)) learnState.history = ['__reader__'];
   if(typeof setLearnPage === 'function') setLearnPage(`reading-readiness:${testamentId}:${readerState.book}`, { skipHistory: true });
   if(typeof showView === 'function') showView('learnView');
   else if(typeof navigateTo === 'function') navigateTo('/learn');
