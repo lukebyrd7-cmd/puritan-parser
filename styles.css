@@ -688,6 +688,12 @@ button:focus-visible, input:focus-visible, select:focus-visible {
   line-height: 1.15;
   color: var(--text);
 }
+.word-page-occurrence-form {
+  font-family: var(--font-serif);
+  font-size: 34px;
+  line-height: 1.1;
+  color: var(--text);
+}
 .word-page-lemma {
   font-family: var(--font-serif);
   font-size: 22px;
@@ -834,6 +840,10 @@ button:focus-visible, input:focus-visible, select:focus-visible {
   line-height: 1.35;
   quotes: none;
 }
+.word-page-load-more {
+  width: fit-content;
+  margin-top: 2px;
+}
 .word-page-context-empty {
   color: var(--muted);
   font-size: 13px;
@@ -863,6 +873,9 @@ button:focus-visible, input:focus-visible, select:focus-visible {
 }
 .word-page-learning-meta {
   margin-top: 10px;
+}
+.word-page-navigation {
+  padding-top: 4px;
 }
 
 /* ===== LEARN SHELL ===== */

@@ -181,6 +181,9 @@ Acceptance criteria:
 Goal:
 Upgrade Word Pages into lemma hubs that answer quick reading questions and provide lazy contextual examples.
 
+Status:
+Implemented as a foundation pass. Word Pages now render the v5 sections in order: Identity, This Occurrence, Learning, Reference, Usage Examples, and Navigation. Learning panels reuse the shared vocabulary learning details for status, next review, interval, successful reviews, total reviews, review history, and known-source metadata where available. This Occurrence presents Greek and Hebrew morphology from existing token/parser data only, including Hebrew prefix, suffix, stem, conjugation/form, and root/lemma fields when present. Usage Examples are loaded after the page shell renders from the existing cached Reader search indexes, prioritize the current reference and current book, show a small preview, and expose bounded Load More behavior rather than dumping every occurrence. Full standalone occurrence-index generation, richer corpus/author grouping, deeper Hebrew prefix/suffix parsing, and the full Reference reorganization remain deferred.
+
 Main files likely affected:
 
 - `src/features/reader/index.js`
@@ -206,7 +209,7 @@ Suggested tests:
 Acceptance criteria:
 
 - Word Pages show Identity, This Occurrence, Learning, Reference, Usage Examples, and Navigation.
-- Usage examples load lazily from an occurrence index with preview and Load More / View All.
+- Usage examples load lazily from the cached Reader search indexes with preview and Load More / View All.
 - Hebrew pages clearly display prefix, root/lemma, stem, form, suffixes, and contextual meaning when source data provides them.
 
 ## v5.5 Reference Reorganization + Grammar Handbook Expansion

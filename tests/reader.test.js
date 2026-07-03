@@ -664,6 +664,26 @@ test('Word Page grammar display summarizes Hebrew nouns and verbs without duplic
   assert.match(renderedText(verbHtml), /Grammar Verb — Hiphil perfect, 1st person common plural Stem Hiphil Conjugation perfect Person 1st person Gender common Number plural Parse code: HVhp1cp/);
 });
 
+test('This Occurrence renders Hebrew prefix and suffix fields without undefined fallbacks', () => {
+  const html = reader.renderReaderWordOccurrence({
+    language: 'hebrew',
+    surface: 'וַיֹּאמֶר',
+    lemma: '559',
+    sourceLemma: 'c/559',
+    parse: 'HC/Vqw3ms/Sp3ms',
+    primaryGloss: 'and he said',
+    reference: 'Genesis 1:3'
+  }, { partOfSpeech: 'Verb' });
+  assert.match(renderedText(html), /This Occurrence וַיֹּאמֶר Verb — Qal wayyiqtol, 3rd person masculine singular/);
+  assert.match(renderedText(html), /Prefix Conjunction/);
+  assert.match(renderedText(html), /Suffix 3rd person masculine singular/);
+  assert.doesNotMatch(html, /undefined|null/);
+
+  const emptyHtml = reader.renderReaderWordOccurrence({ language: 'hebrew', lemma: '559' });
+  assert.match(emptyHtml, /occurrence-specific details/);
+  assert.doesNotMatch(emptyHtml, /undefined|null/);
+});
+
 test('reader word lookup falls back gracefully when data is missing', async () => {
   global.state = { data: { greek: [] } };
   const info = await reader.lookupReaderWordInfo(
@@ -782,18 +802,20 @@ test('clicking Open Word Page closes the popup and opens a dynamic Word Page vie
   assert.ok(wordPageHtml.indexOf('data-word-page-back-to-reader="true"') < wordPageHtml.indexOf('word-page-header'));
   assert.equal((wordPageHtml.match(/Back to Reader/g) || []).length, 2);
   assert.match(wordPageHtml, /word-page-pos">Noun<\/div>/);
-  assert.doesNotMatch(wordPageHtml, /wordPageLemmaHeading/);
+  assert.match(wordPageHtml, /<h2 id="wordPageIdentityHeading">Identity<\/h2>[\s\S]*<dt>Lemma<\/dt><dd>λόγος<\/dd>/);
   assert.match(wordPageHtml, /word-page-primary-gloss">word<\/p>/);
+  assert.match(wordPageHtml, /<h2 id="wordPageOccurrenceHeading">This Occurrence<\/h2>/);
   assert.match(wordPageHtml, /<h2 id="wordPageLearningHeading">Learning<\/h2>/);
-  assert.match(wordPageHtml, /<h2 id="wordPageGrammarHeading">Grammar<\/h2>/);
+  assert.match(wordPageHtml, /<h2 id="wordPageReferenceHeading">Reference<\/h2>/);
+  assert.match(wordPageHtml, /<h2 id="wordPageContextHeading">Usage Examples<\/h2>/);
+  assert.match(wordPageHtml, /<h2 id="wordPageNavigationHeading">Navigation<\/h2>/);
   assert.doesNotMatch(wordPageHtml, /wordPageParsingHeading/);
   assert.doesNotMatch(wordPageHtml, /wordPageMorphologyHeading/);
-  assert.ok(wordPageHtml.indexOf('wordPageMeaningHeading') < wordPageHtml.indexOf('wordPageLearningHeading'));
-  assert.ok(wordPageHtml.indexOf('wordPageLearningHeading') < wordPageHtml.indexOf('wordPageGrammarHeading'));
-  assert.ok(wordPageHtml.indexOf('wordPageGrammarHeading') < wordPageHtml.indexOf('<dt>Frequency</dt>'));
-  assert.ok(wordPageHtml.indexOf('<dt>Frequency</dt>') < wordPageHtml.indexOf('wordPageContextHeading'));
-  assert.ok(wordPageHtml.indexOf('wordPageContextHeading') < wordPageHtml.indexOf('wordPageRelatedHeading'));
-  assert.ok(wordPageHtml.indexOf('wordPageRelatedHeading') < wordPageHtml.indexOf('wordPageLinksHeading'));
+  assert.ok(wordPageHtml.indexOf('wordPageIdentityHeading') < wordPageHtml.indexOf('wordPageOccurrenceHeading'));
+  assert.ok(wordPageHtml.indexOf('wordPageOccurrenceHeading') < wordPageHtml.indexOf('wordPageLearningHeading'));
+  assert.ok(wordPageHtml.indexOf('wordPageLearningHeading') < wordPageHtml.indexOf('wordPageReferenceHeading'));
+  assert.ok(wordPageHtml.indexOf('wordPageReferenceHeading') < wordPageHtml.indexOf('wordPageContextHeading'));
+  assert.ok(wordPageHtml.indexOf('wordPageContextHeading') < wordPageHtml.indexOf('wordPageNavigationHeading'));
   assert.match(wordPageHtml, /id="wordPageReaderExamplesSlot"[\s\S]*hidden/);
   assert.match(wordPageHtml, /Also translated as/);
   assert.match(wordPageHtml, /message[\s\S]*account[\s\S]*matter/);
@@ -801,7 +823,7 @@ test('clicking Open Word Page closes the popup and opens a dynamic Word Page vie
   assert.match(wordPageHtml, /<dt>Current Reference<\/dt><dd>John 1:1<\/dd>/);
   assert.match(wordPageHtml, /data-topic-id="greek-nouns"/);
   assert.match(wordPageHtml, />Greek Nouns<\/button>/);
-  assert.match(wordPageHtml, /Read in Context/);
+  assert.match(wordPageHtml, /Usage Examples/);
   assert.doesNotMatch(wordPageHtml, /Word Page/);
   assert.equal(typeof backHandler, 'function');
   backHandler();
@@ -813,7 +835,7 @@ test('clicking Open Word Page closes the popup and opens a dynamic Word Page vie
   });
   actionHandler();
   assert.match(wordPageHtml, /<h1 id="wordPageTitle" class="word-page-headword">ἀρχῇ<\/h1>/);
-  assert.match(wordPageHtml, /<h2 id="wordPageLemmaHeading">Lemma<\/h2>[\s\S]*ἀρχή/);
+  assert.match(wordPageHtml, /<dt>Lemma<\/dt><dd>ἀρχή<\/dd>/);
   assert.match(wordPageHtml, /word-page-primary-gloss">beginning<\/p>/);
   assert.match(wordPageHtml, /origin/);
   assert.match(wordPageHtml, /<dt>Frequency<\/dt><dd>55×<\/dd>/);
@@ -907,9 +929,18 @@ test('word page read in context selects up to five lemma occurrences with short 
   assert.ok(occurrences.every(item => item.snippet.split(/\s+/).length <= 12));
 
   const html = reader.renderReaderWordPageContext(occurrences);
-  assert.match(html, /Read in Context/);
+  assert.match(html, /Usage Examples/);
+  assert.match(html, /Small preview from the Reader index/);
   assert.equal((html.match(/class="word-page-context-link"/g) || []).length, occurrences.length);
   assert.doesNotMatch(html, /View All|pagination|filter|translation/i);
+});
+
+test('word page usage examples prioritize current occurrence and support a bounded Load More preview', async () => {
+  const occurrences = await reader.getReaderLemmaOccurrences('λόγος', 'greek', 6, { current: { reference: 'John 1:1', language: 'greek' } });
+  assert.equal(occurrences[0].reference, 'John 1:1');
+  const html = reader.renderReaderWordPageContextContent(occurrences.slice(0, 5), false, { hasMore: true, nextLimit: 11, language: 'greek' });
+  assert.equal((html.match(/class="word-page-context-link"/g) || []).length, 5);
+  assert.match(html, /data-word-page-load-more="11"/);
 });
 
 test('clicking a read in context occurrence opens Reader at that reference', async () => {
@@ -1458,8 +1489,7 @@ test('Hebrew Word Page opens from the shared popup and Read in Context uses the 
   assert.equal(popupHtml, '');
   assert.match(wordPageHtml, /<h1 id="wordPageTitle" class="word-page-headword" lang="he" dir="rtl">דְּבַר<\/h1>/);
   assert.match(wordPageHtml, /word-page-pos">Noun<\/div>/);
-  assert.doesNotMatch(wordPageHtml, /wordPageLemmaHeading/);
-  assert.doesNotMatch(wordPageHtml, /<h2 id="wordPageLemmaHeading">Lemma<\/h2>[\s\S]*1697/);
+  assert.match(wordPageHtml, /<h2 id="wordPageIdentityHeading">Identity<\/h2>/);
   assert.match(wordPageHtml, /word-page-primary-gloss">word<\/p>/);
   assert.match(wordPageHtml, /matter[\s\S]*thing/);
   assert.match(wordPageHtml, /<dt>Strong’s ID<\/dt><dd>1697<\/dd>/);
@@ -1515,7 +1545,7 @@ test('Hebrew Word Pages and Read in Context work for expanded-corpus books', asy
   actionHandler();
   assert.equal(shownView, 'wordPageView');
   assert.match(wordPageHtml, /<dt>Current Reference<\/dt><dd>Genesis 1:1<\/dd>/);
-  assert.match(wordPageHtml, /<h2 id="wordPageGrammarHeading">Grammar<\/h2>[\s\S]*word-page-grammar-summary">Verb — Qal perfect, 3rd person masculine singular<\/p>/);
+  assert.match(wordPageHtml, /<h2 id="wordPageOccurrenceHeading">This Occurrence<\/h2>[\s\S]*word-page-grammar-summary">Verb — Qal perfect, 3rd person masculine singular<\/p>/);
   assert.match(wordPageHtml, /<dt>Stem<\/dt><dd>Qal<\/dd>/);
   assert.match(wordPageHtml, /<dt>Conjugation<\/dt><dd>perfect<\/dd>/);
   assert.match(wordPageHtml, /<dt>Person<\/dt><dd>3rd person<\/dd>/);

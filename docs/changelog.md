@@ -4,6 +4,14 @@ This changelog is a human-readable project history, not a Git log. Future entrie
 
 ## Unreleased
 
+### v5.4 Word Page Upgrade + Usage Examples Foundation
+
+- Reorganized Word Pages around Identity, This Occurrence, Learning, Reference, Usage Examples, and Navigation.
+- Surfaced Word Page SRS details more clearly, including next review, current interval, successful reviews, total reviews, review history, and known-source metadata where available.
+- Improved This Occurrence display for Greek and Hebrew, including Hebrew prefix, suffix, stem, form, and root/lemma fields when the Reader token data provides them.
+- Added a lazy Usage Examples foundation backed by the existing cached Reader search indexes, with current-reference prioritization, a compact preview, and bounded Load More behavior.
+- Kept Reference links limited to existing safe destinations while presenting Quick Reference, Grammar Handbook, Paradigm Charts, and Morphology Guide labels as related-reference guidance.
+
 ### v5.3.1 Review Queue Actions Hotfix
 
 - Fixed Review Queue buttons so Greek, Hebrew, and Mixed review actions start sessions or show empty states.

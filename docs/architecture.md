@@ -98,6 +98,8 @@ The page organization should remain scannable and predictable across Greek and H
 
 Occurrences are the natural home for future Reader Examples. v4.2.8 prepares the page structure for that addition but does not implement example selection, advanced syntax, or weak-verb expansion.
 
+v5.4 adds the Usage Examples foundation without introducing a separate generated occurrence database. Word Pages render first, then lazily ask the existing Reader search index for a small lemma preview. The search index is loaded through the same in-memory cache used by Reader search, current-reference/current-book examples are prioritized, and the UI renders only a bounded preview plus Load More. Future full occurrence-index work may improve grouping by corpus, author, or canon section, but it should preserve the same lazy/cached behavior and avoid storing large derived indexes in user storage.
+
 ## Reader
 
 The Reader is shared infrastructure for both Greek and Hebrew.
