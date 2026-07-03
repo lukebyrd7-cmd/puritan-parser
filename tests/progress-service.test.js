@@ -67,11 +67,11 @@ test('Progress recommendations are practical and data-derived', () => {
     recognition: { lastHebrewSession: '2026-06-20' }
   }, '2026-06-29');
 
-  assert.ok(recommendations.includes('You have 12 Greek vocabulary reviews due.'));
-  assert.ok(recommendations.includes('Study 7 more words to unlock Philippians at 25+ readiness.'));
-  assert.ok(recommendations.includes('Romans is your closest unfinished major book.'));
-  assert.ok(recommendations.includes('You have not practiced Hebrew paradigms in several days.'));
-  assert.doesNotMatch(recommendations.join(' '), /streak|badge|trophy|achievement|confetti/i);
+  assert.ok(recommendations.some(item => item.text === '12 Greek vocabulary reviews are ready when you want to strengthen recall.' && item.learnPage === 'review:greek'));
+  assert.ok(recommendations.some(item => item.text === '7 words would move you closer to Philippians at 25+ readiness.' && item.learnPage === 'reading-readiness:new-testament:'));
+  assert.ok(recommendations.some(item => item.text === 'Romans is your closest larger book to readiness.' && item.view === 'reader'));
+  assert.ok(recommendations.some(item => item.text === 'Hebrew paradigm recognition may be ready for a light refresh.' && item.learnPage === 'paradigms:recognition-practice'));
+  assert.doesNotMatch(recommendations.map(item => item.text).join(' '), /streak|badge|trophy|achievement|confetti/i);
 });
 
 test('Reading Readiness summaries count ready books and chapters separately from closest goals', () => {
@@ -105,7 +105,7 @@ test('Progress statistics display tracked totals and Not yet tracked empty state
 
 test('Progress overview renders empty states without fabricated statistics', () => {
   const html = ProgressView.renderProgressOverview({
-    vocabulary: { known: 0, learning: 0, dueToday: 0 },
+    vocabulary: { known: 0, learning: 0, dueToday: 0, byLanguage: { greek: {}, hebrew: {} } },
     readiness: {
       closestBooks: [],
       closestChapters: [],
@@ -116,17 +116,49 @@ test('Progress overview renders empty states without fabricated statistics', () 
     recommendations: ['Choose a high-frequency vocabulary path or open the closest Reading Readiness book to decide what to study next.']
   });
 
-  assert.match(html, /Known[\s\S]*0/);
+  assert.match(html, /Reader Growth Summary/);
+  assert.match(html, /Reading Readiness/);
+  assert.match(html, /Vocabulary Growth/);
+  assert.match(html, /Grammar Growth/);
+  assert.match(html, /Reading History/);
+  assert.match(html, /Detailed Analytics/);
+  assert.match(html, /Recommendations/);
+  assert.ok(html.indexOf('Reader Growth Summary') < html.indexOf('Reading Readiness'));
+  assert.ok(html.indexOf('Reading Readiness') < html.indexOf('Vocabulary Growth'));
+  assert.ok(html.indexOf('Vocabulary Growth') < html.indexOf('Grammar Growth'));
+  assert.ok(html.indexOf('Grammar Growth') < html.indexOf('Reading History'));
+  assert.ok(html.indexOf('Reading History') < html.indexOf('Detailed Analytics'));
+  assert.ok(html.indexOf('Detailed Analytics') < html.indexOf('Recommendations'));
+  assert.match(html, /Known Greek Words[\s\S]*0/);
   assert.match(html, /No readiness data yet/);
-  assert.match(html, /Closest Books/);
-  assert.match(html, /Closest Chapters/);
-  assert.match(html, /Old Testament[\s\S]*0 \/ 39[\s\S]*Books Ready: 0 \/ 39[\s\S]*Chapters Ready: 0 \/ 929/);
-  assert.match(html, /New Testament[\s\S]*0 \/ 27[\s\S]*Books Ready: 0 \/ 27[\s\S]*Chapters Ready: 0 \/ 260/);
+  assert.match(html, /Old Testament Books Ready[\s\S]*0 \/ 39[\s\S]*Chapters Ready: 0 \/ 929/);
+  assert.match(html, /New Testament Books Ready[\s\S]*0 \/ 27[\s\S]*Chapters Ready: 0 \/ 260/);
+  assert.match(html, /Greek[\s\S]*Known by Self-Report[\s\S]*Hebrew[\s\S]*Not Learned/);
+  assert.match(html, /Grammar mastery tracking will appear after paradigm recognition practice/);
+  assert.match(html, /Word Taps Per Chapter[\s\S]*Not yet tracked/);
   assert.doesNotMatch(html, /Closest completed books|Closest completed chapters/);
   const readinessSection = html.match(/<section class="progress-section" aria-labelledby="progressReadinessTitle">[\s\S]*?<section class="progress-section" aria-labelledby="progressGrammarTitle">/)?.[0] || '';
-  assert.equal((readinessSection.match(/class="progress-metric"/g) || []).length, 4);
   assert.doesNotMatch(readinessSection, /progress-plain-list|<ul|<li>/);
-  assert.doesNotMatch(html, /progress-bar|badge|trophy|confetti/i);
+  assert.doesNotMatch(html, /progress-bar|badge|trophy|confetti|XP|coins|leaderboard/i);
+});
+
+test('Progress readiness cards render safe actions back to Learn and Reader', () => {
+  const html = ProgressView.renderReadingReadiness({
+    closestBooks: [{
+      language: 'greek',
+      book: { id: 'philippians', name: 'Philippians', chapters: [1, 2, 3, 4] },
+      known: 8,
+      total: 10,
+      remaining: 2,
+      frequency: [{ threshold: '10', remaining: 1 }]
+    }]
+  });
+
+  assert.match(html, /Philippians/);
+  assert.match(html, /80%/);
+  assert.match(html, /data-progress-learn-page="reading-readiness:new-testament:philippians"/);
+  assert.match(html, /data-progress-reader-book="philippians"/);
+  assert.match(html, /Practice Unknown Words/);
 });
 
 test('Progress service records completed recognition sessions for shared statistics', () => {

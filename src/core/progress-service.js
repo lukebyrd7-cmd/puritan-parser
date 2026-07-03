@@ -101,16 +101,29 @@
     const normalized = VocabularyLearningModel?.normalizeStore ? VocabularyLearningModel.normalizeStore(store) : { records: store?.records || {} };
     const indexed = entryIndex(entriesByLanguage);
     const records = Object.values(normalized.records || {});
-    const byLanguage = { greek: { known: 0, learning: 0, dueToday: 0 }, hebrew: { known: 0, learning: 0, dueToday: 0 } };
-    const totals = { known: 0, learning: 0, dueToday: 0 };
+    const baseLanguageStats = () => ({ known: 0, knownBySelfReport: 0, learning: 0, reviewing: 0, notLearned: 0, dueToday: 0, totalAvailable: 0, coveragePercent: NOT_TRACKED });
+    const byLanguage = { greek: baseLanguageStats(), hebrew: baseLanguageStats() };
+    const totals = { known: 0, knownBySelfReport: 0, learning: 0, reviewing: 0, notLearned: 0, dueToday: 0 };
+
+    Object.entries(entriesByLanguage || {}).forEach(([language, entries]) => {
+      const bucket = byLanguage[language] || (byLanguage[language] = baseLanguageStats());
+      bucket.totalAvailable = Array.isArray(entries) ? entries.length : 0;
+    });
+
     records.forEach(record => {
       const entry = indexed.get(record.id) || record;
       const language = clean(record.lang || entry.lang).toLowerCase() || 'greek';
       const status = VocabularyLearningModel?.learningStatus ? VocabularyLearningModel.learningStatus(normalized, entry, dateISO) : record.status;
-      const bucket = byLanguage[language] || (byLanguage[language] = { known: 0, learning: 0, dueToday: 0 });
+      const bucket = byLanguage[language] || (byLanguage[language] = baseLanguageStats());
       if(status === VocabularyLearningModel?.STATUS?.KNOWN || status === 'Known'){
         bucket.known += 1;
         totals.known += 1;
+      } else if(status === VocabularyLearningModel?.STATUS?.KNOWN_SELF_REPORTED || status === 'Known by Self-Report'){
+        bucket.knownBySelfReport += 1;
+        totals.knownBySelfReport += 1;
+      } else if(status === VocabularyLearningModel?.STATUS?.REVIEWING || status === 'Reviewing'){
+        bucket.reviewing += 1;
+        totals.reviewing += 1;
       } else {
         bucket.learning += 1;
         totals.learning += 1;
@@ -119,6 +132,19 @@
         bucket.dueToday += 1;
         totals.dueToday += 1;
       }
+    });
+
+    Object.entries(byLanguage).forEach(([language, bucket]) => {
+      const entries = entriesByLanguage?.[language] || [];
+      bucket.notLearned = Math.max(0, bucket.totalAvailable - bucket.known - bucket.knownBySelfReport - bucket.learning - bucket.reviewing);
+      totals.notLearned += bucket.notLearned;
+      const totalFrequency = entries.reduce((sum, entry) => sum + Math.max(0, Number(entry.freq) || 0), 0);
+      const knownFrequency = entries.reduce((sum, entry) => {
+        const status = VocabularyLearningModel?.learningStatus ? VocabularyLearningModel.learningStatus(normalized, entry, dateISO) : '';
+        const isKnown = status === VocabularyLearningModel?.STATUS?.KNOWN || status === VocabularyLearningModel?.STATUS?.KNOWN_SELF_REPORTED || status === 'Known' || status === 'Known by Self-Report';
+        return isKnown ? sum + Math.max(0, Number(entry.freq) || 0) : sum;
+      }, 0);
+      bucket.coveragePercent = totalFrequency > 0 ? Math.round((knownFrequency / totalFrequency) * 100) : NOT_TRACKED;
     });
     return { ...totals, byLanguage, records };
   }
@@ -152,6 +178,39 @@
       totalTargets: targets.length,
       lastHebrewSession: sessions.filter(session => session.language === 'hebrew').map(session => session.date).sort().at(-1) || '',
       lastGreekSession: sessions.filter(session => session.language === 'greek').map(session => session.date).sort().at(-1) || ''
+    };
+  }
+  function grammarGrowth(history = loadRecognitionHistory()){
+    const sessions = normalizeRecognitionHistory(history).sessions;
+    const targets = RecognitionModel?.recognitionTargets ? RecognitionModel.recognitionTargets() : [];
+    const summarized = targets.slice(0, 12).map(target => {
+      const targetSessions = sessions.filter(session => session.targetId === target.id);
+      const recognized = targetSessions.reduce((sum, session) => sum + Number(session.recognized || 0), 0);
+      const missed = targetSessions.reduce((sum, session) => sum + Number(session.missed || 0), 0);
+      const total = recognized + missed;
+      const accuracy = total ? Math.round((recognized / total) * 100) : null;
+      let state = 'Not Started';
+      if(total > 0 && accuracy < 60) state = 'Needs Review';
+      else if(targetSessions.length >= 3 && accuracy >= 80) state = 'Strong';
+      else if(total > 0) state = 'Developing';
+      return {
+        id: target.id,
+        title: target.title,
+        language: target.language,
+        kind: target.kind,
+        referenceTopicId: target.referenceTopicId,
+        sessions: targetSessions.length,
+        recognized,
+        missed,
+        total,
+        accuracy,
+        state
+      };
+    });
+    return {
+      topics: summarized,
+      greek: summarized.filter(item => item.language === 'greek'),
+      hebrew: summarized.filter(item => item.language === 'hebrew')
     };
   }
   function readerStatistics(){
@@ -246,31 +305,48 @@
     const chapter = item.chapter ? ` ${item.chapter}` : '';
     return `${bookName}${chapter}`;
   }
+  function readinessPercent(item = {}){
+    const total = Number(item.total) || 0;
+    if(!total) return null;
+    return Math.round(((Number(item.known) || 0) / total) * 100);
+  }
   function recommendationCandidates(data = {}, dateISO = todayISO()){
     const recommendations = [];
     const vocabulary = data.vocabulary || {};
-    if(vocabulary.byLanguage?.greek?.dueToday) recommendations.push(`You have ${vocabulary.byLanguage.greek.dueToday} Greek vocabulary reviews due.`);
-    if(vocabulary.byLanguage?.hebrew?.dueToday) recommendations.push(`You have ${vocabulary.byLanguage.hebrew.dueToday} Hebrew vocabulary reviews due.`);
+    if(vocabulary.byLanguage?.greek?.dueToday) recommendations.push({ text: `${vocabulary.byLanguage.greek.dueToday} Greek vocabulary reviews are ready when you want to strengthen recall.`, action: 'Review Greek', view: 'learn', learnPage: 'review:greek' });
+    if(vocabulary.byLanguage?.hebrew?.dueToday) recommendations.push({ text: `${vocabulary.byLanguage.hebrew.dueToday} Hebrew vocabulary reviews are ready when you want to strengthen recall.`, action: 'Review Hebrew', view: 'learn', learnPage: 'review:hebrew' });
 
     const thresholdCandidate = (data.readiness?.allBooks || [])
       .flatMap(book => (book.frequency || []).map(item => ({ ...item, book: book.book, language: book.language })))
       .filter(item => item.threshold !== 'all' && Number(item.remaining) > 0)
       .sort((a, b) => a.remaining - b.remaining)[0];
     if(thresholdCandidate){
-      recommendations.push(`Study ${thresholdCandidate.remaining} more ${thresholdCandidate.remaining === 1 ? 'word' : 'words'} to unlock ${readinessLabel(thresholdCandidate)} at ${BookProgressModel.frequencyLabel(thresholdCandidate.threshold)} readiness.`);
+      recommendations.push({
+        text: `${thresholdCandidate.remaining} ${thresholdCandidate.remaining === 1 ? 'word' : 'words'} would move you closer to ${readinessLabel(thresholdCandidate)} at ${BookProgressModel.frequencyLabel(thresholdCandidate.threshold)} readiness.`,
+        action: 'Open Reading Path',
+        view: 'learn',
+        learnPage: `reading-readiness:${thresholdCandidate.language === 'hebrew' ? 'old-testament' : 'new-testament'}:${thresholdCandidate.book?.id || ''}`
+      });
     }
 
     const closestMajorBook = (data.readiness?.allBooks || [])
       .filter(item => Number(item.remaining) > 0 && Number(item.book?.chapters?.length || item.book?.chapterCount || 0) >= 5)
       .sort((a, b) => a.remaining - b.remaining)[0];
-    if(closestMajorBook) recommendations.push(`${readinessLabel(closestMajorBook)} is your closest unfinished major book.`);
+    if(closestMajorBook) recommendations.push({
+      text: `${readinessLabel(closestMajorBook)} is your closest larger book to readiness.`,
+      action: 'Read Book',
+      view: 'reader',
+      language: closestMajorBook.language,
+      bookId: closestMajorBook.book?.id,
+      chapter: closestMajorBook.book?.chapters?.[0] || 1
+    });
 
     const recognition = data.recognition || {};
     if(recognition.lastHebrewSession){
       const cutoff = dateDaysAgo(3, dateISO);
-      if(recognition.lastHebrewSession < cutoff) recommendations.push(`You have not practiced Hebrew paradigms in several days.`);
+      if(recognition.lastHebrewSession < cutoff) recommendations.push({ text: `Hebrew paradigm recognition may be ready for a light refresh.`, action: 'Practice Hebrew Grammar', view: 'learn', learnPage: 'paradigms:recognition-practice' });
     }
-    if(!recommendations.length) recommendations.push('Choose a high-frequency vocabulary path or open the closest Reading Readiness book to decide what to study next.');
+    if(!recommendations.length) recommendations.push({ text: 'Open the closest Reading Readiness book or choose a high-frequency vocabulary path to decide what to study next.', action: 'Open Reading Readiness', view: 'learn', learnPage: 'reading-readiness' });
     return recommendations.slice(0, 5);
   }
   async function overview(options = {}){
@@ -278,11 +354,13 @@
     const vocabulary = vocabularyProgress(options.entriesByLanguage, options.store, dateISO);
     const readiness = options.readiness || await readingReadiness(options.readinessOptions || {});
     const recognition = recognitionProgress(options.recognitionHistory);
+    const grammar = grammarGrowth(options.recognitionHistory);
     return {
       dateISO,
       vocabulary,
       readiness,
       recognition,
+      grammar,
       recommendations: recommendationCandidates({ vocabulary, readiness, recognition }, dateISO)
     };
   }
@@ -317,6 +395,8 @@
     learningStatistics,
     readingReadiness,
     readinessSummary,
+    readinessPercent,
+    grammarGrowth,
     recommendationCandidates,
     overview,
     statistics,

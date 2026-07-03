@@ -213,6 +213,10 @@ Progress and Statistics are intentionally distinct views of the same local data.
 
 The Progress service remains local-first. Recognition history is user data and must stay separate from Reference source material and generated Reader data.
 
+v5.6 reorganizes the Progress landing page around reader growth rather than activity totals. The page order is Reader Growth Summary, Reading Readiness, Vocabulary Growth, Grammar Growth, Reading History, Detailed Analytics, and Recommendations. The service derives expanded vocabulary buckets, frequency-coverage estimates, readiness percentages, grammar-growth states, and structured recommendations from existing data only. It does not add a new storage key or migrate existing `pp_vocab_learning`, `pp_recognition_history`, Reader preferences, or Learn review target data.
+
+Reading History remains a foundation until the Reader records durable event data for word taps, assistance use, translation toggles, and repeat-chapter improvement. Missing Reader history must continue to render as `Not yet tracked` rather than inferred independence metrics.
+
 ## Reference
 
 Reference lives in `src/features/grammar/` and is the source foundation for future Paradigm Recognition. `reference-data.js` owns static grammar topics, consolidated reference pages, paradigm charts, aliases from older topic ids, search flattening, and `referenceParadigmGroups()`. `index.js` renders the Reference UI from that data.

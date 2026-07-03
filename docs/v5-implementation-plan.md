@@ -258,6 +258,16 @@ Acceptance criteria:
 Goal:
 Measure growth toward independent reading without turning Progress into a second Learn dashboard.
 
+Status:
+Implemented as a foundation pass. Progress now opens with the v5.6 section order: Reader Growth Summary, Reading Readiness, Vocabulary Growth, Grammar Growth, Reading History, Detailed Analytics, and Recommendations. The page reuses existing Vocabulary Learning, Book Progress, Reader load-count, and Paradigm Recognition data; it does not add new storage keys or fabricate Reader-history metrics. Reading Readiness cards link back to Learn reading paths and Reader passages. Recommendations are structured as a few actionable Learn/Reader handoffs rather than a second training dashboard.
+
+Deferred:
+
+- Richer Reader event tracking for word taps per chapter, assistance used, translation toggles, and repeated-chapter improvement.
+- Deeper grammar mastery analytics beyond recognition-session summaries.
+- Trend charts for vocabulary retention, review accuracy over time, words learned per month, and Reader assistance trends.
+- A more advanced recommendation engine once Reader-history and richer grammar signals exist.
+
 Main files likely affected:
 
 - `src/features/progress/index.js`

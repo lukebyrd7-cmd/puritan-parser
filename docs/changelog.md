@@ -4,6 +4,16 @@ This changelog is a human-readable project history, not a Git log. Future entrie
 
 ## Unreleased
 
+### v5.6 Progress Redesign
+
+- Reorganized Progress around Reader Growth Summary, Reading Readiness, Vocabulary Growth, Grammar Growth, Reading History, Detailed Analytics, and Recommendations.
+- Shifted Progress copy and layout toward reading independence, readiness, fewer helps over time, and grounded vocabulary/grammar growth instead of raw activity or gamified completion language.
+- Added high-level Greek and Hebrew vocabulary summaries, including safely derived frequency-coverage estimates when vocabulary frequency data is available.
+- Expanded Reading Readiness cards with readiness percentages, known/remaining word context, high-value unknown word counts, and actions back to Learn reading paths or Reader passages.
+- Added a Grammar Growth foundation from existing paradigm recognition history with safe Strong, Developing, Needs Review, and Not Started states.
+- Added Reading History and Detailed Analytics foundations that surface only currently tracked data and preserve `Not yet tracked` for unavailable Reader event metrics.
+- Made Progress recommendations structured, humble, and actionable, with links back to Learn or Reader instead of duplicating training flows.
+
 ### v5.5 Reference Reorganization + Grammar Handbook Foundation
 
 - Reorganized Reference around consultation priority: Quick Reference, Grammar Handbook, and Paradigm Charts first; Morphology Guide, Reading Helps, and Parsing Abbreviations second; supplemental material quieter.
