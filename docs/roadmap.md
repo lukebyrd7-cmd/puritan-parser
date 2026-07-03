@@ -29,7 +29,7 @@ Puritan Parser is a local-first Biblical Greek and Hebrew reading and study app.
 
 ## Current Focus
 
-The v4.3 Adaptive Reader build, v4.3.1 OEB Translation Integration, and v4.3.2 WEB Translation Option are complete. The current focus is v5 planning alignment: making the Product Bible, roadmap, architecture, and implementation plan coherent before the next larger implementation prompts.
+The v5.5 Reference Reorganization foundation is complete. Current v5 work can move toward Progress redesign while preserving the new distinction: Learn trains, Reference explains, Progress measures, and Reader applies.
 
 ## v5 Roadmap
 
@@ -81,11 +81,12 @@ The v4.3 Adaptive Reader build, v4.3.1 OEB Translation Integration, and v4.3.2 W
 
 ### v5.5: Reference Reorganization + Grammar Handbook Expansion
 
-- Reorganize Reference by consultation frequency.
-- Establish Tier 1: Quick Reference, Grammar Handbook, Paradigm Charts.
-- Establish Tier 2: Morphology Guide, Reading Helps, Parsing Abbreviations, Stem Summaries.
-- Keep supplemental material available without crowding the first screen.
-- Preserve Recognition engine compatibility with Reference-backed paradigm data.
+- Complete: Reorganize Reference by consultation frequency.
+- Complete: Establish Tier 1: Quick Reference, Grammar Handbook, Paradigm Charts.
+- Complete: Establish Tier 2: Morphology Guide, Reading Helps, Parsing Abbreviations, Stem Summaries.
+- Complete: Keep supplemental material available without crowding the first screen.
+- Complete: Preserve Recognition engine compatibility with Reference-backed paradigm data.
+- Deferred: deeper advanced syntax, fuller supplemental resources, and specialist-reviewed weak-verb expansion.
 
 ### v5.6: Progress Redesign
 

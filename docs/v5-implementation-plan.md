@@ -217,6 +217,16 @@ Acceptance criteria:
 Goal:
 Organize Reference by consultation frequency and expand Quick Reference, Grammar Handbook, Paradigm Charts, and Morphology Guide.
 
+Status:
+Implemented as a foundation pass. Reference now opens around v5 consultation tiers: Primary includes Quick Reference, Grammar Handbook, and Paradigm Charts; Secondary includes Morphology Guide, Reading Helps, and Parsing Abbreviations; Supplemental keeps supporting material available without dominating the first screen. Greek and Hebrew Quick Reference, Handbook, Charts, Morphology, and Reading Helps pages reuse existing static reference charts and explanations. Existing canonical topic IDs, old-topic aliases, recognition-engine paradigm sources, and Word Page grammar links remain compatible.
+
+Deferred:
+
+- Deeper Grammar Handbook expansion for advanced syntax.
+- Specialist verification and expansion of complex Hebrew weak-verb material.
+- More complete supplemental pages for alphabet, pronunciation, textual resources, and scholarly abbreviations.
+- Richer search ranking/highlighting; current Reference Search remains local static filtering.
+
 Main files likely affected:
 
 - `src/features/grammar/reference-data.js`

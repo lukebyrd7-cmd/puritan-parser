@@ -4,7 +4,7 @@ function referenceApi(){ return (typeof PuritanReferenceLibrary !== 'undefined')
 const referenceState = { language: appGrammarLanguage() };
 function selectedReferenceLanguage(){ return referenceState.language === 'hebrew' ? 'hebrew' : 'greek'; }
 function appGrammarLanguage(){ return (typeof state !== 'undefined' && (state.lang === 'hebrew' || state.lang === 'greek')) ? state.lang : 'greek'; }
-function defaultReferenceTopicId(lang=selectedReferenceLanguage()){ return lang === 'hebrew' ? 'hebrew-verbs' : 'greek-verbs'; }
+function defaultReferenceTopicId(lang=selectedReferenceLanguage()){ return lang === 'hebrew' ? 'hebrew-quick-reference' : 'greek-quick-reference'; }
 function setReferenceLanguage(language = 'greek', options = {}){
   referenceState.language = language === 'hebrew' ? 'hebrew' : 'greek';
   const selector = $('#referenceLanguageSelect');
@@ -17,39 +17,32 @@ const referenceSectionTabScrollPositions = {};
 function renderReferenceCell(cell){ if(cell && typeof cell === 'object'){ const label = cell.label || cell.text || ''; const note = cell.note ? `<small>${escapeReferenceHtml(cell.note)}</small>` : ''; return `<span>${escapeReferenceHtml(label)}</span>${note}`; } return escapeReferenceHtml(cell); }
 function renderChart(chart, topic){ return `<section class="reference-section reference-chart">${chart.heading ? `<h4>${escapeReferenceHtml(chart.heading)}</h4>` : ''}<h3>${escapeReferenceHtml(chart.label)}</h3>${chart.note ? `<p class="reference-note">${escapeReferenceHtml(chart.note)}</p>` : ''}<div class="table-wrap"><table class="reference-table"><thead><tr>${(chart.columns||[]).map(c=>`<th>${escapeReferenceHtml(c)}</th>`).join('')}</tr></thead><tbody>${(chart.rows||[]).map(row=>`<tr>${row.map(cell=>`<td>${renderReferenceCell(cell)}</td>`).join('')}</tr>`).join('')}</tbody></table></div></section>`; }
 function topicButton(t, cls='reference-topic-btn'){ return `<button class="${cls}" data-topic-id="${escapeReferenceHtml(t.id)}"><span>${escapeReferenceHtml(t.title)}</span><small>${escapeReferenceHtml(t.language)} · ${escapeReferenceHtml(t.category)}</small></button>`; }
-function renderGrammarTocButton(topic, label=''){
-  return topic ? `<button class="reference-topic-btn grammar-toc-link" data-topic-id="${escapeReferenceHtml(topic.id)}"><span>${escapeReferenceHtml(label || topic.title)}</span></button>` : '';
+function renderGrammarTocButton(topic, label='', description=''){
+  return topic ? `<button class="reference-topic-btn grammar-toc-link" data-topic-id="${escapeReferenceHtml(topic.id)}"><span>${escapeReferenceHtml(label || topic.title)}</span>${description ? `<small>${escapeReferenceHtml(description)}</small>` : ''}</button>` : '';
 }
-function renderGrammarTocSection(title, entries){
+function renderGrammarTocSection(title, entries, description=''){
   const api=referenceApi();
-  const links=entries.map(entry=>Array.isArray(entry) ? renderGrammarTocButton(api.getReferenceTopic(entry[0]), entry[1]) : renderGrammarTocButton(api.getReferenceTopic(entry))).join('');
-  return `<section class="grammar-home-section"><h2>${escapeReferenceHtml(title)}</h2><div class="grammar-home-list">${links}</div></section>`;
+  const links=entries.map(entry=>{
+    if(Array.isArray(entry)) return renderGrammarTocButton(api.getReferenceTopic(entry[0]), entry[1], entry[2] || '');
+    return renderGrammarTocButton(api.getReferenceTopic(entry.id || entry), entry.label || '', entry.description || '');
+  }).join('');
+  return `<section class="grammar-home-section"><h2>${escapeReferenceHtml(title)}</h2>${description ? `<p>${escapeReferenceHtml(description)}</p>` : ''}<div class="grammar-home-list">${links}</div></section>`;
 }
 function renderGrammarTocGroup(title, sections){
   return `<section class="grammar-home-language"><h2>${escapeReferenceHtml(title)}</h2>${sections.join('')}</section>`;
 }
 function renderGrammarHome(){
   const api=referenceApi(); if(!api) return '';
-  if(selectedReferenceLanguage() === 'hebrew') {
-    return `<nav class="grammar-home" aria-label="Grammar handbook contents">${renderGrammarTocGroup('Hebrew', [
-      renderGrammarTocSection('Verbs', ['hebrew-verbs']),
-      renderGrammarTocSection('Nouns', ['hebrew-nouns']),
-      renderGrammarTocSection('Construct State', [['hebrew-construct-chains','Construct State']]),
-      renderGrammarTocSection('Suffixes', [['hebrew-suffixes','Suffixes']]),
-      renderGrammarTocSection('Other Parts of Speech', ['hebrew-particles']),
-      renderGrammarTocSection('Advanced Topics', [['hebrew-weak-verbs','Weak Verbs']])
-    ])}</nav>`;
+  const language=selectedReferenceLanguage();
+  const sections=api.referenceLandingSections ? api.referenceLandingSections(language) : [];
+  if(sections.length) {
+    return `<nav class="grammar-home" aria-label="Reference contents">${renderGrammarTocGroup(language === 'hebrew' ? 'Hebrew' : 'Greek',
+      sections.map(section => renderGrammarTocSection(section.title, section.entries || [], section.description || ''))
+    )}</nav>`;
   }
-  return `<nav class="grammar-home" aria-label="Grammar handbook contents">${renderGrammarTocGroup('Greek', [
-    renderGrammarTocSection('Verbs', ['greek-verbs']),
-    renderGrammarTocSection('Nouns', ['greek-nouns']),
-    renderGrammarTocSection('Articles', [['greek-articles','Articles']]),
-    renderGrammarTocSection('Pronouns', ['greek-pronouns']),
-    renderGrammarTocSection('Other Parts of Speech', ['greek-adjectives','greek-prepositions']),
-    renderGrammarTocSection('Advanced Topics', ['grammar-parsing-ambiguity','grammar-parsing-decoder'])
-  ])}</nav>`;
+  return '';
 }
-function renderReferenceLibrary(topicId){ const api=referenceApi(); if(!api) return; const query=$('#referenceSearchInput')?.value||''; const language=selectedReferenceLanguage(); const results=api.searchReferenceTopics(query, language); const list=$('#referenceTopicList'); if(list){ list.innerHTML = renderGrammarHome() + (query ? `<h3>Search results</h3>${results.map(t=>topicButton(t)).join('') || '<div class="empty-state small muted">No reference topics match your search.</div>'}` : ''); $$('.reference-topic-btn', list).forEach(btn=>btn.addEventListener('click',()=> btn.dataset.topicId==='grammar-parsing-decoder' ? renderParsingGuide() : renderReferenceLibrary(btn.dataset.topicId))); } const canonicalTopicId = api.canonicalTopicId ? api.canonicalTopicId(topicId) : topicId; const requested = canonicalTopicId && canonicalTopicId !== 'grammar-parsing-decoder' ? api.getReferenceTopic(canonicalTopicId) : null; const chosen = requested?.language === language ? requested : (query ? results[0] : api.getReferenceTopic(defaultReferenceTopicId(language))); if(canonicalTopicId==='grammar-parsing-decoder' && language === 'greek') return renderParsingGuide(); $$('.reference-topic-btn', list||document).forEach(btn=>btn.classList.toggle('active', btn.dataset.topicId===chosen?.id)); renderReferenceTopic(chosen); }
+function renderReferenceLibrary(topicId){ const api=referenceApi(); if(!api) return; const query=$('#referenceSearchInput')?.value||''; const language=selectedReferenceLanguage(); const results=api.searchReferenceTopics(query, language); const list=$('#referenceTopicList'); if(list){ list.innerHTML = renderGrammarHome() + (query ? `<h3>Search results</h3>${results.map(t=>topicButton(t)).join('') || '<div class="empty-state small muted">No reference topics match your search.</div>'}` : ''); $$('.reference-topic-btn', list).forEach(btn=>btn.addEventListener('click',()=> btn.dataset.topicId==='grammar-parsing-decoder' ? renderParsingGuide() : renderReferenceLibrary(btn.dataset.topicId))); } const canonicalTopicId = api.canonicalTopicId ? api.canonicalTopicId(topicId) : topicId; if(canonicalTopicId==='grammar-parsing-decoder') return renderParsingGuide(); const requested = canonicalTopicId ? api.getReferenceTopic(canonicalTopicId) : null; const chosen = requested?.language === language ? requested : (query ? results[0] : api.getReferenceTopic(defaultReferenceTopicId(language))); $$('.reference-topic-btn', list||document).forEach(btn=>btn.classList.toggle('active', btn.dataset.topicId===chosen?.id)); renderReferenceTopic(chosen); }
 function renderParadigmTabs(topic){ if(!topic.paradigmTabs?.length) return ''; const active=topic.paradigmTabs[0]; return `<section class="reference-section"><div class="reference-tabs" role="tablist">${topic.paradigmTabs.map((tab,i)=>`<button class="reference-tab${i===0?' active':''}" data-tab-id="${escapeReferenceHtml(tab.id)}">${escapeReferenceHtml(tab.label)}</button>`).join('')}</div><div id="referenceTabPanel">${active.charts.map(c=>renderChart(c,topic)).join('')}</div></section>`; }
 function referenceSectionId(section, index){ return section.id || String(section.title || `section-${index}`).toLowerCase().replace(/[^a-z0-9\u0370-\u03ff\u0590-\u05ff]+/g,'-').replace(/^-|-$/g,''); }
 function renderReferenceSectionContent(section, topic){ const tips=(section.recognitionTips||[]).map(tip=>`<li>${escapeReferenceHtml(tip)}</li>`).join(''); const body=(section.body||[]).map(p=>`<p>${escapeReferenceHtml(p)}</p>`).join(''); const charts=(section.charts||[]).map(c=>renderChart(c,topic)).join(''); const examples=(section.examples||[]).map(e=>`<li><span class="reference-example-text">${escapeReferenceHtml(e.word||e.text)}</span><span>${escapeReferenceHtml(e.reference||'')}${e.reference&&e.translation?' — ':''}${escapeReferenceHtml(e.translation||e.note||'')}</span></li>`).join(''); return `${body}${tips?`<ul class="reference-tips">${tips}</ul>`:''}${charts}${examples?`<ul class="reference-examples">${examples}</ul>`:''}`; }

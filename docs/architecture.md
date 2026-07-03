@@ -217,13 +217,21 @@ The Progress service remains local-first. Recognition history is user data and m
 
 Reference lives in `src/features/grammar/` and is the source foundation for future Paradigm Recognition. `reference-data.js` owns static grammar topics, consolidated reference pages, paradigm charts, aliases from older topic ids, search flattening, and `referenceParadigmGroups()`. `index.js` renders the Reference UI from that data.
 
-Reference organization is practical rather than encyclopedic: verbs first, then high-value noun/article/pronoun material, with less commonly needed material later. Greek is organized as Verbs, Nouns, Articles, Pronouns, and Other paradigms. Hebrew is organized as Verbs, Nouns, and Other paradigms.
+Reference organization follows the v5 consultation model rather than a course or wiki index. The landing is tiered by likely reading-time need:
+
+- Primary: Quick Reference, Grammar Handbook, Paradigm Charts.
+- Secondary: Morphology Guide, Reading Helps, Parsing Abbreviations.
+- Supplemental: supporting implemented material such as prepositions, particles, pronouns, ambiguity help, and stem summaries.
+
+The v5.5 overview topics are authored static Reference content that reuse existing charts and explanations. They do not replace canonical grammar topics such as `greek-verbs`, `greek-nouns`, `hebrew-verbs`, and `hebrew-nouns`; those IDs remain stable for Word Pages, Learn recognition navigation, old-topic aliases, and future deep links.
 
 Reference owns a local Greek/Hebrew selector. It should continue showing one language at a time, independent of Reader and Learn language choices.
 
 Paradigm Recognition consumes existing Reference topic sections and paradigm tabs through the reference API instead of duplicating charts in Learn. The `futureGrammarHooks` entry for `paradigm-recognition-source` records this dependency. Reference remains static source content; recognition progress remains separate from Reference data.
 
-Phase A fixes obvious structural issues only. Forms marked as needing scholarly review must stay visible as audit targets until Phase B completes the full grammar verification.
+Reference Search is local to Reference. It searches static topic titles, summaries, charts, examples, abbreviations, morphology labels, handbook sections, and old alias terms through the Reference API. It must not become Global Search; app-wide lemma/gloss search remains a separate future feature.
+
+Forms marked as needing scholarly review must stay visible as audit targets until specialist verification completes. Reference may explain that material is limited, but Learn/drill surfaces should not treat unresolved forms as verified practice data.
 
 ## Generated Data
 

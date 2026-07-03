@@ -15,14 +15,14 @@ const sectionTabLabels = topic => (topic.sectionTabs || []).map(tab => tab.label
 const sectionTabJumpLabels = topic => (topic.sectionTabs || []).flatMap(tab => (tab.jumpChips || []).map(chip => chip.label));
 const sectionTabCharts = topic => (topic.sectionTabs || []).flatMap(tab => (tab.sections || []).flatMap(section => section.charts || []));
 
-test('v4.2.5 reference content exposes practical visible handbook destinations', () => {
+test('v5.5 reference content exposes consultation-first handbook destinations', () => {
   assert.deepEqual(
     library.referenceTopics.filter(t => t.language === 'greek').map(t => t.id),
-    ['greek-verbs','greek-nouns','greek-pronouns','greek-adjectives','greek-prepositions','grammar-parsing-decoder','grammar-parsing-ambiguity']
+    ['greek-quick-reference','greek-grammar-handbook','greek-paradigm-charts','greek-morphology-guide','greek-reading-helps','greek-verbs','greek-nouns','greek-pronouns','greek-adjectives','greek-prepositions','grammar-parsing-decoder','grammar-parsing-ambiguity']
   );
   assert.deepEqual(
     library.referenceTopics.filter(t => t.language === 'hebrew').map(t => t.id),
-    ['hebrew-verbs','hebrew-nouns','hebrew-particles']
+    ['hebrew-quick-reference','hebrew-grammar-handbook','hebrew-paradigm-charts','hebrew-morphology-guide','hebrew-reading-helps','hebrew-verbs','hebrew-nouns','hebrew-particles']
   );
   for (const topic of library.referenceTopics) {
     assert.ok(topic.id);
@@ -36,6 +36,29 @@ test('v4.2.5 reference content exposes practical visible handbook destinations',
     assert.ok(Array.isArray(topic.related));
     assert.ok(Array.isArray(topic.recognitionTips), `${topic.id} missing recognition tips`);
   }
+});
+
+test('v5.5 Reference landing tiers prioritize consultation needs', () => {
+  for (const language of ['greek', 'hebrew']) {
+    const sections = library.referenceLandingSections(language);
+    assert.deepEqual(sections.map(section => section.title), ['Primary', 'Secondary', 'Supplemental']);
+    assert.deepEqual(sections[0].entries.map(entry => entry.label), ['Quick Reference', 'Grammar Handbook', 'Paradigm Charts']);
+    assert.deepEqual(sections[1].entries.map(entry => entry.label), ['Morphology Guide', 'Reading Helps', 'Parsing Abbreviations']);
+    assert.ok(sections[2].entries.length >= 2);
+    for (const entry of sections.flatMap(section => section.entries)) {
+      assert.ok(library.getReferenceTopic(entry.id), `${entry.id} should resolve`);
+    }
+  }
+});
+
+test('v5.5 Reference pages remain consultative rather than progress-based', () => {
+  const referenceText = library.referenceTopics.map(topic => [
+    topic.title,
+    topic.summary,
+    ...(topic.body || []),
+    ...(topic.searchTerms || [])
+  ].join(' ')).join(' ');
+  assert.doesNotMatch(referenceText, /completion percentage|streak|achievement|continue where you left off/i);
 });
 
 test('v4.2.5 paradigm source groups are reusable for future recognition practice', () => {
@@ -195,6 +218,11 @@ test('old handbook ids resolve as redirects to consolidated destinations', () =>
 test('search preserves old terms while returning consolidated pages', () => {
   const expected = {
     greek: {
+      'Quick Reference':'greek-quick-reference',
+      'Grammar Handbook':'greek-grammar-handbook',
+      'Paradigm Charts':'greek-paradigm-charts',
+      'Morphology Guide':'greek-morphology-guide',
+      'Reading Helps':'greek-reading-helps',
       'third declension':'greek-nouns',
       'noun endings':'greek-nouns',
       'article endings':'greek-nouns',
@@ -209,6 +237,11 @@ test('search preserves old terms while returning consolidated pages', () => {
       'comparative':'greek-adjectives'
     },
     hebrew: {
+      'Quick Reference':'hebrew-quick-reference',
+      'Grammar Handbook':'hebrew-grammar-handbook',
+      'Paradigm Charts':'hebrew-paradigm-charts',
+      'Morphology Guide':'hebrew-morphology-guide',
+      'Reading Helps':'hebrew-reading-helps',
       'waw consecutive':'hebrew-verbs',
       'wayyiqtol':'hebrew-verbs',
       'Qal paradigms':'hebrew-verbs',
@@ -310,15 +343,15 @@ function renderGrammarHomeAfterLocalSelection(initialLanguage, selectedLanguage)
   return context.__renderedGrammarHome;
 }
 
-test('v4.2.9 Reference local language selector controls Grammar Home language', () => {
+test('v5.5 Reference local language selector controls tiered Reference home language', () => {
   const greek = renderGrammarHomeFor('greek');
-  assert.match(greek, /<nav class="grammar-home" aria-label="Grammar handbook contents">/);
-  assert.match(greek, /<section class="grammar-home-language"><h2>Greek<\/h2>[\s\S]*<h2>Verbs<\/h2>[\s\S]*>Verbs<[\s\S]*<h2>Nouns<\/h2>[\s\S]*>Nouns<[\s\S]*<h2>Articles<\/h2>[\s\S]*>Articles<[\s\S]*<h2>Pronouns<\/h2>[\s\S]*>Pronouns<[\s\S]*<h2>Other Parts of Speech<\/h2>[\s\S]*>Adjectives<[\s\S]*>Prepositions<[\s\S]*<h2>Advanced Topics<\/h2>/);
+  assert.match(greek, /<nav class="grammar-home" aria-label="Reference contents">/);
+  assert.match(greek, /<section class="grammar-home-language"><h2>Greek<\/h2>[\s\S]*<h2>Primary<\/h2>[\s\S]*>Quick Reference<[\s\S]*>Grammar Handbook<[\s\S]*>Paradigm Charts<[\s\S]*<h2>Secondary<\/h2>[\s\S]*>Morphology Guide<[\s\S]*>Reading Helps<[\s\S]*>Parsing Abbreviations<[\s\S]*<h2>Supplemental<\/h2>/);
   assert.doesNotMatch(greek, /<h2>Hebrew<\/h2>/);
   assert.doesNotMatch(greek, />Particles</);
 
   const hebrew = renderGrammarHomeFor('hebrew');
-  assert.match(hebrew, /<section class="grammar-home-language"><h2>Hebrew<\/h2>[\s\S]*<h2>Verbs<\/h2>[\s\S]*>Verbs<[\s\S]*<h2>Nouns<\/h2>[\s\S]*>Nouns<[\s\S]*<h2>Construct State<\/h2>[\s\S]*>Construct State<[\s\S]*<h2>Suffixes<\/h2>[\s\S]*>Suffixes<[\s\S]*<h2>Other Parts of Speech<\/h2>[\s\S]*>Particles<[\s\S]*<h2>Advanced Topics<\/h2>[\s\S]*>Weak Verbs</);
+  assert.match(hebrew, /<section class="grammar-home-language"><h2>Hebrew<\/h2>[\s\S]*<h2>Primary<\/h2>[\s\S]*>Quick Reference<[\s\S]*>Grammar Handbook<[\s\S]*>Paradigm Charts<[\s\S]*<h2>Secondary<\/h2>[\s\S]*>Morphology Guide<[\s\S]*>Reading Helps<[\s\S]*>Parsing Abbreviations<[\s\S]*<h2>Supplemental<\/h2>[\s\S]*>Particles and Prepositions<[\s\S]*>Stem Summaries</);
   assert.doesNotMatch(hebrew, /<h2>Greek<\/h2>/);
   assert.doesNotMatch(hebrew, />Articles</);
   assert.doesNotMatch(hebrew, />Pronouns</);

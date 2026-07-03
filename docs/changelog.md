@@ -4,6 +4,15 @@ This changelog is a human-readable project history, not a Git log. Future entrie
 
 ## Unreleased
 
+### v5.5 Reference Reorganization + Grammar Handbook Foundation
+
+- Reorganized Reference around consultation priority: Quick Reference, Grammar Handbook, and Paradigm Charts first; Morphology Guide, Reading Helps, and Parsing Abbreviations second; supplemental material quieter.
+- Added Greek and Hebrew Quick Reference pages that reuse existing verified charts for noun/article endings, verb forms, stems, suffixes, construct chains, particles, and prepositions.
+- Added Grammar Handbook, Paradigm Charts, Morphology Guide, and Reading Helps foundation pages for Greek and Hebrew without regenerating language data or fabricating advanced grammar coverage.
+- Preserved stable Word Page and Learn Reference links through existing canonical topic IDs and old-topic aliases.
+- Kept Reference consultative and progress-free; no completion percentages, streaks, achievements, or course-progress language were added.
+- Reference-local search now finds the new v5.5 sections alongside existing topics, paradigms, abbreviations, morphology labels, and handbook content.
+
 ### v5.4 Word Page Upgrade + Usage Examples Foundation
 
 - Reorganized Word Pages around Identity, This Occurrence, Learning, Reference, Usage Examples, and Navigation.

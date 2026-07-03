@@ -2,13 +2,23 @@
 
 The Grammar section is a static, language-aware handbook for Biblical Greek and Hebrew readers. It is not a morphology generator: paradigms, decoder entries, recognition clues, charts, and cross-links are authored as maintainable reference content.
 
-## v3.5.4 design goal
+## v5.5 design goal
 
-v3.5.4 refines the handbook toward fast consultation while reading. The priority is organization, navigation, and reduced repetition rather than large encyclopedic essays. Pages should feel closer to a compact grammar companion than a disconnected article collection.
+v5.5 refines Reference toward fast consultation while reading. Reference helps the reader understand; it is consulted, not completed. The first screen is organized by likely reading-time need rather than theoretical completeness or course order.
 
 ## Language-aware behavior
 
-Grammar follows the global app language mode. Greek users land on Greek reference cards; Hebrew users land on Hebrew reference cards. A local Greek/Hebrew segmented control remains available for comparison work.
+Reference owns a local Greek/Hebrew selector. Greek users see Greek reference tiers; Hebrew users see Hebrew reference tiers. This selector is independent of Reader and Learn language choices.
+
+## Consultation tiers
+
+The landing page is organized as:
+
+1. Primary: Quick Reference, Grammar Handbook, Paradigm Charts.
+2. Secondary: Morphology Guide, Reading Helps, Parsing Abbreviations.
+3. Supplemental: quieter supporting material such as prepositions, particles, pronouns, ambiguity help, and stem summaries where implemented.
+
+Quick Reference is compact lookup material. Grammar Handbook explains concepts. Paradigm Charts expose forms. Morphology Guide helps decode Word Page and Reader popup labels. Reading Helps gives short practical guidance for Greek sentences and Hebrew clauses.
 
 ## Category-based paradigm design
 
@@ -53,17 +63,13 @@ Paradigm tabs should primarily contain charts and quick recognition clues. Avoid
 
 ## Navigation model
 
-The home layout is card-based and optimized for rapid lookup:
+The home layout is tier-based and optimized for rapid lookup:
 
-1. Favorites
-2. Paradigms
-3. Cheat Sheets
-4. Parsing Guide
-5. Recently Viewed
-6. Quick Jumps
-7. Reference
+1. Primary material answers the question, “What am I most likely to need in the next 30 seconds?”
+2. Secondary material is one tap away for morphology, parsing abbreviations, and reading guidance.
+3. Supplemental material remains findable without turning the landing page into a long wiki index.
 
-Every reference article has breadcrumbs, a star/unstar control, related fast links, and concise charts. Favorites are intended to be “my frequently consulted pages,” so the empty state explicitly tells users to star pages.
+Canonical topic IDs remain stable. Word Pages and Learn recognition links continue to target consolidated topics such as `greek-verbs`, `greek-nouns`, `hebrew-verbs`, and `hebrew-nouns`; v5.5 overview topics sit above those pages and reuse their content.
 
 ## Greek reference coverage
 
@@ -97,7 +103,7 @@ Weak verbs are intentionally recognition-only in v3.5.4. I-נ, III-ה, hollow ve
 
 ## Search behavior
 
-Search indexes topic IDs, titles, categories, summaries, recognition tips, principal parts, chart labels, chart cells, examples, related-topic labels, feature-link metadata, and stem relationships. Greek search remains accent-insensitive, so unaccented queries such as `λυω` and `λογος` still find accented Greek content.
+Search indexes topic IDs, titles, categories, summaries, recognition tips, principal parts, chart labels, chart cells, examples, related-topic labels, feature-link metadata, v5.5 overview topics, morphology labels, parsing abbreviations, and stem relationships. Greek search remains accent-insensitive, so unaccented queries such as `λυω` and `λογος` still find accented Greek content.
 
 Search is expected to find high-value reader queries such as:
 
