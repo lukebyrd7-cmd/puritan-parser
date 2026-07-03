@@ -20,6 +20,7 @@ const ReaderDefaultSettings = {
   showTranslationToggle: true
 };
 const ReaderSharedSettingKeys = ['display', 'translation', 'translationProvider', 'textMode', 'hideKnown', 'indicator', 'floatingControls', 'floatingTranslationToggle', 'showTranslationToggle'];
+const HebrewInterlinearUnavailableMessage = 'Hebrew interlinear is not available yet because token-level gloss data is still being prepared.';
 const ReaderConfig = {
   hebrew: {
     label: 'Hebrew Bible',
@@ -151,9 +152,10 @@ function loadReaderLocation(){
   const book = getReaderBook(language, stored.book).id;
   return { language, book, chapter: Number(stored.chapter) || 1 };
 }
-function sanitizeReaderSettings(settings = {}){
+function sanitizeReaderSettings(settings = {}, language = readerState.language){
   const next = { ...ReaderDefaultSettings, ...(settings || {}) };
   next.display = next.display === 'interlinear' ? 'interlinear' : 'original';
+  if(language === 'hebrew' && !readerLanguageCanUseInterlinear(language)) next.display = 'original';
   next.translation = next.translation === 'on' ? 'on' : 'off';
   next.translationProvider = ReaderTranslationOptions.some(option => option.id === next.translationProvider) ? next.translationProvider : ReaderDefaultSettings.translationProvider;
   next.textMode = next.textMode === 'english' ? 'english' : 'original';
@@ -196,14 +198,17 @@ function loadReaderSettings(language = readerState.language){
   const all = loadAllReaderSettings();
   const legacyLanguage = all[language] && typeof all[language] === 'object' ? all[language] : {};
   const shared = deriveSharedReaderSettings(all, language);
-  return sanitizeReaderSettings({ ...shared, assistance: legacyLanguage.assistance, customThreshold: legacyLanguage.customThreshold });
+  return sanitizeReaderSettings({ ...shared, assistance: legacyLanguage.assistance, customThreshold: legacyLanguage.customThreshold }, language);
 }
 function saveReaderSettings(settings = loadReaderSettings(), language = readerState.language){
   const all = loadAllReaderSettings();
-  const clean = sanitizeReaderSettings(settings);
+  const clean = sanitizeReaderSettings(settings, language);
   const existingLanguage = all[language] && typeof all[language] === 'object' ? all[language] : {};
   all.shared = { ...(all.shared || {}) };
-  ReaderSharedSettingKeys.forEach(key => { all.shared[key] = clean[key]; });
+  ReaderSharedSettingKeys.forEach(key => {
+    if(key === 'display' && language === 'hebrew' && !readerLanguageCanUseInterlinear(language) && all.shared.display) return;
+    all.shared[key] = clean[key];
+  });
   all[language] = {
     assistance: clean.assistance,
     customThreshold: clean.customThreshold,
@@ -293,18 +298,116 @@ function readerTokenFrequency(token = {}, language = readerState.language){
   return aggregate || Math.max(0, ...matches.map(entry => Number(entry.freq) || 0));
 }
 function readerTokenGloss(token = {}, language = readerState.language){
-  return cleanReaderTokenValue(token.primaryGloss || token.gloss)
-    || cleanReaderTokenValue(bestReaderVocabMatches(token.lemma || token.surface, language).find(entry => entry.primaryGloss)?.primaryGloss)
-    || splitLegacyGloss(bestReaderVocabMatches(token.lemma || token.surface, language).find(entry => entry.gloss)?.gloss)[0]
+  const normalized = normalizeReaderToken(token, language);
+  const glossSource = readerGlossSourceCache.get(language) || {};
+  const sourceGloss = glossSource[normalized.lemma] || glossSource[Object.keys(glossSource).find(key => normalizeReaderText(key) === normalizeReaderText(normalized.lemma))];
+  const matches = bestReaderVocabMatches(normalized.lemma || normalized.surface, language);
+  return cleanReaderTokenValue(normalized.primaryGloss || normalized.gloss)
+    || cleanReaderTokenValue(sourceGloss?.primaryGloss)
+    || cleanReaderTokenValue(matches.find(entry => entry.primaryGloss)?.primaryGloss)
+    || splitLegacyGloss(matches.find(entry => entry.gloss)?.gloss)[0]
+    || cleanReaderTokenValue(sourceGloss?.gloss)
     || '';
 }
+function readerTokenEnglishGlossFields(token = {}){
+  return [
+    token.primaryGloss,
+    token.gloss,
+    token.englishGloss,
+    token.interlinearGloss,
+    token.tokenGloss
+  ].map(cleanReaderTokenValue).filter(Boolean);
+}
+function isReaderEnglishGloss(value){
+  const clean = cleanReaderTokenValue(value);
+  return Boolean(clean && /[A-Za-z]/.test(clean) && !hasHebrewText(clean) && !isNumericReaderLemma(clean));
+}
+function readerChapterTokens(data = {}){
+  return (data.paragraphs || [{ verses: data.verses || [] }])
+    .flatMap(paragraph => paragraph.verses || [])
+    .flatMap(verse => Array.isArray(verse.tokens) ? verse.tokens : []);
+}
+function readerChapterHasReliableInterlinearGlossData(data = {}, language = readerState.language){
+  if(language !== 'hebrew') return true;
+  const tokens = readerChapterTokens(data);
+  return tokens.length > 0 && tokens.every(token => readerTokenEnglishGlossFields(token).some(isReaderEnglishGloss));
+}
+function readerLanguageCanUseInterlinear(language = readerState.language, data = null){
+  return language !== 'hebrew' || (data ? readerChapterHasReliableInterlinearGlossData(data, language) : false);
+}
+function readerInterlinearAvailable(data = readerState.chapterData, language = readerState.language){
+  return readerLanguageCanUseInterlinear(language, data);
+}
+function readerEffectiveSettings(settings = getActiveReaderSettings(), language = readerState.language, data = readerState.chapterData){
+  if(settings.display !== 'interlinear' || readerInterlinearAvailable(data, language)) return settings;
+  return { ...settings, display: 'original' };
+}
+function normalizeReaderToken(token = {}, language = readerState.language){
+  const surface = cleanReaderTokenValue(token.surface || token.word || token.text || token.form);
+  const lemma = cleanReaderTokenValue(token.lemma || token.strong || token.strongs || token.root || token.lexicalForm || surface);
+  return {
+    ...token,
+    language,
+    surface,
+    lemma,
+    parse: cleanReaderTokenValue(token.parse || token.morph || token.morphology),
+    sourceLemma: cleanReaderTokenValue(token.sourceLemma || token.source || token.oshbLemma),
+    primaryGloss: cleanReaderTokenValue(token.primaryGloss),
+    gloss: cleanReaderTokenValue(token.gloss),
+    lexicalForm: cleanReaderTokenValue(token.lexicalForm || token.headword),
+    hebrewLemma: cleanReaderTokenValue(token.hebrewLemma),
+    root: cleanReaderTokenValue(token.root),
+    stem: cleanReaderTokenValue(token.stem)
+  };
+}
+function readerTokenInterlinearHint(token = {}, language = readerState.language){
+  const normalized = normalizeReaderToken(token, language);
+  const gloss = readerTokenGloss(normalized, language);
+  const lemma = readerTokenLemmaSupport(normalized, language);
+  const morphology = readerTokenShortMorphology(normalized, language);
+  return gloss || lemma || morphology || '';
+}
+function readerTokenInterlinearDetails(token = {}, language = readerState.language){
+  if(language !== 'hebrew') return '';
+  const normalized = normalizeReaderToken(token, language);
+  const gloss = readerTokenGloss(normalized, language);
+  const hint = readerTokenInterlinearHint(normalized, language);
+  const lemma = readerTokenLemmaSupport(normalized, language);
+  const morphology = readerTokenShortMorphology(normalized, language);
+  return mergeUniqueGlosses([
+    gloss && lemma !== hint ? lemma : '',
+    morphology !== hint ? morphology : ''
+  ]).join(' · ');
+}
+function readerTokenLemmaSupport(token = {}, language = readerState.language){
+  const normalized = normalizeReaderToken(token, language);
+  const direct = readerDisplayLemma(normalized);
+  if(direct) return direct;
+  if(language !== 'hebrew') return '';
+  const matches = bestReaderVocabMatches(normalized.lemma || normalized.surface, language);
+  const candidates = matches.flatMap(entry => [entry.lexicalForm, entry.hebrewLemma, entry.root, entry.word, entry.normalized]);
+  return candidates.map(cleanReaderTokenValue).find(value => hasHebrewText(value) && !isNumericReaderLemma(value)) || '';
+}
+function readerTokenShortMorphology(token = {}, language = readerState.language){
+  if(language !== 'hebrew') return '';
+  const normalized = normalizeReaderToken(token, language);
+  const fields = readerMorphologyFields(normalized);
+  return cleanReaderTokenValue(normalized.stem || grammarFieldValue(fields, 'Stem'));
+}
 function readerTokenInfo(token = {}, language = readerState.language){
+  const normalized = normalizeReaderToken(token, language);
   return {
     language,
-    surface: cleanReaderTokenValue(token.surface),
-    lemma: cleanReaderTokenValue(token.lemma || token.surface),
-    parse: cleanReaderTokenValue(token.parse),
-    sourceLemma: cleanReaderTokenValue(token.sourceLemma)
+    surface: normalized.surface,
+    lemma: normalized.lemma,
+    parse: normalized.parse,
+    sourceLemma: normalized.sourceLemma,
+    primaryGloss: normalized.primaryGloss,
+    gloss: normalized.gloss,
+    lexicalForm: normalized.lexicalForm,
+    hebrewLemma: normalized.hebrewLemma,
+    root: normalized.root,
+    stem: normalized.stem
   };
 }
 function readerTokenQualifiesForAssistance(token = {}, settings = getActiveReaderSettings(), language = readerState.language){
@@ -375,11 +478,13 @@ function mergeUniqueGlosses(values){
   });
 }
 async function lookupReaderWordInfo(token = {}, reference = {}, language = readerState.language){
-  const lemma = cleanReaderTokenValue(token.lemma || token.surface);
+  const normalized = normalizeReaderToken(token, language);
+  const lemma = cleanReaderTokenValue(normalized.lemma || normalized.surface);
   const glossSource = await loadReaderGlossSource(language);
   const sourceGloss = glossSource[lemma] || glossSource[Object.keys(glossSource).find(key => normalizeReaderText(key) === normalizeReaderText(lemma))];
   const vocabMatches = bestReaderVocabMatches(lemma, language);
-  const primaryGloss = cleanReaderTokenValue(sourceGloss?.primaryGloss)
+  const primaryGloss = cleanReaderTokenValue(normalized.primaryGloss || normalized.gloss)
+    || cleanReaderTokenValue(sourceGloss?.primaryGloss)
     || cleanReaderTokenValue(vocabMatches.find(entry => entry.primaryGloss)?.primaryGloss)
     || splitLegacyGloss(vocabMatches.find(entry => entry.gloss)?.gloss)[0]
     || cleanReaderTokenValue(sourceGloss?.gloss);
@@ -391,15 +496,18 @@ async function lookupReaderWordInfo(token = {}, reference = {}, language = reade
   const aggregateFrequency = vocabMatches.reduce((sum, entry) => sum + (Number(entry.freq) || 0), 0);
   const bestFrequency = aggregateFrequency || Math.max(0, ...vocabMatches.map(entry => Number(entry.freq) || 0));
   const indexFrequency = bestFrequency ? 0 : (await getReaderLemmaOccurrences(lemma, language, Number.MAX_SAFE_INTEGER)).length;
-  const parse = cleanReaderTokenValue(token.parse);
   return {
-    surface: cleanReaderTokenValue(token.surface),
+    surface: normalized.surface,
     lemma,
-    sourceLemma: cleanReaderTokenValue(token.sourceLemma),
+    sourceLemma: normalized.sourceLemma,
+    lexicalForm: normalized.lexicalForm,
+    hebrewLemma: normalized.hebrewLemma,
+    root: normalized.root,
+    stem: normalized.stem,
     primaryGloss,
     alternateGlosses: alternateGlosses.filter(gloss => gloss !== primaryGloss),
-    parse,
-    parseExplanation: explainReaderParse(parse, language),
+    parse: normalized.parse,
+    parseExplanation: explainReaderParse(normalized.parse, language),
     frequency: bestFrequency || indexFrequency || '',
     reference: readerReferenceLabel(reference),
     language
@@ -819,6 +927,7 @@ function renderReader(){
   const chapters = getReaderBookChapters(readerState.language, readerState.book);
   const data = readerState.chapterData;
   const settings = getActiveReaderSettings();
+  const effectiveSettings = readerEffectiveSettings(settings, readerState.language, data);
   root.innerHTML = `
     <section class="panel reader-controls" aria-label="Reader controls">
       <div class="reader-control-row reader-control-selects">
@@ -832,11 +941,11 @@ function renderReader(){
         ${settings.translation === 'on' && settings.showTranslationToggle ? renderReaderTranslationToggle(settings, data) : ''}
         <details class="reader-settings" id="readerSettingsPanel" ${readerSettingsPanelOpen ? 'open' : ''}>
           <summary class="btn btn-ghost btn-sm">Reader Settings</summary>
-          ${renderReaderSettingsPanel(settings)}
+          ${renderReaderSettingsPanel(settings, readerState.language, data)}
         </details>
         <button class="reader-search-toggle" id="readerSearchToggle" type="button" aria-expanded="${readerSearchOpen ? 'true' : 'false'}">Search</button>
         <button class="reader-progress-link" id="readerBookProgressBtn" type="button">Book Progress</button>
-        <div class="reader-reference" id="readerReference"><span>${escHtml(book.name)} ${readerState.chapter}</span><small>${escHtml(renderReaderStatus(settings))}</small></div>
+        <div class="reader-reference" id="readerReference"><span>${escHtml(book.name)} ${readerState.chapter}</span><small>${escHtml(renderReaderStatus(effectiveSettings))}</small></div>
       </div>
     </section>
     <section class="panel reader-search${readerSearchOpen ? '' : ' hidden'}" aria-label="${escReaderAttr(config.shortLabel || meta.label)} reader search">
@@ -848,22 +957,25 @@ function renderReader(){
     <article class="reader-text reader-text-${escReaderAttr(meta.language)}" aria-live="polite" tabindex="0">
       ${readerState.loading ? '<div class="empty-state">Loading chapter…</div>' : ''}
       ${readerState.error ? `<div class="empty-state danger">${escHtml(readerState.error)}</div>` : ''}
-      ${!readerState.loading && !readerState.error && data ? renderReaderChapter(data, settings) : ''}
+      ${!readerState.loading && !readerState.error && data ? renderReaderChapter(data, effectiveSettings) : ''}
     </article>
     <div id="readerWordPopupRoot"></div>`;
   wireReaderControls();
   renderReaderWordPopup();
   if(readerState.focusVerse && typeof document !== 'undefined') setTimeout(() => document.getElementById(`readerVerse-${readerState.focusVerse}`)?.scrollIntoView({ block: 'center' }), 0);
 }
-function renderReaderSettingsPanel(settings = getActiveReaderSettings()){
+function renderReaderSettingsPanel(settings = getActiveReaderSettings(), language = readerState.language, data = readerState.chapterData){
   const customInvalid = settings.assistance === 'custom' && settings.customThreshold && !/^[1-9]\d*$/.test(settings.customThreshold);
-  const button = (name, value, label, active) => `<button class="reader-setting-choice${active ? ' active' : ''}" type="button" data-reader-setting="${escReaderAttr(name)}" data-reader-value="${escReaderAttr(value)}">${escHtml(label)}</button>`;
+  const interlinearAvailable = readerLanguageCanUseInterlinear(language, data);
+  const effectiveSettings = readerEffectiveSettings(settings, language, data);
+  const button = (name, value, label, active, attrs = '') => `<button class="reader-setting-choice${active ? ' active' : ''}" type="button" data-reader-setting="${escReaderAttr(name)}" data-reader-value="${escReaderAttr(value)}" ${attrs}>${escHtml(label)}</button>`;
   return `
         <div class="reader-settings-panel" role="group" aria-label="Adaptive Reader settings">
           <button class="reader-settings-close" id="readerSettingsClose" type="button" aria-label="Close Adaptive Reader settings">✕</button>
           <div class="reader-setting-group">
             <div class="reader-setting-label">Display</div>
-            <div class="reader-setting-row">${button('display', 'original', 'Original', settings.display === 'original')}${button('display', 'interlinear', 'Interlinear', settings.display === 'interlinear')}</div>
+            <div class="reader-setting-row">${button('display', 'original', 'Original', effectiveSettings.display === 'original')}${button('display', 'interlinear', 'Interlinear', effectiveSettings.display === 'interlinear', interlinearAvailable ? '' : 'disabled aria-describedby="readerInterlinearUnavailable"')}</div>
+            ${!interlinearAvailable && language === 'hebrew' ? `<p class="reader-setting-note" id="readerInterlinearUnavailable">${escHtml(HebrewInterlinearUnavailableMessage)}</p>` : ''}
           </div>
           <div class="reader-setting-group">
             <div class="reader-setting-label">Translation</div>
@@ -922,30 +1034,40 @@ function renderReaderTranslationToggle(settings = getActiveReaderSettings(), dat
 function renderReaderChapter(data, settings = getActiveReaderSettings()){
   const paragraphs = data.paragraphs || [{ verses: data.verses || [] }];
   const meta = getReaderLanguageMeta(data.language || readerState.language);
+  const heading = `<h2 class="reader-chapter-heading reader-chapter-heading-quiet" dir="ltr">${escHtml(data.bookName)} ${data.chapter}</h2>`;
   if(settings.translation === 'on' && settings.textMode === 'english'){
-    if(!readerChapterHasEnglish(data, readerState.translationData)) return `<h2 class="reader-chapter-heading" dir="ltr">${escHtml(data.bookName)} ${data.chapter}</h2><div class="empty-state">English unavailable for this passage.</div>`;
-    return `<h2 class="reader-chapter-heading" dir="ltr">${escHtml(data.bookName)} ${data.chapter}</h2>` + paragraphs.map(paragraph => `<p class="reader-paragraph reader-paragraph-english" lang="en" dir="ltr">${paragraph.verses.map(verse => renderReaderVerse(verse, data, settings)).join(' ')}</p>`).join('');
+    if(!readerChapterHasEnglish(data, readerState.translationData)) return `${heading}<div class="empty-state">English unavailable for this passage.</div>`;
+    return heading + paragraphs.map(paragraph => `<p class="reader-paragraph reader-paragraph-english" lang="en" dir="ltr">${paragraph.verses.map(verse => renderReaderVerse(verse, data, settings)).join(' ')}</p>`).join('');
   }
-  return `<h2 class="reader-chapter-heading" dir="ltr">${escHtml(data.bookName)} ${data.chapter}</h2>` + paragraphs.map(paragraph => `<p class="reader-paragraph" lang="${escReaderAttr(meta.htmlLang)}" dir="${escReaderAttr(meta.dir)}">${paragraph.verses.map(verse => renderReaderVerse(verse, data, settings)).join(' ')}</p>`).join('');
+  if(settings.display === 'interlinear' && !readerInterlinearAvailable(data, meta.language)){
+    const originalSettings = { ...settings, display: 'original' };
+    return `${heading}<div class="empty-state">${escHtml(HebrewInterlinearUnavailableMessage)}</div>` + paragraphs.map(paragraph => `<p class="reader-paragraph" lang="${escReaderAttr(meta.htmlLang)}" dir="${escReaderAttr(meta.dir)}">${paragraph.verses.map(verse => renderReaderVerse(verse, data, originalSettings)).join(' ')}</p>`).join('');
+  }
+  return heading + paragraphs.map(paragraph => `<p class="reader-paragraph" lang="${escReaderAttr(meta.htmlLang)}" dir="${escReaderAttr(meta.dir)}">${paragraph.verses.map(verse => renderReaderVerse(verse, data, settings)).join(' ')}</p>`).join('');
 }
 function renderReaderVerse(verse, data = readerState.chapterData || {}, settings = getActiveReaderSettings()){
   const number = verse.number || verse.verse;
   if(settings.translation === 'on' && settings.textMode === 'english') return `<span class="reader-verse reader-verse-english" id="readerVerse-${number}"><sup>${number}</sup>${escHtml(readerTranslationVerseEnglish(verse, readerState.translationData) || '')}</span>`;
-  const tokens = Array.isArray(verse.tokens) ? verse.tokens.filter(token => token?.surface && (token.lemma || token.parse)) : [];
-  const text = tokens.length ? renderReaderTokens(tokens, { book: data.book, bookName: data.bookName, chapter: data.chapter, verse: number }, settings, data.language || readerState.language) : escHtml(verse.text);
+  const language = data.language || readerState.language;
+  const tokens = Array.isArray(verse.tokens) ? verse.tokens.map(token => normalizeReaderToken(token, language)).filter(token => token.surface && (token.lemma || token.parse || token.gloss || token.primaryGloss)) : [];
+  const verseSettings = settings.display === 'interlinear' && !readerInterlinearAvailable({ language, verses: [{ ...verse, tokens }] }, language) ? { ...settings, display: 'original' } : settings;
+  const text = tokens.length ? renderReaderTokens(tokens, { book: data.book, bookName: data.bookName, chapter: data.chapter, verse: number }, verseSettings, language) : escHtml(verse.text);
   return `<span class="reader-verse" id="readerVerse-${number}"><sup>${number}</sup>${text}</span>`;
 }
 function renderReaderTokens(tokens, reference = {}, settings = getActiveReaderSettings(), language = readerState.language){
+  const meta = getReaderLanguageMeta(language);
   return tokens.map((token, index) => {
-    const assisted = readerTokenQualifiesForAssistance(token, settings, language);
+    const normalized = normalizeReaderToken(token, language);
+    const assisted = readerTokenQualifiesForAssistance(normalized, settings, language);
     const indicatorClass = assisted && settings.indicator !== 'none' ? ` reader-token-${settings.indicator}` : '';
     const interlinear = settings.display === 'interlinear';
-    const gloss = interlinear ? readerTokenGloss(token, language) : '';
+    const gloss = interlinear ? readerTokenInterlinearHint(normalized, language) : '';
+    const details = interlinear ? readerTokenInterlinearDetails(normalized, language) : '';
     const classes = ['reader-token'];
     if(!assisted) classes.push('reader-token-unassisted');
     if(indicatorClass) classes.push(indicatorClass.trim());
     if(interlinear) classes.push('reader-token-interlinear');
-    return `<button class="${classes.join(' ')}" type="button" data-reader-assisted="${assisted ? 'true' : 'false'}" data-surface="${escReaderAttr(token.surface || '')}" data-lemma="${escReaderAttr(token.lemma || '')}" data-parse="${escReaderAttr(token.parse || '')}" data-source-lemma="${escReaderAttr(token.sourceLemma || '')}" data-book="${escReaderAttr(reference.book || '')}" data-book-name="${escReaderAttr(reference.bookName || '')}" data-chapter="${escReaderAttr(reference.chapter || '')}" data-verse="${escReaderAttr(reference.verse || '')}" aria-label="${escReaderAttr(assisted ? `Show word info for ${token.surface || `token ${index + 1}`}` : `${token.surface || `token ${index + 1}`} hidden by Reader settings`)}"><span class="reader-token-surface">${escHtml(token.surface)}</span>${interlinear ? `<span class="reader-token-gloss">${escHtml(gloss || ' ')}</span>` : ''}${assisted && settings.indicator === 'footnote' ? '<sup class="reader-token-marker">•</sup>' : ''}</button>`;
+    return `<button class="${classes.join(' ')}" type="button" lang="${escReaderAttr(meta.htmlLang)}" dir="${escReaderAttr(meta.dir)}" data-reader-assisted="${assisted ? 'true' : 'false'}" data-surface="${escReaderAttr(normalized.surface || '')}" data-lemma="${escReaderAttr(normalized.lemma || '')}" data-parse="${escReaderAttr(normalized.parse || '')}" data-source-lemma="${escReaderAttr(normalized.sourceLemma || '')}" data-primary-gloss="${escReaderAttr(normalized.primaryGloss || '')}" data-gloss="${escReaderAttr(normalized.gloss || '')}" data-root="${escReaderAttr(normalized.root || '')}" data-stem="${escReaderAttr(normalized.stem || '')}" data-lexical-form="${escReaderAttr(normalized.lexicalForm || '')}" data-book="${escReaderAttr(reference.book || '')}" data-book-name="${escReaderAttr(reference.bookName || '')}" data-chapter="${escReaderAttr(reference.chapter || '')}" data-verse="${escReaderAttr(reference.verse || '')}" aria-label="${escReaderAttr(assisted ? `Show word info for ${normalized.surface || `token ${index + 1}`}` : `${normalized.surface || `token ${index + 1}`} hidden by Reader settings`)}"><span class="reader-token-surface" lang="${escReaderAttr(meta.htmlLang)}" dir="${escReaderAttr(meta.dir)}">${escHtml(normalized.surface)}</span>${interlinear ? `<span class="reader-token-gloss" lang="en" dir="ltr">${escHtml(gloss || ' ')}</span>${details ? `<span class="reader-token-details" lang="en" dir="ltr">${escHtml(details)}</span>` : ''}` : ''}${assisted && settings.indicator === 'footnote' ? '<sup class="reader-token-marker">•</sup>' : ''}</button>`;
   }).join(' ');
 }
 function wireReaderControls(){
@@ -1035,7 +1157,12 @@ function updateReaderSetting(key, value){
   } else if(key === 'textMode') {
     next.textMode = value === 'english' ? 'english' : 'original';
   } else if(key === 'display') {
-    next.display = value === 'interlinear' ? 'interlinear' : 'original';
+    if(value === 'interlinear' && !readerLanguageCanUseInterlinear(readerState.language, readerState.chapterData)){
+      if(typeof toast === 'function') toast(HebrewInterlinearUnavailableMessage);
+      next.display = 'original';
+    } else {
+      next.display = value === 'interlinear' ? 'interlinear' : 'original';
+    }
   } else if(key === 'indicator') {
     next.indicator = ['none', 'tint', 'underline', 'footnote'].includes(value) ? value : 'none';
   }
@@ -1066,7 +1193,17 @@ async function openReaderTokenPopup(button){
     showReaderHiddenBySettings();
     return null;
   }
-  const token = { surface: button.dataset.surface || '', lemma: button.dataset.lemma || '', parse: button.dataset.parse || '', sourceLemma: button.dataset.sourceLemma || '' };
+  const token = {
+    surface: button.dataset.surface || '',
+    lemma: button.dataset.lemma || '',
+    parse: button.dataset.parse || '',
+    sourceLemma: button.dataset.sourceLemma || '',
+    primaryGloss: button.dataset.primaryGloss || '',
+    gloss: button.dataset.gloss || '',
+    root: button.dataset.root || '',
+    stem: button.dataset.stem || '',
+    lexicalForm: button.dataset.lexicalForm || ''
+  };
   readerPopupLastTrigger = button;
   const reference = {
     language: readerState.language,

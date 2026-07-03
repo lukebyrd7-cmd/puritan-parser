@@ -1,6 +1,7 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const path = require('node:path');
+const fs = require('node:fs');
 
 global.clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 global.escHtml = s => String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
@@ -155,6 +156,36 @@ test('Reader controls stay fixed in the reader shell and search expands only whe
   assert.match(html, /reader-search hidden/);
 });
 
+test('Mobile Reader compact layout keeps all core controls accessible and quiets duplicate heading', async () => {
+  storageHarness();
+  reader.saveReaderSettings({ ...reader.ReaderDefaultSettings, translation: 'on', showTranslationToggle: true }, 'greek');
+  let html = '';
+  const shell = { set innerHTML(value){ html = value; }, get innerHTML(){ return html; } };
+  global.$ = selector => selector === '#readerShell' ? shell : null;
+  global.$$ = () => [];
+
+  await reader.setReaderLocation({ language: 'greek', book: 'john', chapter: 1 });
+
+  assert.match(html, /class="reader-control-row reader-control-selects"/);
+  assert.match(html, /id="readerLanguageSelect"/);
+  assert.match(html, /id="readerBookSelect"/);
+  assert.match(html, /id="readerChapterSelect"/);
+  assert.match(html, /id="readerPrevBtn"[\s\S]*id="readerNextBtn"/);
+  assert.match(html, /data-reader-text-mode="original"[\s\S]*data-reader-text-mode="english"/);
+  assert.match(html, /id="readerSettingsPanel"/);
+  assert.match(html, /id="readerSearchToggle"/);
+  assert.match(html, /id="readerBookProgressBtn"/);
+  assert.match(html, /id="readerReference"[\s\S]*John 1/);
+  assert.match(html, /reader-chapter-heading reader-chapter-heading-quiet/);
+
+  const css = fs.readFileSync(path.join(process.cwd(), 'styles.css'), 'utf8');
+  const mobileReaderCss = css.match(/@media \(max-width: 640px\) \{[\s\S]*?\.reader-word-overlay/)?.[0] || '';
+  assert.match(mobileReaderCss, /\.reader-control-actions\s*\{[\s\S]*display: flex/);
+  assert.match(mobileReaderCss, /\.reader-control-actions > \.btn\s*\{[\s\S]*calc\(50% - 3px\)/);
+  assert.match(mobileReaderCss, /\.reader-settings summary,[\s\S]*\.reader-search-toggle,[\s\S]*\.reader-progress-link\s*\{[\s\S]*min-height: 32px/);
+  assert.match(mobileReaderCss, /\.reader-chapter-heading-quiet\s*\{[\s\S]*position: absolute/);
+});
+
 test('Show Translation Toggle is optional and persists with Adaptive Reader settings', async () => {
   storageHarness();
   let html = '';
@@ -186,9 +217,99 @@ test('Adaptive Reader display modes render original and clean interlinear text',
 
   const interlinear = reader.renderReaderVerse(verse, { book: 'john', bookName: 'John', chapter: 1 }, { ...reader.ReaderDefaultSettings, display: 'interlinear' });
   assert.match(interlinear, /reader-token-interlinear/);
-  assert.match(interlinear, /reader-token-surface">λόγος/);
-  assert.match(interlinear, /reader-token-gloss">word/);
+  assert.match(interlinear, /reader-token-surface" lang="grc" dir="ltr">λόγος/);
+  assert.match(interlinear, /reader-token-gloss" lang="en" dir="ltr">word/);
   delete global.state;
+});
+
+test('Hebrew Interlinear is unavailable without reliable token-level gloss data', () => {
+  const verse = {
+    verse: 1,
+    text: 'וַֽיְהִי֙',
+    tokens: [{ surface: 'וַֽיְהִי֙', lemma: '1961', parse: 'HC/Vqw3ms', sourceLemma: 'c/1961' }]
+  };
+  const chapter = { language: 'hebrew', book: 'jonah', bookName: 'Jonah', chapter: 1, verses: [verse] };
+  const html = reader.renderReaderChapter(chapter, { ...reader.ReaderDefaultSettings, display: 'interlinear' });
+
+  assert.match(html, /Hebrew interlinear is not available yet because token-level gloss data is still being prepared\./);
+  assert.match(html, /<p class="reader-paragraph" lang="he" dir="rtl">/);
+  assert.match(html, /lang="he" dir="rtl" data-reader-assisted="true"/);
+  assert.match(html, /reader-token-surface" lang="he" dir="rtl">וַֽיְהִי֙/);
+  assert.match(html, /data-lemma="1961"/);
+  assert.match(html, /data-parse="HC\/Vqw3ms"/);
+  assert.match(html, /data-source-lemma="c\/1961"/);
+  assert.doesNotMatch(html, /reader-token-interlinear/);
+  assert.doesNotMatch(html, /reader-token-gloss/);
+  assert.doesNotMatch(html, /reader-token-details/);
+  assert.doesNotMatch(html, />1961</);
+  assert.doesNotMatch(html, /HC\/Vqw3ms<\/span>/);
+  assert.doesNotMatch(html, /undefined|null/);
+});
+
+test('Hebrew Interlinear does not use lemma or root fields as pseudo-glosses', () => {
+  const html = reader.renderReaderVerse({
+    verse: 1,
+    text: 'אָב',
+    tokens: [{ surface: 'אָב', lemma: '999', root: 'אב' }]
+  }, { language: 'hebrew', book: 'genesis', bookName: 'Genesis', chapter: 1 }, { ...reader.ReaderDefaultSettings, display: 'interlinear' });
+
+  assert.match(html, /reader-token-surface" lang="he" dir="rtl">אָב/);
+  assert.doesNotMatch(html, /reader-token-interlinear/);
+  assert.doesNotMatch(html, /reader-token-gloss/);
+  assert.doesNotMatch(html, /reader-token-details/);
+  assert.doesNotMatch(html, />999</);
+  assert.doesNotMatch(html, />אב</);
+  assert.doesNotMatch(html, /undefined|null/);
+});
+
+test('Hebrew Interlinear fallback does not expose numeric-only support fields', () => {
+  const html = reader.renderReaderVerse({
+    verse: 1,
+    text: 'אָב',
+    tokens: [{ surface: 'אָב', lemma: '999' }]
+  }, { language: 'hebrew', book: 'genesis', bookName: 'Genesis', chapter: 1 }, { ...reader.ReaderDefaultSettings, display: 'interlinear' });
+
+  assert.match(html, /reader-token-surface" lang="he" dir="rtl">אָב/);
+  assert.doesNotMatch(html, /reader-token-interlinear/);
+  assert.doesNotMatch(html, /reader-token-gloss/);
+  assert.doesNotMatch(html, /reader-token-details/);
+  assert.doesNotMatch(html, />999</);
+  assert.doesNotMatch(html, /undefined|null/);
+});
+
+test('Hebrew Original mode remains tokenized without interlinear lines', () => {
+  const verse = {
+    verse: 1,
+    text: 'וַֽיְהִי֙',
+    tokens: [{ surface: 'וַֽיְהִי֙', lemma: '1961', parse: 'HC/Vqw3ms', sourceLemma: 'c/1961' }]
+  };
+  const html = reader.renderReaderVerse(verse, { language: 'hebrew', book: 'jonah', bookName: 'Jonah', chapter: 1 }, { ...reader.ReaderDefaultSettings, display: 'original' });
+  assert.match(html, /class="reader-token"/);
+  assert.match(html, /reader-token-surface" lang="he" dir="rtl">וַֽיְהִי֙/);
+  assert.doesNotMatch(html, /reader-token-interlinear/);
+  assert.doesNotMatch(html, /reader-token-gloss/);
+  assert.doesNotMatch(html, /reader-token-details/);
+});
+
+test('Hebrew Reader Settings disable Interlinear with a quiet note', async () => {
+  storageHarness();
+  let html = '';
+  const shell = { set innerHTML(value){ html = value; }, get innerHTML(){ return html; } };
+  global.$ = selector => selector === '#readerShell' ? shell : null;
+  global.$$ = () => [];
+  reader.saveReaderSettings({ ...reader.ReaderDefaultSettings, display: 'interlinear', translation: 'off' }, 'greek');
+  assert.equal(reader.loadReaderSettings('greek').display, 'interlinear');
+  assert.equal(reader.loadReaderSettings('hebrew').display, 'original');
+
+  await reader.setReaderLocation({ language: 'hebrew', book: 'jonah', chapter: 1 });
+
+  assert.match(html, /data-reader-setting="display" data-reader-value="original" [^>]*>Original/);
+  assert.match(html, /data-reader-setting="display" data-reader-value="interlinear" disabled aria-describedby="readerInterlinearUnavailable">Interlinear/);
+  assert.match(html, /Hebrew interlinear is not available yet because token-level gloss data is still being prepared\./);
+  assert.doesNotMatch(html, /reader-token-interlinear/);
+  assert.doesNotMatch(html, /reader-token-gloss/);
+  assert.doesNotMatch(html, /reader-token-details/);
+  assert.doesNotMatch(html, /undefined|null/);
 });
 
 test('Adaptive Reader translation mode shows the Original English toggle and displays one text', () => {
@@ -292,9 +413,10 @@ test('Reader falls back to WEB when OEB is selected but unavailable', async () =
 
 test('Reader shares settings across languages except assistance threshold', () => {
   storageHarness();
+  reader.saveReaderSettings({ ...reader.ReaderDefaultSettings, translationProvider: 'web', display: 'interlinear', assistance: 'everything', showTranslationToggle: false }, 'greek');
   reader.saveReaderSettings({ ...reader.ReaderDefaultSettings, translationProvider: 'web', display: 'interlinear', assistance: '20', showTranslationToggle: false }, 'hebrew');
   assert.equal(reader.loadReaderSettings('hebrew').translationProvider, 'web');
-  assert.equal(reader.loadReaderSettings('hebrew').display, 'interlinear');
+  assert.equal(reader.loadReaderSettings('hebrew').display, 'original');
   assert.equal(reader.loadReaderSettings('hebrew').assistance, '20');
   assert.equal(reader.loadReaderSettings('hebrew').showTranslationToggle, false);
   assert.equal(reader.loadReaderSettings('greek').translationProvider, 'web');
@@ -331,7 +453,7 @@ test('Reader migrates legacy language settings into shared settings without merg
   assert.equal(greekSettings.indicator, 'underline');
   assert.equal(greekSettings.showTranslationToggle, false);
   assert.equal(greekSettings.assistance, '30');
-  assert.equal(hebrewSettings.display, 'interlinear');
+  assert.equal(hebrewSettings.display, 'original');
   assert.equal(hebrewSettings.translationProvider, 'web');
   assert.equal(hebrewSettings.assistance, 'everything');
 });
@@ -1079,7 +1201,6 @@ test('chapter data lazy loads only requested chapters and uses cache', async () 
   assert.equal(reader.readerLoadCounts['greek/john/21'] || 0, 0);
 });
 
-const fs = require('node:fs');
 const vm = require('node:vm');
 
 function makeElement(id = ''){

@@ -4,6 +4,18 @@ This changelog is a human-readable project history, not a Git log. Future entrie
 
 ## Unreleased
 
+### v5.1.3 Mobile Reader Compactness Polish
+
+- Made mobile Reader controls more compact so Scripture receives more vertical space above the fold.
+- Kept Previous/Next, Original/English, Reader Settings, Search, and Book Progress available while making secondary controls quieter on small screens.
+- Quieted the duplicate chapter heading on mobile because the compact Reader control status already identifies the current chapter.
+
+### v5.1.2 Hebrew Interlinear Reader Fix
+
+- Hebrew Interlinear is now gracefully gated until proper token-level gloss data is available.
+- Preserved Greek Interlinear and Hebrew Original mode while preventing Hebrew lemma, numeric ID, and morphology fields from rendering as pseudo-interlinear support text.
+- Kept Hebrew Reader settings from presenting Interlinear as a finished mode when the loaded Reader data does not include reliable token glosses.
+
 ### v5.1.1 Reader Spaciousness Polish
 
 - Consolidated the Reader Original / English toggle into the main Reader controls row so Scripture begins sooner.
