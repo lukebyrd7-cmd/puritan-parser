@@ -871,6 +871,7 @@ button:focus-visible, input:focus-visible, select:focus-visible {
   padding: 20px;
 }
 .learn-panel-wide { max-width: 980px; }
+.learn-dashboard { max-width: 980px; }
 .learn-header {
   display: flex;
   gap: 12px;
@@ -912,6 +913,73 @@ button:focus-visible, input:focus-visible, select:focus-visible {
   outline: none;
 }
 .learn-breadcrumb-separator { color: var(--muted); }
+.learn-dashboard-section {
+  display: grid;
+  gap: 12px;
+  border-top: 1px solid var(--border);
+  padding-top: 16px;
+}
+.learn-dashboard-section:first-of-type {
+  border-top: 0;
+  padding-top: 0;
+}
+.learn-section-heading {
+  display: grid;
+  gap: 4px;
+}
+.learn-section-heading h2 {
+  margin: 0;
+  color: var(--text);
+  font-family: var(--font-serif);
+  font-size: 24px;
+  line-height: 1.1;
+}
+.learn-section-heading p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.45;
+}
+.learn-review-dashboard {
+  border: 1px solid color-mix(in srgb, var(--accent) 30%, var(--border));
+  border-radius: 8px;
+  padding: 16px;
+  background: color-mix(in srgb, var(--accent) 5%, var(--surface));
+}
+.learn-review-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+.learn-review-summary {
+  display: grid;
+  gap: 5px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 12px;
+  background: var(--surface);
+}
+.learn-review-summary h3 {
+  margin: 0;
+  color: var(--text);
+  font-family: var(--font-serif);
+  font-size: 21px;
+  line-height: 1.1;
+}
+.learn-review-summary p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.35;
+}
+.learn-review-summary .learn-review-count {
+  color: var(--text);
+  font-size: 24px;
+  font-weight: 800;
+}
+.learn-study-sets-supplement {
+  opacity: 0.92;
+}
 .learn-card-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
@@ -983,6 +1051,14 @@ button:focus-visible, input:focus-visible, select:focus-visible {
   gap: 8px;
 }
 .learn-language-group h2 {
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.learn-language-group h3 {
+  margin: 0;
   font-size: 12px;
   font-weight: 800;
   letter-spacing: 0.06em;
@@ -1247,6 +1323,7 @@ button:focus-visible, input:focus-visible, select:focus-visible {
   .learn-header { display: grid; gap: 10px; }
   .learn-header h1 { font-size: 30px; }
   .learn-card-grid { grid-template-columns: 1fr; }
+  .learn-review-summary-grid { grid-template-columns: 1fr; }
   .learn-study-stats { grid-template-columns: 1fr; }
   .learn-progress-row { grid-template-columns: 1fr; }
   .learn-progress-row .learn-study-stats { grid-template-columns: 1fr; }

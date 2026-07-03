@@ -4,6 +4,14 @@ This changelog is a human-readable project history, not a Git log. Future entrie
 
 ## Unreleased
 
+### v5.2 Learn Dashboard + Review Queue Redesign
+
+- Reorganized Learn so the root opens to a dashboard ordered around Review Queue, Continue Learning, Start Something New, Practice, and Study Sets.
+- Added separate Greek and Hebrew Review Queue summaries with today's capped queue, additional available backlog, estimated time, and Greek/Hebrew/Mixed review entry points.
+- Added the safe local preference foundation for language-specific daily review targets, defaulting Greek and Hebrew to Standard 30/day without changing existing vocabulary learning records.
+- Clarified the Learn practice hierarchy as Vocabulary, Grammar, then Mixed while keeping Paradigm Recognition and parsing practice accessible.
+- Positioned Study Sets as a quiet supplement with a polished placeholder, leaving full Study Set creation for a later v5 update.
+
 ### Docs / Planning
 
 - Clarified that Greek Interlinear is supported while Hebrew Interlinear remains planned and gated by reliable token-level gloss data.

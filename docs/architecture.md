@@ -159,10 +159,14 @@ Learn is a permanent shell, not a temporary placeholder. It owns navigation home
 
 `src/features/learn/index.js` defines the Learn area structure:
 
+- dashboard-first Learn home ordered as Review Queue, Continue Learning, Start Something New, Practice, and Study Sets;
+- Greek and Hebrew Review Queue summaries that cap today's queue while still showing additional available backlog;
 - Vocabulary study paths;
 - Greek and Hebrew paradigm recognition categories;
 - Parsing Drills as an additional paradigm study tool using the legacy parsing view;
 - Reading Readiness entry points.
+
+Language-specific review targets use a small local preference key, `pp_learn_review_targets`, with safe Standard defaults of 30/day for Greek and Hebrew. This preference limits the daily Review Queue display and session entry points without reshaping or wiping existing `pp_vocab_learning` records. Deeper SRS transparency, self-reported Known sampling, and Settings integration remain follow-up work.
 
 Vocabulary paths may offer a confirmed Mark Path as Known action for users who already know the current path. This must only update Not Learned words in that path, record them as Known, and avoid creating due review cards.
 

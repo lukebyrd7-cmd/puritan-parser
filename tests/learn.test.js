@@ -52,15 +52,48 @@ function renderPage(page){
 }
 
 test('Learn home opens the three permanent study areas', () => {
+  storage.delete(VocabularyLearning.STORAGE_KEY);
   const html = renderPage('home');
-  assert.match(html, /Vocabulary/);
-  assert.match(html, /Build long-term vocabulary through flexible study paths/);
-  assert.match(html, /Paradigms/);
-  assert.match(html, /Strengthen recognition of Greek and Hebrew grammar/);
-  assert.match(html, /Reading Readiness/);
-  assert.match(html, /Track your reading readiness and study book or chapter vocabulary paths/);
+  const text = renderedText(html);
+  ['Review Queue', 'Continue Learning', 'Start Something New', 'Practice', 'Study Sets'].forEach(label => assert.match(text, new RegExp(label)));
+  const order = ['review-queue', 'continue-learning', 'start-new', 'practice', 'study-sets'].map(section => html.indexOf(`data-learn-dashboard-section="${section}"`));
+  assert.deepEqual(order, [...order].sort((a, b) => a - b));
+  assert.match(html, /data-learn-page="vocabulary:review:greek"/);
+  assert.match(html, /data-learn-page="vocabulary:review:hebrew"/);
+  assert.match(html, /data-learn-page="vocabulary:review:mixed"/);
+  assert.match(text, /Vocabulary Practice/);
+  assert.match(text, /Grammar Practice/);
+  assert.match(text, /Mixed Practice/);
+  assert.match(text, /Paradigm Recognition/);
+  assert.match(text, /Create focused study sets for a book, exam, or personal review/);
   assert.doesNotMatch(html, /id="learnBackBtn"/);
   assert.doesNotMatch(html, /alert\(/);
+});
+
+test('Learn dashboard review queue separates Greek and Hebrew with capped today counts', () => {
+  storage.delete(VocabularyLearning.STORAGE_KEY);
+  storage.set(learn.LearnReviewTargetStorageKey, JSON.stringify({
+    greek: { preset: 'custom', dailyTarget: 2 },
+    hebrew: { preset: 'standard', dailyTarget: 30 }
+  }));
+  let store = VocabularyLearning.normalizeStore();
+  global.state.data.greek.forEach(entry => {
+    store = VocabularyLearning.introduceEntry(store, entry, { type: 'frequency', language: 'greek' }, '2026-06-26');
+  });
+  store = VocabularyLearning.introduceEntry(store, global.state.data.hebrew[1], { type: 'frequency', language: 'hebrew' }, '2026-06-26');
+  VocabularyLearning.saveStore(store);
+
+  const html = renderPage('home');
+  const text = renderedText(html);
+  assert.match(text, /Greek 2 in today's queue 2 more available Target 2\/day/);
+  assert.match(text, /Hebrew 1 in today's queue 0 more available Target 30\/day/);
+  assert.match(text, /3 in today's queue/);
+  assert.match(text, /The daily target limits today's queue without hiding the remaining backlog/);
+
+  const greekSummary = learn.learnReviewQueueSummary('greek');
+  assert.equal(greekSummary.todayCount, 2);
+  assert.equal(greekSummary.moreAvailable, 2);
+  storage.delete(learn.LearnReviewTargetStorageKey);
 });
 
 test('Vocabulary shell opens review and the new words path chooser', () => {
@@ -73,8 +106,10 @@ test('Vocabulary shell opens review and the new words path chooser', () => {
   assert.match(renderedText(review), /Reviews Available/);
   assert.match(review, /data-learn-page="vocabulary:review:greek"/);
   assert.match(review, /data-learn-page="vocabulary:review:hebrew"/);
+  assert.match(review, /data-learn-page="vocabulary:review:mixed"/);
   assert.match(renderedText(review), /Greek Review/);
   assert.match(renderedText(review), /Hebrew Review/);
+  assert.match(renderedText(review), /Mixed Review/);
   const newWords = renderPage('vocabulary:new-words');
   assert.match(newWords, /Choose Language/);
   assert.match(renderedText(newWords), /Greek Study Greek words by overall frequency/);
@@ -302,8 +337,9 @@ test('Language review pages separate Greek and Hebrew due queues from the shared
   VocabularyLearning.saveStore(store);
 
   const chooser = renderPage('vocabulary:review');
-  assert.match(renderedText(chooser), /Greek Review 1 review available/);
-  assert.match(renderedText(chooser), /Hebrew Review 1 review available/);
+  assert.match(renderedText(chooser), /Greek Review 1 in today's queue; 0 more available/);
+  assert.match(renderedText(chooser), /Hebrew Review 1 in today's queue; 0 more available/);
+  assert.match(renderedText(chooser), /Mixed Review/);
 
   const greek = renderPage('vocabulary:review:greek');
   assert.match(renderedText(greek), /Greek Review Reviews Available/);
@@ -314,6 +350,10 @@ test('Language review pages separate Greek and Hebrew due queues from the shared
   assert.match(renderedText(hebrew), /Hebrew Review Reviews Available/);
   assert.match(renderedText(hebrew), /אמר/);
   assert.doesNotMatch(renderedText(hebrew), /logos/);
+
+  const mixed = renderPage('vocabulary:review:mixed');
+  assert.match(renderedText(mixed), /Mixed Review Reviews Available/);
+  assert.match(renderedText(mixed), /logos/);
 
   const loaded = VocabularyLearning.loadStore();
   assert.ok(loaded.records['lemma:greek:logos']);

@@ -112,6 +112,9 @@ Acceptance criteria:
 Goal:
 Make Learn open to a dashboard where Review Queue is the daily driver, followed by Continue Learning, Start Something New, Practice, and Study Sets.
 
+Status:
+Implemented in the Learn shell with dashboard-first rendering, Review Queue summaries for Greek and Hebrew, capped today's queue counts, visible backlog counts, and Greek/Hebrew/Mixed review entry points. Continue Learning, Start Something New, Practice, and Study Sets are placed in v5 priority order. Full Study Set creation, the SRS-counting prompt for on-demand practice, and richer Mixed Practice remain later v5 follow-ups.
+
 Main files likely affected:
 
 - `src/features/learn/index.js`
@@ -135,6 +138,7 @@ Acceptance criteria:
 
 - Learn always opens to the dashboard.
 - Review Queue appears first and separates Greek, Hebrew, and Mixed entry points.
+- Review Queue shows today's capped queue separately from additional available backlog.
 - Continue Learning resumes active vocabulary, reading, and grammar paths.
 - Start Something New separates Vocabulary and Grammar.
 

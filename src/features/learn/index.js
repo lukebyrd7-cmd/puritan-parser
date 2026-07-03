@@ -64,6 +64,16 @@ const LearnFrequencyThresholds = {
   greek: ['25', '10', '5', 'all'],
   hebrew: ['60', '30', '10', '5', 'all']
 };
+const LearnReviewTargetDefaults = {
+  greek: { preset: 'standard', dailyTarget: 30 },
+  hebrew: { preset: 'standard', dailyTarget: 30 }
+};
+const LearnReviewTargetPresets = {
+  light: 15,
+  standard: 30,
+  heavy: 50
+};
+const LearnReviewTargetStorageKey = 'pp_learn_review_targets';
 const LearnTestaments = {
   'old-testament': { title: 'Old Testament', language: 'hebrew' },
   'new-testament': { title: 'New Testament', language: 'greek' }
@@ -89,6 +99,40 @@ function learnFrequencyLabel(value){
 function learnLanguageTitle(language){
   if(typeof getReaderConfig === 'function') return getReaderConfig(language)?.shortLabel || getReaderConfig(language)?.label || language;
   return language === 'hebrew' ? 'Hebrew' : 'Greek';
+}
+function learnStorage(){
+  if(typeof activeStorageAdapter !== 'undefined' && activeStorageAdapter) return activeStorageAdapter;
+  if(typeof localStorage !== 'undefined') return {
+    get: key => localStorage.getItem(key),
+    set: (key, value) => localStorage.setItem(key, value),
+    remove: key => localStorage.removeItem(key)
+  };
+  return null;
+}
+function normalizeLearnReviewTargets(payload){
+  const source = payload && typeof payload === 'object' ? payload : {};
+  return Object.fromEntries(['greek','hebrew'].map(language => {
+    const candidate = source[language] && typeof source[language] === 'object' ? source[language] : {};
+    const preset = LearnReviewTargetPresets[candidate.preset] ? candidate.preset : (candidate.preset === 'custom' ? 'custom' : LearnReviewTargetDefaults[language].preset);
+    const target = Number(candidate.dailyTarget);
+    return [language, {
+      preset,
+      dailyTarget: Number.isFinite(target) && target > 0 ? Math.floor(target) : LearnReviewTargetDefaults[language].dailyTarget
+    }];
+  }));
+}
+function learnReviewTargets(){
+  const adapter = learnStorage();
+  if(!adapter) return normalizeLearnReviewTargets();
+  try {
+    const raw = adapter.get(LearnReviewTargetStorageKey);
+    return normalizeLearnReviewTargets(raw ? JSON.parse(raw) : null);
+  } catch(e){
+    return normalizeLearnReviewTargets();
+  }
+}
+function learnReviewTarget(language){
+  return learnReviewTargets()[language]?.dailyTarget || LearnReviewTargetDefaults[language]?.dailyTarget || 30;
 }
 function learnFrequencyDescription(language, threshold){
   const value = learnFrequencyNumber(threshold);
@@ -404,6 +448,40 @@ function learnVocabularyEntries(language){
 function learnVocabularyStore(){
   return VocabularyLearningModel ? VocabularyLearningModel.loadStore() : { records: {} };
 }
+function learnReviewEntries(language){
+  if(!VocabularyLearningModel) return [];
+  return VocabularyLearningModel.dueEntries(learnVocabularyEntries(language), learnVocabularyStore());
+}
+function learnReviewQueueSummary(language){
+  const due = learnReviewEntries(language);
+  const target = learnReviewTarget(language);
+  return {
+    language,
+    label: learnLanguageTitle(language),
+    target,
+    available: due.length,
+    todayCount: Math.min(due.length, target),
+    moreAvailable: Math.max(0, due.length - target),
+    estimatedMinutes: Math.max(1, Math.ceil(Math.min(due.length, target) * 0.5))
+  };
+}
+function learnMixedReviewEntries(){
+  const greek = learnReviewEntries('greek').slice(0, learnReviewTarget('greek'));
+  const hebrew = learnReviewEntries('hebrew').slice(0, learnReviewTarget('hebrew'));
+  const mixed = [];
+  const max = Math.max(greek.length, hebrew.length);
+  for(let index = 0; index < max; index += 1){
+    if(greek[index]) mixed.push(greek[index]);
+    if(hebrew[index]) mixed.push(hebrew[index]);
+  }
+  return mixed;
+}
+function findLearnReviewEntry(language, id){
+  if(language === 'mixed'){
+    return ['greek','hebrew'].map(lang => findLearnVocabularyEntry(lang, id)).find(Boolean) || null;
+  }
+  return findLearnVocabularyEntry(language, id);
+}
 function learnFrequencyPath(language, threshold){
   return {
     type: 'frequency',
@@ -571,7 +649,7 @@ function revealLearnReview(){
 }
 function gradeLearnReview(language, id, result){
   if(!VocabularyLearningModel) return;
-  const entry = findLearnVocabularyEntry(language, id);
+  const entry = findLearnReviewEntry(language, id);
   if(entry) VocabularyLearningModel.persistReviewEntry(entry, result);
   if(learnState.focusedReviewWordId === id) learnState.focusedReviewWordId = '';
   learnState.reviewReveal = false;
@@ -601,35 +679,113 @@ function renderLearnBookGrid(language, basePage){
     </div>`;
 }
 function renderLearnHome(){
+  const summaries = ['greek','hebrew'].map(learnReviewQueueSummary);
+  const totalToday = summaries.reduce((sum, item) => sum + item.todayCount, 0);
+  const totalMore = summaries.reduce((sum, item) => sum + item.moreAvailable, 0);
+  const estimated = summaries.reduce((sum, item) => sum + (item.todayCount ? item.estimatedMinutes : 0), 0);
   return `
-    <section class="panel learn-panel" aria-labelledby="learnTitle">
-      ${renderLearnHeader('Learn', 'Choose a study area.', 'learnTitle')}
-      <div class="learn-card-grid">
-        ${LearnAreas.map(area => learnCard(area, area.id)).join('')}
-      </div>
+    <section class="panel learn-panel learn-dashboard" aria-labelledby="learnTitle">
+      ${renderLearnHeader('Learn', 'Practice and acquire knowledge.', 'learnTitle')}
+      <section class="learn-dashboard-section learn-review-dashboard" aria-labelledby="learnReviewQueueTitle" data-learn-dashboard-section="review-queue">
+        <div class="learn-section-heading">
+          <h2 id="learnReviewQueueTitle">Review Queue</h2>
+          <p>${totalToday ? `${totalToday} in today's queue. About ${Math.max(1, estimated)} minutes.` : 'You are caught up for today. You can practice more or continue a learning path.'}</p>
+        </div>
+        <div class="learn-review-summary-grid">
+          ${summaries.map(summary => `
+            <article class="learn-review-summary" data-learn-review-language="${escHtml(summary.language)}">
+              <h3>${escHtml(summary.label)}</h3>
+              <p class="learn-review-count">${escHtml(String(summary.todayCount))} in today's queue</p>
+              <p>${escHtml(String(summary.moreAvailable))} more available</p>
+              <p>Target ${escHtml(String(summary.target))}/day</p>
+            </article>`).join('')}
+        </div>
+        <div class="learn-vocab-actions">
+          <button class="btn btn-primary" type="button" data-learn-page="vocabulary:review:greek">Review Greek</button>
+          <button class="btn btn-primary" type="button" data-learn-page="vocabulary:review:hebrew">Review Hebrew</button>
+          <button class="btn btn-ghost btn-sm" type="button" data-learn-page="vocabulary:review:mixed">Review Mixed</button>
+        </div>
+        ${totalMore ? `<p class="muted small">The daily target limits today's queue without hiding the remaining backlog.</p>` : ''}
+      </section>
+      <section class="learn-dashboard-section" aria-labelledby="learnContinueTitle" data-learn-dashboard-section="continue-learning">
+        <div class="learn-section-heading">
+          <h2 id="learnContinueTitle">Continue Learning</h2>
+          <p>Finish paths you have already begun.</p>
+        </div>
+        <div class="learn-card-grid">
+          ${learnCard({ title: 'Greek Frequency Path', description: 'Continue global Greek vocabulary by frequency.' }, 'vocabulary:frequency:greek', 'learn-card-compact')}
+          ${learnCard({ title: 'Hebrew Frequency Path', description: 'Continue global Hebrew vocabulary by frequency.' }, 'vocabulary:frequency:hebrew', 'learn-card-compact')}
+          ${learnCard({ title: 'Reading Readiness', description: 'Continue a book or chapter preparation path.' }, 'reading-readiness', 'learn-card-compact')}
+        </div>
+      </section>
+      <section class="learn-dashboard-section" aria-labelledby="learnStartTitle" data-learn-dashboard-section="start-new">
+        <div class="learn-section-heading">
+          <h2 id="learnStartTitle">Start Something New</h2>
+          <p>Begin vocabulary or grammar learning from the established paths.</p>
+        </div>
+        <div class="learn-language-grid">
+          <section class="learn-language-group">
+            <h3>Vocabulary</h3>
+            <div class="learn-card-grid learn-card-grid-compact">
+              ${learnCard({ title: 'Frequency Paths', description: 'Core vocabulary by Greek or Hebrew frequency.' }, 'vocabulary:frequency', 'learn-card-compact')}
+              ${learnCard({ title: 'Reading Paths', description: 'Prepare vocabulary for books and chapters.' }, 'vocabulary:book', 'learn-card-compact')}
+              ${learnCard({ title: 'Study Sets', description: 'Quiet custom sets for focused goals.' }, 'study-sets', 'learn-card-compact')}
+            </div>
+          </section>
+          <section class="learn-language-group">
+            <h3>Grammar</h3>
+            <div class="learn-card-grid learn-card-grid-compact">
+              ${learnCard({ title: 'Greek Grammar Paths', description: 'Nouns, verbs, participles, infinitives, and syntax.' }, 'paradigms:recognition-practice', 'learn-card-compact')}
+              ${learnCard({ title: 'Hebrew Grammar Paths', description: 'Basics, stems, weak verbs, construct chains, and syntax.' }, 'paradigms:recognition-practice', 'learn-card-compact')}
+              ${learnCard({ title: 'Paradigm Recognition', description: 'Recognition remains the core grammar practice mode.' }, 'paradigms:recognition-practice', 'learn-card-compact')}
+            </div>
+          </section>
+        </div>
+      </section>
+      <section class="learn-dashboard-section" aria-labelledby="learnPracticeTitle" data-learn-dashboard-section="practice">
+        <div class="learn-section-heading">
+          <h2 id="learnPracticeTitle">Practice</h2>
+          <p>User-directed practice when you want more than the daily queue.</p>
+        </div>
+        <div class="learn-card-grid">
+          ${learnCard({ title: 'Vocabulary Practice', description: 'Frequency, Reading Paths, Known words, Learning words, Study Sets, and custom selections.' }, 'vocabulary', 'learn-card-compact')}
+          ${learnCard({ title: 'Grammar Practice', description: 'Recognition, parsing, weak verbs, advanced grammar, and paradigms.' }, 'paradigms', 'learn-card-compact')}
+          ${learnCard({ title: 'Mixed Practice', description: 'A future capstone that combines vocabulary and grammar like real reading.' }, 'mixed-practice', 'learn-card-compact')}
+        </div>
+      </section>
+      <section class="learn-dashboard-section learn-study-sets-supplement" aria-labelledby="learnStudySetsTitle" data-learn-dashboard-section="study-sets">
+        <div class="learn-section-heading">
+          <h2 id="learnStudySetsTitle">Study Sets</h2>
+          <p>Create focused study sets for a book, exam, or personal review. Coming in a later v5 update.</p>
+        </div>
+        <button class="learn-card learn-card-compact" type="button" data-learn-page="study-sets">
+          <span class="learn-card-title">Study Sets</span>
+          <span class="learn-card-description">Quiet supplement to Frequency Paths, Reading Paths, and Grammar Learning Paths.</span>
+        </button>
+      </section>
     </section>`;
 }
 function renderReviewChooser(area){
   const item = learnChild(area, 'review');
-  const store = learnVocabularyStore();
-  const greekDue = VocabularyLearningModel ? VocabularyLearningModel.dueEntries(learnVocabularyEntries('greek'), store).length : 0;
-  const hebrewDue = VocabularyLearningModel ? VocabularyLearningModel.dueEntries(learnVocabularyEntries('hebrew'), store).length : 0;
+  const greek = learnReviewQueueSummary('greek');
+  const hebrew = learnReviewQueueSummary('hebrew');
   return `
     <section class="panel learn-panel" aria-labelledby="learnReviewTitle">
       ${renderLearnHeader(item.title, 'Reviews Available', 'learnReviewTitle')}
       <div class="learn-card-grid">
-        ${learnCard({ title: 'Greek Review', description: `${greekDue} ${greekDue === 1 ? 'review' : 'reviews'} available` }, 'vocabulary:review:greek')}
-        ${learnCard({ title: 'Hebrew Review', description: `${hebrewDue} ${hebrewDue === 1 ? 'review' : 'reviews'} available` }, 'vocabulary:review:hebrew')}
+        ${learnCard({ title: 'Greek Review', description: `${greek.todayCount} in today's queue; ${greek.moreAvailable} more available` }, 'vocabulary:review:greek')}
+        ${learnCard({ title: 'Hebrew Review', description: `${hebrew.todayCount} in today's queue; ${hebrew.moreAvailable} more available` }, 'vocabulary:review:hebrew')}
+        ${learnCard({ title: 'Mixed Review', description: 'Review Greek and Hebrew together from today\'s queues.' }, 'vocabulary:review:mixed')}
       </div>
     </section>`;
 }
 function renderLanguageReviewPage(area, language){
   const item = learnChild(area, 'review');
-  const title = `${learnLanguageTitle(language)} Review`;
+  const mixed = language === 'mixed';
+  const title = mixed ? 'Mixed Review' : `${learnLanguageTitle(language)} Review`;
   if(VocabularyLearningModel){
-    const store = learnVocabularyStore();
-    const due = VocabularyLearningModel.dueEntries(learnVocabularyEntries(language), store);
-    const focused = learnState.focusedReviewWordId ? findLearnVocabularyEntry(language, learnState.focusedReviewWordId) : null;
+    const due = mixed ? learnMixedReviewEntries() : learnReviewEntries(language).slice(0, learnReviewTarget(language));
+    const focused = learnState.focusedReviewWordId ? findLearnReviewEntry(language, learnState.focusedReviewWordId) : null;
     const current = focused || due[0];
     const reviewCount = focused ? due.filter(entry => learnWordId(entry) !== learnState.focusedReviewWordId).length : due.length;
     return `
@@ -646,7 +802,7 @@ function renderLanguageReviewPage(area, language){
           ${reviewCount > 1 ? `<p class="muted small">${reviewCount} reviews available</p>` : ''}`
         : `<section class="word-page-section learn-explainer">
             <h2>No reviews available</h2>
-            <p>${escHtml(learnLanguageTitle(language))} words you are learning will appear here when they are ready to review.</p>
+            <p>${mixed ? 'You are caught up for today. You can practice more or continue a learning path.' : `${escHtml(learnLanguageTitle(language))} words you are learning will appear here when they are ready to review.`}</p>
             <div class="learn-vocab-actions">
               <button class="btn btn-primary btn-sm" type="button" data-learn-page="vocabulary:new-words">Start New Words</button>
               <button class="btn btn-ghost btn-sm" type="button" data-learn-page="home">Back to Learn</button>
@@ -1044,12 +1200,34 @@ function renderLearnPlaceholder(area, item){
       </section>
     </section>`;
 }
+function renderStudySetsPlaceholder(){
+  return `
+    <section class="panel learn-panel learn-placeholder" aria-labelledby="learnStudySetsPageTitle">
+      ${renderLearnHeader('Study Sets', 'Quiet supplement', 'learnStudySetsPageTitle')}
+      <section class="word-page-section">
+        <h2>Create focused study sets</h2>
+        <p>Study Sets are planned as small custom learning paths for a book, exam, sermon preparation, or personal review. Full creation is deferred so the primary v5.2 Learn work can stay focused on Review Queue, Frequency Paths, Reading Paths, and Grammar Learning Paths.</p>
+      </section>
+    </section>`;
+}
+function renderMixedPracticePlaceholder(){
+  return `
+    <section class="panel learn-panel learn-placeholder" aria-labelledby="learnMixedPracticeTitle">
+      ${renderLearnHeader('Mixed Practice', 'Supporting capstone', 'learnMixedPracticeTitle')}
+      <section class="word-page-section">
+        <h2>Vocabulary and grammar together</h2>
+        <p>Mixed Practice will combine vocabulary and grammar in a reading-like session. The v5.2 dashboard keeps the entry point visible while leaving the SRS-counting prompt and deeper mixed engine for a later SRS/practice update.</p>
+      </section>
+    </section>`;
+}
 function renderLearnPage(){
   const [areaId, childId, thirdId, fourthId, fifthId, sixthId, seventhId] = learnState.page.split(':');
   const area = learnArea(areaId);
+  if(areaId === 'study-sets') return renderStudySetsPlaceholder();
+  if(areaId === 'mixed-practice') return renderMixedPracticePlaceholder();
   if(!area) return renderLearnHome();
   if(area.id === 'vocabulary' && childId === 'review' && !thirdId) return renderReviewChooser(area);
-  if(area.id === 'vocabulary' && childId === 'review' && (thirdId === 'greek' || thirdId === 'hebrew')) return renderLanguageReviewPage(area, thirdId);
+  if(area.id === 'vocabulary' && childId === 'review' && (thirdId === 'greek' || thirdId === 'hebrew' || thirdId === 'mixed')) return renderLanguageReviewPage(area, thirdId);
   if(area.id === 'vocabulary' && childId === 'new-words') return renderNewWordsPage(area);
   if(area.id === 'vocabulary' && childId === 'frequency' && !thirdId) return renderFrequencyShell();
   if(area.id === 'vocabulary' && childId === 'frequency' && thirdId && !fourthId) return renderLanguageFrequencyPage(thirdId);
@@ -1124,5 +1302,5 @@ function renderLearn(){
   wireLearn();
 }
 
-if(typeof window !== 'undefined') Object.assign(window, { LearnAreas, learnState, learnArea, learnChild, learnPageTitle, learnBreadcrumbs, parseLearnCustomFrequency, setLearnCustomFrequency, resetLearn, setLearnPage, backLearnPage, renderLearn, renderLearnPage, learnBookList, learnPathForPage, startLearnVocabularyPath, learnCurrentVocabularyWord, markLearnPathKnown, reviewLearnVocabularyWord, revealLearnReview, gradeLearnReview, recognitionTargetsForLearn, startRecognitionSession, revealRecognitionAnswer, gradeRecognitionAnswer, openLearnReference });
-if(typeof module !== 'undefined') module.exports = { LearnAreas, LearnFrequencyThresholds, learnState, learnArea, learnChild, learnPageTitle, learnBreadcrumbs, parseLearnCustomFrequency, setLearnCustomFrequency, resetLearn, learnBookList, learnPathForPage, setLearnPage, backLearnPage, renderLearnPage, startLearnVocabularyPath, learnCurrentVocabularyWord, markLearnPathKnown, reviewLearnVocabularyWord, revealLearnReview, gradeLearnReview, recognitionTargetsForLearn, startRecognitionSession, revealRecognitionAnswer, gradeRecognitionAnswer, openLearnReference };
+if(typeof window !== 'undefined') Object.assign(window, { LearnAreas, LearnReviewTargetDefaults, LearnReviewTargetPresets, LearnReviewTargetStorageKey, learnState, learnArea, learnChild, learnPageTitle, learnBreadcrumbs, learnReviewTargets, learnReviewTarget, learnReviewQueueSummary, parseLearnCustomFrequency, setLearnCustomFrequency, resetLearn, setLearnPage, backLearnPage, renderLearn, renderLearnPage, learnBookList, learnPathForPage, startLearnVocabularyPath, learnCurrentVocabularyWord, markLearnPathKnown, reviewLearnVocabularyWord, revealLearnReview, gradeLearnReview, recognitionTargetsForLearn, startRecognitionSession, revealRecognitionAnswer, gradeRecognitionAnswer, openLearnReference });
+if(typeof module !== 'undefined') module.exports = { LearnAreas, LearnFrequencyThresholds, LearnReviewTargetDefaults, LearnReviewTargetPresets, LearnReviewTargetStorageKey, learnState, learnArea, learnChild, learnPageTitle, learnBreadcrumbs, learnReviewTargets, learnReviewTarget, learnReviewQueueSummary, parseLearnCustomFrequency, setLearnCustomFrequency, resetLearn, learnBookList, learnPathForPage, setLearnPage, backLearnPage, renderLearnPage, startLearnVocabularyPath, learnCurrentVocabularyWord, markLearnPathKnown, reviewLearnVocabularyWord, revealLearnReview, gradeLearnReview, recognitionTargetsForLearn, startRecognitionSession, revealRecognitionAnswer, gradeRecognitionAnswer, openLearnReference };
