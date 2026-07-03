@@ -174,6 +174,8 @@ Vocabulary learning transparency lives in `src/models/vocabulary-learning.js`. T
 
 On-demand practice uses the local preference key `pp_learn_practice_srs_preference`, defaulting to `ask`. Practice flows should consult this preference before allowing optional practice to update SRS scheduling. Full Mixed Practice remains a later feature, but the storage hook is intentionally separate from review queue targets.
 
+Study Sets use the local-first `pp_study_sets` key. The v5.8 shape is intentionally small: each set stores an id, title, language, type, timestamps, optional description, lightweight criteria, and optional item references. Vocabulary Study Sets resolve criteria against the current vocabulary source data and `VocabularyLearning` state instead of duplicating large source rows. Grammar and Mixed Study Sets can be saved as foundations, but full drill criteria are deferred until the grammar practice contract is stable enough to avoid an advanced query-builder UI.
+
 Vocabulary paths may offer a confirmed Mark Path as Known action for users who already know the current path. This must only update Not Learned words in that path, record them as Known, and avoid creating due review cards.
 
 The Learn shell uses a single `learnView` under the existing app navigation model. Its internal pages are feature-local state rather than separate routes, matching the view-first philosophy that worked for Reader-adjacent Word Pages. Future releases should plug capability into the existing Learn areas instead of replacing the shell.

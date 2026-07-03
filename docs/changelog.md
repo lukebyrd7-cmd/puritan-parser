@@ -4,6 +4,15 @@ This changelog is a human-readable project history, not a Git log. Future entrie
 
 ## Unreleased
 
+### v5.8 Study Sets + Practice Improvements
+
+- Added simple local-first Study Sets under `pp_study_sets`, with compact creation, list, detail, browse, delete, practice, and vocabulary-only Mark All Known actions.
+- Improved on-demand Vocabulary Practice access for frequency, Known, Learning, Not Learned, and Study Set sources, including practice sessions that can run when items are not due.
+- Kept Grammar Practice routed through existing recognition, paradigm, and parsing drill surfaces, with Paradigm Recognition remaining prominent.
+- Added a polished Mixed Practice foundation that points back to Vocabulary and Grammar Practice while deferring the deeper adaptive mixed engine.
+- Integrated the `pp_learn_practice_srs_preference` behavior into on-demand vocabulary practice: Review Queue still always counts, practice-only leaves SRS untouched, count-SRS updates scheduling, and ask mode exposes an explicit end-of-session choice.
+- Preserved Learn dashboard order: Review Queue, Continue Learning, Start Something New, Practice, and Study Sets.
+
 ### v5.7 Onboarding + Self-Reported Proficiency
 
 - Added a first-run Onboarding flow that helps new users choose Greek, Hebrew, or both; select a primary goal; optionally self-report proficiency; review a recommended setup; and finish on a personalized Start Here screen.

@@ -332,12 +332,20 @@ Acceptance criteria:
 Goal:
 Add quiet custom Study Sets and practice improvements without making Study Sets the primary learning model.
 
+Status:
+Implemented as a focused v5.8 pass. Study Sets now use a small local-first `pp_study_sets` store and support quick vocabulary set creation from frequency or learning-status criteria, with list, detail, browse, practice, delete, and vocabulary-only Mark All Known actions. On-demand Vocabulary Practice now has direct frequency, status, and Study Set entry points and respects the practice-counts-toward-SRS preference. Grammar Practice continues through the existing Recognition Practice, Paradigm Recognition, and Parsing Drills surfaces. Mixed Practice has a clear foundation and links to Vocabulary and Grammar Practice; the deeper adaptive mixed engine remains deferred.
+
 Main files likely affected:
 
 - `src/features/learn/index.js`
+- `src/models/study-sets.js`
 - `src/core/study-entries.js`
 - `src/models/vocabulary-learning.js`
 - `src/core/storage/`
+- `styles.css`
+- `docs/changelog.md`
+- `docs/architecture.md`
+- `tests/study-sets.test.js`
 - `tests/study-entries.test.js`
 - `tests/learn.test.js`
 
@@ -356,6 +364,13 @@ Acceptance criteria:
 - Study Sets reuse learning-path architecture.
 - Practice hierarchy remains Vocabulary, Grammar, Mixed.
 - On-demand practice asks whether to count toward SRS by default.
+
+Deferred:
+
+- Advanced Study Set filters, book/chapter Study Set creation, custom hand-picked item editors, and richer Study Set analytics.
+- Full grammar Study Set criteria once stable grammar topic IDs and drill contracts can support practice without pretending unimplemented drills exist.
+- Richer Mixed Practice with reading-scope selection, smarter interleaving, and adaptive vocabulary/grammar balancing.
+- Deeper weak-verb and advanced-grammar drill categories beyond the current Reference-backed recognition foundation.
 
 ## v5.9 Global Search MVP + Release Polish
 

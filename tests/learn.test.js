@@ -35,6 +35,7 @@ global.normalizeAlternateGlosses = value => Array.isArray(value) ? value : [];
 const learn = require('../src/features/learn/index.js');
 const VocabularyLearning = require('../src/models/vocabulary-learning');
 const BookProgress = require('../src/core/book-progress');
+const StudySets = require('../src/models/study-sets');
 
 function renderedText(html){
   return String(html || '').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
@@ -48,6 +49,7 @@ function renderPage(page){
   learn.learnState.currentVocabularyWordId = '';
   learn.learnState.focusedReviewWordId = '';
   learn.learnState.reviewReveal = false;
+  learn.learnState.practiceSession = null;
   return learn.renderLearnPage();
 }
 
@@ -93,6 +95,7 @@ function wireHomeReviewButtons(){
 
 test('Learn home opens the three permanent study areas', () => {
   storage.delete(VocabularyLearning.STORAGE_KEY);
+  storage.delete(StudySets.STORAGE_KEY);
   const html = renderPage('home');
   const text = renderedText(html);
   ['Review Queue', 'Continue Learning', 'Start Something New', 'Practice', 'Study Sets'].forEach(label => assert.match(text, new RegExp(label)));
@@ -105,9 +108,72 @@ test('Learn home opens the three permanent study areas', () => {
   assert.match(text, /Grammar Practice/);
   assert.match(text, /Mixed Practice/);
   assert.match(text, /Paradigm Recognition/);
-  assert.match(text, /Create focused study sets for a book, exam, or personal review/);
+  assert.match(text, /Create focused study sets for a sermon, quiz, favorite book, or personal review/);
   assert.doesNotMatch(html, /id="learnBackBtn"/);
   assert.doesNotMatch(html, /alert\(/);
+});
+
+test('Study Sets storage fails gracefully for missing and corrupt data', () => {
+  storage.delete(StudySets.STORAGE_KEY);
+  assert.deepEqual(StudySets.loadStore(), { schemaVersion: 1, sets: [] });
+
+  storage.set(StudySets.STORAGE_KEY, '{bad json');
+  assert.deepEqual(StudySets.loadStore(), { schemaVersion: 1, sets: [] });
+});
+
+test('Study Sets page creates and renders a simple vocabulary set', () => {
+  storage.delete(StudySets.STORAGE_KEY);
+  storage.delete(VocabularyLearning.STORAGE_KEY);
+
+  let html = renderPage('study-sets');
+  let text = renderedText(html);
+  assert.match(text, /Study Sets Focused custom collections/);
+  assert.match(text, /No Study Sets yet/);
+  assert.match(html, /data-learn-page="study-sets:create"/);
+
+  const created = learn.createLearnStudySet({
+    title: 'Romans Quiz',
+    language: 'greek',
+    type: 'vocabulary',
+    source: 'frequency',
+    threshold: '25'
+  });
+  assert.equal(created.title, 'Romans Quiz');
+  assert.equal(created.criteria.kind, 'frequency');
+  assert.equal(learn.learnState.page, `study-sets:detail:${created.id}`);
+  assert.equal(StudySets.loadStore().sets.length, 1);
+
+  html = learn.renderLearnPage();
+  text = renderedText(html);
+  assert.match(text, /Romans Quiz/);
+  assert.match(text, /Greek vocabulary 25\+/);
+  assert.match(text, /4 items/);
+  assert.match(html, new RegExp(`data-learn-page="vocabulary:practice:study-set:${created.id}"`));
+  assert.match(html, new RegExp(`data-learn-page="study-sets:browse:${created.id}"`));
+
+  html = renderPage(`study-sets:browse:${created.id}`);
+  text = renderedText(html);
+  assert.match(text, /eis/);
+  assert.match(text, /into/);
+});
+
+test('Study Set delete requires confirmation and preserves learning data', () => {
+  storage.delete(StudySets.STORAGE_KEY);
+  storage.delete(VocabularyLearning.STORAGE_KEY);
+  const set = learn.createLearnStudySet({ title: 'Delete Me', language: 'greek', type: 'vocabulary', source: 'frequency', threshold: '25' });
+  let store = VocabularyLearning.introduceEntry(VocabularyLearning.normalizeStore(), global.state.data.greek[0], { type: 'frequency' }, '2026-06-26');
+  VocabularyLearning.saveStore(store);
+
+  global.confirm = () => false;
+  assert.equal(learn.deleteLearnStudySet(set.id), null);
+  assert.equal(StudySets.loadStore().sets.length, 1);
+
+  global.confirm = () => true;
+  const result = learn.deleteLearnStudySet(set.id);
+  assert.equal(result.deleted, true);
+  assert.equal(StudySets.loadStore().sets.length, 0);
+  assert.ok(VocabularyLearning.getRecord(VocabularyLearning.loadStore(), global.state.data.greek[0]));
+  delete global.confirm;
 });
 
 test('Learn dashboard review queue separates Greek and Hebrew with capped today counts', () => {
@@ -267,6 +333,66 @@ test('Learning preferences persist review targets and practice SRS preference', 
   assert.match(text, /Greek Review Target/);
   assert.match(text, /Hebrew Review Target/);
   assert.match(text, /Ask whether to count practice toward SRS/);
+});
+
+test('Vocabulary Practice exposes on-demand sources and can practice non-due frequency words', () => {
+  storage.delete(VocabularyLearning.STORAGE_KEY);
+  storage.delete(StudySets.STORAGE_KEY);
+  storage.set(learn.LearnPracticeSrsPreferenceStorageKey, 'practice-only');
+
+  const home = renderPage('vocabulary:practice');
+  const homeText = renderedText(home);
+  assert.match(homeText, /Vocabulary Practice Drill on demand/);
+  assert.match(home, /data-learn-page="vocabulary:practice:frequency:greek:25"/);
+  assert.match(home, /data-learn-page="vocabulary:practice:status:greek:known"/);
+  assert.match(home, /data-learn-page="vocabulary:practice:status:hebrew:learning"/);
+
+  let html = renderPage('vocabulary:practice:frequency:greek:25');
+  assert.match(renderedText(html), /Greek 25\+ Practice On-demand practice/);
+  assert.match(renderedText(html), /logos/);
+  assert.match(html, /Reveal Meaning/);
+
+  learn.revealLearnPractice();
+  html = learn.renderLearnPage();
+  assert.match(renderedText(html), /word Other translations message • account/);
+  learn.gradeLearnPractice('recognized');
+  assert.equal(VocabularyLearning.getRecord(VocabularyLearning.loadStore(), global.state.data.greek[0]), null);
+  assert.match(renderedText(learn.renderLearnPage()), /Recognized 1/);
+
+  storage.delete(learn.LearnPracticeSrsPreferenceStorageKey);
+});
+
+test('On-demand practice can count toward SRS through the preference', () => {
+  storage.delete(VocabularyLearning.STORAGE_KEY);
+  storage.set(learn.LearnPracticeSrsPreferenceStorageKey, 'count-srs');
+
+  renderPage('vocabulary:practice:frequency:greek:25');
+  learn.revealLearnPractice();
+  learn.gradeLearnPractice('recognized');
+
+  const record = VocabularyLearning.getRecord(VocabularyLearning.loadStore(), global.state.data.greek[0]);
+  assert.equal(record.successCount, 1);
+  assert.equal(record.due, '2026-06-27');
+  storage.delete(learn.LearnPracticeSrsPreferenceStorageKey);
+});
+
+test('Ask-mode practice exposes an explicit count-toward-SRS action at session end', () => {
+  storage.delete(VocabularyLearning.STORAGE_KEY);
+  storage.set(learn.LearnPracticeSrsPreferenceStorageKey, 'ask');
+
+  renderPage('vocabulary:practice:frequency:hebrew:60');
+  learn.revealLearnPractice();
+  learn.gradeLearnPractice('missed');
+  let html = learn.renderLearnPage();
+  assert.match(html, /data-learn-practice-count-srs="true"/);
+  assert.equal(VocabularyLearning.getRecord(VocabularyLearning.loadStore(), global.state.data.hebrew[1]), null);
+
+  learn.countLearnPracticeTowardSrs();
+  const record = VocabularyLearning.getRecord(VocabularyLearning.loadStore(), global.state.data.hebrew[1]);
+  assert.equal(record.successCount, 0);
+  assert.equal(record.intervalDays, 1);
+  assert.match(renderedText(learn.renderLearnPage()), /This session has been counted toward SRS/);
+  storage.delete(learn.LearnPracticeSrsPreferenceStorageKey);
 });
 
 test('Vocabulary shell opens review and the new words path chooser', () => {

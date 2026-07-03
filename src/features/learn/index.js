@@ -11,6 +11,9 @@ const ParadigmRecognitionModel = (typeof ParadigmRecognition !== 'undefined')
 const LearnProgressModel = (typeof ProgressService !== 'undefined')
   ? ProgressService
   : (typeof require === 'function' ? require('../../core/progress-service') : null);
+const StudySetsModel = (typeof PuritanStudySets !== 'undefined')
+  ? PuritanStudySets
+  : (typeof require === 'function' ? require('../../models/study-sets') : null);
 const LearnAreas = [
   {
     id: 'vocabulary',
@@ -59,7 +62,7 @@ const LearnAreas = [
   }
 ];
 
-const learnState = { page: 'home', history: [], customFrequencyErrors: {}, activeVocabularyPath: '', currentVocabularyWordId: '', focusedReviewWordId: '', reviewReveal: false, lastReviewResult: null, progressCache: {}, progressLoading: {}, recognitionSession: null };
+const learnState = { page: 'home', history: [], customFrequencyErrors: {}, activeVocabularyPath: '', currentVocabularyWordId: '', focusedReviewWordId: '', reviewReveal: false, lastReviewResult: null, progressCache: {}, progressLoading: {}, recognitionSession: null, practiceSession: null, studySetFormError: '' };
 const LearnFrequencyThresholds = {
   greek: ['25', '10', '5', 'all'],
   hebrew: ['60', '30', '10', '5', 'all']
@@ -222,6 +225,8 @@ function setLearnPage(page, options = {}){
   if(changed) learnState.reviewReveal = false;
   if(changed) learnState.lastReviewResult = null;
   if(changed && !next.includes(':session:')) learnState.recognitionSession = null;
+  if(changed && !next.includes(':practice')) learnState.practiceSession = null;
+  if(changed) learnState.studySetFormError = '';
   if(!options.preserveFocusedReview) learnState.focusedReviewWordId = '';
   renderLearn();
 }
@@ -237,6 +242,8 @@ function resetLearn(options = {}){
   learnState.progressCache = {};
   learnState.progressLoading = {};
   learnState.recognitionSession = null;
+  learnState.practiceSession = null;
+  learnState.studySetFormError = '';
   if(options.render !== false) renderLearn();
 }
 function backLearnPage(){
@@ -701,6 +708,151 @@ function markLearnPathKnown(language, threshold, pathPage = ''){
   renderLearn();
   return result;
 }
+function learnStudySetsStore(){
+  return StudySetsModel ? StudySetsModel.loadStore() : { sets: [] };
+}
+function learnStudySets(){
+  return StudySetsModel ? StudySetsModel.listStudySets(learnStudySetsStore()) : [];
+}
+function learnStudySet(id){
+  return StudySetsModel ? StudySetsModel.findStudySet(id, learnStudySetsStore()) : null;
+}
+function learnStudySetEntries(set){
+  if(!set || set.type !== 'vocabulary' || !StudySetsModel || !VocabularyLearningModel) return [];
+  return StudySetsModel.resolveVocabularyEntries(set, learnVocabularyEntries(set.language), VocabularyLearningModel, learnVocabularyStore());
+}
+function createLearnStudySet(form = {}){
+  if(!StudySetsModel) return null;
+  const title = String(form.title || '').trim();
+  if(!title){
+    learnState.studySetFormError = 'Name the study set first.';
+    renderLearn();
+    return null;
+  }
+  const type = ['vocabulary','grammar','mixed'].includes(form.type) ? form.type : 'vocabulary';
+  const language = ['greek','hebrew','mixed'].includes(form.language) ? form.language : 'greek';
+  if(type !== 'vocabulary'){
+    learnState.studySetFormError = '';
+    const result = StudySetsModel.createStudySet({ title, type, language, description: form.description || '', criteria: { kind: 'placeholder' } });
+    setLearnPage(`study-sets:detail:${result.set.id}`);
+    return result.set;
+  }
+  const source = ['frequency','known','learning','not-learned'].includes(form.source) ? form.source : 'frequency';
+  const criteria = source === 'frequency'
+    ? { kind: 'frequency', threshold: form.threshold === 'all' ? 'all' : String(Math.max(1, Math.floor(Number(form.threshold) || 25))) }
+    : { kind: source };
+  const result = StudySetsModel.createStudySet({ title, type, language: language === 'mixed' ? 'greek' : language, description: form.description || '', criteria });
+  learnState.studySetFormError = '';
+  setLearnPage(`study-sets:detail:${result.set.id}`);
+  return result.set;
+}
+function deleteLearnStudySet(id){
+  if(!StudySetsModel) return null;
+  const set = learnStudySet(id);
+  if(!set) return null;
+  const message = `Delete "${set.title}"? This removes the Study Set, not your vocabulary learning data.`;
+  if(typeof confirm === 'function' && !confirm(message)) return null;
+  const result = StudySetsModel.deleteStudySet(id);
+  setLearnPage('study-sets');
+  return result;
+}
+function markLearnStudySetKnown(id){
+  const set = learnStudySet(id);
+  if(!set || set.type !== 'vocabulary' || !VocabularyLearningModel) return null;
+  const entries = learnStudySetEntries(set);
+  const message = `Mark all vocabulary in "${set.title}" as Known? This updates Reading Readiness and Progress.`;
+  if(typeof confirm === 'function' && !confirm(message)) return null;
+  const path = { type: 'study-set', language: set.language, vocabularyIds: entries.map(learnWordId), page: `study-sets:detail:${set.id}` };
+  const result = VocabularyLearningModel.markPathKnown(entries, learnVocabularyStore(), path);
+  VocabularyLearningModel.saveStore(result.store);
+  renderLearn();
+  return result;
+}
+function learnPracticeTitleForPage(page = learnState.page){
+  const parts = String(page || '').split(':');
+  if(parts[0] === 'vocabulary' && parts[1] === 'practice'){
+    if(parts[2] === 'frequency') return `${learnLanguageTitle(parts[3])} ${learnFrequencyLabel(parts[4] || '25')} Practice`;
+    if(parts[2] === 'status') return `${learnLanguageTitle(parts[3])} ${parts[4] === 'known' ? 'Known' : parts[4] === 'learning' ? 'Learning' : 'Not Learned'} Practice`;
+    if(parts[2] === 'study-set'){
+      const set = learnStudySet(parts.slice(3).join(':'));
+      return set?.title || 'Study Set Practice';
+    }
+  }
+  return 'Vocabulary Practice';
+}
+function learnVocabularyPracticeEntriesForPage(page = learnState.page){
+  const parts = String(page || '').split(':');
+  if(parts[0] !== 'vocabulary' || parts[1] !== 'practice') return [];
+  if(parts[2] === 'frequency'){
+    const language = parts[3] || 'greek';
+    const threshold = parts[4] || '25';
+    const path = learnFrequencyPath(language, threshold);
+    return learnVocabularyEntries(language).filter(entry => VocabularyLearningModel.matchesStudyPath(entry, path));
+  }
+  if(parts[2] === 'status'){
+    const language = parts[3] || 'greek';
+    const status = parts[4] || 'learning';
+    const store = learnVocabularyStore();
+    return learnVocabularyEntries(language).filter(entry => {
+      const value = VocabularyLearningModel.learningStatus(store, entry);
+      if(status === 'known') return value === VocabularyLearningModel.STATUS.KNOWN || value === VocabularyLearningModel.STATUS.KNOWN_SELF_REPORTED;
+      if(status === 'learning') return value === VocabularyLearningModel.STATUS.LEARNING || value === VocabularyLearningModel.STATUS.REVIEWING;
+      return value === VocabularyLearningModel.STATUS.NOT_LEARNED;
+    });
+  }
+  if(parts[2] === 'study-set') return learnStudySetEntries(learnStudySet(parts.slice(3).join(':')));
+  return [];
+}
+function ensureLearnPracticeSession(page = learnState.page){
+  const entries = learnVocabularyPracticeEntriesForPage(page).slice(0, 20);
+  const existing = learnState.practiceSession;
+  if(existing?.page === page) return existing;
+  learnState.practiceSession = {
+    page,
+    entries,
+    index: 0,
+    revealed: false,
+    recognized: 0,
+    missed: 0,
+    results: [],
+    counted: false
+  };
+  return learnState.practiceSession;
+}
+function revealLearnPractice(){
+  const session = ensureLearnPracticeSession();
+  session.revealed = true;
+  renderLearn();
+}
+function countPracticeResultsTowardSrs(session = learnState.practiceSession){
+  if(!session || session.counted || !VocabularyLearningModel) return false;
+  session.results.forEach(item => {
+    const entry = findLearnVocabularyEntry(item.language, item.id);
+    if(entry) VocabularyLearningModel.persistReviewEntry(entry, item.result);
+  });
+  session.counted = true;
+  return true;
+}
+function gradeLearnPractice(result){
+  const session = ensureLearnPracticeSession();
+  const current = session.entries[session.index];
+  if(!current) return;
+  const normalizedResult = result === 'missed' ? 'missed' : 'recognized';
+  session.results.push({ id: learnWordId(current), language: current.lang, result: normalizedResult });
+  if(normalizedResult === 'recognized') session.recognized += 1;
+  else session.missed += 1;
+  if(learnPracticeSrsPreference() === 'count-srs' && VocabularyLearningModel){
+    VocabularyLearningModel.persistReviewEntry(current, normalizedResult);
+    session.counted = true;
+  }
+  session.index += 1;
+  session.revealed = false;
+  renderLearn();
+}
+function countLearnPracticeTowardSrs(){
+  countPracticeResultsTowardSrs();
+  renderLearn();
+}
 function revealLearnReview(){
   learnState.reviewReveal = true;
   renderLearn();
@@ -819,15 +971,15 @@ function renderLearnHome(){
           <p>User-directed practice when you want more than the daily queue.</p>
         </div>
         <div class="learn-card-grid">
-          ${learnCard({ title: 'Vocabulary Practice', description: 'Frequency, Reading Paths, Known words, Learning words, Study Sets, and custom selections.' }, 'vocabulary', 'learn-card-compact')}
+          ${learnCard({ title: 'Vocabulary Practice', description: 'Frequency, Known words, Learning words, Not Learned words, and Study Sets.' }, 'vocabulary:practice', 'learn-card-compact')}
           ${learnCard({ title: 'Grammar Practice', description: 'Recognition, parsing, weak verbs, advanced grammar, and paradigms.' }, 'paradigms', 'learn-card-compact')}
-          ${learnCard({ title: 'Mixed Practice', description: 'A future capstone that combines vocabulary and grammar like real reading.' }, 'mixed-practice', 'learn-card-compact')}
+          ${learnCard({ title: 'Mixed Practice', description: 'A supporting capstone foundation for vocabulary and grammar together.' }, 'mixed-practice', 'learn-card-compact')}
         </div>
       </section>
       <section class="learn-dashboard-section learn-study-sets-supplement" aria-labelledby="learnStudySetsTitle" data-learn-dashboard-section="study-sets">
         <div class="learn-section-heading">
           <h2 id="learnStudySetsTitle">Study Sets</h2>
-          <p>Create focused study sets for a book, exam, or personal review. Coming in a later v5 update.</p>
+          <p>Create focused study sets for a sermon, quiz, favorite book, or personal review.</p>
         </div>
         <button class="learn-card learn-card-compact" type="button" data-learn-page="study-sets">
           <span class="learn-card-title">Study Sets</span>
@@ -1272,6 +1424,150 @@ function renderReadingReadinessBooks(testamentId){
       ${renderLearnBookGrid(testament.language, `reading-readiness:${testamentId}`)}
     </section>`;
 }
+function renderVocabularyPracticeHome(){
+  const sets = learnStudySets().filter(set => set.type === 'vocabulary');
+  return `
+    <section class="panel learn-panel" aria-labelledby="learnVocabularyPracticeTitle">
+      ${renderLearnHeader('Vocabulary Practice', 'Drill on demand without waiting for words to be due.', 'learnVocabularyPracticeTitle')}
+      <section class="learn-language-group" aria-labelledby="learnVocabularyPracticeFrequencyTitle">
+        <h2 id="learnVocabularyPracticeFrequencyTitle">Frequency</h2>
+        <div class="learn-card-grid learn-card-grid-compact">
+          ${learnCard({ title: 'Greek Frequency', description: 'Practice common Greek vocabulary.' }, 'vocabulary:practice:frequency:greek:25', 'learn-card-compact')}
+          ${learnCard({ title: 'Hebrew Frequency', description: 'Practice common Hebrew vocabulary.' }, 'vocabulary:practice:frequency:hebrew:60', 'learn-card-compact')}
+        </div>
+      </section>
+      <section class="learn-language-group" aria-labelledby="learnVocabularyPracticeStatusTitle">
+        <h2 id="learnVocabularyPracticeStatusTitle">Status</h2>
+        <div class="learn-card-grid learn-card-grid-compact">
+          ${['greek','hebrew'].map(language => `
+            ${learnCard({ title: `${learnLanguageTitle(language)} Known`, description: 'Practice words already marked Known.' }, `vocabulary:practice:status:${language}:known`, 'learn-card-compact')}
+            ${learnCard({ title: `${learnLanguageTitle(language)} Learning`, description: 'Practice words currently being learned.' }, `vocabulary:practice:status:${language}:learning`, 'learn-card-compact')}`).join('')}
+        </div>
+      </section>
+      <section class="learn-language-group" aria-labelledby="learnVocabularyPracticeSetsTitle">
+        <h2 id="learnVocabularyPracticeSetsTitle">Study Sets</h2>
+        <div class="learn-card-grid learn-card-grid-compact">
+          ${sets.length ? sets.slice(0, 6).map(set => learnCard({ title: set.title, description: StudySetsModel.sourceSummary(set) }, `vocabulary:practice:study-set:${set.id}`, 'learn-card-compact')).join('') : learnCard({ title: 'Create a Study Set', description: 'Make a focused set in under a minute.' }, 'study-sets:create', 'learn-card-compact')}
+        </div>
+      </section>
+      <p class="small muted">On-demand practice follows your Practice and SRS preference. Review Queue sessions always count as reviews.</p>
+    </section>`;
+}
+function renderVocabularyPracticeSessionPage(){
+  const session = ensureLearnPracticeSession();
+  const current = session.entries[session.index];
+  const done = !current;
+  const pref = learnPracticeSrsPreference();
+  return `
+    <section class="panel learn-panel" aria-labelledby="learnVocabularyPracticeSessionTitle">
+      ${renderLearnHeader(learnPracticeTitleForPage(), 'On-demand practice', 'learnVocabularyPracticeSessionTitle')}
+      <div class="learn-recognition-progress">
+        <span>${escHtml(String(Math.min(session.index + (done ? 0 : 1), session.entries.length)))} of ${escHtml(String(session.entries.length))}</span>
+        <span>Recognized ${escHtml(String(session.recognized))}</span>
+        <span>Missed ${escHtml(String(session.missed))}</span>
+      </div>
+      ${current ? `
+        ${renderVocabularyLearningCard(current, { revealed: session.revealed })}
+        ${renderLearningStatusSummary(current, { compact: true })}
+        <div class="learn-vocab-actions">
+          ${session.revealed
+            ? `<button class="learn-review-action learn-review-recognized" type="button" data-learn-practice-grade="recognized">Recognized</button>
+               <button class="learn-review-action learn-review-missed" type="button" data-learn-practice-grade="missed">Missed</button>`
+            : `<button class="btn btn-primary learn-review-action learn-review-reveal" type="button" data-learn-practice-reveal="true">Reveal Meaning</button>`}
+        </div>
+        <p class="small muted">${pref === 'count-srs' ? 'This practice is counting toward SRS by preference.' : pref === 'practice-only' ? 'This practice will not change SRS scheduling.' : 'You can decide whether to count this session toward SRS when you finish.'}</p>`
+      : `<section class="word-page-section learn-explainer">
+          <h2>${session.entries.length ? 'Practice complete' : 'No practice items available'}</h2>
+          <p>${session.entries.length ? `Recognized ${escHtml(String(session.recognized))}; missed ${escHtml(String(session.missed))}.` : 'This source does not have available vocabulary items yet.'}</p>
+          <div class="learn-vocab-actions">
+            ${session.entries.length && pref === 'ask' && !session.counted ? '<button class="btn btn-primary btn-sm" type="button" data-learn-practice-count-srs="true">Count toward SRS</button>' : ''}
+            <button class="btn btn-ghost btn-sm" type="button" data-learn-page="vocabulary:practice">Back to Vocabulary Practice</button>
+          </div>
+          ${session.counted ? '<p class="small muted">This session has been counted toward SRS.</p>' : ''}
+        </section>`}
+    </section>`;
+}
+function renderStudySetsPage(){
+  const sets = learnStudySets();
+  return `
+    <section class="panel learn-panel learn-study-sets-page" aria-labelledby="learnStudySetsPageTitle">
+      ${renderLearnHeader('Study Sets', 'Focused custom collections for specific goals.', 'learnStudySetsPageTitle')}
+      <section class="word-page-section learn-explainer">
+        <h2>Create a Study Set</h2>
+        <p>Keep it simple: choose a name, language, kind, and source.</p>
+        <button class="btn btn-primary btn-sm" type="button" data-learn-page="study-sets:create">Create Study Set</button>
+      </section>
+      <section class="learn-language-group" aria-labelledby="learnStudySetsListTitle">
+        <h2 id="learnStudySetsListTitle">Your Study Sets</h2>
+        ${sets.length ? `<div class="learn-card-grid">${sets.map(set => {
+          const count = set.type === 'vocabulary' ? learnStudySetEntries(set).length : 0;
+          return `
+            <article class="learn-study-set-row">
+              <div>
+                <h3>${escHtml(set.title)}</h3>
+                <p>${escHtml(StudySetsModel.sourceSummary(set))}${set.type === 'vocabulary' ? ` · ${escHtml(String(count))} items` : ''}</p>
+              </div>
+              <div class="learn-vocab-actions">
+                <button class="btn btn-primary btn-sm" type="button" data-learn-page="vocabulary:practice:study-set:${escHtml(set.id)}">Practice</button>
+                <button class="btn btn-ghost btn-sm" type="button" data-learn-page="study-sets:browse:${escHtml(set.id)}">Browse</button>
+                <button class="btn btn-ghost btn-sm" type="button" data-learn-page="study-sets:detail:${escHtml(set.id)}">Open</button>
+              </div>
+            </article>`;
+        }).join('')}</div>` : `<section class="word-page-section learn-explainer"><h2>No Study Sets yet</h2><p>Create one for a sermon text, quiz list, favorite book, or personal review.</p></section>`}
+      </section>
+    </section>`;
+}
+function renderStudySetCreatePage(){
+  const error = learnState.studySetFormError || '';
+  return `
+    <section class="panel learn-panel" aria-labelledby="learnStudySetCreateTitle">
+      ${renderLearnHeader('Create Study Set', 'A focused set should take under 30 seconds to create.', 'learnStudySetCreateTitle')}
+      <form class="word-page-section learn-study-set-form" data-learn-study-set-create="true">
+        <label>Name<input class="input" name="title" placeholder="Romans quiz review" required /></label>
+        <label>Language<select class="input" name="language"><option value="greek">Greek</option><option value="hebrew">Hebrew</option></select></label>
+        <label>Kind<select class="input" name="type"><option value="vocabulary">Vocabulary</option><option value="grammar">Grammar foundation</option><option value="mixed">Mixed foundation</option></select></label>
+        <label>Source<select class="input" name="source"><option value="frequency">Frequency band</option><option value="known">Known words</option><option value="learning">Learning words</option><option value="not-learned">Not Learned words</option></select></label>
+        <label>Frequency threshold<input class="input" name="threshold" type="number" min="1" step="1" value="25" /></label>
+        ${error ? `<p class="learn-custom-frequency-error">${escHtml(error)}</p>` : ''}
+        <div class="learn-vocab-actions">
+          <button class="btn btn-primary" type="submit">Save Study Set</button>
+          <button class="btn btn-ghost btn-sm" type="button" data-learn-page="study-sets">Cancel</button>
+        </div>
+      </form>
+    </section>`;
+}
+function renderStudySetDetailPage(id){
+  const set = learnStudySet(id);
+  if(!set) return `<section class="panel learn-panel">${renderLearnHeader('Study Set', 'Not found')}<section class="word-page-section"><h2>Study Set unavailable</h2><p>This Study Set may have been deleted.</p></section></section>`;
+  const entries = learnStudySetEntries(set);
+  return `
+    <section class="panel learn-panel" aria-labelledby="learnStudySetDetailTitle">
+      ${renderLearnHeader(set.title, StudySetsModel.sourceSummary(set), 'learnStudySetDetailTitle')}
+      <section class="word-page-section learn-explainer">
+        <h2>${escHtml(set.type === 'vocabulary' ? `${entries.length} items` : 'Foundation')}</h2>
+        <p>${set.type === 'vocabulary' ? 'Practice or browse this focused vocabulary collection.' : 'This Study Set is saved as a foundation until richer grammar or mixed set criteria are available.'}</p>
+        <div class="learn-vocab-actions">
+          ${set.type === 'vocabulary' ? `<button class="btn btn-primary btn-sm" type="button" data-learn-page="vocabulary:practice:study-set:${escHtml(set.id)}">Practice</button><button class="btn btn-ghost btn-sm" type="button" data-learn-page="study-sets:browse:${escHtml(set.id)}">Browse</button><button class="btn btn-ghost btn-sm" type="button" data-learn-mark-study-set-known="${escHtml(set.id)}">Mark All Known</button>` : ''}
+          <button class="btn btn-ghost btn-sm" type="button" data-learn-delete-study-set="${escHtml(set.id)}">Delete</button>
+        </div>
+      </section>
+    </section>`;
+}
+function renderStudySetBrowsePage(id){
+  const set = learnStudySet(id);
+  const entries = learnStudySetEntries(set);
+  return `
+    <section class="panel learn-panel learn-panel-wide" aria-labelledby="learnStudySetBrowseTitle">
+      ${renderLearnHeader(set?.title || 'Study Set', 'Browse items', 'learnStudySetBrowseTitle')}
+      ${entries.length ? `<div class="learn-progress-list">${entries.slice(0, 100).map(entry => `
+        <article class="learn-study-set-row">
+          <div>
+            <h3>${escHtml(entry.lemma || entry.word || '')}</h3>
+            <p>${escHtml(learnNormalizedGlosses(entry).primary)} · ${escHtml(learnLanguageTitle(entry.lang))} · freq ${escHtml(String(entry.freq || 0))}×</p>
+          </div>
+        </article>`).join('')}</div>` : `<section class="word-page-section learn-explainer"><h2>No items available</h2><p>This Study Set has no matching vocabulary items right now.</p></section>`}
+    </section>`;
+}
 function renderLearnPlaceholder(area, item){
   return `
     <section class="panel learn-panel learn-placeholder" aria-labelledby="learnPlaceholderTitle">
@@ -1283,14 +1579,7 @@ function renderLearnPlaceholder(area, item){
     </section>`;
 }
 function renderStudySetsPlaceholder(){
-  return `
-    <section class="panel learn-panel learn-placeholder" aria-labelledby="learnStudySetsPageTitle">
-      ${renderLearnHeader('Study Sets', 'Quiet supplement', 'learnStudySetsPageTitle')}
-      <section class="word-page-section">
-        <h2>Create focused study sets</h2>
-        <p>Study Sets are planned as small custom learning paths for a book, exam, sermon preparation, or personal review. Full creation is deferred so the primary v5.2 Learn work can stay focused on Review Queue, Frequency Paths, Reading Paths, and Grammar Learning Paths.</p>
-      </section>
-    </section>`;
+  return renderStudySetsPage();
 }
 function renderMixedPracticePlaceholder(){
   return `
@@ -1298,7 +1587,11 @@ function renderMixedPracticePlaceholder(){
       ${renderLearnHeader('Mixed Practice', 'Supporting capstone', 'learnMixedPracticeTitle')}
       <section class="word-page-section">
         <h2>Vocabulary and grammar together</h2>
-        <p>Mixed Practice will combine vocabulary and grammar in a reading-like session. The practice/SRS preference is ready; the deeper mixed engine remains a later practice update.</p>
+        <p>Mixed Practice will combine vocabulary and grammar in a reading-like session. For v5.8, Vocabulary Practice and Grammar Practice are ready first, while the deeper adaptive mixed engine remains a follow-up.</p>
+        <div class="learn-vocab-actions">
+          <button class="btn btn-primary btn-sm" type="button" data-learn-page="vocabulary:practice">Vocabulary Practice</button>
+          <button class="btn btn-ghost btn-sm" type="button" data-learn-page="paradigms:recognition-practice">Grammar Practice</button>
+        </div>
       </section>
     </section>`;
 }
@@ -1343,9 +1636,14 @@ function renderLearnPage(){
   const [areaId, childId, thirdId, fourthId, fifthId, sixthId, seventhId] = learnState.page.split(':');
   const area = learnArea(areaId);
   if(areaId === 'learning-preferences') return renderLearningPreferencesPage();
+  if(areaId === 'study-sets' && childId === 'create') return renderStudySetCreatePage();
+  if(areaId === 'study-sets' && childId === 'detail') return renderStudySetDetailPage(thirdId);
+  if(areaId === 'study-sets' && childId === 'browse') return renderStudySetBrowsePage(thirdId);
   if(areaId === 'study-sets') return renderStudySetsPlaceholder();
   if(areaId === 'mixed-practice') return renderMixedPracticePlaceholder();
   if(!area) return renderLearnHome();
+  if(area.id === 'vocabulary' && childId === 'practice' && !thirdId) return renderVocabularyPracticeHome();
+  if(area.id === 'vocabulary' && childId === 'practice' && thirdId) return renderVocabularyPracticeSessionPage();
   if(area.id === 'vocabulary' && childId === 'review' && !thirdId) return renderReviewChooser(area);
   if(area.id === 'vocabulary' && childId === 'review' && (thirdId === 'greek' || thirdId === 'hebrew' || thirdId === 'mixed')) return renderLanguageReviewPage(area, thirdId);
   if(area.id === 'vocabulary' && childId === 'new-words') return renderNewWordsPage(area);
@@ -1397,8 +1695,13 @@ function wireLearn(){
   $$('[data-learn-start-path]', root).forEach(button => button.addEventListener('click', () => startLearnVocabularyPath(button.dataset.learnStartPath)));
   $$('[data-learn-word-learned]', root).forEach(button => button.addEventListener('click', () => learnCurrentVocabularyWord(button.dataset.lang, button.dataset.threshold, button.dataset.pathPage)));
   $$('[data-learn-mark-path-known]', root).forEach(button => button.addEventListener('click', () => markLearnPathKnown(button.dataset.lang, button.dataset.threshold, button.dataset.pathPage)));
+  $$('[data-learn-delete-study-set]', root).forEach(button => button.addEventListener('click', () => deleteLearnStudySet(button.dataset.learnDeleteStudySet)));
+  $$('[data-learn-mark-study-set-known]', root).forEach(button => button.addEventListener('click', () => markLearnStudySetKnown(button.dataset.learnMarkStudySetKnown)));
   $('#learnRevealMeaningBtn', root)?.addEventListener('click', revealLearnReview);
   $$('[data-learn-review-grade]', root).forEach(button => button.addEventListener('click', () => gradeLearnReview(button.dataset.lang, button.dataset.wordId, button.dataset.learnReviewGrade)));
+  $$('[data-learn-practice-reveal]', root).forEach(button => button.addEventListener('click', revealLearnPractice));
+  $$('[data-learn-practice-grade]', root).forEach(button => button.addEventListener('click', () => gradeLearnPractice(button.dataset.learnPracticeGrade)));
+  $$('[data-learn-practice-count-srs]', root).forEach(button => button.addEventListener('click', countLearnPracticeTowardSrs));
   $$('[data-learn-recognition-start]', root).forEach(button => button.addEventListener('click', () => startRecognitionSession(button.dataset.learnRecognitionStart, button.dataset.learnRecognitionCategory || '')));
   $$('[data-learn-recognition-reveal]', root).forEach(button => button.addEventListener('click', revealRecognitionAnswer));
   $$('[data-learn-recognition-grade]', root).forEach(button => button.addEventListener('click', () => gradeRecognitionAnswer(button.dataset.learnRecognitionGrade)));
@@ -1412,6 +1715,17 @@ function wireLearn(){
   $$('.learn-custom-frequency-form', root).forEach(form => form.addEventListener('submit', event => {
     event.preventDefault();
     setLearnCustomFrequency(form.dataset.learnCustomBase, form.querySelector('.learn-custom-frequency-input')?.value || '');
+  }));
+  $$('[data-learn-study-set-create]', root).forEach(form => form.addEventListener('submit', event => {
+    event.preventDefault();
+    const data = new FormData(form);
+    createLearnStudySet({
+      title: data.get('title'),
+      language: data.get('language'),
+      type: data.get('type'),
+      source: data.get('source'),
+      threshold: data.get('threshold')
+    });
   }));
   $$('[data-learn-review-target-preset]', root).forEach(button => button.addEventListener('click', () => {
     const language = button.dataset.language;
@@ -1435,5 +1749,5 @@ function renderLearn(){
   wireLearn();
 }
 
-if(typeof window !== 'undefined') Object.assign(window, { LearnAreas, LearnReviewTargetDefaults, LearnReviewTargetPresets, LearnReviewTargetStorageKey, LearnPracticeSrsPreferenceStorageKey, learnState, learnArea, learnChild, learnPageTitle, learnBreadcrumbs, learnReviewTargets, learnReviewTarget, saveLearnReviewTargets, setLearnReviewTarget, learnPracticeSrsPreference, setLearnPracticeSrsPreference, learnReviewQueueSummary, parseLearnCustomFrequency, setLearnCustomFrequency, resetLearn, setLearnPage, backLearnPage, wireLearn, renderLearn, renderLearnPage, learnBookList, learnPathForPage, startLearnVocabularyPath, learnCurrentVocabularyWord, markLearnPathKnown, reviewLearnVocabularyWord, revealLearnReview, gradeLearnReview, recognitionTargetsForLearn, startRecognitionSession, revealRecognitionAnswer, gradeRecognitionAnswer, openLearnReference });
-if(typeof module !== 'undefined') module.exports = { LearnAreas, LearnFrequencyThresholds, LearnReviewTargetDefaults, LearnReviewTargetPresets, LearnReviewTargetStorageKey, LearnPracticeSrsPreferenceStorageKey, learnState, learnArea, learnChild, learnPageTitle, learnBreadcrumbs, learnReviewTargets, learnReviewTarget, saveLearnReviewTargets, setLearnReviewTarget, learnPracticeSrsPreference, setLearnPracticeSrsPreference, learnReviewQueueSummary, parseLearnCustomFrequency, setLearnCustomFrequency, resetLearn, learnBookList, learnPathForPage, setLearnPage, backLearnPage, wireLearn, renderLearnPage, startLearnVocabularyPath, learnCurrentVocabularyWord, markLearnPathKnown, reviewLearnVocabularyWord, revealLearnReview, gradeLearnReview, recognitionTargetsForLearn, startRecognitionSession, revealRecognitionAnswer, gradeRecognitionAnswer, openLearnReference };
+if(typeof window !== 'undefined') Object.assign(window, { LearnAreas, LearnReviewTargetDefaults, LearnReviewTargetPresets, LearnReviewTargetStorageKey, LearnPracticeSrsPreferenceStorageKey, learnState, learnArea, learnChild, learnPageTitle, learnBreadcrumbs, learnReviewTargets, learnReviewTarget, saveLearnReviewTargets, setLearnReviewTarget, learnPracticeSrsPreference, setLearnPracticeSrsPreference, learnReviewQueueSummary, parseLearnCustomFrequency, setLearnCustomFrequency, resetLearn, setLearnPage, backLearnPage, wireLearn, renderLearn, renderLearnPage, learnBookList, learnPathForPage, startLearnVocabularyPath, learnCurrentVocabularyWord, markLearnPathKnown, learnStudySets, learnStudySet, createLearnStudySet, deleteLearnStudySet, markLearnStudySetKnown, reviewLearnVocabularyWord, revealLearnReview, gradeLearnReview, ensureLearnPracticeSession, revealLearnPractice, gradeLearnPractice, countLearnPracticeTowardSrs, recognitionTargetsForLearn, startRecognitionSession, revealRecognitionAnswer, gradeRecognitionAnswer, openLearnReference });
+if(typeof module !== 'undefined') module.exports = { LearnAreas, LearnFrequencyThresholds, LearnReviewTargetDefaults, LearnReviewTargetPresets, LearnReviewTargetStorageKey, LearnPracticeSrsPreferenceStorageKey, learnState, learnArea, learnChild, learnPageTitle, learnBreadcrumbs, learnReviewTargets, learnReviewTarget, saveLearnReviewTargets, setLearnReviewTarget, learnPracticeSrsPreference, setLearnPracticeSrsPreference, learnReviewQueueSummary, parseLearnCustomFrequency, setLearnCustomFrequency, resetLearn, learnBookList, learnPathForPage, setLearnPage, backLearnPage, wireLearn, renderLearnPage, startLearnVocabularyPath, learnCurrentVocabularyWord, markLearnPathKnown, learnStudySets, learnStudySet, createLearnStudySet, deleteLearnStudySet, markLearnStudySetKnown, reviewLearnVocabularyWord, revealLearnReview, gradeLearnReview, ensureLearnPracticeSession, revealLearnPractice, gradeLearnPractice, countLearnPracticeTowardSrs, recognitionTargetsForLearn, startRecognitionSession, revealRecognitionAnswer, gradeRecognitionAnswer, openLearnReference };

@@ -20,6 +20,7 @@ const FILES = [
   './src/models/preferences.js',
   './src/models/dashboard-stats.js',
   './src/models/vocabulary-learning.js',
+  './src/models/study-sets.js',
   './src/models/onboarding.js',
   './src/core/storage/storage.js',
   './src/core/storage/vocab-storage.js',

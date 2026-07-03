@@ -2,6 +2,7 @@
 const StorageKeys = {
   vocab: { greek: LS_VOCAB_GREEK, hebrew: LS_VOCAB_HEBREW },
   vocabLearning: 'pp_vocab_learning',
+  studySets: 'pp_study_sets',
   prefs: LS_PREFS,
   dashboard: LS_DASHBOARD,
   lastLang: 'pp_last_lang'
@@ -44,6 +45,7 @@ function clearUserStorage(){
     StorageKeys.vocab.greek,
     StorageKeys.vocab.hebrew,
     StorageKeys.vocabLearning,
+    StorageKeys.studySets,
     StorageKeys.prefs,
     StorageKeys.dashboard,
     StorageKeys.lastLang,

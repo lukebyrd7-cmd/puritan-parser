@@ -38,6 +38,7 @@
     'pp_vocab_greek',
     'pp_vocab_hebrew',
     'pp_vocab_learning',
+    'pp_study_sets',
     'pp_prefs',
     'pp_dashboard',
     'pp_last_lang',

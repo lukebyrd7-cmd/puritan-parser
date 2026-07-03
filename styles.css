@@ -1127,6 +1127,45 @@ button:focus-visible, input:focus-visible, select:focus-visible {
 .learn-study-sets-supplement {
   opacity: 0.92;
 }
+.learn-study-sets-page {
+  gap: 14px;
+}
+.learn-study-set-form {
+  display: grid;
+  gap: 12px;
+}
+.learn-study-set-form label {
+  display: grid;
+  gap: 6px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.learn-study-set-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: center;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 14px;
+  background: var(--surface);
+}
+.learn-study-set-row h3 {
+  margin: 0 0 4px;
+  color: var(--text);
+  font-family: var(--font-serif);
+  font-size: 21px;
+  line-height: 1.1;
+}
+.learn-study-set-row p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.4;
+}
 .learn-card-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
@@ -1474,6 +1513,7 @@ button:focus-visible, input:focus-visible, select:focus-visible {
   .learn-srs-status dl { grid-template-columns: 1fr; }
   .learn-study-stats { grid-template-columns: 1fr; }
   .learn-progress-row { grid-template-columns: 1fr; }
+  .learn-study-set-row { grid-template-columns: 1fr; }
   .learn-progress-row .learn-study-stats { grid-template-columns: 1fr; }
   .learn-progress-row .btn { width: 100%; }
   .learn-vocab-card { padding: 22px; gap: 16px; }
