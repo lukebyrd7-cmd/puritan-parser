@@ -147,6 +147,9 @@ Acceptance criteria:
 Goal:
 Make review status understandable and non-punitive with daily targets, true backlog visibility, and clear card destination after review.
 
+Status:
+Implemented as an incremental transparency pass. The vocabulary learning model now exposes lifecycle/status details, review history summaries, intervals, next-review labels, and a future-safe self-reported Known source. Learn review sessions show due/backlog counts separately, surface current SRS metadata, and leave compact post-review feedback. Greek and Hebrew review targets are configurable through Light, Standard, Heavy, and Custom controls using the existing local target preference. The practice-counts-toward-SRS preference is stored and ready for on-demand practice flows; the deeper Mixed Practice engine remains a later v5.8 follow-up.
+
 Main files likely affected:
 
 - `src/models/vocabulary-learning.js`

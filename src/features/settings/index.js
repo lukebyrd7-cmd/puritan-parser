@@ -7,6 +7,14 @@ function syncSettingsUI(){
   sv('#minEase', p.minEase||1.3);
   sv('#dailyCap', p.dailyCap||200);
   sv('#newPerDay', p.newPerDay||20);
+  if(typeof learnReviewTargets === 'function'){
+    const targets = learnReviewTargets();
+    ['greek','hebrew'].forEach(language => {
+      sv(`#${language}ReviewTargetPreset`, targets[language]?.preset || 'standard');
+      sv(`#${language}ReviewTargetCustom`, targets[language]?.dailyTarget || 30);
+    });
+  }
+  if(typeof learnPracticeSrsPreference === 'function') sv('#practiceSrsPreference', learnPracticeSrsPreference());
   sv('#fontSizeSlider', p.cardFontSize||54);
   sc('#useSM2', p.useSM2!==false);
   sc('#showPosHint', !!p.showPosHint);

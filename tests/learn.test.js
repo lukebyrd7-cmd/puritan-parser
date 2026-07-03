@@ -96,6 +96,35 @@ test('Learn dashboard review queue separates Greek and Hebrew with capped today 
   storage.delete(learn.LearnReviewTargetStorageKey);
 });
 
+test('Learning preferences persist review targets and practice SRS preference', () => {
+  storage.delete(learn.LearnReviewTargetStorageKey);
+  storage.delete(learn.LearnPracticeSrsPreferenceStorageKey);
+
+  assert.equal(learn.learnReviewTarget('greek'), 30);
+  assert.equal(learn.learnReviewTarget('hebrew'), 30);
+  assert.equal(learn.learnPracticeSrsPreference(), 'ask');
+
+  learn.setLearnReviewTarget('greek', 'light');
+  learn.setLearnReviewTarget('hebrew', 'custom', '72');
+  assert.equal(learn.learnReviewTarget('greek'), 15);
+  assert.equal(learn.learnReviewTarget('hebrew'), 72);
+
+  learn.setLearnReviewTarget('hebrew', 'custom', '0');
+  assert.equal(learn.learnReviewTarget('hebrew'), 1);
+  learn.setLearnReviewTarget('hebrew', 'custom', '999');
+  assert.equal(learn.learnReviewTarget('hebrew'), 200);
+
+  assert.equal(learn.setLearnPracticeSrsPreference('count-srs'), 'count-srs');
+  assert.equal(learn.learnPracticeSrsPreference(), 'count-srs');
+  assert.equal(learn.setLearnPracticeSrsPreference('nope'), 'ask');
+
+  const html = renderPage('learning-preferences');
+  const text = renderedText(html);
+  assert.match(text, /Greek Review Target/);
+  assert.match(text, /Hebrew Review Target/);
+  assert.match(text, /Ask whether to count practice toward SRS/);
+});
+
 test('Vocabulary shell opens review and the new words path chooser', () => {
   const html = renderPage('vocabulary');
   ['Review', 'New Words'].forEach(label => assert.match(html, new RegExp(label)));
@@ -376,6 +405,8 @@ test('Language review page reveals due vocabulary and grading updates state', ()
   html = learn.renderLearnPage();
   const text = renderedText(html);
   assert.match(text, /word Other translations message • account Greek · freq 330×/);
+  assert.match(text, /Learning · Still being learned\. Due today\./);
+  assert.match(text, /Next review Due today Interval Not scheduled Reviews 0 successful · 0 total/);
   assert.doesNotMatch(text, /message, account/);
   assert.doesNotMatch(text, /word •/);
   assert.equal((html.match(/<span>word<\/span>/g) || []).length, 0);
@@ -389,6 +420,7 @@ test('Language review page reveals due vocabulary and grading updates state', ()
   let record = VocabularyLearning.getRecord(VocabularyLearning.loadStore(), global.state.data.greek[0]);
   assert.equal(record.successCount, 1);
   assert.equal(record.due, '2026-06-27');
+  assert.match(renderedText(learn.renderLearnPage()), /Last Review logos: Reviewing\. Next review: 2026-06-27\. Interval: 1 day\./);
 
   learn.gradeLearnReview('greek', 'lemma:greek:logos', 'missed');
   record = VocabularyLearning.getRecord(VocabularyLearning.loadStore(), global.state.data.greek[0]);

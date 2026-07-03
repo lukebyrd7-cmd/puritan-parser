@@ -861,6 +861,9 @@ button:focus-visible, input:focus-visible, select:focus-visible {
   color: var(--muted);
   font-size: 13px;
 }
+.word-page-learning-meta {
+  margin-top: 10px;
+}
 
 /* ===== LEARN SHELL ===== */
 .learn-panel {
@@ -976,6 +979,59 @@ button:focus-visible, input:focus-visible, select:focus-visible {
   color: var(--text);
   font-size: 24px;
   font-weight: 800;
+}
+.learn-srs-status {
+  display: grid;
+  gap: 8px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 12px;
+  background: var(--surface);
+}
+.learn-srs-status p {
+  margin: 0;
+  color: var(--text-2);
+  font-size: 14px;
+  line-height: 1.45;
+}
+.learn-srs-status dl {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  margin: 0;
+}
+.learn-srs-status div {
+  display: grid;
+  gap: 2px;
+}
+.learn-srs-status dt {
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.learn-srs-status dd {
+  margin: 0;
+  color: var(--text);
+  font-size: 13px;
+  line-height: 1.3;
+}
+.learn-review-result p {
+  margin: 0;
+  color: var(--text-2);
+  font-size: 14px;
+  line-height: 1.45;
+}
+.learn-setting-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.learn-setting-row .active {
+  border-color: var(--accent);
+  color: var(--text);
+  background: color-mix(in srgb, var(--accent) 8%, var(--surface));
 }
 .learn-study-sets-supplement {
   opacity: 0.92;
@@ -1324,6 +1380,7 @@ button:focus-visible, input:focus-visible, select:focus-visible {
   .learn-header h1 { font-size: 30px; }
   .learn-card-grid { grid-template-columns: 1fr; }
   .learn-review-summary-grid { grid-template-columns: 1fr; }
+  .learn-srs-status dl { grid-template-columns: 1fr; }
   .learn-study-stats { grid-template-columns: 1fr; }
   .learn-progress-row { grid-template-columns: 1fr; }
   .learn-progress-row .learn-study-stats { grid-template-columns: 1fr; }

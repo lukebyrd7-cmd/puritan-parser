@@ -78,6 +78,24 @@ function wireEvents(){
     updateDueBadge();
   });
 
+  ['greek','hebrew'].forEach(language => {
+    const preset = $(`#${language}ReviewTargetPreset`);
+    const custom = $(`#${language}ReviewTargetCustom`);
+    const saveTarget = selectedPreset => {
+      if(typeof setLearnReviewTarget !== 'function') return;
+      setLearnReviewTarget(language, selectedPreset || preset?.value || 'standard', custom?.value || '');
+      syncSettingsUI();
+      if(typeof renderLearn === 'function') renderLearn();
+    };
+    preset?.addEventListener('change', () => saveTarget(preset.value));
+    custom?.addEventListener('change', () => saveTarget('custom'));
+  });
+
+  $('#practiceSrsPreference')?.addEventListener('change', e=>{
+    if(typeof setLearnPracticeSrsPreference === 'function') setLearnPracticeSrsPreference(e.target.value);
+    if(typeof renderLearn === 'function') renderLearn();
+  });
+
   const fss=$('#fontSizeSlider');
   if(fss) fss.addEventListener('input',()=>{
     const v=Number(fss.value);

@@ -59,7 +59,7 @@ const LearnAreas = [
   }
 ];
 
-const learnState = { page: 'home', history: [], customFrequencyErrors: {}, activeVocabularyPath: '', currentVocabularyWordId: '', focusedReviewWordId: '', reviewReveal: false, progressCache: {}, progressLoading: {}, recognitionSession: null };
+const learnState = { page: 'home', history: [], customFrequencyErrors: {}, activeVocabularyPath: '', currentVocabularyWordId: '', focusedReviewWordId: '', reviewReveal: false, lastReviewResult: null, progressCache: {}, progressLoading: {}, recognitionSession: null };
 const LearnFrequencyThresholds = {
   greek: ['25', '10', '5', 'all'],
   hebrew: ['60', '30', '10', '5', 'all']
@@ -74,6 +74,11 @@ const LearnReviewTargetPresets = {
   heavy: 50
 };
 const LearnReviewTargetStorageKey = 'pp_learn_review_targets';
+const LearnPracticeSrsPreferenceStorageKey = 'pp_learn_practice_srs_preference';
+const LearnPracticeSrsPreferenceDefault = 'ask';
+const LearnPracticeSrsPreferenceOptions = ['ask', 'practice-only', 'count-srs'];
+const LearnReviewTargetCustomMin = 1;
+const LearnReviewTargetCustomMax = 200;
 const LearnTestaments = {
   'old-testament': { title: 'Old Testament', language: 'hebrew' },
   'new-testament': { title: 'New Testament', language: 'greek' }
@@ -115,9 +120,13 @@ function normalizeLearnReviewTargets(payload){
     const candidate = source[language] && typeof source[language] === 'object' ? source[language] : {};
     const preset = LearnReviewTargetPresets[candidate.preset] ? candidate.preset : (candidate.preset === 'custom' ? 'custom' : LearnReviewTargetDefaults[language].preset);
     const target = Number(candidate.dailyTarget);
+    const fallback = LearnReviewTargetPresets[preset] || LearnReviewTargetDefaults[language].dailyTarget;
+    const clamped = Number.isFinite(target)
+      ? Math.min(LearnReviewTargetCustomMax, Math.max(LearnReviewTargetCustomMin, Math.floor(target)))
+      : fallback;
     return [language, {
       preset,
-      dailyTarget: Number.isFinite(target) && target > 0 ? Math.floor(target) : LearnReviewTargetDefaults[language].dailyTarget
+      dailyTarget: clamped
     }];
   }));
 }
@@ -133,6 +142,40 @@ function learnReviewTargets(){
 }
 function learnReviewTarget(language){
   return learnReviewTargets()[language]?.dailyTarget || LearnReviewTargetDefaults[language]?.dailyTarget || 30;
+}
+function saveLearnReviewTargets(targets){
+  const normalized = normalizeLearnReviewTargets(targets);
+  const adapter = learnStorage();
+  if(adapter) adapter.set(LearnReviewTargetStorageKey, JSON.stringify(normalized));
+  return normalized;
+}
+function setLearnReviewTarget(language, preset, customValue = ''){
+  const targets = learnReviewTargets();
+  if(!targets[language]) return targets;
+  const nextPreset = preset === 'custom' ? 'custom' : (LearnReviewTargetPresets[preset] ? preset : LearnReviewTargetDefaults[language].preset);
+  const current = targets[language].dailyTarget;
+  const custom = Number(customValue);
+  const dailyTarget = nextPreset === 'custom'
+    ? (Number.isFinite(custom) ? Math.min(LearnReviewTargetCustomMax, Math.max(LearnReviewTargetCustomMin, Math.floor(custom))) : current)
+    : LearnReviewTargetPresets[nextPreset];
+  targets[language] = { preset: nextPreset, dailyTarget };
+  return saveLearnReviewTargets(targets);
+}
+function learnPracticeSrsPreference(){
+  const adapter = learnStorage();
+  if(!adapter) return LearnPracticeSrsPreferenceDefault;
+  try {
+    const raw = adapter.get(LearnPracticeSrsPreferenceStorageKey);
+    return LearnPracticeSrsPreferenceOptions.includes(raw) ? raw : LearnPracticeSrsPreferenceDefault;
+  } catch(e){
+    return LearnPracticeSrsPreferenceDefault;
+  }
+}
+function setLearnPracticeSrsPreference(value){
+  const next = LearnPracticeSrsPreferenceOptions.includes(value) ? value : LearnPracticeSrsPreferenceDefault;
+  const adapter = learnStorage();
+  if(adapter) adapter.set(LearnPracticeSrsPreferenceStorageKey, next);
+  return next;
 }
 function learnFrequencyDescription(language, threshold){
   const value = learnFrequencyNumber(threshold);
@@ -177,6 +220,7 @@ function setLearnPage(page, options = {}){
   if(!options.skipHistory && changed) learnState.history.push(learnState.page);
   learnState.page = next;
   if(changed) learnState.reviewReveal = false;
+  if(changed) learnState.lastReviewResult = null;
   if(changed && !next.includes(':session:')) learnState.recognitionSession = null;
   if(!options.preserveFocusedReview) learnState.focusedReviewWordId = '';
   renderLearn();
@@ -189,6 +233,7 @@ function resetLearn(options = {}){
   learnState.currentVocabularyWordId = '';
   learnState.focusedReviewWordId = '';
   learnState.reviewReveal = false;
+  learnState.lastReviewResult = null;
   learnState.progressCache = {};
   learnState.progressLoading = {};
   learnState.recognitionSession = null;
@@ -601,6 +646,19 @@ function renderVocabularyLearningDetails(entry, revealed = true){
         <p class="learn-vocab-meta">${escHtml(learnLanguageTitle(entry.lang))} · freq ${escHtml(String(entry.freq || 0))}×</p>
       </div>` : ''}`;
 }
+function renderLearningStatusSummary(entry, options = {}){
+  if(!VocabularyLearningModel || !entry) return '';
+  const details = VocabularyLearningModel.learningStatusDetails(learnVocabularyStore(), entry);
+  return `
+    <div class="learn-srs-status${options.compact ? ' learn-srs-status-compact' : ''}">
+      <p><strong>${escHtml(details.label)}</strong> · ${escHtml(details.explanation)}</p>
+      <dl>
+        <div><dt>Next review</dt><dd>${escHtml(details.nextReviewLabel)}</dd></div>
+        <div><dt>Interval</dt><dd>${escHtml(details.intervalLabel)}</dd></div>
+        <div><dt>Reviews</dt><dd>${escHtml(String(details.successfulReviews))} successful · ${escHtml(String(details.totalReviews))} total</dd></div>
+      </dl>
+    </div>`;
+}
 function renderVocabularyLearningCard(entry, options = {}){
   const headword = typeof displayHeadwordForEntry === 'function'
     ? displayHeadwordForEntry(entry)
@@ -650,7 +708,17 @@ function revealLearnReview(){
 function gradeLearnReview(language, id, result){
   if(!VocabularyLearningModel) return;
   const entry = findLearnReviewEntry(language, id);
-  if(entry) VocabularyLearningModel.persistReviewEntry(entry, result);
+  if(entry) {
+    VocabularyLearningModel.persistReviewEntry(entry, result);
+    const details = VocabularyLearningModel.learningStatusDetails(VocabularyLearningModel.loadStore(), entry);
+    learnState.lastReviewResult = {
+      lemma: entry.lemma || entry.word || id,
+      status: details.label,
+      nextReview: details.nextReviewLabel,
+      interval: details.intervalLabel,
+      successfulReviews: details.successfulReviews
+    };
+  }
   if(learnState.focusedReviewWordId === id) learnState.focusedReviewWordId = '';
   learnState.reviewReveal = false;
   renderLearn();
@@ -699,6 +767,9 @@ function renderLearnHome(){
               <p>${escHtml(String(summary.moreAvailable))} more available</p>
               <p>Target ${escHtml(String(summary.target))}/day</p>
             </article>`).join('')}
+        </div>
+        <div class="learn-vocab-actions">
+          <button class="btn btn-ghost btn-sm" type="button" data-learn-page="learning-preferences">Learning Preferences</button>
         </div>
         <div class="learn-vocab-actions">
           <button class="btn btn-primary" type="button" data-learn-page="vocabulary:review:greek">Review Greek</button>
@@ -779,6 +850,15 @@ function renderReviewChooser(area){
       </div>
     </section>`;
 }
+function renderReviewResultFeedback(){
+  const result = learnState.lastReviewResult;
+  if(!result) return '';
+  return `
+    <section class="word-page-section learn-review-result" aria-labelledby="learnReviewResultTitle">
+      <h2 id="learnReviewResultTitle">Last Review</h2>
+      <p>${escHtml(result.lemma)}: ${escHtml(result.status)}. Next review: ${escHtml(result.nextReview)}. Interval: ${escHtml(result.interval)}.</p>
+    </section>`;
+}
 function renderLanguageReviewPage(area, language){
   const item = learnChild(area, 'review');
   const mixed = language === 'mixed';
@@ -792,7 +872,9 @@ function renderLanguageReviewPage(area, language){
       <section class="panel learn-panel" aria-labelledby="learnReviewTitle">
         ${renderLearnHeader(title, focused ? 'Word Review' : 'Reviews Available', 'learnReviewTitle')}
         ${current ? `
+          ${renderReviewResultFeedback()}
           ${renderVocabularyLearningCard(current, { revealed: learnState.reviewReveal })}
+          ${renderLearningStatusSummary(current)}
           <div class="learn-vocab-actions">
             ${learnState.reviewReveal
               ? `<button class="learn-review-action learn-review-recognized" type="button" data-learn-review-grade="recognized" data-lang="${escHtml(current.lang)}" data-word-id="${escHtml(learnWordId(current))}">Recognized</button>
@@ -800,7 +882,7 @@ function renderLanguageReviewPage(area, language){
               : `<button class="btn btn-primary learn-review-action learn-review-reveal" type="button" id="learnRevealMeaningBtn">Reveal Meaning</button>`}
           </div>
           ${reviewCount > 1 ? `<p class="muted small">${reviewCount} reviews available</p>` : ''}`
-        : `<section class="word-page-section learn-explainer">
+        : `${renderReviewResultFeedback()}<section class="word-page-section learn-explainer">
             <h2>No reviews available</h2>
             <p>${mixed ? 'You are caught up for today. You can practice more or continue a learning path.' : `${escHtml(learnLanguageTitle(language))} words you are learning will appear here when they are ready to review.`}</p>
             <div class="learn-vocab-actions">
@@ -1216,13 +1298,51 @@ function renderMixedPracticePlaceholder(){
       ${renderLearnHeader('Mixed Practice', 'Supporting capstone', 'learnMixedPracticeTitle')}
       <section class="word-page-section">
         <h2>Vocabulary and grammar together</h2>
-        <p>Mixed Practice will combine vocabulary and grammar in a reading-like session. The v5.2 dashboard keeps the entry point visible while leaving the SRS-counting prompt and deeper mixed engine for a later SRS/practice update.</p>
+        <p>Mixed Practice will combine vocabulary and grammar in a reading-like session. The practice/SRS preference is ready; the deeper mixed engine remains a later practice update.</p>
+      </section>
+    </section>`;
+}
+function renderLearningPreferencesPage(){
+  const targets = learnReviewTargets();
+  const practicePref = learnPracticeSrsPreference();
+  const targetControl = language => {
+    const target = targets[language] || LearnReviewTargetDefaults[language];
+    const customId = `learn-${language}-custom-target`;
+    return `
+      <section class="word-page-section learn-preference-group" data-learn-target-language="${escHtml(language)}">
+        <h2>${escHtml(learnLanguageTitle(language))} Review Target</h2>
+        <div class="learn-setting-row" role="group" aria-label="${escHtml(learnLanguageTitle(language))} review target">
+          ${Object.entries(LearnReviewTargetPresets).map(([preset, value]) => `
+            <button class="btn btn-ghost btn-sm${target.preset === preset ? ' active' : ''}" type="button" data-learn-review-target-preset="${escHtml(preset)}" data-language="${escHtml(language)}">${escHtml(preset[0].toUpperCase() + preset.slice(1))} - ${value}/day</button>`).join('')}
+          <button class="btn btn-ghost btn-sm${target.preset === 'custom' ? ' active' : ''}" type="button" data-learn-review-target-preset="custom" data-language="${escHtml(language)}">Custom</button>
+        </div>
+        <div class="learn-custom-frequency-row">
+          <label class="small muted" for="${escHtml(customId)}">Custom daily target</label>
+          <input class="input learn-review-target-custom" id="${escHtml(customId)}" type="number" min="${LearnReviewTargetCustomMin}" max="${LearnReviewTargetCustomMax}" step="1" value="${escHtml(String(target.dailyTarget))}" data-language="${escHtml(language)}" />
+        </div>
+        <p class="small muted">Current target: ${escHtml(String(target.dailyTarget))}/day. Extra due words remain visible as more available.</p>
+      </section>`;
+  };
+  return `
+    <section class="panel learn-panel" aria-labelledby="learnPreferencesTitle">
+      ${renderLearnHeader('Learning Preferences', 'Review settings', 'learnPreferencesTitle')}
+      ${targetControl('greek')}
+      ${targetControl('hebrew')}
+      <section class="word-page-section learn-preference-group">
+        <h2>Practice and SRS</h2>
+        <select id="learnPracticeSrsPreference" class="input" aria-label="Practice count toward SRS">
+          <option value="ask" ${practicePref === 'ask' ? 'selected' : ''}>Ask whether to count practice toward SRS</option>
+          <option value="practice-only" ${practicePref === 'practice-only' ? 'selected' : ''}>Always practice only</option>
+          <option value="count-srs" ${practicePref === 'count-srs' ? 'selected' : ''}>Always count toward SRS</option>
+        </select>
+        <p class="small muted">On-demand practice will consult this preference before changing SRS scheduling.</p>
       </section>
     </section>`;
 }
 function renderLearnPage(){
   const [areaId, childId, thirdId, fourthId, fifthId, sixthId, seventhId] = learnState.page.split(':');
   const area = learnArea(areaId);
+  if(areaId === 'learning-preferences') return renderLearningPreferencesPage();
   if(areaId === 'study-sets') return renderStudySetsPlaceholder();
   if(areaId === 'mixed-practice') return renderMixedPracticePlaceholder();
   if(!area) return renderLearnHome();
@@ -1294,6 +1414,20 @@ function wireLearn(){
     event.preventDefault();
     setLearnCustomFrequency(form.dataset.learnCustomBase, form.querySelector('.learn-custom-frequency-input')?.value || '');
   }));
+  $$('[data-learn-review-target-preset]', root).forEach(button => button.addEventListener('click', () => {
+    const language = button.dataset.language;
+    const custom = root.querySelector(`.learn-review-target-custom[data-language="${language}"]`)?.value || '';
+    setLearnReviewTarget(language, button.dataset.learnReviewTargetPreset, custom);
+    renderLearn();
+  }));
+  $$('.learn-review-target-custom', root).forEach(input => input.addEventListener('change', () => {
+    setLearnReviewTarget(input.dataset.language, 'custom', input.value);
+    renderLearn();
+  }));
+  $('#learnPracticeSrsPreference', root)?.addEventListener('change', event => {
+    setLearnPracticeSrsPreference(event.target.value);
+    renderLearn();
+  });
   $('#learnBackBtn', root)?.addEventListener('click', backLearnPage);
 }
 function renderLearn(){
@@ -1302,5 +1436,5 @@ function renderLearn(){
   wireLearn();
 }
 
-if(typeof window !== 'undefined') Object.assign(window, { LearnAreas, LearnReviewTargetDefaults, LearnReviewTargetPresets, LearnReviewTargetStorageKey, learnState, learnArea, learnChild, learnPageTitle, learnBreadcrumbs, learnReviewTargets, learnReviewTarget, learnReviewQueueSummary, parseLearnCustomFrequency, setLearnCustomFrequency, resetLearn, setLearnPage, backLearnPage, renderLearn, renderLearnPage, learnBookList, learnPathForPage, startLearnVocabularyPath, learnCurrentVocabularyWord, markLearnPathKnown, reviewLearnVocabularyWord, revealLearnReview, gradeLearnReview, recognitionTargetsForLearn, startRecognitionSession, revealRecognitionAnswer, gradeRecognitionAnswer, openLearnReference });
-if(typeof module !== 'undefined') module.exports = { LearnAreas, LearnFrequencyThresholds, LearnReviewTargetDefaults, LearnReviewTargetPresets, LearnReviewTargetStorageKey, learnState, learnArea, learnChild, learnPageTitle, learnBreadcrumbs, learnReviewTargets, learnReviewTarget, learnReviewQueueSummary, parseLearnCustomFrequency, setLearnCustomFrequency, resetLearn, learnBookList, learnPathForPage, setLearnPage, backLearnPage, renderLearnPage, startLearnVocabularyPath, learnCurrentVocabularyWord, markLearnPathKnown, reviewLearnVocabularyWord, revealLearnReview, gradeLearnReview, recognitionTargetsForLearn, startRecognitionSession, revealRecognitionAnswer, gradeRecognitionAnswer, openLearnReference };
+if(typeof window !== 'undefined') Object.assign(window, { LearnAreas, LearnReviewTargetDefaults, LearnReviewTargetPresets, LearnReviewTargetStorageKey, LearnPracticeSrsPreferenceStorageKey, learnState, learnArea, learnChild, learnPageTitle, learnBreadcrumbs, learnReviewTargets, learnReviewTarget, saveLearnReviewTargets, setLearnReviewTarget, learnPracticeSrsPreference, setLearnPracticeSrsPreference, learnReviewQueueSummary, parseLearnCustomFrequency, setLearnCustomFrequency, resetLearn, setLearnPage, backLearnPage, renderLearn, renderLearnPage, learnBookList, learnPathForPage, startLearnVocabularyPath, learnCurrentVocabularyWord, markLearnPathKnown, reviewLearnVocabularyWord, revealLearnReview, gradeLearnReview, recognitionTargetsForLearn, startRecognitionSession, revealRecognitionAnswer, gradeRecognitionAnswer, openLearnReference });
+if(typeof module !== 'undefined') module.exports = { LearnAreas, LearnFrequencyThresholds, LearnReviewTargetDefaults, LearnReviewTargetPresets, LearnReviewTargetStorageKey, LearnPracticeSrsPreferenceStorageKey, learnState, learnArea, learnChild, learnPageTitle, learnBreadcrumbs, learnReviewTargets, learnReviewTarget, saveLearnReviewTargets, setLearnReviewTarget, learnPracticeSrsPreference, setLearnPracticeSrsPreference, learnReviewQueueSummary, parseLearnCustomFrequency, setLearnCustomFrequency, resetLearn, learnBookList, learnPathForPage, setLearnPage, backLearnPage, renderLearnPage, startLearnVocabularyPath, learnCurrentVocabularyWord, markLearnPathKnown, reviewLearnVocabularyWord, revealLearnReview, gradeLearnReview, recognitionTargetsForLearn, startRecognitionSession, revealRecognitionAnswer, gradeRecognitionAnswer, openLearnReference };

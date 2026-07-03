@@ -418,6 +418,42 @@
           <hr class="divider">
 
           <div class="settings-section">
+            <div class="settings-label">Learning Preferences</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+              <label>
+                <span class="small muted">Greek Review Target</span>
+                <select id="greekReviewTargetPreset" class="input">
+                  <option value="light">Light - 15/day</option>
+                  <option value="standard">Standard - 30/day</option>
+                  <option value="heavy">Heavy - 50/day</option>
+                  <option value="custom">Custom</option>
+                </select>
+                <input id="greekReviewTargetCustom" class="input" type="number" min="1" max="200" step="1" value="30" style="margin-top:6px" />
+              </label>
+              <label>
+                <span class="small muted">Hebrew Review Target</span>
+                <select id="hebrewReviewTargetPreset" class="input">
+                  <option value="light">Light - 15/day</option>
+                  <option value="standard">Standard - 30/day</option>
+                  <option value="heavy">Heavy - 50/day</option>
+                  <option value="custom">Custom</option>
+                </select>
+                <input id="hebrewReviewTargetCustom" class="input" type="number" min="1" max="200" step="1" value="30" style="margin-top:6px" />
+              </label>
+            </div>
+            <label style="margin-top:10px">
+              <span class="small muted">On-demand practice</span>
+              <select id="practiceSrsPreference" class="input" style="max-width:360px">
+                <option value="ask">Ask whether to count practice toward SRS</option>
+                <option value="practice-only">Always practice only</option>
+                <option value="count-srs">Always count toward SRS</option>
+              </select>
+            </label>
+          </div>
+
+          <hr class="divider">
+
+          <div class="settings-section">
             <div class="settings-label">Flashcard Options</div>
             <label style="display:flex;align-items:center;gap:8px;cursor:pointer">
               <input type="checkbox" id="showPosHint" />

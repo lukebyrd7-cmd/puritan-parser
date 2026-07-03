@@ -49,7 +49,7 @@ test('Recognized updates review state and Known requires 3 successes with a futu
   assert.equal(record.successCount, 1);
   assert.equal(record.intervalDays, 1);
   assert.equal(record.due, '2026-06-27');
-  assert.equal(VocabularyLearning.learningStatus(store, entries[0], '2026-06-26'), 'Learning');
+  assert.equal(VocabularyLearning.learningStatus(store, entries[0], '2026-06-26'), 'Reviewing');
 
   store = VocabularyLearning.reviewEntry(store, entries[0], 'recognized', '2026-06-27');
   store = VocabularyLearning.reviewEntry(store, entries[0], 'recognized', '2026-06-30');
@@ -58,7 +58,63 @@ test('Recognized updates review state and Known requires 3 successes with a futu
   assert.equal(record.intervalDays, 7);
   assert.equal(record.due, '2026-07-07');
   assert.equal(VocabularyLearning.learningStatus(store, entries[0], '2026-06-30'), 'Known');
-  assert.equal(VocabularyLearning.learningStatus(store, entries[0], '2026-07-07'), 'Learning');
+  assert.equal(VocabularyLearning.learningStatus(store, entries[0], '2026-07-07'), 'Reviewing');
+});
+
+test('learning status details provide transparent SRS labels and safe fallbacks', () => {
+  let store = VocabularyLearning.normalizeStore();
+  assert.equal(VocabularyLearning.learningStatusDetails(store, entries[0], '2026-06-26').label, 'Not Learned');
+  assert.match(VocabularyLearning.learningStatusDetails(store, entries[0], '2026-06-26').explanation, /New word/);
+
+  store = VocabularyLearning.introduceEntry(store, entries[0], greek25, '2026-06-26');
+  let details = VocabularyLearning.learningStatusDetails(store, entries[0], '2026-06-26');
+  assert.equal(details.label, 'Learning');
+  assert.equal(details.nextReviewLabel, 'Due today');
+  assert.equal(details.intervalLabel, 'Not scheduled');
+
+  store = VocabularyLearning.reviewEntry(store, entries[0], 'recognized', '2026-06-26');
+  details = VocabularyLearning.learningStatusDetails(store, entries[0], '2026-06-26');
+  assert.equal(details.label, 'Reviewing');
+  assert.equal(details.nextReviewLabel, '2026-06-27');
+  assert.equal(details.intervalLabel, '1 day');
+  assert.equal(details.successfulReviews, 1);
+  assert.equal(details.totalReviews, 1);
+  assert.match(details.historySummary, /1 reviews: 1 recognized, 0 missed/);
+
+  store = VocabularyLearning.reviewEntry(store, entries[0], 'recognized', '2026-06-27');
+  store = VocabularyLearning.reviewEntry(store, entries[0], 'recognized', '2026-06-30');
+  details = VocabularyLearning.learningStatusDetails(store, entries[0], '2026-06-30');
+  assert.equal(details.label, 'Known');
+  assert.equal(details.intervalLabel, '7 days');
+
+  const legacy = VocabularyLearning.normalizeStore({
+    records: {
+      'lemma:greek:legacy': { id: 'lemma:greek:legacy', lang: 'greek', lemma: 'legacy', status: 'Known', due: '9999-12-31' }
+    }
+  });
+  details = VocabularyLearning.learningStatusDetails(legacy, { id: 'lemma:greek:legacy', lang: 'greek', lemma: 'legacy' }, '2026-06-26');
+  assert.equal(details.label, 'Known');
+  assert.equal(details.historySummary, 'No reviews yet.');
+});
+
+test('self-reported known is represented without creating due backlog', () => {
+  const store = VocabularyLearning.normalizeStore({
+    records: {
+      'lemma:greek:logos': {
+        id: 'lemma:greek:logos',
+        lang: 'greek',
+        lemma: 'logos',
+        status: 'Known by Self-Report',
+        knownSource: 'self_reported',
+        due: '9999-12-31',
+        history: []
+      }
+    }
+  });
+  const details = VocabularyLearning.learningStatusDetails(store, entries[0], '2026-06-26');
+  assert.equal(details.label, 'Known by Self-Report');
+  assert.match(details.explanation, /sampled gradually/);
+  assert.deepEqual(VocabularyLearning.dueEntries(entries, store, '2026-06-26'), []);
 });
 
 test('Missed updates review state by returning the word to Learning sooner', () => {

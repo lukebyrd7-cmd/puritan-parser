@@ -166,7 +166,11 @@ Learn is a permanent shell, not a temporary placeholder. It owns navigation home
 - Parsing Drills as an additional paradigm study tool using the legacy parsing view;
 - Reading Readiness entry points.
 
-Language-specific review targets use a small local preference key, `pp_learn_review_targets`, with safe Standard defaults of 30/day for Greek and Hebrew. This preference limits the daily Review Queue display and session entry points without reshaping or wiping existing `pp_vocab_learning` records. Deeper SRS transparency, self-reported Known sampling, and Settings integration remain follow-up work.
+Language-specific review targets use a small local preference key, `pp_learn_review_targets`, with safe Standard defaults of 30/day for Greek and Hebrew. This preference limits the daily Review Queue display and session entry points without reshaping or wiping existing `pp_vocab_learning` records. The target shape preserves each language separately with a preset (`light`, `standard`, `heavy`, or `custom`) and validated daily target.
+
+Vocabulary learning transparency lives in `src/models/vocabulary-learning.js`. The model normalizes older records and exposes user-facing status details for Not Learned, Learning, Reviewing, Known, and future Known by Self-Report records. New review metadata should be derived through this helper rather than by duplicating status logic in Learn, Reader, or Progress.
+
+On-demand practice uses the local preference key `pp_learn_practice_srs_preference`, defaulting to `ask`. Practice flows should consult this preference before allowing optional practice to update SRS scheduling. Full Mixed Practice remains a later feature, but the storage hook is intentionally separate from review queue targets.
 
 Vocabulary paths may offer a confirmed Mark Path as Known action for users who already know the current path. This must only update Not Learned words in that path, record them as Known, and avoid creating due review cards.
 

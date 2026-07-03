@@ -6,8 +6,15 @@
   Object.keys(api).forEach(key => { root[key] = root[key] || api[key]; });
 })(typeof globalThis !== 'undefined' ? globalThis : this, function(root){
   const STORAGE_KEY = 'pp_vocab_learning';
-  const STATUS = { NOT_LEARNED: 'Not Learned', LEARNING: 'Learning', KNOWN: 'Known' };
+  const STATUS = {
+    NOT_LEARNED: 'Not Learned',
+    LEARNING: 'Learning',
+    REVIEWING: 'Reviewing',
+    KNOWN: 'Known',
+    KNOWN_SELF_REPORTED: 'Known by Self-Report'
+  };
   const RECOGNIZED_INTERVALS = [1, 3, 7];
+  const KNOWN_SOURCES = { REVIEW: 'review', MANUAL: 'manual', SELF_REPORTED: 'self_reported' };
 
   function clean(value){ return typeof value === 'string' ? value.trim() : ''; }
   function todayISO(){
@@ -33,15 +40,27 @@
     const lemma = clean(entry.lemma) || clean(entry.word) || clean(entry.lexicalForm) || clean(entry.id);
     return clean(entry.id).startsWith(`lemma:${lang}:`) ? clean(entry.id) : `lemma:${lang}:${lemma}`;
   }
+  function normalizeKnownSource(value, status){
+    const cleanValue = clean(value).toLowerCase();
+    if(cleanValue === KNOWN_SOURCES.MANUAL || cleanValue === KNOWN_SOURCES.SELF_REPORTED) return cleanValue;
+    if(status === STATUS.KNOWN && cleanValue) return cleanValue;
+    if(status === STATUS.KNOWN) return KNOWN_SOURCES.MANUAL;
+    if(status === STATUS.KNOWN_SELF_REPORTED) return KNOWN_SOURCES.SELF_REPORTED;
+    return KNOWN_SOURCES.REVIEW;
+  }
   function normalizeRecord(record = {}){
+    const rawStatus = clean(record.status);
+    const status = Object.values(STATUS).includes(rawStatus) && rawStatus !== STATUS.NOT_LEARNED ? rawStatus : STATUS.LEARNING;
     const next = {
       id: clean(record.id),
       lemma: clean(record.lemma),
       lang: clean(record.lang).toLowerCase(),
-      status: record.status === STATUS.KNOWN ? STATUS.KNOWN : STATUS.LEARNING,
+      status,
       successCount: Math.max(0, Number(record.successCount) || 0),
       intervalDays: Math.max(0, Number(record.intervalDays) || 0),
       due: clean(record.due) || todayISO(),
+      lastReviewed: clean(record.lastReviewed),
+      knownSource: normalizeKnownSource(record.knownSource, status),
       introducedAt: clean(record.introducedAt),
       introducedBy: record.introducedBy && typeof record.introducedBy === 'object' ? { ...record.introducedBy } : null,
       history: Array.isArray(record.history) ? record.history.filter(Boolean).map(item => ({ ...item })) : []
@@ -83,8 +102,68 @@
   function learningStatus(store, entry, dateISO = todayISO()){
     const record = getRecord(store, entry);
     if(!record) return STATUS.NOT_LEARNED;
+    if(record.knownSource === KNOWN_SOURCES.SELF_REPORTED || record.status === STATUS.KNOWN_SELF_REPORTED) return STATUS.KNOWN_SELF_REPORTED;
+    if(record.status === STATUS.KNOWN && record.knownSource === KNOWN_SOURCES.MANUAL) return STATUS.KNOWN;
     if(record.successCount >= 3 && clean(record.due) > dateISO) return STATUS.KNOWN;
+    if(record.successCount > 0 || record.intervalDays > 1) return STATUS.REVIEWING;
     return STATUS.LEARNING;
+  }
+  function formatDateLabel(dateISO, today = todayISO()){
+    const date = clean(dateISO);
+    if(!date) return 'Not scheduled';
+    if(date === '9999-12-31') return 'No scheduled review';
+    if(date < today) return `Overdue since ${date}`;
+    if(date === today) return 'Due today';
+    return date;
+  }
+  function formatInterval(days){
+    const value = Number(days) || 0;
+    if(value <= 0) return 'Not scheduled';
+    if(value === 1) return '1 day';
+    return `${value} days`;
+  }
+  function reviewHistorySummary(record = {}){
+    const history = Array.isArray(record.history) ? record.history : [];
+    const reviews = history.filter(item => item?.result === 'recognized' || item?.result === 'missed');
+    const recognized = reviews.filter(item => item.result === 'recognized').length;
+    const missed = reviews.filter(item => item.result === 'missed').length;
+    if(!reviews.length) return 'No reviews yet.';
+    return `${reviews.length} reviews: ${recognized} recognized, ${missed} missed.`;
+  }
+  function statusExplanation(status, record = {}, dateISO = todayISO()){
+    if(status === STATUS.NOT_LEARNED) return 'New word. Not in review yet.';
+    if(status === STATUS.KNOWN_SELF_REPORTED) return 'Known by self-report. Will be sampled gradually for maintenance.';
+    if(status === STATUS.KNOWN) return record.due === '9999-12-31'
+      ? 'Known. No maintenance review scheduled.'
+      : `Known. Next maintenance review ${formatDateLabel(record.due, dateISO).toLowerCase()}.`;
+    if(status === STATUS.REVIEWING) return `Reviewing every ${formatInterval(record.intervalDays)}.`;
+    const due = clean(record.due) <= dateISO ? 'Due today.' : `Next review ${formatDateLabel(record.due, dateISO)}.`;
+    return `Still being learned. ${due}`;
+  }
+  function learningStatusDetails(store, entry, dateISO = todayISO()){
+    const record = getRecord(store, entry);
+    const status = learningStatus(store, entry, dateISO);
+    const safeRecord = record || {};
+    const history = Array.isArray(safeRecord.history) ? safeRecord.history : [];
+    const totalReviews = history.filter(item => item?.result === 'recognized' || item?.result === 'missed').length;
+    const due = clean(safeRecord.due);
+    const dueState = !record ? 'not-scheduled' : due <= dateISO ? (due < dateISO ? 'overdue' : 'due-today') : 'due-later';
+    return {
+      status,
+      label: status,
+      dueState,
+      nextReview: due || '',
+      nextReviewLabel: formatDateLabel(due, dateISO),
+      intervalDays: Number(safeRecord.intervalDays) || 0,
+      intervalLabel: formatInterval(safeRecord.intervalDays),
+      successfulReviews: Number(safeRecord.successCount) || 0,
+      totalReviews,
+      lastReviewed: clean(safeRecord.lastReviewed),
+      lastReviewedLabel: safeRecord.lastReviewed ? formatDateLabel(safeRecord.lastReviewed, dateISO) : 'Not reviewed yet',
+      historySummary: reviewHistorySummary(safeRecord),
+      knownSource: safeRecord.knownSource || '',
+      explanation: statusExplanation(status, safeRecord, dateISO)
+    };
   }
   function pathThreshold(path = {}){
     if(path.threshold === 'all') return null;
@@ -138,6 +217,7 @@
       history: []
     };
     record.status = STATUS.LEARNING;
+    record.knownSource = KNOWN_SOURCES.REVIEW;
     record.due = clean(record.due) || dateISO;
     record.introducedAt = clean(record.introducedAt) || dateISO;
     record.introducedBy = record.introducedBy || { ...introducedBy };
@@ -170,8 +250,10 @@
       base.intervalDays = 1;
       base.due = addDaysISO(dateISO, 1);
     }
-    base.status = base.successCount >= 3 && base.due > dateISO ? STATUS.KNOWN : STATUS.LEARNING;
-    base.history.push({ date: dateISO, result: recognized ? 'recognized' : 'missed', successCount: base.successCount, due: base.due });
+    base.status = base.successCount >= 3 && base.due > dateISO ? STATUS.KNOWN : (base.successCount > 0 ? STATUS.REVIEWING : STATUS.LEARNING);
+    base.knownSource = KNOWN_SOURCES.REVIEW;
+    base.lastReviewed = dateISO;
+    base.history.push({ date: dateISO, result: recognized ? 'recognized' : 'missed', successCount: base.successCount, intervalDays: base.intervalDays, due: base.due, status: base.status });
     next.records[id] = normalizeRecord(base);
     return next;
   }
@@ -191,10 +273,11 @@
     record.successCount = Math.max(3, Number(record.successCount) || 0);
     record.intervalDays = Math.max(0, Number(record.intervalDays) || 0);
     record.due = '9999-12-31';
+    record.knownSource = source?.knownSource || KNOWN_SOURCES.MANUAL;
     record.introducedAt = clean(record.introducedAt) || dateISO;
     record.introducedBy = record.introducedBy || { ...source };
     record.history = Array.isArray(record.history) ? record.history : [];
-    record.history.push({ date: dateISO, result: 'marked-known', source: source?.type || '', due: record.due });
+    record.history.push({ date: dateISO, result: 'marked-known', source: source?.type || '', knownSource: record.knownSource, due: record.due });
     next.records[id] = normalizeRecord(record);
     return next;
   }
@@ -221,6 +304,7 @@
   return {
     STORAGE_KEY,
     STATUS,
+    KNOWN_SOURCES,
     RECOGNIZED_INTERVALS,
     addDaysISO,
     lemmaId,
@@ -229,6 +313,10 @@
     saveStore,
     getRecord,
     learningStatus,
+    learningStatusDetails,
+    formatDateLabel,
+    formatInterval,
+    reviewHistorySummary,
     pathThreshold,
     matchesFrequencyPath,
     matchesStudyPath,

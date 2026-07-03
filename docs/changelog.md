@@ -4,6 +4,15 @@ This changelog is a human-readable project history, not a Git log. Future entrie
 
 ## Unreleased
 
+### v5.3 SRS Transparency + Review Settings
+
+- Added user-facing vocabulary lifecycle labels and metadata for Not Learned, Learning, Reviewing, Known, and Known by Self-Report.
+- Surfaced SRS explanations, next review, interval, successful review count, and review history summaries in Learn review cards and Word Page Learning panels.
+- Added compact review-result feedback so completed cards report their next review, interval, and resulting status.
+- Polished Greek and Hebrew daily review targets with Light, Standard, Heavy, and Custom options while preserving the `pp_learn_review_targets` storage key and 30/day defaults.
+- Added the `pp_learn_practice_srs_preference` hook for on-demand practice, defaulting to asking whether practice should count toward SRS before scheduling changes.
+- Prepared Known by self-report records through `knownSource: "self_reported"` without dumping them into the daily review queue.
+
 ### v5.2 Learn Dashboard + Review Queue Redesign
 
 - Reorganized Learn so the root opens to a dashboard ordered around Review Queue, Continue Learning, Start Something New, Practice, and Study Sets.
