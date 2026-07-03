@@ -49,6 +49,13 @@ The v4.3 Adaptive Reader build, v4.3.1 OEB Translation Integration, and v4.3.2 W
 - Preserve Reader location through Word Pages, Book Progress, translation changes, and settings changes.
 - Move toward shared Greek/Hebrew Reader settings, with language-specific assistance thresholds.
 
+### Future: Hebrew Interlinear Data Foundation
+
+- Identify or build reliable token-level English gloss data for Hebrew Reader tokens.
+- Define a gloss-first, RTL-aware Hebrew Interlinear contract before enabling the display mode.
+- Gracefully keep Hebrew Interlinear disabled or falling back to Original until the data contract is met.
+- Prevent raw IDs, numeric codes, dense morphology tags, undefined/null values, or debug-like data from serving as primary interlinear support text.
+
 ### v5.2: Learn Dashboard + Review Queue Redesign
 
 - Make Learn open to a dashboard instead of the last subsection.

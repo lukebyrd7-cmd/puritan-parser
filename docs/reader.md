@@ -8,7 +8,12 @@ The Reader is a reading-first shell for the Greek New Testament. It intentionall
 
 v5.1.1 reduces stacked Reader controls and prioritizes visible Scripture space by keeping translation mode, chapter navigation, Reader Settings, Search, Book Progress, and chapter status in a more compact controls area.
 
-v5.1.2 keeps Display: Interlinear available for Greek. Hebrew Original remains available, but Hebrew Interlinear requires reliable token-level English gloss data and is intentionally gated until that data is available.
+v5.1.2 keeps Display: Interlinear available for Greek. Hebrew currently supports Original display only; Hebrew Interlinear is planned, but requires reliable token-level English gloss data and is intentionally gated until that data is available.
+
+Current display mode behavior:
+
+- Greek: Original and Interlinear.
+- Hebrew: Original now; Interlinear planned and gated by reliable token-level gloss data.
 
 v5.1.3 keeps the mobile Reader text-first: controls should stay compact, secondary actions should be quiet, and visible Scripture space should take priority over repeated chapter/status labels.
 

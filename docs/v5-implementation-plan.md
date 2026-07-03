@@ -21,6 +21,7 @@ This plan converts the [v5 Product Bible](product-bible-v5.md) into implementati
 
 - Reader UX already supports core v5 controls, but fixed-header/text-pane-only scrolling, same-row chapter navigation, collapsed search, and Reader -> Book Progress -> Back behavior need focused QA.
 - Adaptive Reader settings are currently keyed by language; v5 wants most settings shared across Greek and Hebrew with language-specific assistance thresholds.
+- Greek Interlinear is supported, but Hebrew Interlinear is gated by data availability; current Hebrew Reader data must not be treated as reliable token-level English gloss data.
 - Word Pages show important morphology and learning status, but SRS stage, next review, review history, richer Hebrew prefix/suffix presentation, and lazy usage examples need expansion.
 - Learn has study areas, but v5 wants a dashboard-first structure with Review Queue as the highest-priority daily driver.
 - Review logic exists, but transparent daily caps, true backlog display, language-specific targets, and practice-count-toward-SRS prompts are not yet complete.
@@ -91,6 +92,7 @@ Risks:
 - Sticky controls may cover Scripture text on small screens.
 - Shared-vs-language-specific settings migration could surprise existing users.
 - Translation fallback states can become noisy if surfaced too aggressively.
+- Hebrew Interlinear can degrade into pseudo-interlinear output if raw IDs, numeric codes, dense morphology tags, undefined/null values, or debug-like token fields are shown as support text.
 
 Suggested tests:
 
@@ -103,6 +105,7 @@ Acceptance criteria:
 - Search is collapsed by default.
 - Most Reader settings are shared across Greek/Hebrew, with assistance threshold separable by language.
 - Reader -> Book Progress -> Back returns to Reader.
+- Hebrew Interlinear is gracefully disabled or falls back to Original until reliable token-level English gloss data exists.
 
 ## v5.2 Learn Dashboard + Review Queue Redesign
 

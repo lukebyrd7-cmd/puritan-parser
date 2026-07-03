@@ -129,6 +129,13 @@ Defaults:
 - Indicator: None
 - Show Translation Toggle: On
 
+Interlinear support:
+
+- Greek Interlinear is supported.
+- Hebrew Interlinear is planned, but gated until reliable token-level English gloss data is available.
+- Hebrew Interlinear must be gloss-first, RTL-aware, and reader-facing.
+- Hebrew Interlinear must not show raw IDs, numeric codes, dense morphology tags, undefined/null values, or debug-like data as primary support text.
+
 Reader UX rules:
 
 - Header, navigation, and reader controls should remain fixed.

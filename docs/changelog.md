@@ -4,6 +4,12 @@ This changelog is a human-readable project history, not a Git log. Future entrie
 
 ## Unreleased
 
+### Docs / Planning
+
+- Clarified that Greek Interlinear is supported while Hebrew Interlinear remains planned and gated by reliable token-level gloss data.
+- Added a future Hebrew Interlinear Data Foundation roadmap item and fallback requirements.
+- Documented that Hebrew Interlinear must be gloss-first, RTL-aware, and must not show raw IDs, numeric codes, dense morphology tags, undefined/null values, or debug-like data as primary support text.
+
 ### v5.1.3 Mobile Reader Compactness Polish
 
 - Made mobile Reader controls more compact so Scripture receives more vertical space above the fold.
