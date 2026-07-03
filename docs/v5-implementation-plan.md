@@ -32,7 +32,6 @@ This plan converts the [v5 Product Bible](product-bible-v5.md) into implementati
 
 ### Missing
 
-- Goal-based onboarding and self-reported proficiency setup.
 - Study Sets as quiet custom learning paths.
 - Usage Examples backed by a lazy occurrence index.
 - Global Search MVP for lemmas and glosses with learning-status-aware Word Page handoff.
@@ -297,15 +296,20 @@ Acceptance criteria:
 Goal:
 Help new and returning learners begin well with goal-based onboarding and trust-based proficiency setup.
 
+Status:
+Implemented as a foundation pass. First-run users with no existing local app data are routed into Onboarding, while existing users continue to Learn unless they explicitly restart setup from Settings. Onboarding asks for Greek, Hebrew, or both; primary goal; optional per-language proficiency, vocabulary band, and grammar familiarity; then shows a recommended setup and personalized Start Here actions. Self-reported vocabulary is seeded only from existing frequency fields, marked with `knownSource: "self_reported"`, and left unscheduled so the Review Queue is not flooded. Grammar familiarity is stored in the onboarding profile for later Learn/Progress use rather than promoted into a mastery engine.
+
 Main files likely affected:
 
-- `src/features/profile/` or a new `src/features/onboarding/`
+- `src/features/onboarding/`
 - `src/features/settings/index.js`
+- `src/features/settings/events.js`
+- `src/models/onboarding.js`
 - `src/models/vocabulary-learning.js`
 - `src/core/storage/`
 - `src/core/router.js`
 - `tests/storage-migrations-router.test.js`
-- New onboarding tests
+- `tests/onboarding.test.js`
 
 Risks:
 

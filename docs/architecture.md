@@ -279,7 +279,7 @@ Phase 2 builds a clean data layer on top of the Phase 1 modular structure while 
 - `src/main.js` loads the Phase 1 modules plus the Phase 2 data-layer modules in dependency order.
 - `src/app-state.js` contains shared constants and application state only.
 - `src/bootstrap.js` initializes preferences, data, events, language, and the default view.
-- `src/models/` contains lightweight plain-object model helpers for source data, user progress, preferences, review history, parse metadata, and dashboard statistics.
+- `src/models/` contains lightweight plain-object model helpers for source data, user progress, preferences, review history, parse metadata, onboarding profile data, and dashboard statistics.
 - `src/core/storage/` contains the persistence abstraction. Current persistence is localStorage, but feature modules should only use storage APIs.
 - `src/core/source-data/` contains helpers for static vocabulary and parser source data. Future Bible, grammar, and gloss expansion belongs in source-data modules rather than user-progress storage.
 - `src/core/` contains app logic that is not tied to a single screen.
@@ -298,6 +298,7 @@ All models are intentionally lightweight factory helpers that return plain objec
 - `ReviewHistory`: represents an individual review event, including date, quality, review type, and parsing-specific flags.
 - `Preferences`: represents user-configurable settings and is merged with defaults before use.
 - `DashboardStats`: represents aggregate local study metrics such as streak, last studied date, recent review qualities, and heatmap counts.
+- `Onboarding`: represents local first-run setup data, including selected languages, primary goal, optional self-reported proficiency, known-vocabulary bands, familiar grammar concepts, Start Here recommendations, and completion status.
 
 ## Static data vs. user data
 
@@ -332,6 +333,7 @@ User data includes:
 - `src/models/review-history.js`: `ReviewHistory` factory for individual review events.
 - `src/models/preferences.js`: `Preferences` factory that merges saved preferences with defaults.
 - `src/models/dashboard-stats.js`: `DashboardStats` factory for aggregate study metrics.
+- `src/models/onboarding.js`: onboarding profile, completion, Start Here, existing-user detection, and safe self-reported vocabulary seeding helpers.
 
 ### Core data layer
 
@@ -365,6 +367,19 @@ User data includes:
 - `src/features/dashboard/index.js`: dashboard metric rendering, sparkline, heatmap, upcoming due cards, and part-of-speech due breakdown.
 - `src/features/settings/index.js`: settings UI synchronization.
 - `src/features/settings/events.js`: event wiring for navigation, filters, flashcards, parsing, modal controls, settings, import/export, reset/clear, keyboard shortcuts, and service-worker registration.
+- `src/features/onboarding/index.js`: first-run onboarding flow, trust-based proficiency survey, recommended setup summary, Start Here actions, and Settings-driven onboarding restart.
+
+### Onboarding
+
+Onboarding is local-first setup, not a placement test. Its persistence is intentionally small:
+
+- `pp_onboarding_completed`: whether automatic first-run onboarding should be skipped.
+- `pp_onboarding_profile`: selected language(s), primary goal, optional per-language proficiency, known vocabulary band, familiar grammar concepts, and timestamps.
+- `pp_onboarding_start_here`: the last personalized Start Here recommendation list.
+
+Startup routes to `/onboarding` only when there is no completion flag and no existing local app data. Existing users with vocabulary learning, legacy vocabulary progress, preferences, dashboard data, Reader settings, recognition history, or Learn review preferences are preserved and continue to the normal app. Users can restart Onboarding from Settings; this resets only onboarding setup state and does not delete learning data.
+
+Self-reported vocabulary seeding reuses `VocabularyLearning.markEntryKnown()` with `knownSource: "self_reported"` and `due: "9999-12-31"`. The seed uses existing frequency fields only, skips entries without usable frequency, and marks only Not Learned records so review-proven or in-progress vocabulary is not overwritten. Grammar familiarity is stored on the onboarding profile as foundation data for future Learn/Progress work rather than as a full grammar mastery system.
 
 ## Planned feature areas
 
@@ -405,6 +420,7 @@ User data includes:
 Current routes are:
 
 - `/`
+- `/onboarding`
 - `/list`
 - `/flashcards`
 - `/parsing`

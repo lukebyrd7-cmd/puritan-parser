@@ -377,7 +377,7 @@ test('Reference local language selection is independent of global app language',
 test('service worker cache version and app shell cache bust are bumped', () => {
   const sw = fs.readFileSync('sw.js', 'utf8');
   const html = fs.readFileSync('index.html', 'utf8');
-  assert.match(sw, /const CACHE = 'puritan-parser-v28-web-translation'/);
+  assert.match(sw, /const CACHE = 'puritan-parser-v29-onboarding'/);
   assert.doesNotMatch(sw, /puritan-parser-v13-reader-startup/);
-  assert.match(html, /src="src\/main\.js\?v=v4\.3\.2-web-translation"/);
+  assert.match(html, /src="src\/main\.js\?v=v5\.7-onboarding"/);
 });

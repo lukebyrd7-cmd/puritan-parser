@@ -4,6 +4,15 @@ This changelog is a human-readable project history, not a Git log. Future entrie
 
 ## Unreleased
 
+### v5.7 Onboarding + Self-Reported Proficiency
+
+- Added a first-run Onboarding flow that helps new users choose Greek, Hebrew, or both; select a primary goal; optionally self-report proficiency; review a recommended setup; and finish on a personalized Start Here screen.
+- Added safe local onboarding storage under `pp_onboarding_completed`, `pp_onboarding_profile`, and `pp_onboarding_start_here`, with corrupt/missing data falling back to defaults.
+- Preserved existing users by routing to Onboarding only when there is no onboarding-complete flag and no existing local app data.
+- Added a Settings action to restart Onboarding without deleting vocabulary, review history, preferences, or generated/source data.
+- Seeded self-reported known vocabulary by existing frequency fields only, marking records with `knownSource: "self_reported"` and `due: "9999-12-31"` so they do not flood the Review Queue.
+- Stored selected grammar familiarity in the onboarding profile as a foundation for later Learn and Progress use without adding a grammar mastery engine.
+
 ### v5.6 Progress Redesign
 
 - Reorganized Progress around Reader Growth Summary, Reading Readiness, Vocabulary Growth, Grammar Growth, Reading History, Detailed Analytics, and Recommendations.

@@ -40,7 +40,17 @@ function writeVersionedStorageJson(key, value){
 }
 function removeStorageKey(key){ activeStorageAdapter.remove(key); }
 function clearUserStorage(){
-  [StorageKeys.vocab.greek, StorageKeys.vocab.hebrew, StorageKeys.vocabLearning, StorageKeys.prefs, StorageKeys.dashboard, StorageKeys.lastLang].forEach(removeStorageKey);
+  [
+    StorageKeys.vocab.greek,
+    StorageKeys.vocab.hebrew,
+    StorageKeys.vocabLearning,
+    StorageKeys.prefs,
+    StorageKeys.dashboard,
+    StorageKeys.lastLang,
+    'pp_onboarding_completed',
+    'pp_onboarding_profile',
+    'pp_onboarding_start_here'
+  ].forEach(removeStorageKey);
 }
 function getLastLanguage(){ return activeStorageAdapter.get(StorageKeys.lastLang); }
 function saveLastLanguage(lang){ activeStorageAdapter.set(StorageKeys.lastLang, lang); }

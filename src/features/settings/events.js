@@ -96,6 +96,10 @@ function wireEvents(){
     if(typeof renderLearn === 'function') renderLearn();
   });
 
+  $('#restartOnboarding')?.addEventListener('click', () => {
+    if(typeof restartOnboardingFromSettings === 'function') restartOnboardingFromSettings();
+  });
+
   const fss=$('#fontSizeSlider');
   if(fss) fss.addEventListener('input',()=>{
     const v=Number(fss.value);

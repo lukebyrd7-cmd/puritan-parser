@@ -1,6 +1,7 @@
 /* ---------- Lightweight Router ---------- */
 const ROUTES = {
   '/': { viewId: 'learnView', nav: 'learn' },
+  '/onboarding': { viewId: 'onboardingView', nav: 'onboarding' },
   '/list': { viewId: 'listView', nav: 'list' },
   '/flashcards': { viewId: 'flashView', nav: 'flashcards' },
   '/parsing': { viewId: 'parsingView', nav: 'parsing' },
@@ -27,6 +28,7 @@ function navigateTo(path, options = {}){
 }
 function initRouter(){
   window.addEventListener('popstate', () => navigateTo(currentRoutePath(), { replace: true }));
+  if(typeof shouldShowOnboarding === 'function' && shouldShowOnboarding() && window.location.pathname !== '/onboarding') history.replaceState({}, '', '/onboarding');
   if(!ROUTES[window.location.pathname]) history.replaceState({}, '', '/learn');
   navigateTo(currentRoutePath(), { replace: true });
 }

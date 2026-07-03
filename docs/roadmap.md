@@ -29,7 +29,7 @@ Puritan Parser is a local-first Biblical Greek and Hebrew reading and study app.
 
 ## Current Focus
 
-The v5.5 Reference Reorganization foundation is complete. Current v5 work can move toward Progress redesign while preserving the new distinction: Learn trains, Reference explains, Progress measures, and Reader applies.
+The v5.7 Onboarding foundation is complete. Current v5 work can move toward Study Sets and practice improvements while preserving the distinction: Onboarding helps users begin, Learn trains, Reader applies, Progress measures, Reference explains, and Settings controls behavior.
 
 ## v5 Roadmap
 
@@ -97,11 +97,12 @@ The v5.5 Reference Reorganization foundation is complete. Current v5 work can mo
 
 ### v5.7: Onboarding + Self-Reported Proficiency
 
-- Add goal-based onboarding.
-- Let users choose Greek, Hebrew, or both.
-- Support optional trust-based proficiency surveys for each language.
-- Distinguish self-reported Known words from review-proven Known words.
-- End onboarding with a personalized Start Here screen.
+- Complete: Add goal-based onboarding.
+- Complete: Let users choose Greek, Hebrew, or both.
+- Complete: Support optional trust-based proficiency surveys for each language.
+- Complete: Distinguish self-reported Known words from review-proven Known words.
+- Complete: End onboarding with a personalized Start Here screen.
+- Deferred: richer maintenance sampling for self-reported Known words beyond the current no-due-review foundation.
 
 ### v5.8: Study Sets + Practice Improvements
 

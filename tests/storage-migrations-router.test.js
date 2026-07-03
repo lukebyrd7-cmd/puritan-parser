@@ -78,6 +78,21 @@ test('router treats root as the Learn view', () => {
   assert.equal(shown.at(-1), 'learnView');
 });
 
+test('router sends true first-run users to onboarding', () => {
+  const shown = [];
+  const app = loadBrowserScripts(['src/core/router.js'], {
+    window: { location: { pathname: '/' }, addEventListener() {} },
+    history: { pushState: (s, t, path) => { app.window.location.pathname = path; }, replaceState: (s, t, path) => { app.window.location.pathname = path; } },
+    showView: (viewId) => shown.push(viewId),
+    shouldShowOnboarding: () => true
+  });
+
+  app.initRouter();
+  assert.equal(app.window.location.pathname, '/onboarding');
+  assert.equal(shown.at(-1), 'onboardingView');
+  assert.equal(app.routeForView('onboardingView'), '/onboarding');
+});
+
 test('showView can display the static Word Page view', () => {
   function makeElement(id){
     const classes = new Set(id === 'wordPageView' ? ['hidden'] : []);
@@ -91,7 +106,7 @@ test('showView can display the static Word Page view', () => {
     };
   }
 
-  const ids = ['listView','flashView','parsingView','dashboardView','progressView','settingsView','grammarView','readerView','wordPageView','profileView','sharedFilterBar','filterSearchGroup','filterSortGroup','filterEntriesCount','filterPosGroup','footerLang'];
+  const ids = ['listView','flashView','parsingView','dashboardView','progressView','settingsView','grammarView','readerView','wordPageView','onboardingView','profileView','sharedFilterBar','filterSearchGroup','filterSortGroup','filterEntriesCount','filterPosGroup','footerLang'];
   const elements = new Map(ids.map(id => [id, makeElement(id)]));
   const context = {
     console,

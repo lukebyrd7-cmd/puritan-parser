@@ -339,6 +339,10 @@
       <div id="progressShell"></div>
     </div>
 
+    <div id="onboardingView" class="hidden fade-in">
+      <div id="onboardingShell"></div>
+    </div>
+
     <!-- ==================== SETTINGS VIEW ==================== -->
     <div id="settingsView" class="hidden fade-in">
       <div class="panel" style="max-width:640px">
@@ -454,6 +458,14 @@
           <hr class="divider">
 
           <div class="settings-section">
+            <div class="settings-label">Onboarding</div>
+            <p class="small muted" style="margin-top:6px">Restart the setup survey without deleting vocabulary, review history, or preferences.</p>
+            <button class="btn btn-ghost btn-sm" id="restartOnboarding">Restart Onboarding</button>
+          </div>
+
+          <hr class="divider">
+
+          <div class="settings-section">
             <div class="settings-label">Flashcard Options</div>
             <label style="display:flex;align-items:center;gap:8px;cursor:pointer">
               <input type="checkbox" id="showPosHint" />
@@ -547,6 +559,6 @@
 const svgFallback = `<svg xmlns="http://www.w3.org/2000/svg" width="38" height="38" viewBox="0 0 64 64"><rect width="64" height="64" rx="12" fill="#4e8f6e"/><text x="50%" y="54%" font-size="26" text-anchor="middle" fill="#fff" font-family="serif" font-weight="700">PP</text></svg>`;
 </script>
 
-<script src="src/main.js?v=v4.3.2-web-translation"></script>
+<script src="src/main.js?v=v5.7-onboarding"></script>
 </body>
 </html>
