@@ -4,6 +4,10 @@ This changelog is a human-readable project history, not a Git log. Future entrie
 
 ## Unreleased
 
+### v5.3.1 Review Queue Actions Hotfix
+
+- Fixed Review Queue buttons so Greek, Hebrew, and Mixed review actions start sessions or show empty states.
+
 ### v5.3 SRS Transparency + Review Settings
 
 - Added user-facing vocabulary lifecycle labels and metadata for Not Learned, Learning, Reviewing, Known, and Known by Self-Report.

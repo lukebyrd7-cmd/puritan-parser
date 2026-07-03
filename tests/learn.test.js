@@ -51,6 +51,46 @@ function renderPage(page){
   return learn.renderLearnPage();
 }
 
+function makeLearnPageButton(page){
+  return {
+    dataset: { learnPage: page },
+    handler: null,
+    addEventListener(event, handler){
+      if(event === 'click') this.handler = handler;
+    },
+    click(){
+      assert.equal(typeof this.handler, 'function');
+      this.handler();
+    }
+  };
+}
+
+function wireHomeReviewButtons(){
+  const buttons = {
+    greek: makeLearnPageButton('vocabulary:review:greek'),
+    hebrew: makeLearnPageButton('vocabulary:review:hebrew'),
+    mixed: makeLearnPageButton('vocabulary:review:mixed')
+  };
+  const root = {
+    innerHTML: renderPage('home'),
+    querySelector: () => null,
+    querySelectorAll: selector => selector === '[data-learn-page]' ? Object.values(buttons) : []
+  };
+  const previousDollar = global.$;
+  const previousDollars = global.$$;
+  global.$ = selector => selector === '#learnShell' ? root : null;
+  global.$$ = (selector, scope = root) => Array.from(scope.querySelectorAll(selector));
+  learn.wireLearn();
+  return {
+    root,
+    buttons,
+    restore(){
+      global.$ = previousDollar;
+      global.$$ = previousDollars;
+    }
+  };
+}
+
 test('Learn home opens the three permanent study areas', () => {
   storage.delete(VocabularyLearning.STORAGE_KEY);
   const html = renderPage('home');
@@ -94,6 +134,110 @@ test('Learn dashboard review queue separates Greek and Hebrew with capped today 
   assert.equal(greekSummary.todayCount, 2);
   assert.equal(greekSummary.moreAvailable, 2);
   storage.delete(learn.LearnReviewTargetStorageKey);
+});
+
+test('Clicking Review Greek from the dashboard starts the capped Greek review session', () => {
+  storage.delete(VocabularyLearning.STORAGE_KEY);
+  storage.delete(learn.LearnReviewTargetStorageKey);
+  storage.set(learn.LearnReviewTargetStorageKey, JSON.stringify({
+    greek: { preset: 'custom', dailyTarget: 1 },
+    hebrew: { preset: 'standard', dailyTarget: 30 }
+  }));
+  let store = VocabularyLearning.normalizeStore();
+  global.state.data.greek.forEach(entry => {
+    store = VocabularyLearning.introduceEntry(store, entry, { type: 'frequency', language: 'greek' }, '2026-06-26');
+  });
+  VocabularyLearning.saveStore(store);
+
+  const shell = wireHomeReviewButtons();
+  try {
+    shell.buttons.greek.click();
+    const text = renderedText(shell.root.innerHTML);
+    assert.equal(learn.learnState.page, 'vocabulary:review:greek');
+    assert.match(text, /Greek Review Reviews Available/);
+    assert.match(text, /eis/);
+    assert.doesNotMatch(text, /logos/);
+    assert.match(text, /Reveal Meaning/);
+  } finally {
+    shell.restore();
+    storage.delete(learn.LearnReviewTargetStorageKey);
+  }
+});
+
+test('Clicking Review Hebrew from the dashboard starts the Hebrew review session', () => {
+  storage.delete(VocabularyLearning.STORAGE_KEY);
+  storage.delete(learn.LearnReviewTargetStorageKey);
+  VocabularyLearning.saveStore(VocabularyLearning.introduceEntry(
+    VocabularyLearning.normalizeStore(),
+    global.state.data.hebrew[1],
+    { type: 'frequency', language: 'hebrew' },
+    '2026-06-26'
+  ));
+
+  const shell = wireHomeReviewButtons();
+  try {
+    shell.buttons.hebrew.click();
+    const text = renderedText(shell.root.innerHTML);
+    assert.equal(learn.learnState.page, 'vocabulary:review:hebrew');
+    assert.match(text, /Hebrew Review Reviews Available/);
+    assert.match(text, /אמר/);
+    assert.match(text, /Reveal Meaning/);
+  } finally {
+    shell.restore();
+  }
+});
+
+test('Clicking Review Mixed from the dashboard starts a mixed review session from today queues', () => {
+  storage.delete(VocabularyLearning.STORAGE_KEY);
+  storage.delete(learn.LearnReviewTargetStorageKey);
+  let store = VocabularyLearning.normalizeStore();
+  store = VocabularyLearning.introduceEntry(store, global.state.data.greek[0], { type: 'frequency', language: 'greek' }, '2026-06-26');
+  store = VocabularyLearning.introduceEntry(store, global.state.data.hebrew[1], { type: 'frequency', language: 'hebrew' }, '2026-06-26');
+  VocabularyLearning.saveStore(store);
+
+  const shell = wireHomeReviewButtons();
+  try {
+    shell.buttons.mixed.click();
+    const text = renderedText(shell.root.innerHTML);
+    assert.equal(learn.learnState.page, 'vocabulary:review:mixed');
+    assert.match(text, /Mixed Review Reviews Available/);
+    assert.match(text, /logos/);
+    assert.match(text, /2 reviews available/);
+    assert.match(text, /Reveal Meaning/);
+  } finally {
+    shell.restore();
+  }
+});
+
+test('Dashboard review buttons show a calm empty state when no reviews are available', () => {
+  storage.delete(VocabularyLearning.STORAGE_KEY);
+  storage.delete(learn.LearnReviewTargetStorageKey);
+
+  const shell = wireHomeReviewButtons();
+  try {
+    shell.buttons.greek.click();
+    assert.equal(learn.learnState.page, 'vocabulary:review:greek');
+    let text = renderedText(shell.root.innerHTML);
+    assert.match(text, /Greek Review/);
+    assert.match(text, /No reviews available/);
+    assert.match(text, /Greek words you are learning will appear here when they are ready to review/);
+
+    shell.buttons.hebrew.click();
+    assert.equal(learn.learnState.page, 'vocabulary:review:hebrew');
+    text = renderedText(shell.root.innerHTML);
+    assert.match(text, /Hebrew Review/);
+    assert.match(text, /No reviews available/);
+    assert.match(text, /Hebrew words you are learning will appear here when they are ready to review/);
+
+    shell.buttons.mixed.click();
+    assert.equal(learn.learnState.page, 'vocabulary:review:mixed');
+    text = renderedText(shell.root.innerHTML);
+    assert.match(text, /Mixed Review/);
+    assert.match(text, /No reviews available/);
+    assert.match(text, /You are caught up for today/);
+  } finally {
+    shell.restore();
+  }
 });
 
 test('Learning preferences persist review targets and practice SRS preference', () => {
