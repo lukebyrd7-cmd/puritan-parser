@@ -40,6 +40,7 @@ const PURITAN_PARSER_SCRIPTS = [
   'src/features/grammar/reference-data.js',
   'src/features/grammar/index.js',
   'src/features/reader/index.js',
+  'src/features/global-search/index.js',
   'src/features/onboarding/index.js',
   'src/features/learn/recognition-engine.js',
   'src/features/learn/index.js',

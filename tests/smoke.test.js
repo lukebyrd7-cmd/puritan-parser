@@ -5,7 +5,7 @@ const fs = require('node:fs');
 const html = fs.readFileSync('index.html', 'utf8');
 
 test('smoke: app shell loads required views and controls', () => {
-  ['app', 'listView', 'flashView', 'parsingView', 'dashboardView', 'progressView', 'progressShell', 'settingsView', 'wordPageView', 'learnView', 'learnShell', 'onboardingView', 'onboardingShell'].forEach(id => {
+  ['app', 'listView', 'flashView', 'parsingView', 'dashboardView', 'progressView', 'progressShell', 'settingsView', 'globalSearchView', 'globalSearchShell', 'wordPageView', 'learnView', 'learnShell', 'onboardingView', 'onboardingShell'].forEach(id => {
     assert.match(html, new RegExp(`id="${id}"`));
   });
 });
@@ -19,7 +19,7 @@ test('smoke: global language toggle is removed and word list controls are presen
 });
 
 test('smoke: flashcards, parsing, dashboard, settings, and import/export controls are present', () => {
-  ['startFlashBtn', 'fcFlipToBack', 'startParsing', 'parsingSubmit', 'statsGrid', 'openSettings', 'wordPageShell', 'exportData', 'importData', 'restartOnboarding'].forEach(id => {
+  ['startFlashBtn', 'fcFlipToBack', 'startParsing', 'parsingSubmit', 'statsGrid', 'openSettings', 'openGlobalSearch', 'wordPageShell', 'exportData', 'importData', 'restartOnboarding'].forEach(id => {
     assert.match(html, new RegExp(`id="${id}"`));
   });
 });

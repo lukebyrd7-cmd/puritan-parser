@@ -58,6 +58,7 @@
       <div class="app-sub">Biblical Greek &amp; Hebrew — Spaced Repetition</div>
     </div>
     <div class="header-actions">
+      <button class="btn btn-ghost btn-sm" id="openGlobalSearch" title="Search words">Search</button>
       <button class="btn btn-ghost btn-sm" id="openSettings" title="Settings (S)">⚙ Settings</button>
     </div>
   </header>
@@ -339,6 +340,10 @@
       <div id="progressShell"></div>
     </div>
 
+    <div id="globalSearchView" class="hidden fade-in">
+      <div id="globalSearchShell"></div>
+    </div>
+
     <div id="onboardingView" class="hidden fade-in">
       <div id="onboardingShell"></div>
     </div>
@@ -521,6 +526,7 @@
             </select>
             <input class="input" id="referenceSearchInput" placeholder="Search reference…" autocomplete="off" />
           </div>
+          <div id="referenceSearchResults" class="reference-search-results"></div>
           <div id="referenceTopicList" class="reference-topic-list"></div>
         </section>
         <section class="panel reference-page" id="referencePage" aria-live="polite"></section>
@@ -559,6 +565,6 @@
 const svgFallback = `<svg xmlns="http://www.w3.org/2000/svg" width="38" height="38" viewBox="0 0 64 64"><rect width="64" height="64" rx="12" fill="#4e8f6e"/><text x="50%" y="54%" font-size="26" text-anchor="middle" fill="#fff" font-family="serif" font-weight="700">PP</text></svg>`;
 </script>
 
-<script src="src/main.js?v=v5.7-onboarding"></script>
+<script src="src/main.js?v=v5.9-global-search"></script>
 </body>
 </html>

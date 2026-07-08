@@ -51,6 +51,7 @@ function wireEvents(){
 
   // Settings
   $('#openSettings').addEventListener('click',()=>showView('settingsView'));
+  $('#openGlobalSearch')?.addEventListener('click',()=>showView('globalSearchView'));
   $('#closeSettingsBtn').addEventListener('click',()=>showView('listView'));
   $('#wordPageBackToReader')?.addEventListener('click',()=>showView('readerView'));
   $$('.theme-btn').forEach(b=>b.addEventListener('click',()=>applyTheme(b.dataset.theme)));

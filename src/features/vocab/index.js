@@ -18,7 +18,7 @@ function normalizeViewId(viewId){
 function showView(viewId, options = {}){
   viewId = normalizeViewId(viewId);
   const views = Object.values(typeof ROUTES !== 'undefined' ? ROUTES : {}).map(route => route.viewId);
-  if(!views.length) views.push('listView','flashView','parsingView','dashboardView','progressView','settingsView','grammarView','readerView','wordPageView','learnView','onboardingView','profileView');
+  if(!views.length) views.push('listView','flashView','parsingView','dashboardView','progressView','settingsView','globalSearchView','grammarView','readerView','wordPageView','learnView','onboardingView','profileView');
   views.forEach(id=>{ const el=document.getElementById(id); if(el) el.classList.toggle('hidden', id!==viewId); });
   $$('.nav-tab').forEach(t=>t.classList.toggle('active', t.dataset.view===viewId.replace('View','') || (typeof ROUTES !== 'undefined' && ROUTES[routeForView(viewId)]?.nav === t.dataset.view)));
   state.currentView = viewId;
@@ -27,7 +27,7 @@ function showView(viewId, options = {}){
 
   // Show/hide filter bar and its sub-elements
   const filterBar = $('#sharedFilterBar');
-  const noFilterViews = ['dashboardView','progressView','settingsView','grammarView','readerView','wordPageView','learnView','onboardingView','profileView'];
+  const noFilterViews = ['dashboardView','progressView','settingsView','globalSearchView','grammarView','readerView','wordPageView','learnView','onboardingView','profileView'];
   if(filterBar) filterBar.classList.toggle('hidden', noFilterViews.includes(viewId));
   // search only on list
   const sg = $('#filterSearchGroup'); if(sg) sg.classList.toggle('hidden', viewId!=='listView');
@@ -39,6 +39,7 @@ function showView(viewId, options = {}){
 
   if(viewId==='dashboardView') renderDashboard();
   if(viewId==='progressView' && typeof renderProgress === 'function') renderProgress();
+  if(viewId==='globalSearchView' && typeof renderGlobalSearch === 'function') renderGlobalSearch();
   if(viewId==='listView') renderList();
   if(viewId==='parsingView') { updateParsingModeUI(); renderLemmaPicker(); }
   if(viewId==='readerView' && typeof initReader === 'function') initReader();

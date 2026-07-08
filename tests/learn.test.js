@@ -961,7 +961,7 @@ test('Learn route and view navigation are wired into the app shell', () => {
     };
   }
 
-  const ids = ['listView','flashView','parsingView','dashboardView','progressView','settingsView','grammarView','readerView','wordPageView','learnView','profileView','sharedFilterBar','filterSearchGroup','filterSortGroup','filterEntriesCount','filterPosGroup','footerLang'];
+  const ids = ['listView','flashView','parsingView','dashboardView','progressView','settingsView','globalSearchView','grammarView','readerView','wordPageView','learnView','profileView','sharedFilterBar','filterSearchGroup','filterSortGroup','filterEntriesCount','filterPosGroup','footerLang'];
   const elements = new Map(ids.map(id => [id, makeElement(id)]));
   const context = {
     console,
