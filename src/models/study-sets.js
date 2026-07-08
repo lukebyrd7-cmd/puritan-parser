@@ -8,7 +8,7 @@
   const VERSION = 1;
   const LANGUAGES = ['greek', 'hebrew', 'mixed'];
   const TYPES = ['vocabulary', 'grammar', 'mixed'];
-  const VOCABULARY_SOURCE_KINDS = ['frequency', 'known', 'learning', 'not-learned'];
+  const VOCABULARY_SOURCE_KINDS = ['frequency', 'known', 'learning', 'not-learned', 'hand-picked'];
 
   function clean(value){ return typeof value === 'string' ? value.trim() : ''; }
   function nowISO(){ return new Date().toISOString(); }
@@ -38,6 +38,43 @@
     }
     return { kind };
   }
+  function normalizeExplicitItem(input = {}){
+    const source = input && typeof input === 'object' ? input : {};
+    const type = clean(source.type) || 'vocabulary';
+    if(type === 'vocabulary'){
+      const lang = LANGUAGES.includes(clean(source.lang)) && clean(source.lang) !== 'mixed' ? clean(source.lang) : '';
+      const lemma = clean(source.lemma);
+      if(!lang || !lemma) return null;
+      return {
+        type: 'vocabulary',
+        lang,
+        lemma,
+        id: clean(source.id) || `lemma:${lang}:${lemma}`
+      };
+    }
+    if(type === 'paradigm'){
+      const lang = LANGUAGES.includes(clean(source.lang)) && clean(source.lang) !== 'mixed' ? clean(source.lang) : '';
+      const category = clean(source.category);
+      if(!lang || !category) return null;
+      return { type: 'paradigm', lang, category, title: clean(source.title) };
+    }
+    return null;
+  }
+  function explicitItemKey(item = {}){
+    if(item.type === 'vocabulary') return `vocabulary:${item.lang}:${item.lemma}`;
+    if(item.type === 'paradigm') return `paradigm:${item.lang}:${item.category}`;
+    return JSON.stringify(item);
+  }
+  function normalizeExplicitItems(items = []){
+    const seen = new Set();
+    return (Array.isArray(items) ? items : []).map(normalizeExplicitItem).filter(item => {
+      if(!item) return false;
+      const key = explicitItemKey(item);
+      if(seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+  }
   function normalizeSet(input = {}, existing = null){
     const source = input && typeof input === 'object' ? input : {};
     const type = TYPES.includes(clean(source.type)) ? clean(source.type) : 'vocabulary';
@@ -52,6 +89,7 @@
       description: clean(source.description),
       criteria: normalizeCriteria(source.criteria, type),
       itemRefs: Array.isArray(source.itemRefs) ? source.itemRefs.map(clean).filter(Boolean) : [],
+      explicitItems: normalizeExplicitItems(source.explicitItems || source.items),
       createdAt,
       updatedAt: clean(source.updatedAt) || nowISO()
     };
@@ -103,11 +141,35 @@
     normalized.sets = normalized.sets.filter(item => item.id !== id);
     return { store: saveStore(normalized), deleted: normalized.sets.length !== before };
   }
+  function addExplicitItemToStudySet(id, item, store = loadStore()){
+    const normalized = normalizeStore(store);
+    const index = normalized.sets.findIndex(set => set.id === id);
+    const explicitItem = normalizeExplicitItem(item);
+    if(index < 0 || !explicitItem) return { store: normalized, set: null, added: false };
+    const set = normalizeSet(normalized.sets[index]);
+    const existing = new Set(set.explicitItems.map(explicitItemKey));
+    const key = explicitItemKey(explicitItem);
+    const added = !existing.has(key);
+    if(added) set.explicitItems.push(explicitItem);
+    set.updatedAt = nowISO();
+    normalized.sets[index] = normalizeSet(set);
+    return { store: saveStore(normalized), set: normalized.sets[index], added };
+  }
+  function addVocabularyItemToStudySet(id, entry = {}, store = loadStore()){
+    const lang = clean(entry.lang).toLowerCase();
+    const lemma = clean(entry.lemma || entry.word);
+    return addExplicitItemToStudySet(id, { type: 'vocabulary', lang, lemma, id: clean(entry.id) || `lemma:${lang}:${lemma}` }, store);
+  }
+  function explicitItemsOfType(set = {}, type = ''){
+    return normalizeExplicitItems(set.explicitItems).filter(item => !type || item.type === type);
+  }
   function sourceSummary(set = {}){
     const criteria = set.criteria || {};
     const language = set.language === 'hebrew' ? 'Hebrew' : set.language === 'mixed' ? 'Mixed' : 'Greek';
     if(set.type !== 'vocabulary') return `${language} ${set.type || 'study'} foundation`;
-    if(criteria.kind === 'frequency') return `${language} vocabulary ${criteria.threshold === 'all' ? 'all words' : `${criteria.threshold}+`}`;
+    const explicitCount = explicitItemsOfType(set, 'vocabulary').length;
+    if(criteria.kind === 'hand-picked') return `Hand-picked ${language} vocabulary collection`;
+    if(criteria.kind === 'frequency') return `${language} vocabulary, ${criteria.threshold === 'all' ? 'all words' : `${criteria.threshold}x and higher`}${explicitCount ? ` + ${explicitCount} hand-picked` : ''}`;
     if(criteria.kind === 'known') return `${language} Known words`;
     if(criteria.kind === 'learning') return `${language} Learning words`;
     if(criteria.kind === 'not-learned') return `${language} Not Learned words`;
@@ -116,11 +178,8 @@
   function vocabularyMatchesCriteria(entry = {}, set = {}, vocabModel, store){
     if(set.type !== 'vocabulary') return false;
     if(clean(entry.lang).toLowerCase() !== set.language) return false;
-    if(Array.isArray(set.itemRefs) && set.itemRefs.length){
-      const id = vocabModel?.lemmaId ? vocabModel.lemmaId(entry) : clean(entry.id);
-      return set.itemRefs.includes(id);
-    }
     const criteria = set.criteria || {};
+    if(criteria.kind === 'hand-picked') return false;
     if(criteria.kind === 'frequency'){
       if(criteria.threshold === 'all') return true;
       return (Number(entry.freq) || 0) >= (Number(criteria.threshold) || 0);
@@ -132,11 +191,36 @@
     if(criteria.kind === 'not-learned') return status === vocabModel.STATUS.NOT_LEARNED;
     return false;
   }
+  function vocabularyMatchesExplicitItem(entry = {}, item = {}, vocabModel){
+    if(item.type !== 'vocabulary') return false;
+    if(clean(entry.lang).toLowerCase() !== item.lang) return false;
+    const id = vocabModel?.lemmaId ? vocabModel.lemmaId(entry) : clean(entry.id);
+    return id === item.id || clean(entry.lemma || entry.word) === item.lemma;
+  }
+  function resolveExplicitVocabularyEntries(set = {}, entries = [], vocabModel){
+    const items = explicitItemsOfType(set, 'vocabulary');
+    if(!items.length && Array.isArray(set.itemRefs) && set.itemRefs.length){
+      return entries.filter(entry => {
+        const id = vocabModel?.lemmaId ? vocabModel.lemmaId(entry) : clean(entry.id);
+        return set.itemRefs.includes(id);
+      });
+    }
+    return entries.filter(entry => items.some(item => vocabularyMatchesExplicitItem(entry, item, vocabModel)));
+  }
   function resolveVocabularyEntries(set = {}, entries = [], vocabModel, store){
     const sorted = vocabModel?.sortedFrequencyEntries
       ? vocabModel.sortedFrequencyEntries(entries)
       : entries.slice().sort((a, b) => (Number(b.freq) || 0) - (Number(a.freq) || 0));
-    return sorted.filter(entry => vocabularyMatchesCriteria(entry, set, vocabModel, store));
+    const seen = new Set();
+    return [
+      ...sorted.filter(entry => vocabularyMatchesCriteria(entry, set, vocabModel, store)),
+      ...resolveExplicitVocabularyEntries(set, sorted, vocabModel)
+    ].filter(entry => {
+      const key = vocabModel?.lemmaId ? vocabModel.lemmaId(entry) : clean(entry.id || entry.lemma || entry.word);
+      if(seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
   }
 
   return {
@@ -153,8 +237,12 @@
     createStudySet,
     renameStudySet,
     deleteStudySet,
+    addExplicitItemToStudySet,
+    addVocabularyItemToStudySet,
+    explicitItemsOfType,
     sourceSummary,
     vocabularyMatchesCriteria,
+    resolveExplicitVocabularyEntries,
     resolveVocabularyEntries
   };
 });

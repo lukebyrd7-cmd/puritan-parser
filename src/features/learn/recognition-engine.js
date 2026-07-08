@@ -271,8 +271,29 @@
     const items = target ? itemsForTarget(target.id) : [];
     return { target, items, total: items.length };
   }
+  function createCombinedSession(targetIds = [], options = {}){
+    const targets = [...new Set((Array.isArray(targetIds) ? targetIds : []).map(String).filter(Boolean))]
+      .map(recognitionTarget)
+      .filter(Boolean);
+    const seen = new Set();
+    const items = targets.flatMap(target => itemsForTarget(target.id)).filter(item => {
+      if(seen.has(item.id)) return false;
+      seen.add(item.id);
+      return true;
+    });
+    const language = targets.every(target => target.language === targets[0]?.language) ? targets[0]?.language : 'mixed';
+    const target = {
+      id: options.id || `combined-${targets.map(target => target.id).join('-')}`,
+      title: options.title || targets.map(target => target.title).join(' + ') || 'Selected Paradigms',
+      description: targets.length ? `Combined recognition from ${targets.map(target => target.title).join(', ')}.` : 'No paradigms selected.',
+      language,
+      kind: 'mixed',
+      referenceTopicId: targets[0]?.referenceTopicId || ''
+    };
+    return { target, targets, selectedTargetIds: targets.map(target => target.id), items, total: items.length };
+  }
 
-  const api = { allItems, itemsForTarget, recognitionTargets, recognitionTarget, createSession, slug };
+  const api = { allItems, itemsForTarget, recognitionTargets, recognitionTarget, createSession, createCombinedSession, slug };
   if(typeof module !== 'undefined' && module.exports) module.exports = api;
   root.ParadigmRecognition = api;
 })(typeof window !== 'undefined' ? window : globalThis);

@@ -50,6 +50,7 @@ function renderPage(page){
   learn.learnState.focusedReviewWordId = '';
   learn.learnState.reviewReveal = false;
   learn.learnState.practiceSession = null;
+  learn.learnState.selectedRecognitionTargets = {};
   return learn.renderLearnPage();
 }
 
@@ -153,7 +154,7 @@ test('Study Sets page creates and renders a simple vocabulary set', () => {
   html = learn.renderLearnPage();
   text = renderedText(html);
   assert.match(text, /Romans Quiz/);
-  assert.match(text, /Greek vocabulary 25\+/);
+  assert.match(text, /Greek vocabulary, 25x and higher/);
   assert.match(text, /4 items/);
   assert.match(html, new RegExp(`data-learn-page="vocabulary:practice:study-set:${created.id}"`));
   assert.match(html, new RegExp(`data-learn-page="study-sets:browse:${created.id}"`));
@@ -162,6 +163,43 @@ test('Study Sets page creates and renders a simple vocabulary set', () => {
   text = renderedText(html);
   assert.match(text, /eis/);
   assert.match(text, /into/);
+});
+
+test('Study Sets accept explicit vocabulary words and practice includes them', () => {
+  storage.delete(StudySets.STORAGE_KEY);
+  storage.delete(VocabularyLearning.STORAGE_KEY);
+
+  const created = learn.createLearnStudySet({
+    title: 'Rare Quiz',
+    language: 'greek',
+    type: 'vocabulary',
+    source: 'hand-picked'
+  });
+  const rare = global.state.data.greek[1];
+
+  let result = learn.addVocabularyToLearnStudySet(created.id, rare);
+  assert.equal(result.added, true);
+  result = learn.addVocabularyToLearnStudySet(created.id, rare);
+  assert.equal(result.added, false);
+  assert.equal(StudySets.loadStore().sets[0].explicitItems.length, 1);
+  assert.equal(Object.keys(VocabularyLearning.loadStore().records || {}).length, 0);
+
+  let html = renderPage(`study-sets:detail:${created.id}`);
+  let text = renderedText(html);
+  assert.match(text, /Rare Quiz/);
+  assert.match(text, /Hand-picked vocabulary collection/);
+  assert.match(text, /Hand-picked words 1/);
+
+  html = renderPage(`study-sets:browse:${created.id}`);
+  text = renderedText(html);
+  assert.match(text, /agape/);
+  assert.match(text, /love/);
+
+  html = renderPage(`vocabulary:practice:study-set:${created.id}`);
+  text = renderedText(html);
+  assert.match(text, /Rare Quiz/);
+  assert.match(text, /1 of 1/);
+  assert.match(text, /agape/);
 });
 
 test('Study Set delete requires confirmation and preserves learning data', () => {
@@ -787,6 +825,44 @@ test('Legacy Paradigms recognition paths remain accessible', () => {
   assert.match(renderPage('paradigms:greek-verbs'), /data-learn-recognition-start="greek-verbs"/);
   assert.match(renderPage('paradigms:greek-verbs'), /data-learn-page="paradigms:greek-verbs:session:greek-present-active-indicative"/);
   assert.match(renderedText(renderPage('paradigms:hebrew-nouns')), /Hebrew Nouns Choose grouped practice or one paradigm/);
+});
+
+test('Paradigm Recognition supports selected single and multiple target sessions', () => {
+  let html = renderPage('paradigms:greek-verbs');
+  assert.match(html, /Start All/);
+  assert.match(html, /Start Selected/);
+  assert.match(html, /Clear Selection/);
+  assert.match(html, /data-learn-recognition-start-selected="greek-verbs" disabled/);
+
+  let selected = learn.toggleRecognitionSelection('greek-verbs', 'greek-present-active-indicative');
+  assert.deepEqual(selected, ['greek-present-active-indicative']);
+  html = learn.renderLearnPage();
+  assert.match(renderedText(html), /1 selected/);
+  assert.doesNotMatch(html, /data-learn-recognition-start-selected="greek-verbs" disabled/);
+
+  let session = learn.startSelectedRecognitionSession('greek-verbs');
+  assert.equal(session.targetId, 'selected-greek-verbs');
+  html = learn.renderLearnPage();
+  assert.match(renderedText(html), /Selected Paradigms/);
+  assert.match(renderedText(html), /Present Active Indicative/);
+
+  renderPage('paradigms:greek-verbs');
+  learn.toggleRecognitionSelection('greek-verbs', 'greek-present-active-indicative');
+  selected = learn.toggleRecognitionSelection('greek-verbs', 'greek-aorist-active-indicative');
+  assert.deepEqual(selected.sort(), ['greek-aorist-active-indicative', 'greek-present-active-indicative']);
+  session = learn.startSelectedRecognitionSession('greek-verbs');
+  html = learn.renderLearnPage();
+  const text = renderedText(html);
+  assert.match(text, /Selected Paradigms/);
+  assert.ok(/Present Active Indicative|Aorist Active Indicative/.test(text));
+  const built = require('../src/features/learn/recognition-engine').createCombinedSession(session.selectedTargetIds, { id: session.targetId });
+  assert.ok(built.items.every(item => item.categories.includes('present-active-indicative') || item.categories.includes('aorist-active-indicative')));
+  assert.equal(built.items.some(item => item.categories.includes('imperfect-active-indicative')), false);
+
+  renderPage('paradigms:greek-verbs');
+  learn.toggleRecognitionSelection('greek-verbs', 'greek-present-active-indicative');
+  learn.clearRecognitionSelection('greek-verbs');
+  assert.deepEqual(learn.selectedRecognitionTargetIds('greek-verbs'), []);
 });
 
 test('Paradigm recognition sessions reveal answers, track simple progress, and link Reference', () => {

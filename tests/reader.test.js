@@ -24,6 +24,7 @@ global.fetch = async filePath => {
 
 const reader = require('../src/features/reader/index.js');
 const VocabularyLearning = require('../src/models/vocabulary-learning');
+const StudySets = require('../src/models/study-sets');
 
 function renderedText(html){
   return String(html || '').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
@@ -892,6 +893,43 @@ test('Word Page learning section reflects shared vocabulary learning state', () 
   VocabularyLearning.saveStore(store);
   html = reader.renderReaderWordLearning(info);
   assert.match(renderedText(html), /Learning ● Known Known Review Again/);
+
+  delete global.localStorage;
+  delete global.todayISO;
+  delete global.state;
+  delete global.getStudyEntries;
+});
+
+test('Word Page adds vocabulary to Study Sets without changing SRS status', () => {
+  const storage = new Map();
+  global.localStorage = {
+    getItem: key => storage.get(key) || null,
+    setItem: (key, value) => storage.set(key, value),
+    removeItem: key => storage.delete(key)
+  };
+  global.todayISO = () => '2026-06-26';
+  global.state = { data: { greek: [
+    { id: 'lemma:greek:λόγος', studyEntryType: 'lemma', lang: 'greek', lemma: 'λόγος', word: 'λόγος', primaryGloss: 'word', freq: 68 }
+  ] } };
+  global.getStudyEntries = entries => entries;
+
+  const existing = StudySets.createStudySet({ title: 'Sermon words', language: 'greek', type: 'vocabulary', criteria: { kind: 'hand-picked' } }).set;
+  const info = { language: 'greek', lemma: 'λόγος', surface: 'λόγος' };
+  let html = reader.renderReaderWordStudySets(info);
+  assert.match(renderedText(html), /Study Sets Add this word to a collection/);
+  assert.match(html, /data-word-study-set-add="true"/);
+  assert.match(html, /data-word-study-set-create="true"/);
+
+  let result = reader.addReaderWordToStudySet(existing.id, info);
+  assert.equal(result.added, true);
+  result = reader.addReaderWordToStudySet(existing.id, info);
+  assert.equal(result.added, false);
+  assert.equal(StudySets.loadStore().sets.find(set => set.id === existing.id).explicitItems.length, 1);
+  assert.deepEqual(VocabularyLearning.loadStore(), VocabularyLearning.normalizeStore());
+
+  const created = reader.createReaderStudySetFromWord('Quiz list', info);
+  assert.equal(created.title, 'Quiz list');
+  assert.equal(StudySets.loadStore().sets.find(set => set.id === created.id).explicitItems[0].lemma, 'λόγος');
 
   delete global.localStorage;
   delete global.todayISO;

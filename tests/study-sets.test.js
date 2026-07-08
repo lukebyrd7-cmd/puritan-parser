@@ -66,3 +66,41 @@ test('Study Set criteria resolves frequency and status vocabulary without duplic
   const learning = StudySets.normalizeSet({ title: 'Learning', language: 'greek', type: 'vocabulary', criteria: { kind: 'learning' } });
   assert.deepEqual(StudySets.resolveVocabularyEntries(learning, entries, VocabularyLearning, store).map(item => item.lemma), ['agape']);
 });
+
+test('Study Set explicit vocabulary items add without changing criteria or duplicating words', () => {
+  const storage = installStorage();
+  const created = StudySets.createStudySet({
+    title: 'Hand picked',
+    language: 'greek',
+    type: 'vocabulary',
+    criteria: { kind: 'hand-picked' }
+  }).set;
+
+  let result = StudySets.addVocabularyItemToStudySet(created.id, entries[2]);
+  assert.equal(result.added, true);
+  assert.equal(result.set.explicitItems.length, 1);
+
+  result = StudySets.addVocabularyItemToStudySet(created.id, entries[2]);
+  assert.equal(result.added, false);
+  assert.equal(result.set.explicitItems.length, 1);
+  assert.deepEqual(StudySets.resolveVocabularyEntries(result.set, entries, VocabularyLearning, VocabularyLearning.normalizeStore()).map(item => item.lemma), ['rare']);
+  assert.equal(JSON.parse(storage.get(StudySets.STORAGE_KEY)).sets[0].criteria.kind, 'hand-picked');
+
+  delete global.localStorage;
+});
+
+test('Study Set criteria collections include explicit vocabulary words as additions', () => {
+  const set = StudySets.normalizeSet({
+    title: 'Common plus quiz word',
+    language: 'greek',
+    type: 'vocabulary',
+    criteria: { kind: 'frequency', threshold: '25' },
+    explicitItems: [{ type: 'vocabulary', lang: 'greek', lemma: 'rare', id: 'lemma:greek:rare' }]
+  });
+
+  assert.deepEqual(
+    StudySets.resolveVocabularyEntries(set, entries, VocabularyLearning, VocabularyLearning.normalizeStore()).map(item => item.lemma),
+    ['logos', 'agape', 'rare']
+  );
+  assert.match(StudySets.sourceSummary(set), /25x and higher \+ 1 hand-picked/);
+});

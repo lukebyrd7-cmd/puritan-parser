@@ -62,7 +62,7 @@ const LearnAreas = [
   }
 ];
 
-const learnState = { page: 'home', history: [], customFrequencyErrors: {}, activeVocabularyPath: '', currentVocabularyWordId: '', focusedReviewWordId: '', reviewReveal: false, lastReviewResult: null, progressCache: {}, progressLoading: {}, recognitionSession: null, practiceSession: null, studySetFormError: '' };
+const learnState = { page: 'home', history: [], customFrequencyErrors: {}, activeVocabularyPath: '', currentVocabularyWordId: '', focusedReviewWordId: '', reviewReveal: false, lastReviewResult: null, progressCache: {}, progressLoading: {}, recognitionSession: null, practiceSession: null, studySetFormError: '', selectedRecognitionTargets: {} };
 const LearnFrequencyThresholds = {
   greek: ['25', '10', '5', 'all'],
   hebrew: ['60', '30', '10', '5', 'all']
@@ -737,7 +737,7 @@ function createLearnStudySet(form = {}){
     setLearnPage(`study-sets:detail:${result.set.id}`);
     return result.set;
   }
-  const source = ['frequency','known','learning','not-learned'].includes(form.source) ? form.source : 'frequency';
+  const source = ['frequency','known','learning','not-learned','hand-picked'].includes(form.source) ? form.source : 'frequency';
   const criteria = source === 'frequency'
     ? { kind: 'frequency', threshold: form.threshold === 'all' ? 'all' : String(Math.max(1, Math.floor(Number(form.threshold) || 25))) }
     : { kind: source };
@@ -745,6 +745,17 @@ function createLearnStudySet(form = {}){
   learnState.studySetFormError = '';
   setLearnPage(`study-sets:detail:${result.set.id}`);
   return result.set;
+}
+function addVocabularyToLearnStudySet(setId, entry = {}){
+  if(!StudySetsModel || !entry) return null;
+  const result = StudySetsModel.addVocabularyItemToStudySet(setId, entry);
+  if(result.set) renderLearn();
+  return result;
+}
+function createStudySetWithVocabulary(form = {}, entry = {}){
+  const created = createLearnStudySet({ ...form, type: 'vocabulary', source: form.source || 'hand-picked', language: form.language || entry.lang || 'greek' });
+  if(created) addVocabularyToLearnStudySet(created.id, entry);
+  return created;
 }
 function deleteLearnStudySet(id){
   if(!StudySetsModel) return null;
@@ -1291,18 +1302,44 @@ function recognitionTargetsForLearn(categoryId = ''){
 function recognitionTargetForLearn(targetId){
   return ParadigmRecognitionModel?.recognitionTarget ? ParadigmRecognitionModel.recognitionTarget(targetId) : null;
 }
+function selectedRecognitionTargetIds(categoryId = ''){
+  return Array.from(learnState.selectedRecognitionTargets?.[categoryId] || []);
+}
+function toggleRecognitionSelection(categoryId, targetId){
+  if(!categoryId || !targetId) return [];
+  if(!learnState.selectedRecognitionTargets) learnState.selectedRecognitionTargets = {};
+  const selected = new Set(learnState.selectedRecognitionTargets[categoryId] || []);
+  if(selected.has(targetId)) selected.delete(targetId);
+  else selected.add(targetId);
+  learnState.selectedRecognitionTargets[categoryId] = selected;
+  renderLearn();
+  return Array.from(selected);
+}
+function clearRecognitionSelection(categoryId){
+  if(learnState.selectedRecognitionTargets) learnState.selectedRecognitionTargets[categoryId] = new Set();
+  renderLearn();
+}
 function recognitionCategoryPageTitle(categoryId){
   const [language, kind] = String(categoryId || '').split('-');
   return `${learnLanguageTitle(language)} ${kind === 'nouns' ? 'Nouns' : 'Verbs'}`;
 }
 function startRecognitionSession(targetId, categoryId = ''){
   const session = ParadigmRecognitionModel?.createSession ? ParadigmRecognitionModel.createSession(targetId) : null;
-  learnState.recognitionSession = session ? { targetId, index: 0, revealed: false, recognized: 0, missed: 0, total: session.total || session.items?.length || 0, recorded: false } : null;
+  learnState.recognitionSession = session ? { targetId, selectedTargetIds: session.selectedTargetIds || [targetId], index: 0, revealed: false, recognized: 0, missed: 0, total: session.total || session.items?.length || 0, recorded: false } : null;
   if(categoryId && learnState.page !== `paradigms:${categoryId}:session:${targetId}`){
     setLearnPage(`paradigms:${categoryId}:session:${targetId}`);
     return;
   }
   renderLearn();
+}
+function startSelectedRecognitionSession(categoryId){
+  const ids = selectedRecognitionTargetIds(categoryId);
+  if(!ids.length) return null;
+  const targetId = `selected-${categoryId}`;
+  const session = ParadigmRecognitionModel?.createCombinedSession ? ParadigmRecognitionModel.createCombinedSession(ids, { id: targetId, title: 'Selected Paradigms', categoryId }) : null;
+  learnState.recognitionSession = session ? { targetId, selectedTargetIds: ids, index: 0, revealed: false, recognized: 0, missed: 0, total: session.total || session.items?.length || 0, recorded: false } : null;
+  setLearnPage(`paradigms:${categoryId}:session:${targetId}`);
+  return learnState.recognitionSession;
 }
 function revealRecognitionAnswer(){
   if(learnState.recognitionSession) learnState.recognitionSession.revealed = true;
@@ -1347,6 +1384,7 @@ function renderRecognitionCategoryPage(categoryId){
   const targets = recognitionTargetsForLearn(categoryId);
   const groupedTarget = targets.find(target => target.id === categoryId);
   const specificTargets = targets.filter(target => target.id !== categoryId);
+  const selected = selectedRecognitionTargetIds(categoryId);
   return `
     <section class="panel learn-panel learn-panel-wide" aria-labelledby="learnRecognitionCategoryTitle">
       ${renderLearnHeader(recognitionCategoryPageTitle(categoryId), 'Choose grouped practice or one paradigm.', 'learnRecognitionCategoryTitle')}
@@ -1354,19 +1392,34 @@ function renderRecognitionCategoryPage(categoryId){
         <section class="word-page-section learn-explainer">
           <h2>${escHtml(groupedTarget.title)}</h2>
           <p>${escHtml(groupedTarget.description)}</p>
-          <button class="btn btn-primary learn-start-learning-action" type="button" data-learn-recognition-start="${escHtml(groupedTarget.id)}" data-learn-recognition-category="${escHtml(categoryId)}">Start Recognition</button>
+          <div class="learn-vocab-actions">
+            <button class="btn btn-primary learn-start-learning-action" type="button" data-learn-recognition-start="${escHtml(groupedTarget.id)}" data-learn-recognition-category="${escHtml(categoryId)}">Start All</button>
+            <button class="btn btn-ghost btn-sm" type="button" data-learn-recognition-start-selected="${escHtml(categoryId)}"${selected.length ? '' : ' disabled'}>Start Selected</button>
+            <button class="btn btn-ghost btn-sm" type="button" data-learn-recognition-clear="${escHtml(categoryId)}">Clear Selection</button>
+          </div>
+          ${selected.length ? `<p class="small muted">${escHtml(String(selected.length))} selected.</p>` : '<p class="small muted">Select one or more paradigms below to build a focused session.</p>'}
         </section>` : ''}
       <section class="learn-language-group">
         <h2>Paradigms</h2>
         <div class="learn-card-grid">
-          ${specificTargets.map(target => learnCard({ title: target.title, description: target.description }, `paradigms:${categoryId}:session:${target.id}`, 'learn-card-compact')).join('') || '<p class="muted">No verified recognition items are available for this category yet.</p>'}
+          ${specificTargets.map(target => `
+            <article class="learn-card learn-card-compact${selected.includes(target.id) ? ' active' : ''}">
+              <span class="learn-card-title">${escHtml(target.title)}</span>
+              <span class="learn-card-description">${escHtml(target.description)}</span>
+              <div class="learn-vocab-actions">
+                <button class="btn btn-ghost btn-sm" type="button" data-learn-recognition-select="${escHtml(target.id)}" data-learn-recognition-category="${escHtml(categoryId)}">${selected.includes(target.id) ? 'Selected' : 'Select'}</button>
+                <button class="btn btn-primary btn-sm" type="button" data-learn-page="paradigms:${escHtml(categoryId)}:session:${escHtml(target.id)}">Practice</button>
+              </div>
+            </article>`).join('') || '<p class="muted">No verified recognition items are available for this category yet.</p>'}
         </div>
       </section>
     </section>`;
 }
 function renderRecognitionSessionPage(categoryId, targetId){
   const active = learnState.recognitionSession?.targetId === targetId ? learnState.recognitionSession : null;
-  const built = ParadigmRecognitionModel?.createSession ? ParadigmRecognitionModel.createSession(targetId) : null;
+  const built = targetId.startsWith('selected-') && active?.selectedTargetIds?.length && ParadigmRecognitionModel?.createCombinedSession
+    ? ParadigmRecognitionModel.createCombinedSession(active.selectedTargetIds, { id: targetId, title: 'Selected Paradigms', categoryId })
+    : (ParadigmRecognitionModel?.createSession ? ParadigmRecognitionModel.createSession(targetId) : null);
   const target = built?.target || recognitionTargetForLearn(targetId);
   const items = built?.items || [];
   const sessionState = active || { targetId, index: 0, revealed: false, recognized: 0, missed: 0, total: built?.total || items.length, recorded: false };
@@ -1500,7 +1553,7 @@ function renderStudySetsPage(){
       ${renderLearnHeader('Study Sets', 'Focused custom collections for specific goals.', 'learnStudySetsPageTitle')}
       <section class="word-page-section learn-explainer">
         <h2>Create a Study Set</h2>
-        <p>Keep it simple: choose a name, language, kind, and source.</p>
+        <p>Collect words by frequency or status, or keep a hand-picked vocabulary folder for targeted practice.</p>
         <button class="btn btn-primary btn-sm" type="button" data-learn-page="study-sets:create">Create Study Set</button>
       </section>
       <section class="learn-language-group" aria-labelledby="learnStudySetsListTitle">
@@ -1529,10 +1582,10 @@ function renderStudySetCreatePage(){
     <section class="panel learn-panel" aria-labelledby="learnStudySetCreateTitle">
       ${renderLearnHeader('Create Study Set', 'A focused set should take under 30 seconds to create.', 'learnStudySetCreateTitle')}
       <form class="word-page-section learn-study-set-form" data-learn-study-set-create="true">
-        <label>Name<input class="input" name="title" placeholder="Romans quiz review" required /></label>
+        <label>What do you want to collect?<input class="input" name="title" placeholder="Romans quiz review" required /></label>
         <label>Language<select class="input" name="language"><option value="greek">Greek</option><option value="hebrew">Hebrew</option></select></label>
-        <label>Kind<select class="input" name="type"><option value="vocabulary">Vocabulary</option><option value="grammar">Grammar foundation</option><option value="mixed">Mixed foundation</option></select></label>
-        <label>Source<select class="input" name="source"><option value="frequency">Frequency band</option><option value="known">Known words</option><option value="learning">Learning words</option><option value="not-learned">Not Learned words</option></select></label>
+        <label>Kind<select class="input" name="type"><option value="vocabulary">Vocabulary collection</option><option value="grammar">Grammar foundation</option><option value="mixed">Mixed foundation</option></select></label>
+        <label>Source<select class="input" name="source"><option value="frequency">Words by frequency</option><option value="learning">Words I'm learning</option><option value="known">Words I know</option><option value="not-learned">Words not started</option><option value="hand-picked">Hand-picked words</option></select></label>
         <label>Frequency threshold<input class="input" name="threshold" type="number" min="1" step="1" value="25" /></label>
         ${error ? `<p class="learn-custom-frequency-error">${escHtml(error)}</p>` : ''}
         <div class="learn-vocab-actions">
@@ -1546,12 +1599,22 @@ function renderStudySetDetailPage(id){
   const set = learnStudySet(id);
   if(!set) return `<section class="panel learn-panel">${renderLearnHeader('Study Set', 'Not found')}<section class="word-page-section"><h2>Study Set unavailable</h2><p>This Study Set may have been deleted.</p></section></section>`;
   const entries = learnStudySetEntries(set);
+  const explicitVocabularyCount = StudySetsModel.explicitItemsOfType(set, 'vocabulary').length;
+  const criteriaSummary = StudySetsModel.sourceSummary(set);
+  const kindLabel = set.criteria?.kind === 'hand-picked' ? 'Hand-picked collection' : set.type === 'vocabulary' ? 'Frequency/status-based collection' : `${set.type} foundation`;
   return `
     <section class="panel learn-panel" aria-labelledby="learnStudySetDetailTitle">
-      ${renderLearnHeader(set.title, StudySetsModel.sourceSummary(set), 'learnStudySetDetailTitle')}
+      ${renderLearnHeader(set.title, criteriaSummary, 'learnStudySetDetailTitle')}
       <section class="word-page-section learn-explainer">
         <h2>${escHtml(set.type === 'vocabulary' ? `${entries.length} items` : 'Foundation')}</h2>
-        <p>${set.type === 'vocabulary' ? 'Practice or browse this focused vocabulary collection.' : 'This Study Set is saved as a foundation until richer grammar or mixed set criteria are available.'}</p>
+        <p>${set.criteria?.kind === 'hand-picked' ? 'Hand-picked vocabulary collection.' : set.type === 'vocabulary' ? 'Practice or browse this focused vocabulary collection.' : 'This Study Set is saved as a foundation until richer grammar or mixed set criteria are available.'}</p>
+        <dl class="word-page-meta word-page-meta-secondary">
+          <dt>Language</dt><dd>${escHtml(learnLanguageTitle(set.language))}</dd>
+          <dt>Kind</dt><dd>${escHtml(kindLabel)}</dd>
+          <dt>Items</dt><dd>${escHtml(String(entries.length))}</dd>
+          <dt>Hand-picked words</dt><dd>${escHtml(String(explicitVocabularyCount))}</dd>
+          <dt>Criteria</dt><dd>${escHtml(criteriaSummary)}</dd>
+        </dl>
         <div class="learn-vocab-actions">
           ${set.type === 'vocabulary' ? `<button class="btn btn-primary btn-sm" type="button" data-learn-page="vocabulary:practice:study-set:${escHtml(set.id)}">Practice</button><button class="btn btn-ghost btn-sm" type="button" data-learn-page="study-sets:browse:${escHtml(set.id)}">Browse</button><button class="btn btn-ghost btn-sm" type="button" data-learn-mark-study-set-known="${escHtml(set.id)}">Mark All Known</button>` : ''}
           <button class="btn btn-ghost btn-sm" type="button" data-learn-delete-study-set="${escHtml(set.id)}">Delete</button>
@@ -1709,6 +1772,9 @@ function wireLearn(){
   $$('[data-learn-practice-grade]', root).forEach(button => button.addEventListener('click', () => gradeLearnPractice(button.dataset.learnPracticeGrade)));
   $$('[data-learn-practice-count-srs]', root).forEach(button => button.addEventListener('click', countLearnPracticeTowardSrs));
   $$('[data-learn-recognition-start]', root).forEach(button => button.addEventListener('click', () => startRecognitionSession(button.dataset.learnRecognitionStart, button.dataset.learnRecognitionCategory || '')));
+  $$('[data-learn-recognition-select]', root).forEach(button => button.addEventListener('click', () => toggleRecognitionSelection(button.dataset.learnRecognitionCategory || '', button.dataset.learnRecognitionSelect)));
+  $$('[data-learn-recognition-clear]', root).forEach(button => button.addEventListener('click', () => clearRecognitionSelection(button.dataset.learnRecognitionClear)));
+  $$('[data-learn-recognition-start-selected]', root).forEach(button => button.addEventListener('click', () => startSelectedRecognitionSession(button.dataset.learnRecognitionStartSelected)));
   $$('[data-learn-recognition-reveal]', root).forEach(button => button.addEventListener('click', revealRecognitionAnswer));
   $$('[data-learn-recognition-grade]', root).forEach(button => button.addEventListener('click', () => gradeRecognitionAnswer(button.dataset.learnRecognitionGrade)));
   $$('[data-learn-reference-topic]', root).forEach(button => button.addEventListener('click', () => openLearnReference(button.dataset.learnReferenceTopic, button.dataset.learnReferenceSection || '')));
@@ -1755,5 +1821,5 @@ function renderLearn(){
   wireLearn();
 }
 
-if(typeof window !== 'undefined') Object.assign(window, { LearnAreas, LearnReviewTargetDefaults, LearnReviewTargetPresets, LearnReviewTargetStorageKey, LearnPracticeSrsPreferenceStorageKey, learnState, learnArea, learnChild, learnPageTitle, learnBreadcrumbs, learnReviewTargets, learnReviewTarget, saveLearnReviewTargets, setLearnReviewTarget, learnPracticeSrsPreference, setLearnPracticeSrsPreference, learnReviewQueueSummary, parseLearnCustomFrequency, setLearnCustomFrequency, resetLearn, setLearnPage, backLearnPage, wireLearn, renderLearn, renderLearnPage, learnBookList, learnPathForPage, startLearnVocabularyPath, learnCurrentVocabularyWord, markLearnPathKnown, learnStudySets, learnStudySet, createLearnStudySet, deleteLearnStudySet, markLearnStudySetKnown, reviewLearnVocabularyWord, revealLearnReview, gradeLearnReview, ensureLearnPracticeSession, revealLearnPractice, gradeLearnPractice, countLearnPracticeTowardSrs, recognitionTargetsForLearn, startRecognitionSession, revealRecognitionAnswer, gradeRecognitionAnswer, openLearnReference });
-if(typeof module !== 'undefined') module.exports = { LearnAreas, LearnFrequencyThresholds, LearnReviewTargetDefaults, LearnReviewTargetPresets, LearnReviewTargetStorageKey, LearnPracticeSrsPreferenceStorageKey, learnState, learnArea, learnChild, learnPageTitle, learnBreadcrumbs, learnReviewTargets, learnReviewTarget, saveLearnReviewTargets, setLearnReviewTarget, learnPracticeSrsPreference, setLearnPracticeSrsPreference, learnReviewQueueSummary, parseLearnCustomFrequency, setLearnCustomFrequency, resetLearn, learnBookList, learnPathForPage, setLearnPage, backLearnPage, wireLearn, renderLearnPage, startLearnVocabularyPath, learnCurrentVocabularyWord, markLearnPathKnown, learnStudySets, learnStudySet, createLearnStudySet, deleteLearnStudySet, markLearnStudySetKnown, reviewLearnVocabularyWord, revealLearnReview, gradeLearnReview, ensureLearnPracticeSession, revealLearnPractice, gradeLearnPractice, countLearnPracticeTowardSrs, recognitionTargetsForLearn, startRecognitionSession, revealRecognitionAnswer, gradeRecognitionAnswer, openLearnReference };
+if(typeof window !== 'undefined') Object.assign(window, { LearnAreas, LearnReviewTargetDefaults, LearnReviewTargetPresets, LearnReviewTargetStorageKey, LearnPracticeSrsPreferenceStorageKey, learnState, learnArea, learnChild, learnPageTitle, learnBreadcrumbs, learnReviewTargets, learnReviewTarget, saveLearnReviewTargets, setLearnReviewTarget, learnPracticeSrsPreference, setLearnPracticeSrsPreference, learnReviewQueueSummary, parseLearnCustomFrequency, setLearnCustomFrequency, resetLearn, setLearnPage, backLearnPage, wireLearn, renderLearn, renderLearnPage, learnBookList, learnPathForPage, startLearnVocabularyPath, learnCurrentVocabularyWord, markLearnPathKnown, learnStudySets, learnStudySet, createLearnStudySet, addVocabularyToLearnStudySet, createStudySetWithVocabulary, deleteLearnStudySet, markLearnStudySetKnown, reviewLearnVocabularyWord, revealLearnReview, gradeLearnReview, ensureLearnPracticeSession, revealLearnPractice, gradeLearnPractice, countLearnPracticeTowardSrs, recognitionTargetsForLearn, selectedRecognitionTargetIds, toggleRecognitionSelection, clearRecognitionSelection, startRecognitionSession, startSelectedRecognitionSession, revealRecognitionAnswer, gradeRecognitionAnswer, openLearnReference });
+if(typeof module !== 'undefined') module.exports = { LearnAreas, LearnFrequencyThresholds, LearnReviewTargetDefaults, LearnReviewTargetPresets, LearnReviewTargetStorageKey, LearnPracticeSrsPreferenceStorageKey, learnState, learnArea, learnChild, learnPageTitle, learnBreadcrumbs, learnReviewTargets, learnReviewTarget, saveLearnReviewTargets, setLearnReviewTarget, learnPracticeSrsPreference, setLearnPracticeSrsPreference, learnReviewQueueSummary, parseLearnCustomFrequency, setLearnCustomFrequency, resetLearn, learnBookList, learnPathForPage, setLearnPage, backLearnPage, wireLearn, renderLearnPage, startLearnVocabularyPath, learnCurrentVocabularyWord, markLearnPathKnown, learnStudySets, learnStudySet, createLearnStudySet, addVocabularyToLearnStudySet, createStudySetWithVocabulary, deleteLearnStudySet, markLearnStudySetKnown, reviewLearnVocabularyWord, revealLearnReview, gradeLearnReview, ensureLearnPracticeSession, revealLearnPractice, gradeLearnPractice, countLearnPracticeTowardSrs, recognitionTargetsForLearn, selectedRecognitionTargetIds, toggleRecognitionSelection, clearRecognitionSelection, startRecognitionSession, startSelectedRecognitionSession, revealRecognitionAnswer, gradeRecognitionAnswer, openLearnReference };
