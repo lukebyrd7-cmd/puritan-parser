@@ -1963,35 +1963,44 @@ button:focus-visible, input:focus-visible, select:focus-visible {
 }
 .reader-word-page-action:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 @media (max-width: 640px) {
-  .app:has(#readerView:not(.hidden)) { padding: 10px; gap: 8px; }
-  .app:has(#readerView:not(.hidden)) .header { gap: 10px; padding-top: 4px; flex-wrap: nowrap; }
+  .app:has(#readerView:not(.hidden)) { padding: 6px 8px; gap: 6px; }
+  .app:has(#readerView:not(.hidden)) .header { gap: 8px; padding-top: 2px; flex-wrap: nowrap; }
   .app:has(#readerView:not(.hidden)) .header-actions { width: auto; margin-left: auto; }
-  .app:has(#readerView:not(.hidden)) .logo-wrap { width: 44px; height: 44px; border-radius: 10px; }
-  .app:has(#readerView:not(.hidden)) .logo-wrap img { width: 32px; height: 32px; }
-  .app:has(#readerView:not(.hidden)) .app-name { font-size: 19px; }
+  .app:has(#readerView:not(.hidden)) .logo-wrap { width: 38px; height: 38px; border-radius: 9px; }
+  .app:has(#readerView:not(.hidden)) .logo-wrap img { width: 28px; height: 28px; }
+  .app:has(#readerView:not(.hidden)) .app-name { font-size: 18px; }
   .app:has(#readerView:not(.hidden)) .app-sub { display: none; }
-  .app:has(#readerView:not(.hidden)) .topbar { padding: 8px 10px; }
-  .reader-shell { height: calc(100dvh - 124px); gap: 4px; }
-  .reader-controls { gap: 4px; padding: 4px 5px; }
-  .reader-control-row { gap: 4px; }
+  .app:has(#readerView:not(.hidden)) .topbar { padding: 6px 8px; }
+  .app:has(#readerView:not(.hidden)) footer { display: none; }
+  .reader-shell { height: calc(100dvh - 94px); gap: 3px; }
+  .reader-controls { gap: 3px; padding: 3px 4px; }
+  .reader-control-row { gap: 3px; }
   .reader-control-selects { grid-template-columns: 1fr 1.18fr .8fr; }
   .reader-controls .input {
-    min-height: 34px;
-    padding: 4px 7px;
+    min-height: 30px;
+    padding: 3px 6px;
     font-size: 12px;
   }
   .reader-control-actions {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
-    row-gap: 4px;
+    row-gap: 3px;
   }
   .reader-control-actions > .btn {
-    flex: 1 1 calc(50% - 3px);
-    min-height: 34px;
-    padding: 5px 8px;
+    flex: 0 0 auto;
+    min-height: 30px;
+    padding: 4px 7px;
     font-size: 11px;
   }
+  .reader-nav-btn {
+    width: 32px;
+    min-width: 32px;
+    justify-content: center;
+    gap: 0;
+  }
+  .reader-nav-label { display: none; }
+  .reader-nav-icon { font-size: 15px; line-height: 1; }
   .reader-settings,
   .reader-search-toggle,
   .reader-progress-link {
@@ -2002,29 +2011,28 @@ button:focus-visible, input:focus-visible, select:focus-visible {
   .reader-settings summary,
   .reader-search-toggle,
   .reader-progress-link {
-    min-height: 32px;
-    padding: 4px 7px;
+    min-height: 30px;
+    padding: 3px 7px;
     font-size: 11px;
   }
   .reader-settings summary { display: flex; justify-content: center; }
   .reader-settings-panel { position: fixed; top: auto; right: 10px; bottom: 10px; left: 10px; width: auto; max-height: min(78dvh, 620px); overflow: auto; }
-  .reader-reference {
-    flex: 1 1 130px;
-    min-width: 112px;
-    margin-left: auto;
-    text-align: right;
-    font-size: 12px;
+  .reader-progress-link {
+    min-height: 26px;
+    padding-inline: 4px;
+    font-size: 10px;
+    text-decoration: none;
   }
-  .reader-reference small { font-size: 10px; }
+  .reader-reference { display: none; }
   .reader-search { padding: 7px; }
   .reader-translation-bar {
     flex: 0 1 auto;
-    min-height: 32px;
-    gap: 4px;
+    min-height: 28px;
+    gap: 3px;
   }
   .reader-translation-toggle button {
-    min-height: 26px;
-    padding: 3px 7px;
+    min-height: 24px;
+    padding: 2px 7px;
     font-size: 11px;
   }
   .reader-translation-unavailable { flex-basis: 100%; font-size: 10px; }
@@ -2036,7 +2044,7 @@ button:focus-visible, input:focus-visible, select:focus-visible {
     clip: rect(0 0 0 0);
     white-space: nowrap;
   }
-  .reader-text { padding: 4px 4px 28px; font-size: 23px; line-height: 1.78; }
+  .reader-text { padding: 2px 4px 28px; font-size: 23px; line-height: 1.76; }
   .reader-word-overlay { align-items: flex-end; padding: 0; }
   .reader-word-popup {
     width: 100%;

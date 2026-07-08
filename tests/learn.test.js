@@ -108,7 +108,14 @@ test('Learn home opens the three permanent study areas', () => {
   assert.match(text, /Grammar Practice/);
   assert.match(text, /Mixed Practice/);
   assert.match(text, /Paradigm Recognition/);
-  assert.match(text, /Create focused study sets for a sermon, quiz, favorite book, or personal review/);
+  assert.match(text, /Maintain what is due today/);
+  assert.match(text, /Pick up paths you have already started/);
+  assert.match(text, /Begin a new vocabulary or grammar path/);
+  assert.match(text, /Drill on demand, even when nothing is due/);
+  assert.match(text, /Create or review focused collections/);
+  assert.match(text, /No active path yet/);
+  assert.doesNotMatch(text, /Greek Frequency Path/);
+  assert.equal((html.match(/data-learn-page="study-sets"/g) || []).length, 1);
   assert.doesNotMatch(html, /id="learnBackBtn"/);
   assert.doesNotMatch(html, /alert\(/);
 });

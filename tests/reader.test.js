@@ -94,14 +94,13 @@ test('Adaptive Reader settings render from the Reader and persist locally', () =
   assert.match(html, /WEB/);
   assert.match(html, /Assistance/);
   assert.match(html, /Hide Known Words/);
-  assert.match(html, /Reader Settings/);
+  assert.match(html, /<summary class="btn btn-ghost btn-sm">Settings<\/summary>/);
   assert.match(html, /Show Translation Toggle/);
   assert.match(html, /Indicator/);
   assert.match(html, /Interlinear • OEB • 30\+ • Hide Known/);
   assert.match(html, /id="readerSearchToggle"[\s\S]*>Search<\/button>/);
   assert.match(html, /reader-search hidden/);
-  assert.match(html, /Book Progress/);
-  assert.doesNotMatch(html, /View Book Progress/);
+  assert.match(html, /aria-label="View Book Progress"[\s\S]*>Progress<\/button>/);
   assert.ok(storage.has('pp_reader_adaptive_settings'));
 });
 
@@ -171,6 +170,8 @@ test('Mobile Reader compact layout keeps all core controls accessible and quiets
   assert.match(html, /id="readerBookSelect"/);
   assert.match(html, /id="readerChapterSelect"/);
   assert.match(html, /id="readerPrevBtn"[\s\S]*id="readerNextBtn"/);
+  assert.match(html, /id="readerPrevBtn"[^>]*aria-label="Previous chapter"[\s\S]*class="reader-nav-label">Previous/);
+  assert.match(html, /id="readerNextBtn"[^>]*aria-label="Next chapter"[\s\S]*class="reader-nav-label">Next/);
   assert.match(html, /data-reader-text-mode="original"[\s\S]*data-reader-text-mode="english"/);
   assert.match(html, /id="readerSettingsPanel"/);
   assert.match(html, /id="readerSearchToggle"/);
@@ -181,8 +182,11 @@ test('Mobile Reader compact layout keeps all core controls accessible and quiets
   const css = fs.readFileSync(path.join(process.cwd(), 'styles.css'), 'utf8');
   const mobileReaderCss = css.match(/@media \(max-width: 640px\) \{[\s\S]*?\.reader-word-overlay/)?.[0] || '';
   assert.match(mobileReaderCss, /\.reader-control-actions\s*\{[\s\S]*display: flex/);
-  assert.match(mobileReaderCss, /\.reader-control-actions > \.btn\s*\{[\s\S]*calc\(50% - 3px\)/);
-  assert.match(mobileReaderCss, /\.reader-settings summary,[\s\S]*\.reader-search-toggle,[\s\S]*\.reader-progress-link\s*\{[\s\S]*min-height: 32px/);
+  assert.match(mobileReaderCss, /\.app:has\(#readerView:not\(\.hidden\)\) footer\s*\{[\s\S]*display: none/);
+  assert.match(mobileReaderCss, /\.reader-nav-btn\s*\{[\s\S]*width: 32px/);
+  assert.match(mobileReaderCss, /\.reader-nav-label\s*\{[\s\S]*display: none/);
+  assert.match(mobileReaderCss, /\.reader-reference\s*\{[\s\S]*display: none/);
+  assert.match(mobileReaderCss, /\.reader-settings summary,[\s\S]*\.reader-search-toggle,[\s\S]*\.reader-progress-link\s*\{[\s\S]*min-height: 30px/);
   assert.match(mobileReaderCss, /\.reader-chapter-heading-quiet\s*\{[\s\S]*position: absolute/);
 });
 
@@ -803,7 +807,7 @@ test('clicking Open Word Page closes the popup and opens a dynamic Word Page vie
   assert.equal((wordPageHtml.match(/Back to Reader/g) || []).length, 2);
   assert.match(wordPageHtml, /word-page-pos">Noun<\/div>/);
   assert.match(wordPageHtml, /<h2 id="wordPageIdentityHeading">Identity<\/h2>[\s\S]*<dt>Lemma<\/dt><dd>λόγος<\/dd>/);
-  assert.match(wordPageHtml, /word-page-primary-gloss">word<\/p>/);
+  assert.match(wordPageHtml, /<dt>Glosses<\/dt><dd>word, message, reason, account, matter<\/dd>/);
   assert.match(wordPageHtml, /<h2 id="wordPageOccurrenceHeading">This Occurrence<\/h2>/);
   assert.match(wordPageHtml, /<h2 id="wordPageLearningHeading">Learning<\/h2>/);
   assert.match(wordPageHtml, /<h2 id="wordPageReferenceHeading">Reference<\/h2>/);
@@ -817,10 +821,10 @@ test('clicking Open Word Page closes the popup and opens a dynamic Word Page vie
   assert.ok(wordPageHtml.indexOf('wordPageReferenceHeading') < wordPageHtml.indexOf('wordPageContextHeading'));
   assert.ok(wordPageHtml.indexOf('wordPageContextHeading') < wordPageHtml.indexOf('wordPageNavigationHeading'));
   assert.match(wordPageHtml, /id="wordPageReaderExamplesSlot"[\s\S]*hidden/);
-  assert.match(wordPageHtml, /Also translated as/);
-  assert.match(wordPageHtml, /message[\s\S]*account[\s\S]*matter/);
+  assert.doesNotMatch(wordPageHtml, /Also translated as/);
   assert.match(wordPageHtml, /<dt>Frequency<\/dt><dd>68×<\/dd>/);
   assert.match(wordPageHtml, /<dt>Current Reference<\/dt><dd>John 1:1<\/dd>/);
+  assert.doesNotMatch(wordPageHtml, /<dt>Meaning in Context<\/dt>/);
   assert.match(wordPageHtml, /data-topic-id="greek-nouns"/);
   assert.match(wordPageHtml, />Greek Nouns<\/button>/);
   assert.match(wordPageHtml, /Usage Examples/);
@@ -836,8 +840,7 @@ test('clicking Open Word Page closes the popup and opens a dynamic Word Page vie
   actionHandler();
   assert.match(wordPageHtml, /<h1 id="wordPageTitle" class="word-page-headword">ἀρχῇ<\/h1>/);
   assert.match(wordPageHtml, /<dt>Lemma<\/dt><dd>ἀρχή<\/dd>/);
-  assert.match(wordPageHtml, /word-page-primary-gloss">beginning<\/p>/);
-  assert.match(wordPageHtml, /origin/);
+  assert.match(wordPageHtml, /<dt>Glosses<\/dt><dd>beginning, rule, origin<\/dd>/);
   assert.match(wordPageHtml, /<dt>Frequency<\/dt><dd>55×<\/dd>/);
 
   await reader.openReaderTokenPopup({
@@ -845,11 +848,18 @@ test('clicking Open Word Page closes the popup and opens a dynamic Word Page vie
     focus(){}
   });
   actionHandler();
-  assert.match(wordPageHtml, /word-page-primary-gloss">single gloss<\/p>/);
+  assert.match(wordPageHtml, /<dt>Glosses<\/dt><dd>single gloss<\/dd>/);
   assert.doesNotMatch(wordPageHtml, /Also translated as/);
   delete global.state;
   delete global.toast;
   delete global.showView;
+});
+
+test('Hebrew Word Page primary headword never falls back to a raw numeric lemma', () => {
+  assert.equal(reader.readerPrimaryHeadword({ language: 'hebrew', lemma: '1961', root: 'היה', surface: 'וַֽיְהִי֙' }), 'היה');
+  assert.equal(reader.readerPrimaryHeadword({ language: 'hebrew', lemma: '1961', surface: 'וַֽיְהִי֙' }), 'וַֽיְהִי֙');
+  assert.equal(reader.readerPrimaryHeadword({ language: 'hebrew', lemma: '1961' }), 'Lemma unavailable');
+  assert.equal(reader.readerPrimaryHeadword({ language: 'greek', lemma: 'λόγος', surface: 'λόγον' }), 'λόγον');
 });
 
 test('Word Page learning section reflects shared vocabulary learning state', () => {
@@ -1155,6 +1165,20 @@ test('chapter navigation moves previous and next within a book', async () => {
   assert.equal(reader.getAdjacentReaderLocation(1).chapter, 2);
   await reader.setReaderLocation({ language: 'greek', book: 'matthew', chapter: 28 });
   assert.equal(reader.getAdjacentReaderLocation(-1).chapter, 27);
+});
+
+test('Reader text supports keyboard chapter navigation without stealing input arrows', async () => {
+  let prevented = false;
+  await reader.setReaderLocation({ language: 'greek', book: 'matthew', chapter: 2 });
+  assert.equal(reader.handleReaderChapterKeydown({ key: 'ArrowLeft', target: { tagName: 'ARTICLE' }, preventDefault(){ prevented = true; } }), true);
+  await new Promise(resolve => setTimeout(resolve, 0));
+  assert.equal(reader.readerState().chapter, 1);
+  assert.equal(prevented, true);
+
+  prevented = false;
+  assert.equal(reader.handleReaderChapterKeydown({ key: 'ArrowRight', target: { tagName: 'INPUT' }, preventDefault(){ prevented = true; } }), false);
+  assert.equal(reader.readerState().chapter, 1);
+  assert.equal(prevented, false);
 });
 
 test('last reader location persists', () => {
@@ -1490,8 +1514,7 @@ test('Hebrew Word Page opens from the shared popup and Read in Context uses the 
   assert.match(wordPageHtml, /<h1 id="wordPageTitle" class="word-page-headword" lang="he" dir="rtl">דְּבַר<\/h1>/);
   assert.match(wordPageHtml, /word-page-pos">Noun<\/div>/);
   assert.match(wordPageHtml, /<h2 id="wordPageIdentityHeading">Identity<\/h2>/);
-  assert.match(wordPageHtml, /word-page-primary-gloss">word<\/p>/);
-  assert.match(wordPageHtml, /matter[\s\S]*thing/);
+  assert.match(wordPageHtml, /<dt>Glosses<\/dt><dd>word, matter, thing<\/dd>/);
   assert.match(wordPageHtml, /<dt>Strong’s ID<\/dt><dd>1697<\/dd>/);
   assert.match(wordPageHtml, /<dt>Current Reference<\/dt><dd>Jonah 1:1<\/dd>/);
   assert.match(wordPageHtml, /data-topic-id="hebrew-nouns"/);
@@ -1642,7 +1665,7 @@ test('Ruth Hebrew popup, Word Page, search, and Read in Context use shared reade
   actionHandler();
   assert.equal(shownView, 'wordPageView');
   assert.match(wordPageHtml, /<h1 id="wordPageTitle" class="word-page-headword" lang="he" dir="rtl">רוּת֙<\/h1>/);
-  assert.match(wordPageHtml, /word-page-primary-gloss">ruth<\/p>/);
+  assert.match(wordPageHtml, /<dt>Glosses<\/dt><dd>ruth<\/dd>/);
   assert.match(wordPageHtml, /<dt>Current Reference<\/dt><dd>Ruth 1:16<\/dd>/);
 
   const searchResults = await reader.runReaderSearch('7327');

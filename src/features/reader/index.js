@@ -638,16 +638,29 @@ function readerSourceLemmaBase(sourceLemma = ''){
 function readerDisplayLemma(info = {}){
   const language = info.language || readerState.language || 'greek';
   const candidates = [
+    info.lemma,
     info.lexicalForm,
     info.hebrewLemma,
     info.root,
-    readerSourceLemmaBase(info.sourceLemma),
-    info.lemma
+    readerSourceLemmaBase(info.sourceLemma)
   ].map(cleanReaderTokenValue).filter(Boolean);
   if(language === 'hebrew'){
     return candidates.find(value => hasHebrewText(value) && !isNumericReaderLemma(value)) || '';
   }
   return candidates.find(value => !isNumericReaderLemma(value)) || '';
+}
+function readerPrimaryHeadword(info = {}){
+  const language = info.language || readerState.language || 'greek';
+  const surface = cleanReaderTokenValue(info.surface);
+  if(language === 'hebrew'){
+    const candidates = [
+      info.lemma,
+      info.root || info.hebrewLemma,
+      surface
+    ].map(cleanReaderTokenValue).filter(Boolean);
+    return candidates.find(value => !isNumericReaderLemma(value)) || 'Lemma unavailable';
+  }
+  return surface || readerDisplayLemma(info) || cleanReaderTokenValue(info.lemma) || 'Lemma unavailable';
 }
 function readerStrongId(info = {}){
   const language = info.language || readerState.language || 'greek';
@@ -796,7 +809,9 @@ function renderReaderGrammar(info = {}, partOfSpeech = ''){
 function renderReaderWordIdentity(info = {}, context = {}){
   const meta = getReaderLanguageMeta(info.language || readerState.language);
   const displayLemma = context.displayLemma || readerDisplayLemma(info);
-  const lemma = cleanReaderTokenValue(displayLemma || info.lemma || info.surface);
+  const lemma = cleanReaderTokenValue(displayLemma || context.headword || readerPrimaryHeadword(info));
+  const language = info.language || readerState.language || 'greek';
+  const lemmaLabel = language === 'hebrew' ? 'Lemma / Root' : 'Lemma';
   const glosses = mergeUniqueGlosses([
     info.primaryGloss,
     ...(Array.isArray(info.alternateGlosses) ? info.alternateGlosses : [])
@@ -805,11 +820,11 @@ function renderReaderWordIdentity(info = {}, context = {}){
         <section class="word-page-section word-page-identity" aria-labelledby="wordPageIdentityHeading">
           <h2 id="wordPageIdentityHeading">Identity</h2>
           <dl class="word-page-meta">
-            ${readerWordPageMeta('Lemma', lemma)}
+            ${readerWordPageMeta(lemmaLabel, lemma)}
             ${readerWordPageMeta('Glosses', glosses.join(', '))}
+            ${readerWordPageMeta('Language', meta.label)}
             ${readerWordPageMeta('Frequency', info.frequency ? `${info.frequency}×` : '')}
             ${readerWordPageMeta('Part of Speech', context.partOfSpeech || readerPartOfSpeechForInfo(info))}
-            ${readerWordPageMeta('Language', meta.label)}
           </dl>
         </section>`;
 }
@@ -819,20 +834,17 @@ function renderReaderWordOccurrence(info = {}, context = {}){
   const fields = readerMorphologyFields(info)
     .filter(field => cleanReaderTokenValue(field.value))
     .map(field => ({ label: language === 'hebrew' && field.label === 'Prefixes' ? 'Prefix' : field.label, value: field.value }));
-  const displayLemma = context.displayLemma || readerDisplayLemma(info);
   const strongId = context.strongId || readerStrongId(info);
-  const root = cleanReaderTokenValue(info.root || info.hebrewLemma || displayLemma);
   const summary = readerGrammarSummary(info, context.partOfSpeech);
   const surface = cleanReaderTokenValue(info.surface);
   const parse = cleanReaderTokenValue(info.parse);
-  if(!surface && !displayLemma && !parse && !fields.length && !info.reference) {
+  if(!surface && !parse && !fields.length && !info.reference) {
     return `
         <section class="word-page-section word-page-occurrence" aria-labelledby="wordPageOccurrenceHeading">
           <h2 id="wordPageOccurrenceHeading">This Occurrence</h2>
           <p class="word-page-context-empty">Open this word from the Reader to see occurrence-specific details.</p>
         </section>`;
   }
-  const lemmaLabel = language === 'hebrew' ? 'Lemma / Root' : 'Lemma';
   return `
         <section class="word-page-section word-page-occurrence" aria-labelledby="wordPageOccurrenceHeading">
           <h2 id="wordPageOccurrenceHeading">This Occurrence</h2>
@@ -840,9 +852,7 @@ function renderReaderWordOccurrence(info = {}, context = {}){
           ${summary ? `<p class="word-page-grammar-summary">${escHtml(summary)}</p>` : ''}
           <dl class="word-page-grammar-details">
             ${readerWordPageMeta('Current Reference', info.reference)}
-            ${readerWordPageMeta(lemmaLabel, displayLemma || root || strongId)}
             ${readerWordPageMeta('Strong’s ID', strongId)}
-            ${readerWordPageMeta('Meaning in Context', info.primaryGloss)}
             ${fields.map(field => readerWordPageMeta(field.label, field.value)).join('')}
           </dl>
           ${parse ? `<p class="word-page-parse-code">Parse code: ${escHtml(parse)}</p>` : ''}
@@ -1035,15 +1045,15 @@ function renderReader(){
         <select id="readerChapterSelect" class="input" aria-label="Chapter selector">${chapters.map(ch => `<option value="${ch}" ${ch===readerState.chapter?'selected':''}>Chapter ${ch}</option>`).join('')}</select>
       </div>
       <div class="reader-control-row reader-control-actions">
-        <button class="btn btn-ghost btn-sm" id="readerPrevBtn" ${getAdjacentReaderLocation(-1)?'':'disabled'}>← Previous</button>
-        <button class="btn btn-ghost btn-sm" id="readerNextBtn" ${getAdjacentReaderLocation(1)?'':'disabled'}>Next →</button>
+        <button class="btn btn-ghost btn-sm reader-nav-btn" id="readerPrevBtn" aria-label="Previous chapter" ${getAdjacentReaderLocation(-1)?'':'disabled'}><span class="reader-nav-icon" aria-hidden="true">←</span><span class="reader-nav-label">Previous</span></button>
+        <button class="btn btn-ghost btn-sm reader-nav-btn" id="readerNextBtn" aria-label="Next chapter" ${getAdjacentReaderLocation(1)?'':'disabled'}><span class="reader-nav-label">Next</span><span class="reader-nav-icon" aria-hidden="true">→</span></button>
         ${settings.translation === 'on' && settings.showTranslationToggle ? renderReaderTranslationToggle(settings, data) : ''}
         <details class="reader-settings" id="readerSettingsPanel" ${readerSettingsPanelOpen ? 'open' : ''}>
-          <summary class="btn btn-ghost btn-sm">Reader Settings</summary>
+          <summary class="btn btn-ghost btn-sm">Settings</summary>
           ${renderReaderSettingsPanel(settings, readerState.language, data)}
         </details>
         <button class="reader-search-toggle" id="readerSearchToggle" type="button" aria-expanded="${readerSearchOpen ? 'true' : 'false'}">Search</button>
-        <button class="reader-progress-link" id="readerBookProgressBtn" type="button">Book Progress</button>
+        <button class="reader-progress-link" id="readerBookProgressBtn" type="button" aria-label="View Book Progress">Progress</button>
         <div class="reader-reference" id="readerReference"><span>${escHtml(book.name)} ${readerState.chapter}</span><small>${escHtml(renderReaderStatus(effectiveSettings))}</small></div>
       </div>
     </section>
@@ -1062,6 +1072,20 @@ function renderReader(){
   wireReaderControls();
   renderReaderWordPopup();
   if(readerState.focusVerse && typeof document !== 'undefined') setTimeout(() => document.getElementById(`readerVerse-${readerState.focusVerse}`)?.scrollIntoView({ block: 'center' }), 0);
+}
+function navigateReaderAdjacent(direction){
+  const loc = getAdjacentReaderLocation(direction);
+  if(loc) setReaderLocation(loc);
+  return Boolean(loc);
+}
+function handleReaderChapterKeydown(event = {}){
+  if(event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) return false;
+  if(event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') return false;
+  const targetName = String(event.target?.tagName || '').toLowerCase();
+  if(['input','select','textarea','button'].includes(targetName) || event.target?.isContentEditable) return false;
+  const handled = navigateReaderAdjacent(event.key === 'ArrowLeft' ? -1 : 1);
+  if(handled) event.preventDefault?.();
+  return handled;
 }
 function renderReaderSettingsPanel(settings = getActiveReaderSettings(), language = readerState.language, data = readerState.chapterData){
   const customInvalid = settings.assistance === 'custom' && settings.customThreshold && !/^[1-9]\d*$/.test(settings.customThreshold);
@@ -1177,8 +1201,8 @@ function wireReaderControls(){
   });
   $('#readerBookSelect')?.addEventListener('change', e => setReaderLocation({ language: readerState.language, book: e.target.value, chapter: 1 }));
   $('#readerChapterSelect')?.addEventListener('change', e => setReaderLocation({ language: readerState.language, book: readerState.book, chapter: Number(e.target.value) }));
-  $('#readerPrevBtn')?.addEventListener('click', () => { const loc = getAdjacentReaderLocation(-1); if(loc) setReaderLocation(loc); });
-  $('#readerNextBtn')?.addEventListener('click', () => { const loc = getAdjacentReaderLocation(1); if(loc) setReaderLocation(loc); });
+  $('#readerPrevBtn')?.addEventListener('click', () => navigateReaderAdjacent(-1));
+  $('#readerNextBtn')?.addEventListener('click', () => navigateReaderAdjacent(1));
   $('#readerBookProgressBtn')?.addEventListener('click', openReaderBookProgress);
   $('#readerSearchToggle')?.addEventListener('click', openReaderSearch);
   $('#readerSearchClose')?.addEventListener('click', closeReaderSearch);
@@ -1195,6 +1219,7 @@ function wireReaderControls(){
   $('#readerCustomThreshold')?.addEventListener('change', e => updateReaderSetting('customThreshold', e.target.value));
   $$('[data-reader-text-mode]').forEach(btn => btn.addEventListener('click', () => updateReaderSetting('textMode', btn.dataset.readerTextMode)));
   $$('.reader-token').forEach(btn => btn.addEventListener('click', () => openReaderTokenPopup(btn)));
+  $('.reader-text')?.addEventListener('keydown', handleReaderChapterKeydown);
   if(typeof document !== 'undefined'){
     document.removeEventListener?.('keydown', handleReaderPopupKeydown);
     document.addEventListener?.('keydown', handleReaderPopupKeydown);
@@ -1416,13 +1441,11 @@ function renderReaderWordPage(){
   const info = readerState.wordPageInfo || {};
   const meta = getReaderLanguageMeta(info.language || readerState.language);
   const headwordAttrs = meta.dir === 'rtl' ? ` lang="${escReaderAttr(meta.htmlLang)}" dir="${escReaderAttr(meta.dir)}"` : '';
-  const lemma = cleanReaderTokenValue(info.lemma || info.surface);
-  const surface = cleanReaderTokenValue(info.surface);
+  const lookupLemma = cleanReaderTokenValue(info.lemma || info.surface);
+  const hasWordInfo = Boolean(lookupLemma || info.lexicalForm || info.root || info.hebrewLemma || info.surface);
   const displayLemma = readerDisplayLemma(info);
-  const headword = surface || displayLemma || lemma;
+  const headword = readerPrimaryHeadword(info);
   const strongId = readerStrongId(info);
-  const primaryGloss = cleanReaderTokenValue(info.primaryGloss);
-  const alternateGlosses = Array.isArray(info.alternateGlosses) ? info.alternateGlosses.map(cleanReaderTokenValue).filter(Boolean) : [];
   const partOfSpeech = readerPartOfSpeechForInfo(info);
   const links = readerGrammarLinksForInfo(info);
   const referenceItems = [
@@ -1443,17 +1466,12 @@ function renderReaderWordPage(){
         <button class="btn btn-primary" type="button" data-word-page-back-to-reader="true">Back to Reader</button>
       </div>
       <header class="word-page-header">
-        ${lemma ? `<h1 id="wordPageTitle" class="word-page-headword"${headwordAttrs}>${escHtml(headword)}</h1>` : `<h1 id="wordPageTitle" class="word-page-headword word-page-empty-title">Choose a word</h1>`}
+        ${hasWordInfo ? `<h1 id="wordPageTitle" class="word-page-headword"${headwordAttrs}>${escHtml(headword)}</h1>` : `<h1 id="wordPageTitle" class="word-page-headword word-page-empty-title">Choose a word</h1>`}
         ${partOfSpeech ? `<div class="word-page-pos">${escHtml(partOfSpeech)}</div>` : ''}
       </header>
-      ${lemma ? `
-        ${renderReaderWordIdentity(info, { displayLemma, partOfSpeech })}
+      ${hasWordInfo ? `
+        ${renderReaderWordIdentity(info, { displayLemma, partOfSpeech, headword })}
         ${renderReaderWordOccurrence(info, { displayLemma, partOfSpeech, strongId })}
-        ${primaryGloss || alternateGlosses.length ? `<section class="word-page-section" aria-labelledby="wordPageMeaningHeading">
-          <h2 id="wordPageMeaningHeading">Glosses</h2>
-          ${primaryGloss ? `<p class="word-page-primary-gloss">${escHtml(primaryGloss)}</p>` : ''}
-          ${alternateGlosses.length ? `<div class="word-page-also"><div>Also translated as</div><p>${escHtml(alternateGlosses.join(' • '))}</p></div>` : ''}
-        </section>` : ''}
         ${renderReaderWordLearning(info)}
         ${referenceHtml}
         ${renderReaderWordPageContext([], true)}
@@ -1471,7 +1489,7 @@ function renderReaderWordPage(){
     if(btn.dataset.wordLearnAction === 'review') reviewReaderWordFromPage(info);
   }));
   attachReaderWordPageContextHandlers(root, info);
-  if(lemma) updateReaderWordPageContext(lemma, info.language || readerState.language, 6, info);
+  if(lookupLemma) updateReaderWordPageContext(lookupLemma, info.language || readerState.language, 6, info);
 }
 function readerWordPageMeta(label, value){
   const clean = cleanReaderTokenValue(value);
@@ -1541,5 +1559,5 @@ async function runReaderSearch(query){
   return results;
 }
 async function initReader(){ const loc = loadReaderLocation(); readerState = { ...readerState, ...loc }; await setReaderLocation(loc); }
-if(typeof window !== 'undefined') Object.assign(window, { ReaderConfig, ReaderTranslationOptions, ReaderDefaultSettings, readerState, readerChapterCache, readerTranslationLoadCounts, readerManifestCache, readerLoadCounts, getReaderChapterPath, getReaderLanguageMeta, loadReaderManifest, loadReaderChapter, loadReaderTranslationChapter, ensureReaderTranslationLoaded, setReaderLocation, getAdjacentReaderLocation, renderReader, renderReaderChapter, renderReaderVerse, renderReaderTokens, initReader, runReaderSearch, loadReaderLocation, saveReaderLocation, loadReaderSettings, saveReaderSettings, getActiveReaderSettings, updateReaderSetting, openReaderSettingsPanel, closeReaderSettingsPanel, openReaderSearch, closeReaderSearch, readerTokenQualifiesForAssistance, renderReaderSettingsPanel, renderReaderTranslationToggle, parseReaderReference, openReaderTokenPopup, closeReaderWordPopup, openReaderWordPage, openReaderWordPageFromInfo, renderReaderWordPage, lookupReaderWordInfo, explainReaderParse, readerGrammarLinksForInfo, readerPartOfSpeechForInfo, readerMorphologyFields, renderReaderMorphology, renderReaderGrammar, renderReaderWordIdentity, renderReaderWordOccurrence, getReaderLemmaOccurrences, openReaderContextOccurrence, openReaderBookProgress, renderReaderWordLearning, readerLearningStatusForInfo, readerLearningDetailsForInfo, introduceReaderWordFromPage, reviewReaderWordFromPage });
-if(typeof module !== 'undefined') module.exports = { ReaderConfig, ReaderTranslationOptions, ReaderDefaultSettings, readerState: () => readerState, readerChapterCache, readerTranslationLoadCounts, readerManifestCache, readerLoadCounts, getReaderChapterPath, getReaderLanguageMeta, loadReaderManifest, normalizeReaderManifest, getReaderBookChapters, loadReaderChapter, loadReaderTranslationChapter, ensureReaderTranslationLoaded, setReaderLocation, getAdjacentReaderLocation, renderReader, renderReaderChapter, renderReaderVerse, renderReaderTokens, runReaderSearch, loadReaderLocation, saveReaderLocation, loadReaderSettings, saveReaderSettings, getActiveReaderSettings, updateReaderSetting, openReaderSettingsPanel, closeReaderSettingsPanel, openReaderSearch, closeReaderSearch, handleReaderPopupKeydown, handleReaderDocumentClick, readerAssistanceThreshold, readerTokenFrequency, readerTokenQualifiesForAssistance, renderReaderSettingsPanel, renderReaderTranslationToggle, readerChapterHasEnglish, readerTranslationVerseEnglish, parseReaderReference, normalizeReaderText, lookupReaderWordInfo, explainReaderParse, readerGrammarLinksForInfo, readerParseKind, readerPartOfSpeechForInfo, readerMorphologyFields, renderReaderMorphology, renderReaderGrammar, renderReaderWordIdentity, renderReaderWordOccurrence, openReaderTokenPopup, closeReaderWordPopup, openReaderWordPage, openReaderWordPageFromInfo, renderReaderWordPage, loadReaderSearchIndex, representativeReaderOccurrences, getReaderLemmaOccurrences, readerOccurrenceSnippet, renderReaderWordPageContext, renderReaderWordPageContextContent, attachReaderWordPageContextHandlers, openReaderContextOccurrence, openReaderBookProgress, renderReaderWordLearning, readerLearningStatusForInfo, readerLearningDetailsForInfo, introduceReaderWordFromPage, reviewReaderWordFromPage };
+if(typeof window !== 'undefined') Object.assign(window, { ReaderConfig, ReaderTranslationOptions, ReaderDefaultSettings, readerState, readerChapterCache, readerTranslationLoadCounts, readerManifestCache, readerLoadCounts, getReaderChapterPath, getReaderLanguageMeta, loadReaderManifest, loadReaderChapter, loadReaderTranslationChapter, ensureReaderTranslationLoaded, setReaderLocation, getAdjacentReaderLocation, navigateReaderAdjacent, handleReaderChapterKeydown, renderReader, renderReaderChapter, renderReaderVerse, renderReaderTokens, initReader, runReaderSearch, loadReaderLocation, saveReaderLocation, loadReaderSettings, saveReaderSettings, getActiveReaderSettings, updateReaderSetting, openReaderSettingsPanel, closeReaderSettingsPanel, openReaderSearch, closeReaderSearch, readerTokenQualifiesForAssistance, renderReaderSettingsPanel, renderReaderTranslationToggle, parseReaderReference, openReaderTokenPopup, closeReaderWordPopup, openReaderWordPage, openReaderWordPageFromInfo, renderReaderWordPage, lookupReaderWordInfo, explainReaderParse, readerDisplayLemma, readerPrimaryHeadword, readerGrammarLinksForInfo, readerPartOfSpeechForInfo, readerMorphologyFields, renderReaderMorphology, renderReaderGrammar, renderReaderWordIdentity, renderReaderWordOccurrence, getReaderLemmaOccurrences, openReaderContextOccurrence, openReaderBookProgress, renderReaderWordLearning, readerLearningStatusForInfo, readerLearningDetailsForInfo, introduceReaderWordFromPage, reviewReaderWordFromPage });
+if(typeof module !== 'undefined') module.exports = { ReaderConfig, ReaderTranslationOptions, ReaderDefaultSettings, readerState: () => readerState, readerChapterCache, readerTranslationLoadCounts, readerManifestCache, readerLoadCounts, getReaderChapterPath, getReaderLanguageMeta, loadReaderManifest, normalizeReaderManifest, getReaderBookChapters, loadReaderChapter, loadReaderTranslationChapter, ensureReaderTranslationLoaded, setReaderLocation, getAdjacentReaderLocation, navigateReaderAdjacent, handleReaderChapterKeydown, renderReader, renderReaderChapter, renderReaderVerse, renderReaderTokens, runReaderSearch, loadReaderLocation, saveReaderLocation, loadReaderSettings, saveReaderSettings, getActiveReaderSettings, updateReaderSetting, openReaderSettingsPanel, closeReaderSettingsPanel, openReaderSearch, closeReaderSearch, handleReaderPopupKeydown, handleReaderDocumentClick, readerAssistanceThreshold, readerTokenFrequency, readerTokenQualifiesForAssistance, renderReaderSettingsPanel, renderReaderTranslationToggle, readerChapterHasEnglish, readerTranslationVerseEnglish, parseReaderReference, normalizeReaderText, lookupReaderWordInfo, explainReaderParse, readerDisplayLemma, readerPrimaryHeadword, readerGrammarLinksForInfo, readerParseKind, readerPartOfSpeechForInfo, readerMorphologyFields, renderReaderMorphology, renderReaderGrammar, renderReaderWordIdentity, renderReaderWordOccurrence, openReaderTokenPopup, closeReaderWordPopup, openReaderWordPage, openReaderWordPageFromInfo, renderReaderWordPage, loadReaderSearchIndex, representativeReaderOccurrences, getReaderLemmaOccurrences, readerOccurrenceSnippet, renderReaderWordPageContext, renderReaderWordPageContextContent, attachReaderWordPageContextHandlers, openReaderContextOccurrence, openReaderBookProgress, renderReaderWordLearning, readerLearningStatusForInfo, readerLearningDetailsForInfo, introduceReaderWordFromPage, reviewReaderWordFromPage };

@@ -374,6 +374,51 @@ test('Reference local language selection is independent of global app language',
   assert.doesNotMatch(greek, /<h2>Hebrew<\/h2>/);
 });
 
+test('Reference Search results render immediately under the search controls with count and empty state', () => {
+  const vm = require('node:vm');
+  const ui = fs.readFileSync(path.join(__dirname, '../src/features/grammar/index.js'), 'utf8');
+  const makeElement = (attrs = {}) => ({
+    ...attrs,
+    innerHTML: '',
+    classList: { toggle(){} },
+    addEventListener(){},
+    querySelectorAll: () => []
+  });
+  const searchInput = makeElement({ value: 'verb' });
+  const searchResults = makeElement();
+  const topicList = makeElement();
+  const referencePage = makeElement();
+  const elements = {
+    '#referenceSearchInput': searchInput,
+    '#referenceSearchResults': searchResults,
+    '#referenceTopicList': topicList,
+    '#referencePage': referencePage
+  };
+  const context = {
+    PuritanReferenceLibrary: library,
+    state: { lang: 'greek' },
+    document: {},
+    localStorage: { getItem: () => null, setItem: () => {} },
+    $: selector => elements[selector] || null,
+    $$: () => [],
+    debounce: fn => fn
+  };
+  vm.createContext(context);
+  vm.runInContext(`${ui}; renderReferenceLibrary();`, context);
+  assert.match(searchResults.innerHTML, /Reference Search · \d+ results/);
+  assert.match(searchResults.innerHTML, /reference-topic-btn/);
+  assert.match(topicList.innerHTML, /<nav class="grammar-home"/);
+
+  searchInput.value = 'zzzz-no-topic';
+  vm.runInContext('renderReferenceLibrary();', context);
+  assert.match(searchResults.innerHTML, /Reference Search · 0 results/);
+  assert.match(searchResults.innerHTML, /No reference topics match “zzzz-no-topic.”/);
+
+  searchInput.value = '';
+  vm.runInContext('renderReferenceLibrary();', context);
+  assert.equal(searchResults.innerHTML, '');
+});
+
 test('service worker cache version and app shell cache bust are bumped', () => {
   const sw = fs.readFileSync('sw.js', 'utf8');
   const html = fs.readFileSync('index.html', 'utf8');

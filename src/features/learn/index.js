@@ -903,14 +903,25 @@ function renderLearnHome(){
   const totalToday = summaries.reduce((sum, item) => sum + item.todayCount, 0);
   const totalMore = summaries.reduce((sum, item) => sum + item.moreAvailable, 0);
   const estimated = summaries.reduce((sum, item) => sum + (item.todayCount ? item.estimatedMinutes : 0), 0);
+  const activePath = String(learnState.activeVocabularyPath || '').trim();
+  const activePathTitle = activePath ? learnPageTitle(activePath) : '';
+  const continueLearningHtml = activePath ? `
+        <div class="learn-card-grid">
+          ${learnCard({ title: activePathTitle || 'Current Vocabulary Path', description: 'Return to the vocabulary path currently in progress.' }, activePath, 'learn-card-compact')}
+        </div>` : `
+        <section class="word-page-section learn-explainer">
+          <h2>No active path yet</h2>
+          <p>Start a vocabulary or reading path, and it will appear here while you work through it.</p>
+        </section>`;
   return `
     <section class="panel learn-panel learn-dashboard" aria-labelledby="learnTitle">
       ${renderLearnHeader('Learn', 'Practice and acquire knowledge.', 'learnTitle')}
       <section class="learn-dashboard-section learn-review-dashboard" aria-labelledby="learnReviewQueueTitle" data-learn-dashboard-section="review-queue">
         <div class="learn-section-heading">
           <h2 id="learnReviewQueueTitle">Review Queue</h2>
-          <p>${totalToday ? `${totalToday} in today's queue. About ${Math.max(1, estimated)} minutes.` : 'You are caught up for today. You can practice more or continue a learning path.'}</p>
+          <p>Maintain what is due today.</p>
         </div>
+        <p class="muted small">${totalToday ? `${totalToday} in today's queue. About ${Math.max(1, estimated)} minutes.` : 'You are caught up for today. You can practice more or continue a learning path.'}</p>
         <div class="learn-review-summary-grid">
           ${summaries.map(summary => `
             <article class="learn-review-summary" data-learn-review-language="${escHtml(summary.language)}">
@@ -933,18 +944,14 @@ function renderLearnHome(){
       <section class="learn-dashboard-section" aria-labelledby="learnContinueTitle" data-learn-dashboard-section="continue-learning">
         <div class="learn-section-heading">
           <h2 id="learnContinueTitle">Continue Learning</h2>
-          <p>Finish paths you have already begun.</p>
+          <p>Pick up paths you have already started.</p>
         </div>
-        <div class="learn-card-grid">
-          ${learnCard({ title: 'Greek Frequency Path', description: 'Continue global Greek vocabulary by frequency.' }, 'vocabulary:frequency:greek', 'learn-card-compact')}
-          ${learnCard({ title: 'Hebrew Frequency Path', description: 'Continue global Hebrew vocabulary by frequency.' }, 'vocabulary:frequency:hebrew', 'learn-card-compact')}
-          ${learnCard({ title: 'Reading Readiness', description: 'Continue a book or chapter preparation path.' }, 'reading-readiness', 'learn-card-compact')}
-        </div>
+        ${continueLearningHtml}
       </section>
       <section class="learn-dashboard-section" aria-labelledby="learnStartTitle" data-learn-dashboard-section="start-new">
         <div class="learn-section-heading">
           <h2 id="learnStartTitle">Start Something New</h2>
-          <p>Begin vocabulary or grammar learning from the established paths.</p>
+          <p>Begin a new vocabulary or grammar path.</p>
         </div>
         <div class="learn-language-grid">
           <section class="learn-language-group">
@@ -952,7 +959,6 @@ function renderLearnHome(){
             <div class="learn-card-grid learn-card-grid-compact">
               ${learnCard({ title: 'Frequency Paths', description: 'Core vocabulary by Greek or Hebrew frequency.' }, 'vocabulary:frequency', 'learn-card-compact')}
               ${learnCard({ title: 'Reading Paths', description: 'Prepare vocabulary for books and chapters.' }, 'vocabulary:book', 'learn-card-compact')}
-              ${learnCard({ title: 'Study Sets', description: 'Quiet custom sets for focused goals.' }, 'study-sets', 'learn-card-compact')}
             </div>
           </section>
           <section class="learn-language-group">
@@ -968,7 +974,7 @@ function renderLearnHome(){
       <section class="learn-dashboard-section" aria-labelledby="learnPracticeTitle" data-learn-dashboard-section="practice">
         <div class="learn-section-heading">
           <h2 id="learnPracticeTitle">Practice</h2>
-          <p>User-directed practice when you want more than the daily queue.</p>
+          <p>Drill on demand, even when nothing is due.</p>
         </div>
         <div class="learn-card-grid">
           ${learnCard({ title: 'Vocabulary Practice', description: 'Frequency, Known words, Learning words, Not Learned words, and Study Sets.' }, 'vocabulary:practice', 'learn-card-compact')}
@@ -979,7 +985,7 @@ function renderLearnHome(){
       <section class="learn-dashboard-section learn-study-sets-supplement" aria-labelledby="learnStudySetsTitle" data-learn-dashboard-section="study-sets">
         <div class="learn-section-heading">
           <h2 id="learnStudySetsTitle">Study Sets</h2>
-          <p>Create focused study sets for a sermon, quiz, favorite book, or personal review.</p>
+          <p>Create or review focused collections.</p>
         </div>
         <button class="learn-card learn-card-compact" type="button" data-learn-page="study-sets">
           <span class="learn-card-title">Study Sets</span>
