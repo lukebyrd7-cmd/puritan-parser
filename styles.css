@@ -1925,6 +1925,38 @@ button:focus-visible, input:focus-visible, select:focus-visible {
   text-align: right;
 }
 .reader-word-grammar { margin-top: 12px; }
+.reader-word-form-details {
+  margin-top: 12px;
+  border-top: 1px solid var(--border);
+  padding-top: 10px;
+}
+.reader-word-form-details p {
+  margin: 0 0 8px;
+  color: var(--text);
+  font-size: 13px;
+  line-height: 1.4;
+}
+.reader-word-form-details dl {
+  display: grid;
+  gap: 5px;
+  margin: 0;
+}
+.reader-word-form-details dl div {
+  display: flex;
+  gap: 8px;
+  align-items: baseline;
+  justify-content: space-between;
+  font-size: 12px;
+}
+.reader-word-form-details dt {
+  color: var(--muted);
+  font-weight: 750;
+}
+.reader-word-form-details dd {
+  margin: 0;
+  color: var(--text);
+  text-align: right;
+}
 .reader-word-label {
   margin-bottom: 7px;
   color: var(--muted);

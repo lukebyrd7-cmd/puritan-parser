@@ -51,6 +51,19 @@ test('Global Search finds Greek lemmas and English glosses with language filters
   assert.equal(result.total, 0);
 });
 
+test('Global Search finds Greek lemmas through simple transliteration', () => {
+  storage.delete(global.VocabularyLearning.STORAGE_KEY);
+  let result = search.searchGlobalVocabulary({ query: 'logos', language: 'greek' });
+  assert.ok(result.results[0], 'expected transliterated logos to return a result');
+  assert.equal(result.results[0].headword, 'λόγος');
+
+  result = search.searchGlobalVocabulary({ query: 'agape', language: 'greek' });
+  assert.equal(result.results[0].headword, 'ἀγάπη');
+
+  result = search.searchGlobalVocabulary({ query: 'logos', language: 'hebrew' });
+  assert.equal(result.total, 0);
+});
+
 test('Global Search displays learning status and filters by it', () => {
   let store = global.VocabularyLearning.normalizeStore();
   store = global.VocabularyLearning.introduceEntry(store, global.state.data.greek[0], { type: 'test' }, '2026-07-03');
@@ -114,6 +127,8 @@ test('Global Search indexes browser app lexical state and realistic study entrie
   `, context);
 
   let result = context.searchGlobalVocabulary({ query: 'λόγος', language: 'greek' });
+  assert.equal(result.results[0].headword, 'λόγος');
+  result = context.searchGlobalVocabulary({ query: 'logos', language: 'greek' });
   assert.equal(result.results[0].headword, 'λόγος');
   result = context.searchGlobalVocabulary({ query: 'word', language: 'all' });
   assert.equal(result.results.some(item => item.language === 'greek' && item.headword === 'λόγος'), true);

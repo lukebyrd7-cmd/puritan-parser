@@ -631,8 +631,7 @@ test('Hebrew morphology display uses existing prefix, suffix, stem, and conjugat
   ]);
 
   const suffixHtml = reader.renderReaderGrammar({ language: 'hebrew', parse: 'HR/Sp3fs', parseExplanation: 'Preposition' }, 'Preposition');
-  assert.match(renderedText(suffixHtml), /Grammar Preposition — with 3rd person feminine singular suffix Suffix 3rd person feminine singular Parse code: HR\/Sp3fs/);
-  assert.equal((renderedText(suffixHtml).match(/Suffix/g) || []).length, 1);
+  assert.match(renderedText(suffixHtml), /Grammar Preposition — with her \/ it \(3rd person feminine singular\) suffix Suffix 3rd person feminine singular Suffix Pronoun her \/ it Parse code: HR\/Sp3fs/);
 
   const hiphil = reader.readerMorphologyFields({ language: 'hebrew', parse: 'HVhp1cp' });
   assert.deepEqual(hiphil, [
@@ -657,8 +656,8 @@ test('Word Page grammar display summarizes Hebrew nouns and verbs without duplic
     parse: 'HNcmpa/Sp2ms',
     parseExplanation: 'Noun'
   }, 'Noun');
-  assert.match(renderedText(nounSuffixHtml), /Grammar Noun — masculine plural absolute with 2nd person masculine singular suffix/);
-  assert.equal((renderedText(nounSuffixHtml).match(/Suffix/g) || []).length, 1);
+  assert.match(renderedText(nounSuffixHtml), /Grammar Noun — masculine plural absolute with your \/ you \(2nd person masculine singular\) suffix/);
+  assert.match(renderedText(nounSuffixHtml), /Suffix 2nd person masculine singular Suffix Pronoun your \/ you/);
   assert.doesNotMatch(nounSuffixHtml, /wordPageMorphologyHeading/);
 
   const verbHtml = reader.renderReaderGrammar({
@@ -682,11 +681,79 @@ test('This Occurrence renders Hebrew prefix and suffix fields without undefined 
   assert.match(renderedText(html), /This Occurrence וַיֹּאמֶר Verb — Qal wayyiqtol, 3rd person masculine singular/);
   assert.match(renderedText(html), /Prefix Conjunction/);
   assert.match(renderedText(html), /Suffix 3rd person masculine singular/);
+  assert.match(renderedText(html), /Suffix Pronoun his \/ him \/ its/);
   assert.doesNotMatch(html, /undefined|null/);
 
   const emptyHtml = reader.renderReaderWordOccurrence({ language: 'hebrew', lemma: '559' });
   assert.match(emptyHtml, /occurrence-specific details/);
   assert.doesNotMatch(emptyHtml, /undefined|null/);
+});
+
+test('Hebrew Reader popup shows readable form details without numeric lemma headwords', async () => {
+  storageHarness();
+  let shellHtml = '';
+  let popupHtml = '';
+  const popupRoot = {
+    set innerHTML(value){ popupHtml = value; },
+    get innerHTML(){ return popupHtml; },
+    querySelector: selector => selector === '.reader-word-close' || selector === '.reader-word-page-action' ? { addEventListener(){}, focus(){} } : null,
+    querySelectorAll: () => []
+  };
+  const shell = { set innerHTML(value){ shellHtml = value; }, get innerHTML(){ return shellHtml; } };
+  global.$ = (selector, scope) => scope?.querySelector ? scope.querySelector(selector) : ({ '#readerShell': shell, '#readerWordPopupRoot': popupRoot }[selector] || null);
+  global.$$ = () => [];
+  global.state = { data: { hebrew: [
+    { lang: 'hebrew', lemma: '1697', word: '1697', lexicalForm: 'דָּבָר', primaryGloss: 'word', alternateGlosses: ['matter'], freq: 1440 }
+  ] } };
+
+  await reader.setReaderLocation({ language: 'hebrew', book: 'jonah', chapter: 1 });
+  await reader.openReaderTokenPopup({
+    dataset: {
+      readerAssisted: 'true',
+      surface: 'דְּבָרֶיךָ',
+      lemma: '1697',
+      parse: 'HNcmpc/Sp2ms',
+      sourceLemma: '1697',
+      book: 'jonah',
+      bookName: 'Jonah',
+      chapter: '1',
+      verse: '1'
+    },
+    focus(){}
+  });
+
+  assert.match(popupHtml, /Form Details/);
+  assert.match(renderedText(popupHtml), /Lemma \/ Root דָּבָר/);
+  assert.match(renderedText(popupHtml), /Noun — masculine plural construct with your \/ you \(2nd person masculine singular\) suffix/);
+  assert.match(renderedText(popupHtml), /Suffix Pronoun your \/ you/);
+  assert.doesNotMatch(popupHtml, /<strong>1697<\/strong>/);
+  assert.doesNotMatch(popupHtml, /undefined|null/);
+  reader.closeReaderWordPopup();
+  delete global.state;
+});
+
+test('Mobile Reader swipe navigation uses horizontal threshold and ignores vertical scroll', async () => {
+  storageHarness();
+  let html = '';
+  let prevented = 0;
+  const shell = { set innerHTML(value){ html = value; }, get innerHTML(){ return html; } };
+  global.$ = selector => selector === '#readerShell' ? shell : null;
+  global.$$ = () => [];
+  await reader.setReaderLocation({ language: 'greek', book: 'matthew', chapter: 1 });
+
+  reader.handleReaderTouchStart({ touches: [{ clientX: 180, clientY: 100 }] });
+  assert.equal(reader.handleReaderTouchEnd({ changedTouches: [{ clientX: 150, clientY: 105 }], preventDefault(){ prevented += 1; } }), false);
+  assert.equal(reader.readerState().chapter, 1);
+
+  reader.handleReaderTouchStart({ touches: [{ clientX: 180, clientY: 100 }] });
+  assert.equal(reader.handleReaderTouchEnd({ changedTouches: [{ clientX: 120, clientY: 170 }], preventDefault(){ prevented += 1; } }), false);
+  assert.equal(reader.readerState().chapter, 1);
+
+  reader.handleReaderTouchStart({ touches: [{ clientX: 180, clientY: 100 }] });
+  assert.equal(reader.handleReaderTouchEnd({ changedTouches: [{ clientX: 90, clientY: 112 }], preventDefault(){ prevented += 1; } }), true);
+  await new Promise(resolve => setTimeout(resolve, 0));
+  assert.equal(reader.readerState().chapter, 2);
+  assert.equal(prevented, 1);
 });
 
 test('reader word lookup falls back gracefully when data is missing', async () => {
@@ -1501,10 +1568,11 @@ test('Hebrew token lookup and popup display Jonah gloss, lemma, frequency, refer
   assert.match(popupHtml, /reader-word-popup/);
   assert.match(popupHtml, /lang="he" dir="rtl">וַֽיְהִי֙/);
   assert.match(popupHtml, /be/);
-  assert.match(popupHtml, /Lemma[\s\S]*1961/);
+  assert.doesNotMatch(popupHtml, /<strong>1961<\/strong>/);
   assert.match(popupHtml, /Frequency[\s\S]*\d+×/);
   assert.match(popupHtml, /Reference[\s\S]*Jonah 1:1/);
   assert.match(popupHtml, /Verb — qal wayyiqtol 3rd person masculine singular/);
+  assert.match(popupHtml, /Form Details/);
   assert.match(popupHtml, /data-topic-id="hebrew-verbs"/);
   assert.match(popupHtml, /Parse: HC\/Vqw3ms/);
   reader.closeReaderWordPopup();

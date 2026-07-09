@@ -22,6 +22,18 @@
   function normalizeText(value){
     return clean(value).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
   }
+  function hasGreekText(value){ return /[\u0370-\u03ff]/.test(clean(value)); }
+  function transliterateGreek(value){
+    const text = normalizeText(value);
+    if(!hasGreekText(text)) return '';
+    const multi = { θ: 'th', φ: 'ph', χ: 'ch', ψ: 'ps' };
+    const single = {
+      α: 'a', β: 'b', γ: 'g', δ: 'd', ε: 'e', ζ: 'z', η: 'e',
+      ι: 'i', κ: 'k', λ: 'l', μ: 'm', ν: 'n', ξ: 'x', ο: 'o',
+      π: 'p', ρ: 'r', σ: 's', ς: 's', τ: 't', υ: 'u', ω: 'o'
+    };
+    return Array.from(text).map(char => multi[char] || single[char] || char).join('').replace(/[^a-z0-9\s]/g, ' ').replace(/\s+/g, ' ').trim();
+  }
   function hasHebrewText(value){ return /[\u0590-\u05ff]/.test(clean(value)); }
   function isNumericLemma(value){ return /^\d+[+a-zA-Z]?$/.test(clean(value)); }
   function escapeHtml(value){
@@ -111,6 +123,9 @@
       entry.customGloss,
       ...alternateGlosses(entry)
     ];
+    if((clean(entry.lang).toLowerCase() || 'greek') === 'greek'){
+      values.push(...[display, entry.lemma, entry.lexicalForm, entry.word, entry.normalized].map(transliterateGreek));
+    }
     return values.map(normalizeText).filter(Boolean).join(' ');
   }
   function buildGlobalSearchIndex(){
@@ -135,7 +150,8 @@
           frequency: Number(entry.freq) || 0,
           partOfSpeech: partOfSpeech({ ...entry, lang }),
           learningStatus: details.label || details.status || 'Not Learned',
-          searchText: searchTextForEntry({ ...entry, lang }, headword, gloss)
+          searchText: searchTextForEntry({ ...entry, lang }, headword, gloss),
+          transliterationText: lang === 'greek' ? [headword, entry.lemma, entry.lexicalForm, entry.word, entry.normalized].map(transliterateGreek).filter(Boolean).join(' ') : ''
         };
       }));
     return cachedEntries;
@@ -145,8 +161,11 @@
     const headword = normalizeText(item.headword);
     const lemma = normalizeText(item.lemma);
     const gloss = normalizeText(item.gloss);
+    const transliteration = normalizeText(item.transliterationText);
     if(headword === q || lemma === q) return 1000 + item.frequency;
+    if(transliteration.split(/\s+/).includes(q)) return 950 + item.frequency;
     if(headword.startsWith(q) || lemma.startsWith(q)) return 800 + item.frequency;
+    if(transliteration.includes(q)) return 750 + item.frequency;
     if(gloss === q) return 700 + item.frequency;
     if(gloss.startsWith(q)) return 600 + item.frequency;
     if(item.searchText.includes(q)) return 300 + item.frequency;
@@ -304,6 +323,7 @@
     openGlobalSearchResult,
     displayHeadword,
     normalizeText,
+    transliterateGreek,
     isNumericLemma
   };
 });
