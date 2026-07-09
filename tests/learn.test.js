@@ -36,6 +36,7 @@ const learn = require('../src/features/learn/index.js');
 const VocabularyLearning = require('../src/models/vocabulary-learning');
 const BookProgress = require('../src/core/book-progress');
 const StudySets = require('../src/models/study-sets');
+const SavedVocabulary = require('../src/models/saved-vocabulary');
 
 function renderedText(html){
   return String(html || '').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
@@ -114,7 +115,7 @@ test('Learn home opens the three permanent study areas', () => {
   assert.match(text, /Begin a new vocabulary or grammar path/);
   assert.match(text, /Drill on demand, even when nothing is due/);
   assert.match(text, /Create or review focused collections/);
-  assert.match(text, /No active path yet/);
+  assert.match(text, /No active learning paths yet/);
   assert.doesNotMatch(text, /Greek Frequency Path/);
   assert.equal((html.match(/data-learn-page="study-sets"/g) || []).length, 1);
   assert.doesNotMatch(html, /id="learnBackBtn"/);
@@ -200,6 +201,58 @@ test('Study Sets accept explicit vocabulary words and practice includes them', (
   assert.match(text, /Rare Quiz/);
   assert.match(text, /1 of 1/);
   assert.match(text, /agape/);
+});
+
+test('Study Set detail can add selected words without duplicates or SRS changes', () => {
+  storage.delete(StudySets.STORAGE_KEY);
+  storage.delete(VocabularyLearning.STORAGE_KEY);
+
+  const created = learn.createLearnStudySet({
+    title: 'Hand picked',
+    language: 'greek',
+    type: 'vocabulary',
+    source: 'hand-picked'
+  });
+
+  let html = renderPage(`study-sets:detail:${created.id}`);
+  let text = renderedText(html);
+  assert.match(text, /Add Words/);
+  assert.match(text, /logos/);
+
+  learn.addSelectedVocabularyToLearnStudySet(created.id, ['lemma:greek:logos', 'lemma:greek:logos']);
+  learn.addSelectedVocabularyToLearnStudySet(created.id, ['lemma:greek:logos']);
+  const set = StudySets.loadStore().sets[0];
+  assert.equal(set.explicitItems.length, 1);
+  assert.equal(Object.keys(VocabularyLearning.loadStore().records || {}).length, 0);
+
+  html = renderPage(`study-sets:browse:${created.id}`);
+  text = renderedText(html);
+  assert.match(text, /logos/);
+  assert.match(text, /word/);
+});
+
+test('Saved words source can be created and practiced', () => {
+  storage.delete(StudySets.STORAGE_KEY);
+  storage.delete(VocabularyLearning.STORAGE_KEY);
+  storage.delete(SavedVocabulary.STORAGE_KEY);
+  SavedVocabulary.saveEntry(global.state.data.greek[0]);
+
+  const created = learn.createLearnStudySet({
+    title: 'Saved Greek',
+    language: 'greek',
+    type: 'vocabulary',
+    source: 'saved'
+  });
+  assert.equal(created.criteria.kind, 'saved');
+
+  let html = renderPage(`study-sets:detail:${created.id}`);
+  let text = renderedText(html);
+  assert.match(text, /Saved Greek words/);
+  assert.match(text, /1 items/);
+
+  html = renderPage(`vocabulary:practice:study-set:${created.id}`);
+  text = renderedText(html);
+  assert.match(text, /logos/);
 });
 
 test('Study Set delete requires confirmation and preserves learning data', () => {

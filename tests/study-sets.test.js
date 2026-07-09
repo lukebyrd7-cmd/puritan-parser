@@ -3,6 +3,7 @@ const assert = require('node:assert/strict');
 
 const StudySets = require('../src/models/study-sets');
 const VocabularyLearning = require('../src/models/vocabulary-learning');
+const SavedVocabulary = require('../src/models/saved-vocabulary');
 
 const entries = [
   { id: 'lemma:greek:logos', lang: 'greek', lemma: 'logos', word: 'logos', primaryGloss: 'word', freq: 330 },
@@ -103,4 +104,66 @@ test('Study Set criteria collections include explicit vocabulary words as additi
     ['logos', 'agape', 'rare']
   );
   assert.match(StudySets.sourceSummary(set), /25x and higher \+ 1 hand-picked/);
+});
+
+test('Study Set saved source resolves saved vocabulary without changing SRS', () => {
+  const storage = installStorage();
+  SavedVocabulary.saveEntry(entries[1]);
+
+  const set = StudySets.normalizeSet({
+    title: 'Saved',
+    language: 'greek',
+    type: 'vocabulary',
+    criteria: { kind: 'saved' }
+  });
+
+  assert.deepEqual(
+    StudySets.resolveVocabularyEntries(set, entries, VocabularyLearning, VocabularyLearning.normalizeStore(), SavedVocabulary).map(item => item.lemma),
+    ['agape']
+  );
+  assert.equal(Object.keys(VocabularyLearning.loadStore().records || {}).length, 0);
+  assert.match(StudySets.sourceSummary(set), /Saved Greek words/);
+
+  delete global.localStorage;
+});
+
+test('Study Set overdue source uses existing review scheduling only', () => {
+  let store = VocabularyLearning.normalizeStore();
+  store = VocabularyLearning.introduceEntry(store, entries[0], { type: 'test' }, '2026-07-03');
+  store.records[VocabularyLearning.lemmaId(entries[0])].due = '2026-07-03';
+
+  const set = StudySets.normalizeSet({
+    title: 'Backlog',
+    language: 'greek',
+    type: 'vocabulary',
+    criteria: { kind: 'overdue' }
+  });
+
+  assert.deepEqual(
+    StudySets.resolveVocabularyEntries(set, entries, VocabularyLearning, store, SavedVocabulary).map(item => item.lemma),
+    ['logos']
+  );
+});
+
+test('Study Set book and chapter criteria resolve scoped vocabulary ids', () => {
+  const set = StudySets.normalizeSet({
+    title: 'Romans 8',
+    language: 'greek',
+    type: 'vocabulary',
+    criteria: {
+      kind: 'chapter',
+      bookId: 'romans',
+      bookName: 'Romans',
+      chapter: 8,
+      status: 'all',
+      threshold: 'all',
+      vocabularyIds: ['lemma:greek:logos', 'lemma:greek:rare']
+    }
+  });
+
+  assert.deepEqual(
+    StudySets.resolveVocabularyEntries(set, entries, VocabularyLearning, VocabularyLearning.normalizeStore(), SavedVocabulary).map(item => item.lemma),
+    ['logos', 'rare']
+  );
+  assert.match(StudySets.sourceSummary(set), /Greek words from Romans 8/);
 });

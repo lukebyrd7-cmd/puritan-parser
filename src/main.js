@@ -17,6 +17,7 @@ const PURITAN_PARSER_SCRIPTS = [
   'src/models/preferences.js',
   'src/models/dashboard-stats.js',
   'src/models/vocabulary-learning.js',
+  'src/models/saved-vocabulary.js',
   'src/models/study-sets.js',
   'src/models/onboarding.js',
   'src/core/storage/storage.js',

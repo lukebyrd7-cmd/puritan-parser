@@ -9,6 +9,9 @@ const ReaderTranslationOptions = [
 const ReaderStudySetsModel = (typeof PuritanStudySets !== 'undefined')
   ? PuritanStudySets
   : (typeof require === 'function' ? require('../../models/study-sets') : null);
+const ReaderSavedVocabularyModel = (typeof PuritanSavedVocabulary !== 'undefined')
+  ? PuritanSavedVocabulary
+  : (typeof require === 'function' ? require('../../models/saved-vocabulary') : null);
 const ReaderDefaultSettings = {
   display: 'original',
   translation: 'on',
@@ -491,6 +494,25 @@ function renderReaderWordStudySets(info = {}){
             <button class="btn btn-ghost btn-sm" type="submit">Create and Add</button>
           </form>
         </section>`;
+}
+function renderReaderWordSaved(info = {}){
+  const entry = readerVocabularyLearningEntry(info);
+  if(!entry || !ReaderSavedVocabularyModel) return '';
+  const saved = ReaderSavedVocabularyModel.isSaved(entry);
+  return `
+        <section class="word-page-section word-page-saved" aria-labelledby="wordPageSavedHeading">
+          <h2 id="wordPageSavedHeading">Saved</h2>
+          <p class="small muted">Save this word for later without choosing a Study Set. This does not change SRS status.</p>
+          <button class="btn ${saved ? 'btn-ghost' : 'btn-primary'} btn-sm" type="button" data-word-save-toggle="true">${saved ? 'Unsave Word' : 'Save Word'}</button>
+        </section>`;
+}
+function toggleReaderSavedWord(info = readerState.wordPageInfo || {}){
+  const entry = readerVocabularyLearningEntry(info);
+  if(!entry || !ReaderSavedVocabularyModel) return null;
+  const result = ReaderSavedVocabularyModel.toggleEntry(entry);
+  if(typeof toast === 'function') toast(result.removed ? 'Word unsaved.' : result.saved ? 'Word saved.' : 'Saved words updated.');
+  renderReaderWordPage();
+  return result;
 }
 function addReaderWordToStudySet(setId, info = readerState.wordPageInfo || {}){
   const entry = readerVocabularyLearningEntry(info);
@@ -1583,6 +1605,7 @@ function renderReaderWordPage(){
         ${renderReaderWordIdentity(info, { displayLemma, partOfSpeech, headword })}
         ${renderReaderWordOccurrence(info, { displayLemma, partOfSpeech, strongId })}
         ${renderReaderWordLearning(info)}
+        ${renderReaderWordSaved(info)}
         ${renderReaderWordStudySets(info)}
         ${referenceHtml}
         ${renderReaderWordPageContext([], true)}
@@ -1599,6 +1622,7 @@ function renderReaderWordPage(){
     if(btn.dataset.wordLearnAction === 'learn') introduceReaderWordFromPage(info);
     if(btn.dataset.wordLearnAction === 'review') reviewReaderWordFromPage(info);
   }));
+  $$('[data-word-save-toggle]', root).forEach(btn => btn.addEventListener('click', () => toggleReaderSavedWord(info)));
   $$('[data-word-study-set-add]', root).forEach(form => form.addEventListener('submit', event => {
     event.preventDefault();
     const data = new FormData(form);
@@ -1683,5 +1707,5 @@ async function runReaderSearch(query){
   return results;
 }
 async function initReader(){ const loc = loadReaderLocation(); readerState = { ...readerState, ...loc }; await setReaderLocation(loc); }
-if(typeof window !== 'undefined') Object.assign(window, { ReaderConfig, ReaderTranslationOptions, ReaderDefaultSettings, readerState, readerChapterCache, readerTranslationLoadCounts, readerManifestCache, readerLoadCounts, getReaderChapterPath, getReaderLanguageMeta, loadReaderManifest, loadReaderChapter, loadReaderTranslationChapter, ensureReaderTranslationLoaded, setReaderLocation, getAdjacentReaderLocation, navigateReaderAdjacent, handleReaderChapterKeydown, handleReaderTouchStart, handleReaderTouchEnd, renderReader, renderReaderChapter, renderReaderVerse, renderReaderTokens, initReader, runReaderSearch, loadReaderLocation, saveReaderLocation, loadReaderSettings, saveReaderSettings, getActiveReaderSettings, updateReaderSetting, openReaderSettingsPanel, closeReaderSettingsPanel, openReaderSearch, closeReaderSearch, readerTokenQualifiesForAssistance, renderReaderSettingsPanel, renderReaderTranslationToggle, parseReaderReference, openReaderTokenPopup, closeReaderWordPopup, openReaderWordPage, openReaderWordPageFromInfo, renderReaderWordPage, lookupReaderWordInfo, explainReaderParse, readerDisplayLemma, readerPrimaryHeadword, readerGrammarLinksForInfo, readerPartOfSpeechForInfo, readerMorphologyFields, renderReaderMorphology, renderReaderGrammar, renderReaderWordIdentity, renderReaderWordOccurrence, getReaderLemmaOccurrences, openReaderContextOccurrence, openReaderBookProgress, renderReaderWordLearning, renderReaderWordStudySets, readerLearningStatusForInfo, readerLearningDetailsForInfo, introduceReaderWordFromPage, reviewReaderWordFromPage, addReaderWordToStudySet, createReaderStudySetFromWord });
-if(typeof module !== 'undefined') module.exports = { ReaderConfig, ReaderTranslationOptions, ReaderDefaultSettings, readerState: () => readerState, readerChapterCache, readerTranslationLoadCounts, readerManifestCache, readerLoadCounts, getReaderChapterPath, getReaderLanguageMeta, loadReaderManifest, normalizeReaderManifest, getReaderBookChapters, loadReaderChapter, loadReaderTranslationChapter, ensureReaderTranslationLoaded, setReaderLocation, getAdjacentReaderLocation, navigateReaderAdjacent, handleReaderChapterKeydown, handleReaderTouchStart, handleReaderTouchEnd, renderReader, renderReaderChapter, renderReaderVerse, renderReaderTokens, runReaderSearch, loadReaderLocation, saveReaderLocation, loadReaderSettings, saveReaderSettings, getActiveReaderSettings, updateReaderSetting, openReaderSettingsPanel, closeReaderSettingsPanel, openReaderSearch, closeReaderSearch, handleReaderPopupKeydown, handleReaderDocumentClick, readerAssistanceThreshold, readerTokenFrequency, readerTokenQualifiesForAssistance, renderReaderSettingsPanel, renderReaderTranslationToggle, readerChapterHasEnglish, readerTranslationVerseEnglish, parseReaderReference, normalizeReaderText, lookupReaderWordInfo, explainReaderParse, readerDisplayLemma, readerPrimaryHeadword, readerGrammarLinksForInfo, readerParseKind, readerPartOfSpeechForInfo, readerMorphologyFields, renderReaderMorphology, renderReaderGrammar, renderReaderWordIdentity, renderReaderWordOccurrence, openReaderTokenPopup, closeReaderWordPopup, openReaderWordPage, openReaderWordPageFromInfo, renderReaderWordPage, loadReaderSearchIndex, representativeReaderOccurrences, getReaderLemmaOccurrences, readerOccurrenceSnippet, renderReaderWordPageContext, renderReaderWordPageContextContent, attachReaderWordPageContextHandlers, openReaderContextOccurrence, openReaderBookProgress, renderReaderWordLearning, renderReaderWordStudySets, readerLearningStatusForInfo, readerLearningDetailsForInfo, introduceReaderWordFromPage, reviewReaderWordFromPage, addReaderWordToStudySet, createReaderStudySetFromWord };
+if(typeof window !== 'undefined') Object.assign(window, { ReaderConfig, ReaderTranslationOptions, ReaderDefaultSettings, readerState, readerChapterCache, readerTranslationLoadCounts, readerManifestCache, readerLoadCounts, getReaderChapterPath, getReaderLanguageMeta, loadReaderManifest, loadReaderChapter, loadReaderTranslationChapter, ensureReaderTranslationLoaded, setReaderLocation, getAdjacentReaderLocation, navigateReaderAdjacent, handleReaderChapterKeydown, handleReaderTouchStart, handleReaderTouchEnd, renderReader, renderReaderChapter, renderReaderVerse, renderReaderTokens, initReader, runReaderSearch, loadReaderLocation, saveReaderLocation, loadReaderSettings, saveReaderSettings, getActiveReaderSettings, updateReaderSetting, openReaderSettingsPanel, closeReaderSettingsPanel, openReaderSearch, closeReaderSearch, readerTokenQualifiesForAssistance, renderReaderSettingsPanel, renderReaderTranslationToggle, parseReaderReference, openReaderTokenPopup, closeReaderWordPopup, openReaderWordPage, openReaderWordPageFromInfo, renderReaderWordPage, lookupReaderWordInfo, explainReaderParse, readerDisplayLemma, readerPrimaryHeadword, readerGrammarLinksForInfo, readerPartOfSpeechForInfo, readerMorphologyFields, renderReaderMorphology, renderReaderGrammar, renderReaderWordIdentity, renderReaderWordOccurrence, getReaderLemmaOccurrences, openReaderContextOccurrence, openReaderBookProgress, renderReaderWordLearning, renderReaderWordSaved, renderReaderWordStudySets, readerLearningStatusForInfo, readerLearningDetailsForInfo, introduceReaderWordFromPage, reviewReaderWordFromPage, toggleReaderSavedWord, addReaderWordToStudySet, createReaderStudySetFromWord });
+if(typeof module !== 'undefined') module.exports = { ReaderConfig, ReaderTranslationOptions, ReaderDefaultSettings, readerState: () => readerState, readerChapterCache, readerTranslationLoadCounts, readerManifestCache, readerLoadCounts, getReaderChapterPath, getReaderLanguageMeta, loadReaderManifest, normalizeReaderManifest, getReaderBookChapters, loadReaderChapter, loadReaderTranslationChapter, ensureReaderTranslationLoaded, setReaderLocation, getAdjacentReaderLocation, navigateReaderAdjacent, handleReaderChapterKeydown, handleReaderTouchStart, handleReaderTouchEnd, renderReader, renderReaderChapter, renderReaderVerse, renderReaderTokens, runReaderSearch, loadReaderLocation, saveReaderLocation, loadReaderSettings, saveReaderSettings, getActiveReaderSettings, updateReaderSetting, openReaderSettingsPanel, closeReaderSettingsPanel, openReaderSearch, closeReaderSearch, handleReaderPopupKeydown, handleReaderDocumentClick, readerAssistanceThreshold, readerTokenFrequency, readerTokenQualifiesForAssistance, renderReaderSettingsPanel, renderReaderTranslationToggle, readerChapterHasEnglish, readerTranslationVerseEnglish, parseReaderReference, normalizeReaderText, lookupReaderWordInfo, explainReaderParse, readerDisplayLemma, readerPrimaryHeadword, readerGrammarLinksForInfo, readerParseKind, readerPartOfSpeechForInfo, readerMorphologyFields, renderReaderMorphology, renderReaderGrammar, renderReaderWordIdentity, renderReaderWordOccurrence, openReaderTokenPopup, closeReaderWordPopup, openReaderWordPage, openReaderWordPageFromInfo, renderReaderWordPage, loadReaderSearchIndex, representativeReaderOccurrences, getReaderLemmaOccurrences, readerOccurrenceSnippet, renderReaderWordPageContext, renderReaderWordPageContextContent, attachReaderWordPageContextHandlers, openReaderContextOccurrence, openReaderBookProgress, renderReaderWordLearning, renderReaderWordSaved, renderReaderWordStudySets, readerLearningStatusForInfo, readerLearningDetailsForInfo, introduceReaderWordFromPage, reviewReaderWordFromPage, toggleReaderSavedWord, addReaderWordToStudySet, createReaderStudySetFromWord };

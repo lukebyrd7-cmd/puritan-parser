@@ -8,7 +8,7 @@
   const VERSION = 1;
   const LANGUAGES = ['greek', 'hebrew', 'mixed'];
   const TYPES = ['vocabulary', 'grammar', 'mixed'];
-  const VOCABULARY_SOURCE_KINDS = ['frequency', 'known', 'learning', 'not-learned', 'hand-picked'];
+  const VOCABULARY_SOURCE_KINDS = ['frequency', 'known', 'learning', 'not-learned', 'hand-picked', 'saved', 'overdue', 'book', 'chapter'];
 
   function clean(value){ return typeof value === 'string' ? value.trim() : ''; }
   function nowISO(){ return new Date().toISOString(); }
@@ -35,6 +35,19 @@
     if(kind === 'frequency'){
       const threshold = clean(source.threshold) === 'all' ? 'all' : String(Math.max(1, Math.floor(Number(source.threshold) || 25)));
       return { kind, threshold };
+    }
+    if(kind === 'book' || kind === 'chapter'){
+      const threshold = clean(source.threshold) === 'all' ? 'all' : (clean(source.threshold) ? String(Math.max(1, Math.floor(Number(source.threshold) || 1))) : 'all');
+      const status = ['all','known','learning','not-learned','overdue','saved'].includes(clean(source.status)) ? clean(source.status) : 'all';
+      return {
+        kind,
+        bookId: clean(source.bookId || source.book),
+        bookName: clean(source.bookName),
+        chapter: kind === 'chapter' ? Math.max(1, Math.floor(Number(source.chapter) || 1)) : '',
+        threshold,
+        status,
+        vocabularyIds: Array.isArray(source.vocabularyIds) ? source.vocabularyIds.map(clean).filter(Boolean) : []
+      };
     }
     return { kind };
   }
@@ -173,22 +186,46 @@
     if(criteria.kind === 'known') return `${language} Known words`;
     if(criteria.kind === 'learning') return `${language} Learning words`;
     if(criteria.kind === 'not-learned') return `${language} Not Learned words`;
+    if(criteria.kind === 'saved') return `Saved ${language} words`;
+    if(criteria.kind === 'overdue') return `${language} review backlog`;
+    if(criteria.kind === 'book') return `${criteria.status === 'all' ? '' : `${criteria.status.replace('-', ' ')} `}${language} words from ${criteria.bookName || criteria.bookId || 'a book'}`.trim();
+    if(criteria.kind === 'chapter') return `${criteria.status === 'all' ? '' : `${criteria.status.replace('-', ' ')} `}${language} words from ${criteria.bookName || criteria.bookId || 'a book'} ${criteria.chapter || 1}`.trim();
     return `${language} vocabulary`;
   }
-  function vocabularyMatchesCriteria(entry = {}, set = {}, vocabModel, store){
+  function statusMatchesCriterion(entry = {}, status = 'all', vocabModel, store, savedModel){
+    if(status === 'all') return true;
+    if(status === 'saved') return Boolean(savedModel?.isSaved?.(entry));
+    if(!vocabModel) return false;
+    const value = vocabModel.learningStatus(store, entry);
+    if(status === 'known') return value === vocabModel.STATUS.KNOWN || value === vocabModel.STATUS.KNOWN_SELF_REPORTED;
+    if(status === 'learning') return value === vocabModel.STATUS.LEARNING || value === vocabModel.STATUS.REVIEWING;
+    if(status === 'not-learned') return value === vocabModel.STATUS.NOT_LEARNED;
+    if(status === 'overdue'){
+      const details = vocabModel.learningStatusDetails?.(store, entry);
+      return details?.dueState === 'overdue' || details?.dueState === 'due-today';
+    }
+    return false;
+  }
+  function thresholdMatchesEntry(entry = {}, threshold = 'all'){
+    if(threshold === 'all' || !clean(threshold)) return true;
+    return (Number(entry.freq) || 0) >= (Number(threshold) || 0);
+  }
+  function vocabularyMatchesCriteria(entry = {}, set = {}, vocabModel, store, savedModel){
     if(set.type !== 'vocabulary') return false;
     if(clean(entry.lang).toLowerCase() !== set.language) return false;
     const criteria = set.criteria || {};
     if(criteria.kind === 'hand-picked') return false;
     if(criteria.kind === 'frequency'){
-      if(criteria.threshold === 'all') return true;
-      return (Number(entry.freq) || 0) >= (Number(criteria.threshold) || 0);
+      return thresholdMatchesEntry(entry, criteria.threshold);
     }
-    if(!vocabModel) return false;
-    const status = vocabModel.learningStatus(store, entry);
-    if(criteria.kind === 'known') return status === vocabModel.STATUS.KNOWN || status === vocabModel.STATUS.KNOWN_SELF_REPORTED;
-    if(criteria.kind === 'learning') return status === vocabModel.STATUS.LEARNING || status === vocabModel.STATUS.REVIEWING;
-    if(criteria.kind === 'not-learned') return status === vocabModel.STATUS.NOT_LEARNED;
+    if(criteria.kind === 'saved') return Boolean(savedModel?.isSaved?.(entry));
+    if(criteria.kind === 'overdue') return statusMatchesCriterion(entry, 'overdue', vocabModel, store, savedModel);
+    if(criteria.kind === 'known' || criteria.kind === 'learning' || criteria.kind === 'not-learned') return statusMatchesCriterion(entry, criteria.kind, vocabModel, store, savedModel);
+    if(criteria.kind === 'book' || criteria.kind === 'chapter'){
+      const id = vocabModel?.lemmaId ? vocabModel.lemmaId(entry) : clean(entry.id);
+      const scoped = Array.isArray(criteria.vocabularyIds) && criteria.vocabularyIds.includes(id);
+      return scoped && thresholdMatchesEntry(entry, criteria.threshold) && statusMatchesCriterion(entry, criteria.status, vocabModel, store, savedModel);
+    }
     return false;
   }
   function vocabularyMatchesExplicitItem(entry = {}, item = {}, vocabModel){
@@ -207,13 +244,13 @@
     }
     return entries.filter(entry => items.some(item => vocabularyMatchesExplicitItem(entry, item, vocabModel)));
   }
-  function resolveVocabularyEntries(set = {}, entries = [], vocabModel, store){
+  function resolveVocabularyEntries(set = {}, entries = [], vocabModel, store, savedModel){
     const sorted = vocabModel?.sortedFrequencyEntries
       ? vocabModel.sortedFrequencyEntries(entries)
       : entries.slice().sort((a, b) => (Number(b.freq) || 0) - (Number(a.freq) || 0));
     const seen = new Set();
     return [
-      ...sorted.filter(entry => vocabularyMatchesCriteria(entry, set, vocabModel, store)),
+      ...sorted.filter(entry => vocabularyMatchesCriteria(entry, set, vocabModel, store, savedModel)),
       ...resolveExplicitVocabularyEntries(set, sorted, vocabModel)
     ].filter(entry => {
       const key = vocabModel?.lemmaId ? vocabModel.lemmaId(entry) : clean(entry.id || entry.lemma || entry.word);
