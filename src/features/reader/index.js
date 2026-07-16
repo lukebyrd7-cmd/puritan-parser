@@ -188,6 +188,7 @@ function loadReaderLocation(){
 function sanitizeReaderSettings(settings = {}, language = readerState.language){
   const next = { ...ReaderDefaultSettings, ...(settings || {}) };
   next.display = next.display === 'interlinear' ? 'interlinear' : 'original';
+  if(language === 'hebrew' && !readerLanguageCanUseInterlinear(language)) next.display = 'original';
   next.translation = next.translation === 'on' ? 'on' : 'off';
   next.translationProvider = ReaderTranslationOptions.some(option => option.id === next.translationProvider) ? next.translationProvider : ReaderDefaultSettings.translationProvider;
   next.textMode = next.textMode === 'english' ? 'english' : 'original';
@@ -239,6 +240,7 @@ function saveReaderSettings(settings = loadReaderSettings(), language = readerSt
   const existingLanguage = all[language] && typeof all[language] === 'object' ? all[language] : {};
   all.shared = { ...(all.shared || {}) };
   ReaderSharedSettingKeys.forEach(key => {
+    if(key === 'display' && language === 'hebrew' && !readerLanguageCanUseInterlinear(language) && all.shared.display) return;
     all.shared[key] = clean[key];
   });
   all[language] = {
@@ -1449,14 +1451,13 @@ function handleReaderDocumentClick(event){
 }
 function updateReaderSetting(key, value){
   const wasSettingsPanelOpen = readerSettingsPanelOpen;
-  const storedSettings = loadAllReaderSettings();
-  const updateLanguage = storedSettings.greek && !storedSettings[readerState.language] ? 'greek' : readerState.language;
-  const settings = loadReaderSettings(updateLanguage);
+  const updateLanguage = readerState.language;
+  const settings = getActiveReaderSettings();
   const next = { ...settings };
   if(key === 'hideKnown') next.hideKnown = Boolean(value);
   else if(key === 'floatingControls') next.floatingControls = Boolean(value);
   else if(key === 'floatingTranslationToggle') next.floatingTranslationToggle = Boolean(value);
-  else if(key === 'showTranslationToggle', 'wordDetailsDisplay') next.showTranslationToggle = Boolean(value);
+  else if(key === 'showTranslationToggle') next.showTranslationToggle = Boolean(value);
   else if(key === 'customThreshold'){
     const clean = String(value || '').trim();
     if(clean && !/^[1-9]\d*$/.test(clean)){
@@ -1485,9 +1486,6 @@ function updateReaderSetting(key, value){
     next.wordDetailsDisplay = normalizeReaderWordDetailsDisplay(value);
   }
   const saved = saveReaderSettings(next, updateLanguage);
-  if(key === 'display'){ const all = loadAllReaderSettings(); all.shared = { ...(all.shared || {}), display: next.display }; saveAllReaderSettings(all); saved.display = next.display; }
-  if(key === 'textMode'){ const all = loadAllReaderSettings(); all.shared = { ...(all.shared || {}), textMode: next.textMode }; saveAllReaderSettings(all); saved.textMode = next.textMode; }
-  if(key === 'customThreshold' && String(value || '').trim() && !/^[1-9]\d*$/.test(String(value || '').trim())){ if(typeof toast === 'function') toast('Enter a positive whole number.'); return settings; }
   readerSettingsPanelOpen = wasSettingsPanelOpen;
   if(saved.translation === 'on' && (key === 'translation' || key === 'translationProvider' || (key === 'textMode' && saved.textMode === 'english'))){
     ensureReaderTranslationLoaded(saved).then(() => renderReader());
