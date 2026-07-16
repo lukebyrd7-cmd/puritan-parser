@@ -249,7 +249,12 @@
     'hebrew-hitpael':'hebrew-verbs',
     'hebrew-weak-verbs':'hebrew-verbs',
     'hebrew-katav-stem-relationships':'hebrew-verbs',
-    'grammar-parsing-decoder':'greek-morphology-guide',
+    'grammar-parsing-decoder':'greek-grammar-handbook',
+    'greek-morphology-guide':'greek-grammar-handbook',
+    'hebrew-morphology-guide':'hebrew-grammar-handbook',
+    'greek-prepositions':'greek-grammar-handbook',
+    'hebrew-particles':'hebrew-grammar-handbook',
+    'grammar-parsing-ambiguity':'greek-grammar-handbook',
     'greek-quick-reference':'greek-grammar-handbook',
     'hebrew-quick-reference':'hebrew-grammar-handbook',
     'greek-reading-helps':'greek-grammar-handbook',
@@ -585,11 +590,15 @@
     { id:'verbals', label:'Verbs & verbal forms', collapsible:true, jumpChips:verbals.map((section,index)=>({ label:section.title, target:referenceSectionSlug(section,index) })), sections:verbals }
   ];
   topics.push(
-    { id:'greek-grammar-handbook', language:'greek', title:'Grammar Handbook', category:'Grammar', summary:'Concepts and patterns for reading Greek.', body:['Choose a category, then open only the topic you need.'], recognitionTips:[], searchTerms:['Grammar Handbook','nouns and cases','article','adjectives','pronouns','indicative verbs','participles','infinitives','subjunctive','imperative','middle passive voice','verbal aspect','syntax'], sectionTabs:handbookTabs([
+    { id:'greek-grammar-handbook', language:'greek', title:'Grammar Handbook', category:'Grammar', summary:'Concepts and patterns for reading Greek.', body:['Choose a category, then open only the topic you need.'], recognitionTips:[], searchTerms:['Grammar Handbook','Morphology Guide','Parsing Abbreviations','N-NSM','V-AAI-3S','nouns and cases','article','adjectives','pronouns','prepositions','ambiguous forms','indicative verbs','participles','infinitives','subjunctive','imperative','middle passive voice','verbal aspect','syntax'], sectionTabs:handbookTabs([
       sectionFromTopic('greek-case-functions','Nouns and Cases'),
       sectionFromTopic('greek-article-endings','Article'),
       sectionFromTopic('greek-adjective-endings','Adjectives'),
-      sectionFromTopic('greek-pronouns','Pronouns')
+      sectionFromTopic('greek-pronouns','Pronouns'),
+      sectionWithId(sectionByTitle(oldTopic('greek-morphology-guide').sections || [], 'What morphology describes'), 'morphology-terminology'),
+      sectionWithId(sectionByTitle(oldTopic('greek-morphology-guide').sections || [], 'Parsing Abbreviations'), 'parsing-abbreviations'),
+      sectionFromTopic('greek-prepositions','Prepositions and Particles'),
+      sectionFromTopic('grammar-parsing-ambiguity','Understanding Ambiguous Forms')
     ], [
       tabSection('greek-verbs','concepts','Voice'),
       tabSection('greek-verbs','concepts','Aspect'),
@@ -597,35 +606,33 @@
       tabSection('greek-verbs','paradigms','Participles'),
       tabSection('greek-verbs','paradigms','Infinitives')
     ]), charts:[], examples:[], related:['greek-paradigm-charts','grammar-parsing-ambiguity'] },
-    { id:'hebrew-grammar-handbook', language:'hebrew', title:'Grammar Handbook', category:'Grammar', summary:'Concepts and patterns for reading Hebrew.', body:['Choose a category, then open only the topic you need.'], recognitionTips:[], searchTerms:['Grammar Handbook','nouns adjectives','construct chain','pronominal suffixes','Qal verbs','derived stems','weak verbs','wayyiqtol','waw consecutive','particles','prepositions','word order','clause basics'], sectionTabs:handbookTabs([
+    { id:'hebrew-grammar-handbook', language:'hebrew', title:'Grammar Handbook', category:'Grammar', summary:'Concepts and patterns for reading Hebrew.', body:['Choose a category, then open only the topic you need.'], recognitionTips:[], searchTerms:['Grammar Handbook','Morphology Guide','Parsing Abbreviations','person gender number','nouns adjectives','construct chain','pronominal suffixes','Qal verbs','derived stems','weak verbs','wayyiqtol','waw consecutive','particles','prepositions','word order','clause basics'], sectionTabs:handbookTabs([
       sectionFromTopic('hebrew-noun-basics','Nouns and Adjectives'),
       sectionFromTopic('hebrew-construct-chains','Construct Chain'),
       sectionFromTopic('hebrew-pronominal-suffixes','Pronominal Suffixes'),
-      sectionFromTopic('hebrew-prefixes','Particles and Prepositions')
+      sectionFromTopic('hebrew-prefixes','Particles and Prepositions'),
+      sectionWithId(sectionByTitle(oldTopic('hebrew-morphology-guide').sections || [], 'What morphology describes'), 'morphology-terminology'),
+      sectionWithId(sectionByTitle(oldTopic('hebrew-morphology-guide').sections || [], 'Person, Gender, Number'), 'person-gender-number')
     ], [
       tabSection('hebrew-verbs','paradigms','Qal'),
       tabSection('hebrew-verbs','concepts','Stem Meanings'),
       tabSection('hebrew-verbs','paradigms','Weak Verbs'),
       tabSection('hebrew-verbs','concepts','Waw Consecutive')
-    ]), charts:[], examples:[], related:['hebrew-paradigm-charts','hebrew-morphology-guide'] },
-    { id:'greek-paradigm-charts', language:'greek', title:'Paradigm Charts', category:'Paradigm Charts', summary:'Fast access to Greek noun, article, pronoun, adjective, and verb forms.', body:['Paradigm Charts are for finding forms quickly. Explanations stay in the Handbook.'], recognitionTips:['Use the chart for form lookup, then return to the passage.'], searchTerms:['Paradigm Charts','noun declensions','article','pronouns','verb endings','participles','infinitives','imperative','subjunctive'], sections:[
-      tabSection('greek-verbs','paradigms','Present'),
-      tabSection('greek-verbs','paradigms','Aorist'),
-      tabSection('greek-verbs','paradigms','Participles'),
-      tabSection('greek-verbs','paradigms','Infinitives'),
-      sectionFromTopic('greek-case-endings','Noun Declensions'),
-      sectionFromTopic('greek-article-endings','Article'),
-      sectionFromTopic('greek-pronoun-endings','Pronouns')
-    ], charts:[], examples:[], related:['greek-grammar-handbook'] },
-    { id:'hebrew-paradigm-charts', language:'hebrew', title:'Paradigm Charts', category:'Paradigm Charts', summary:'Fast access to Hebrew strong verb, stem, noun, and suffix charts.', body:['Charts use existing Reference material. Complex passive and weak forms are not filled in when the current source data does not supply them.'], recognitionTips:['Do not treat unsupplied cells as complete paradigm forms.'], searchTerms:['Paradigm Charts','strong verb paradigms','stem summaries','pronouns suffixes','weak verbs','Qal','Niphal','Piel','Hiphil'], sections:[
-      tabSection('hebrew-verbs','paradigms','Strong Verb Paradigms'),
-      tabSection('hebrew-verbs','paradigms','Stems'),
-      tabSection('hebrew-verbs','paradigms','Qal'),
-      tabSection('hebrew-verbs','paradigms','Niphal'),
-      tabSection('hebrew-verbs','paradigms','Piel'),
-      tabSection('hebrew-verbs','paradigms','Hiphil'),
-      sectionFromTopic('hebrew-pronominal-suffixes','Pronouns and Suffixes')
-    ], charts:[], examples:[], related:['hebrew-grammar-handbook'] },
+    ]), charts:[], examples:[], related:['hebrew-paradigm-charts'] },
+    { id:'greek-paradigm-charts', language:'greek', title:'Paradigm Charts', category:'Paradigm Charts', summary:'Fast access to Greek noun, article, pronoun, adjective, and verb forms.', body:['Select a category, then consult the chart family you need.'], recognitionTips:[], searchTerms:['Paradigm Charts','Verb Paradigms','Noun Declensions','article','pronouns','adjectives','participles','infinitives','imperative','subjunctive','Greek present active indicative','Greek aorist passive indicative','Greek first declension nouns','Greek relative pronouns'], sectionTabs:[
+      categoryTab('verbs','Verb Paradigms',[tabSection('greek-verbs','paradigms','Present'), tabSection('greek-verbs','paradigms','Imperfect'), tabSection('greek-verbs','paradigms','Future'), tabSection('greek-verbs','paradigms','Aorist'), tabSection('greek-verbs','paradigms','Perfect'), tabSection('greek-verbs','paradigms','Pluperfect')]),
+      categoryTab('nouns','Noun Declensions',[sectionFromTopic('greek-case-endings','Noun Declensions'), sectionFromTopic('greek-article-endings','Article')]),
+      categoryTab('participles','Participles',[tabSection('greek-verbs','paradigms','Participles')]),
+      categoryTab('adjectives','Adjectives',[sectionFromTopic('greek-adjective-endings','Adjectives')]),
+      categoryTab('pronouns','Pronouns',[sectionFromTopic('greek-pronoun-endings','Pronouns'), sectionFromTopic('greek-pronouns','Pronoun Forms')])
+    ], charts:[], examples:[], breadcrumbs:['Reference','Paradigm Charts'], related:['greek-grammar-handbook'] },
+    { id:'hebrew-paradigm-charts', language:'hebrew', title:'Paradigm Charts', category:'Paradigm Charts', summary:'Fast access to Hebrew strong verb, stem, noun, and suffix charts.', body:['Select a category, then consult the supplied strong-root forms. Unsupplied passive-stem forms are not offered as selections.'], recognitionTips:[], searchTerms:['Paradigm Charts','Verb Stems','Verbal Forms','Pronominal Suffixes','Nominal Patterns','strong verb paradigms','Qal','Niphal','Piel','Pual','Hiphil','Hophal','Hitpael'], sectionTabs:[
+      categoryTab('verb-stems','Verb Stems',[tabSection('hebrew-verbs','paradigms','Qal'), tabSection('hebrew-verbs','paradigms','Niphal'), tabSection('hebrew-verbs','paradigms','Piel'), tabSection('hebrew-verbs','paradigms','Pual'), tabSection('hebrew-verbs','paradigms','Hiphil'), tabSection('hebrew-verbs','paradigms','Hophal'), tabSection('hebrew-verbs','paradigms','Hitpael')]),
+      categoryTab('verbal-forms','Verbal Forms',[tabSection('hebrew-verbs','paradigms','Strong Verb Paradigms'), tabSection('hebrew-verbs','paradigms','Participles'), tabSection('hebrew-verbs','paradigms','Infinitives'), tabSection('hebrew-verbs','paradigms','Imperatives')]),
+      categoryTab('suffixes','Pronominal Suffixes',[sectionFromTopic('hebrew-pronominal-suffixes','Pronominal Suffixes')]),
+      categoryTab('nominals','Nominal Patterns',[sectionFromTopic('hebrew-noun-basics','Nouns and Adjectives'), sectionFromTopic('hebrew-construct-chains','Construct State')]),
+      categoryTab('weak-verbs','Weak Verbs',[tabSection('hebrew-verbs','paradigms','Weak Verbs')])
+    ], charts:[], examples:[], breadcrumbs:['Reference','Paradigm Charts'], related:['hebrew-grammar-handbook'] },
     { id:'greek-morphology-guide', language:'greek', title:'Morphology Guide', category:'Language Resources', summary:'How Greek words change form to express their role.', body:['Morphology connects a word’s form with the grammatical information it carries. Start with the category and visible form; compact labels are secondary.'], recognitionTips:['Read the part of speech first, then identify the categories that apply to it.'], searchTerms:['Morphology Guide','Parsing Abbreviations','N-NSM','V-AAI-3S','person gender number','tense voice mood','case number gender','abbreviations'], sections:[
       { title:'What morphology describes', body:['Nominal forms express case, number, and gender. Finite verb forms express tense-form, voice, mood, person, and number. Participles combine verbal features with case, number, and gender.'], recognitionTips:['Not every category applies to every part of speech.','Agreement links nouns with articles, adjectives, pronouns, and participles.'], charts:[], examples:[] },
       { title:'Core grammatical categories', body:['Case marks a nominal form’s relationship in a clause. Number distinguishes singular and plural. Gender is a grammatical classification. Tense-form and aspect present verbal action from a viewpoint; voice relates the subject to the action; mood presents the action as assertion, command, possibility, or another stance.'], recognitionTips:['Treat morphology as a description of form, then use syntax and context to interpret function.'], charts:[], examples:[] },
@@ -653,8 +660,8 @@
   );
 
   const referenceTopicOrder = [
-    'greek-grammar-handbook','greek-paradigm-charts','greek-morphology-guide','greek-verbs','greek-nouns','greek-pronouns','greek-adjectives','greek-prepositions','grammar-parsing-ambiguity',
-    'hebrew-grammar-handbook','hebrew-paradigm-charts','hebrew-morphology-guide','hebrew-verbs','hebrew-nouns','hebrew-particles'
+    'greek-paradigm-charts','greek-grammar-handbook','greek-verbs','greek-nouns','greek-pronouns','greek-adjectives',
+    'hebrew-paradigm-charts','hebrew-grammar-handbook','hebrew-verbs','hebrew-nouns'
   ];
   const visibleTopics = topics
     .filter(t => !oldTopicAliasIds.has(t.id))
@@ -681,19 +688,11 @@
   function referenceLandingSections(language='greek'){
     const prefix = language === 'hebrew' ? 'hebrew' : 'greek';
     const entry = (id, label, description='', featured=false) => ({ id, label, description, featured });
-    const morphologyDescription = prefix === 'hebrew' ? 'Roots, stems, attached forms, and inflection.' : 'Forms, agreement, and grammatical categories.';
-    const supplemental = prefix === 'hebrew'
-      ? [entry('hebrew-particles','Particles and Prepositions','Attached forms and reading cues.'), entry('hebrew-verbs','Stem Summaries','Stem relationships and strong forms.')]
-      : [entry('greek-prepositions','Prepositions','Common forms and case patterns.'), entry('greek-pronouns','Pronouns','Personal, demonstrative, relative, and interrogative forms.'), entry('grammar-parsing-ambiguity','Ambiguous Forms','A checklist for look-alike forms.')];
     return [
-      { tier:'primary', title:'Primary Reference', description:'Core handbook pages for reading and consultation.', entries:[
-        entry(`${prefix}-grammar-handbook`, 'Grammar Handbook', 'Concepts organized by topic.'),
-        entry(`${prefix}-paradigm-charts`, 'Paradigm Charts', 'Forms at a glance.', true)
-      ] },
-      { tier:'supplemental-reference', title:'Supplemental Reference', description:'Terminology and supporting resources.', entries:[
-        entry(`${prefix}-morphology-guide`, 'Morphology Guide', morphologyDescription)
-      ] },
-      { tier:'supporting', title:'Additional Tools', description:'Focused supporting material.', entries:supplemental }
+      { tier:'primary', title:'Reference', description:'Choose whether you need forms or explanation.', entries:[
+        entry(`${prefix}-paradigm-charts`, 'Paradigm Charts', 'Consult Greek and Hebrew declensions, conjugations, stems, and form patterns.', true),
+        entry(`${prefix}-grammar-handbook`, 'Grammar Handbook', 'Understand Greek and Hebrew grammar, morphology, and syntax.')
+      ] }
     ];
   }
   function referenceParadigmGroups(language='all'){
