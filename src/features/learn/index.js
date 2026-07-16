@@ -1015,12 +1015,14 @@ function saveLearnActivePath(pathPage){
 function renderLearnHome(){
   const summaries = ['greek','hebrew'].map(learnReviewQueueSummary);
   const totalToday = summaries.reduce((sum, item) => sum + item.todayCount, 0);
-  const totalMore = summaries.reduce((sum, item) => sum + item.moreAvailable, 0);
   const estimated = summaries.reduce((sum, item) => sum + (item.todayCount ? item.estimatedMinutes : 0), 0);
-  const activeItems = learnActiveItems();
+  const allPathItems = learnActiveItems();
+  const activeItems = allPathItems.filter(item => item.remaining > 0);
+  const completedItems = allPathItems.filter(item => item.total > 0 && item.remaining === 0);
+  const studySets = typeof PuritanStudySets !== 'undefined' && typeof PuritanStudySets.listStudySets === 'function' ? PuritanStudySets.listStudySets() : [];
   const activePathsHtml = activeItems.length ? `
         <div class="learn-path-list">
-          ${activeItems.map(item => `<article class="learn-progress-row" data-learn-active-path="${escHtml(item.page)}"><div><h3>${escHtml(item.title)}</h3><p>${escHtml(learnLanguageTitle(item.language))} · ${item.complete}% complete</p><p class="muted small">${item.remaining} of ${item.total} words remaining</p></div><button class="btn btn-primary btn-sm" type="button" data-learn-page="${escHtml(item.page)}">Continue</button></article>`).join('')}
+          ${activeItems.map(item => `<article class="learn-progress-row learn-progress-row-compact" data-learn-active-path="${escHtml(item.page)}"><div><h3>${escHtml(item.title)}</h3><p class="learn-path-remaining">${item.remaining} ${item.remaining === 1 ? 'word' : 'words'} remaining</p><p class="learn-path-meta">${escHtml(learnLanguageTitle(item.language))} · ${item.complete}% complete</p></div><button class="btn btn-primary btn-sm" type="button" data-learn-page="${escHtml(item.page)}">Continue</button></article>`).join('')}
         </div>` : `
         <section class="word-page-section learn-explainer">
           <h3>No active learning paths.</h3>
@@ -1032,28 +1034,24 @@ function renderLearnHome(){
       <section class="learn-dashboard-section learn-review-dashboard" aria-labelledby="learnReviewQueueTitle" data-learn-dashboard-section="review-queue">
         <div class="learn-section-heading">
           <h2 id="learnReviewQueueTitle">Review Queue</h2>
-          <p>Maintain what is due today.</p>
+          <p>Review what is due today.</p>
         </div>
-        <p class="muted small">${totalToday ? `${totalToday} in today's queue. About ${Math.max(1, estimated)} minutes.` : 'You are caught up for today.'}</p>
+        <div class="learn-review-overview"><strong>${totalToday ? `${totalToday} due today` : 'Nothing due today'}</strong>${totalToday ? `<span>About ${Math.max(1, estimated)} ${Math.max(1, estimated) === 1 ? 'minute' : 'minutes'}</span>` : ''}</div>
         <div class="learn-review-summary-grid">
           ${summaries.map(summary => `
             <article class="learn-review-summary" data-learn-review-language="${escHtml(summary.language)}">
               <h3>${escHtml(summary.label)}</h3>
-              <p class="learn-review-count">${escHtml(String(summary.todayCount))} in today's queue</p>
-              <p>${escHtml(String(summary.moreAvailable))} more available</p>
-              <p>Target ${escHtml(String(summary.target))}/day</p>
+              <p class="learn-review-count">${escHtml(String(summary.todayCount))} due</p>
+              <p class="learn-review-meta">${summary.moreAvailable ? `${escHtml(String(summary.moreAvailable))} beyond daily target · ` : ''}Target ${escHtml(String(summary.target))}/day</p>
             </article>`).join('')}
         </div>
-        <div class="learn-vocab-actions">
-          <button class="btn btn-ghost btn-sm" type="button" data-learn-page="learning-preferences">Learning Preferences</button>
-        </div>
-        <div class="learn-vocab-actions">
+        <div class="learn-review-actions">
           ${learnState.activeReviewPage ? `<button class="btn btn-primary" type="button" data-learn-page="${escHtml(learnState.activeReviewPage)}">Resume Review</button>` : ''}
-          ${learnState.activeReviewPage === 'vocabulary:review:greek' ? '' : '<button class="btn btn-primary" type="button" data-learn-page="vocabulary:review:greek">Review Greek</button>'}
-          ${learnState.activeReviewPage === 'vocabulary:review:hebrew' ? '' : '<button class="btn btn-primary" type="button" data-learn-page="vocabulary:review:hebrew">Review Hebrew</button>'}
-          ${learnState.activeReviewPage === 'vocabulary:review:mixed' ? '' : '<button class="btn btn-ghost btn-sm" type="button" data-learn-page="vocabulary:review:mixed">Review Mixed</button>'}
+          ${learnState.activeReviewPage === 'vocabulary:review:greek' ? '' : `<button class="btn ${summaries[0].todayCount ? 'btn-primary' : 'btn-ghost'}" type="button" data-learn-page="vocabulary:review:greek" ${summaries[0].todayCount ? '' : 'disabled aria-disabled="true"'}>Review Greek</button>`}
+          ${learnState.activeReviewPage === 'vocabulary:review:hebrew' ? '' : `<button class="btn ${summaries[1].todayCount ? 'btn-primary' : 'btn-ghost'}" type="button" data-learn-page="vocabulary:review:hebrew" ${summaries[1].todayCount ? '' : 'disabled aria-disabled="true"'}>Review Hebrew</button>`}
+          ${learnState.activeReviewPage === 'vocabulary:review:mixed' ? '' : `<button class="btn btn-ghost btn-sm" type="button" data-learn-page="vocabulary:review:mixed" ${totalToday ? '' : 'disabled aria-disabled="true"'}>Review Mixed</button>`}
+          <button class="learn-settings-action" type="button" data-learn-page="learning-preferences" aria-label="Learning settings" title="Learning settings">⚙</button>
         </div>
-        ${totalMore ? `<p class="muted small">The daily target limits today's queue without hiding the remaining backlog.</p>` : ''}
       </section>
       <section class="learn-dashboard-section" aria-labelledby="learnPathsTitle" data-learn-dashboard-section="learning-paths">
         <div class="learn-section-heading">
@@ -1062,13 +1060,16 @@ function renderLearnHome(){
         </div>
         <h3>Active Paths</h3>
         ${activePathsHtml}
-        <h3>Study Sets</h3>
-        <div class="learn-vocab-actions"><button class="btn btn-ghost btn-sm" type="button" data-learn-page="study-sets">Browse Study Sets</button></div>
+        ${completedItems.length ? `<details class="learn-completed-paths"><summary>Completed Paths (${completedItems.length})</summary><div class="learn-path-list">${completedItems.map(item => `<article class="learn-progress-row learn-progress-row-compact"><div><h3>${escHtml(item.title)}</h3><p class="muted small">${escHtml(learnLanguageTitle(item.language))} · 100% complete</p></div><button class="btn btn-ghost btn-sm" type="button" data-learn-page="${escHtml(item.page)}">Review</button></article>`).join('')}</div></details>` : ''}
         <div class="learn-vocab-actions">
           <button class="btn btn-primary" type="button" data-learn-page="vocabulary:new-words">Start Learning Path</button>
-          <button class="btn btn-ghost btn-sm" type="button" data-learn-page="vocabulary:practice">Practice Vocabulary</button>
-          <button class="btn btn-ghost btn-sm" type="button" data-learn-page="paradigms:recognition-practice">Paradigm Practice</button>
         </div>
+      </section>
+      <section class="learn-dashboard-section learn-secondary-section" aria-labelledby="learnStudySetsTitle" data-learn-dashboard-section="study-sets">
+        <div class="learn-inline-section"><h2 id="learnStudySetsTitle">Study Sets <span>(${studySets.length})</span></h2><div class="learn-compact-actions"><button class="btn btn-ghost btn-sm" type="button" data-learn-page="study-sets">Browse</button><button class="btn btn-ghost btn-sm" type="button" data-learn-page="study-sets:create">Create</button></div></div>
+      </section>
+      <section class="learn-dashboard-section learn-secondary-section" aria-labelledby="learnMorePracticeTitle" data-learn-dashboard-section="more-practice">
+        <div class="learn-inline-section"><h2 id="learnMorePracticeTitle">More Practice</h2><div class="learn-compact-actions"><button class="btn btn-ghost btn-sm" type="button" data-learn-page="vocabulary:practice">Practice Vocabulary</button><button class="btn btn-ghost learn-practice-featured" type="button" data-learn-page="paradigms:recognition-practice">Paradigm Practice</button></div></div>
       </section>
     </section>`;
 }
@@ -1080,8 +1081,8 @@ function renderReviewChooser(area){
     <section class="panel learn-panel" aria-labelledby="learnReviewTitle">
       ${renderLearnHeader(item.title, 'Reviews Available', 'learnReviewTitle')}
       <div class="learn-card-grid">
-        ${learnCard({ title: 'Greek Review', description: `${greek.todayCount} in today's queue; ${greek.moreAvailable} more available` }, 'vocabulary:review:greek')}
-        ${learnCard({ title: 'Hebrew Review', description: `${hebrew.todayCount} in today's queue; ${hebrew.moreAvailable} more available` }, 'vocabulary:review:hebrew')}
+        ${learnCard({ title: 'Greek Review', description: `${greek.todayCount} due today${greek.moreAvailable ? `; ${greek.moreAvailable} beyond daily target` : ''}` }, 'vocabulary:review:greek')}
+        ${learnCard({ title: 'Hebrew Review', description: `${hebrew.todayCount} due today${hebrew.moreAvailable ? `; ${hebrew.moreAvailable} beyond daily target` : ''}` }, 'vocabulary:review:hebrew')}
         ${learnCard({ title: 'Mixed Review', description: 'Review Greek and Hebrew together from today\'s queues.' }, 'vocabulary:review:mixed')}
       </div>
     </section>`;

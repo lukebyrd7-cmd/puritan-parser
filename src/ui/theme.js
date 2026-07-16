@@ -40,9 +40,11 @@ function renderAccentButtons(){
   ACCENTS.forEach(({ name, hex })=>{
     const b = document.createElement('button');
     b.className = 'color-swatch' + (state.prefs.accent===hex?' active':'');
+    b.type = 'button';
     b.style.setProperty('--swatch-color', hex); b.title = name;
     b.innerHTML = `<span class="theme-preset-color" style="background:${hex}"></span><span>${name}</span>`;
     b.setAttribute('aria-label', `Use ${name} accent`);
+    b.setAttribute('aria-pressed', String(state.prefs.accent === hex));
     b.addEventListener('click', ()=>setAccent(hex));
     el.appendChild(b);
   });

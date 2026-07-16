@@ -361,6 +361,7 @@
         </div>
 
         <div style="display:flex;flex-direction:column;gap:20px">
+          <h2 class="settings-group-title">Appearance</h2>
           <div class="settings-section">
             <div class="settings-label">Theme</div>
             <div style="display:flex;gap:8px">
@@ -373,20 +374,11 @@
           <div class="settings-section">
             <div class="settings-label">Accent Color</div>
             <div id="accentPicker" class="theme-preset-grid"></div>
-            <div style="display:flex;gap:8px;margin-top:12px;align-items:center">
-              <label for="customAccent" class="small muted">Custom Accent Color</label>
-              <input id="customAccent" type="color" value="#4e8f6e" aria-label="Custom accent color" />
-              <button class="btn btn-ghost btn-sm" id="applyAccent">Apply</button>
-            </div>
+            <details class="custom-accent-disclosure"><summary class="btn btn-ghost btn-sm">Customize…</summary><div class="custom-accent-controls"><label for="customAccent" class="small muted">Custom accent color</label><input id="customAccent" type="color" value="#4e8f6e" aria-label="Custom accent color" /><button class="btn btn-ghost btn-sm" id="applyAccent">Apply</button></div></details>
           </div>
 
           <div class="settings-section">
-            <div class="settings-label">Vocabulary Study</div>
-            <p class="small muted">Vocabulary is studied by lemma. Reader popups still explain each individual form.</p>
-          </div>
-
-          <div class="settings-section">
-            <div class="settings-label">Card Font Size</div>
+            <div class="settings-label">Study Card Size</div>
             <div style="display:flex;gap:8px;align-items:center">
               <input id="fontSizeSlider" type="range" min="36" max="72" value="54" style="width:120px" />
               <span class="small muted" id="fontSizeLabel">54px</span>
@@ -394,6 +386,7 @@
           </div>
 
           <hr class="divider">
+          <h2 class="settings-group-title">Learning</h2>
 
           <div class="settings-section">
             <div class="settings-label">Review Pace</div>
@@ -402,10 +395,10 @@
               <option value="balanced">Balanced (recommended)</option>
               <option value="intensive">Intensive</option>
             </select>
-            <p class="small muted" style="margin-top:6px">Choose the pace that fits your study time. Review scheduling continues automatically.</p>
+            <div class="review-pace-descriptions small muted"><p><strong>Gentle</strong> — Fewer reviews with longer intervals.</p><p><strong>Balanced (Recommended)</strong> — Best for most learners.</p><p><strong>Intensive</strong> — More frequent review for stronger retention.</p></div>
           </div>
 
-          <hr class="divider">
+          <div class="settings-section"><div class="settings-label">Vocabulary Study</div><p class="small muted">Vocabulary is always studied by lemma.</p></div>
 
           <div class="settings-section">
             <div class="settings-label">Learning Preferences</div>
@@ -465,8 +458,15 @@
 
           <hr class="divider">
 
+          <h2 class="settings-group-title">Reader</h2>
+          <div class="settings-section"><p class="small muted">Reader display and assistance preferences are available from the Reader toolbar.</p></div>
+
+          <hr class="divider">
+
+          <h2 class="settings-group-title">Data</h2>
+
           <div class="settings-section">
-            <div class="settings-label">Data</div>
+            <div class="settings-label">Import, Export &amp; Reset</div>
             <div style="display:flex;gap:8px;flex-wrap:wrap">
               <input id="importFile" class="hidden-input" type="file" accept=".json,application/json" />
               <button class="btn btn-ghost btn-sm" id="importData">⬆ Import JSON</button>
@@ -475,6 +475,7 @@
               <button class="btn btn-danger btn-sm" id="clearAll">🗑 Clear All</button>
             </div>
             <div id="importPreview" class="import-preview small hidden"></div>
+            <p class="small muted">Your study data is stored locally on this device. Export a backup before clearing browser storage.</p>
           </div>
 
           <div class="settings-section">

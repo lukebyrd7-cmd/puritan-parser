@@ -101,14 +101,14 @@ test('Learn home exposes only Review Queue and Learning Paths workflows', () => 
   storage.delete(learn.LearnActivePathsStorageKey || 'pp_learn_active_paths');
   const html = renderPage('home');
   const text = renderedText(html);
-  ['Review Queue', 'Learning Paths', 'Active Paths', 'Study Sets', 'Practice Vocabulary', 'Paradigm Practice'].forEach(label => assert.match(text, new RegExp(label)));
-  const order = ['review-queue', 'learning-paths'].map(section => html.indexOf(`data-learn-dashboard-section="${section}"`));
+  ['Review Queue', 'Learning Paths', 'Active Paths', 'Study Sets (0)', 'More Practice', 'Practice Vocabulary', 'Paradigm Practice'].forEach(label => assert.match(text, new RegExp(label.replace(/[()]/g, '\\$&'))));
+  const order = ['review-queue', 'learning-paths', 'study-sets', 'more-practice'].map(section => html.indexOf(`data-learn-dashboard-section="${section}"`));
   assert.deepEqual(order, [...order].sort((a, b) => a - b));
   assert.match(html, /data-learn-page="vocabulary:review:greek"/);
   assert.match(html, /data-learn-page="vocabulary:review:hebrew"/);
   assert.match(html, /data-learn-page="vocabulary:review:mixed"/);
   assert.doesNotMatch(text, /Continue Learning|Start Something New|Grammar Paths|Grammar Practice|Mixed Practice/);
-  assert.match(text, /Maintain what is due today/);
+  assert.match(text, /Review what is due today/);
   assert.match(text, /What you are actively learning/);
   assert.match(text, /No active learning paths/);
   assert.equal((html.match(/data-learn-page="study-sets"/g) || []).length, 1);
@@ -126,9 +126,22 @@ test('Learning Paths renders a persisted actual path with progress and no generi
   const text = renderedText(html);
   assert.match(text, /Greek 25\+ Vocabulary/);
   assert.match(text, /\d+% complete/);
-  assert.match(text, /\d+ of \d+ words remaining/);
+  assert.match(text, /\d+ words remaining/);
   assert.match(html, /data-learn-active-path="vocabulary:frequency:greek:25"/);
   assert.doesNotMatch(text, /Continue Greek Vocabulary|Continue Learning Greek Words|Continue Vocabulary/);
+});
+
+test('completed Learning Paths leave Active Paths without losing their review action', () => {
+  storage.delete('pp_learn_active_paths');
+  storage.delete(VocabularyLearning.STORAGE_KEY);
+  renderPage('vocabulary:frequency:greek:25');
+  learn.startLearnVocabularyPath('vocabulary:frequency:greek:25');
+  const path = { type: 'frequency', language: 'greek', threshold: '25' };
+  VocabularyLearning.saveStore(VocabularyLearning.markPathKnown(state.data.greek, VocabularyLearning.loadStore(), path).store);
+  const html = renderPage('home');
+  assert.match(renderedText(html), /Completed Paths \(1\).*Greek 25\+ Vocabulary.*100% complete.*Review/);
+  assert.doesNotMatch(html, /data-learn-active-path="vocabulary:frequency:greek:25"/);
+  assert.match(html, /data-learn-page="vocabulary:frequency:greek:25"/);
 });
 
 test('Study Sets storage fails gracefully for missing and corrupt data', () => {
@@ -298,10 +311,10 @@ test('Learn dashboard review queue separates Greek and Hebrew with capped today 
 
   const html = renderPage('home');
   const text = renderedText(html);
-  assert.match(text, /Greek 2 in today's queue 2 more available Target 2\/day/);
-  assert.match(text, /Hebrew 1 in today's queue 0 more available Target 30\/day/);
-  assert.match(text, /3 in today's queue/);
-  assert.match(text, /The daily target limits today's queue without hiding the remaining backlog/);
+  assert.match(text, /Greek 2 due 2 beyond daily target · Target 2\/day/);
+  assert.match(text, /Hebrew 1 due Target 30\/day/);
+  assert.match(text, /3 due today About \d+ minutes?/);
+  assert.doesNotMatch(text, /0 more available|daily target limits/);
 
   const greekSummary = learn.learnReviewQueueSummary('greek');
   assert.equal(greekSummary.todayCount, 2);
@@ -743,8 +756,8 @@ test('Language review pages separate Greek and Hebrew due queues from the shared
   VocabularyLearning.saveStore(store);
 
   const chooser = renderPage('vocabulary:review');
-  assert.match(renderedText(chooser), /Greek Review 1 in today's queue; 0 more available/);
-  assert.match(renderedText(chooser), /Hebrew Review 1 in today's queue; 0 more available/);
+  assert.match(renderedText(chooser), /Greek Review 1 due today/);
+  assert.match(renderedText(chooser), /Hebrew Review 1 due today/);
   assert.match(renderedText(chooser), /Mixed Review/);
 
   const greek = renderPage('vocabulary:review:greek');
