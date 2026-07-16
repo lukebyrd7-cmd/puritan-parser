@@ -793,6 +793,179 @@ test('reader grammar links resolve to existing Greek topics by parse kind', () =
   delete global.PuritanReferenceLibrary;
 });
 
+function readerLayoutHarness(){
+  const makeElement = () => {
+    const classes = new Set();
+    return {
+      classes,
+      innerHTML: '',
+      classList: {
+        toggle(name, enabled){ enabled ? classes.add(name) : classes.delete(name); },
+        contains(name){ return classes.has(name); }
+      },
+      querySelector(){ return null; },
+      querySelectorAll(){ return []; }
+    };
+  };
+  const shell = makeElement();
+  const layout = makeElement();
+  const panel = makeElement();
+  const overlay = makeElement();
+  global.document = {
+    getElementById: id => id === 'readerShell' ? shell : null,
+    querySelector: selector => selector === '.reader-content-layout' ? layout : null
+  };
+  global.window = { innerWidth: 1280 };
+  global.$ = (selector, scope) => {
+    if(scope?.querySelector) return scope.querySelector(selector);
+    if(selector === '#readerShell') return shell;
+    if(selector === '#readerWordPanelRoot') return panel;
+    if(selector === '#readerWordPopupRoot') return overlay;
+    return null;
+  };
+  global.$$ = (selector, scope) => scope?.querySelectorAll ? scope.querySelectorAll(selector) : [];
+  return { shell, layout, panel, overlay };
+}
+
+test('reader tokens carry explicit Greek and Hebrew language metadata', () => {
+  const greekHtml = reader.renderReaderTokens(
+    [{ surface: 'λόγος', lemma: 'λόγος', parse: 'N-NSM' }],
+    { book: 'john', bookName: 'John', chapter: 1, verse: 1 },
+    reader.ReaderDefaultSettings,
+    'greek'
+  );
+  const hebrewHtml = reader.renderReaderTokens(
+    [{ surface: 'יְהוָה', lemma: 'יהוה', root: 'יהוה' }],
+    { book: 'jonah', bookName: 'Jonah', chapter: 1, verse: 1 },
+    reader.ReaderDefaultSettings,
+    'hebrew'
+  );
+  assert.match(greekHtml, /data-language="greek"/);
+  assert.match(greekHtml, /lang="grc" dir="ltr"/);
+  assert.match(hebrewHtml, /data-language="hebrew"/);
+  assert.match(hebrewHtml, /lang="he" dir="rtl"/);
+});
+
+test('Greek and Hebrew token selections keep the clicked token language', async () => {
+  storageHarness();
+  reader.saveReaderSettings({ ...reader.ReaderDefaultSettings, wordDetailsDisplay: 'overlay' });
+  const { overlay } = readerLayoutHarness();
+  global.state = {
+    data: {
+      greek: [{ lang: 'greek', word: 'λόγος', lemma: 'λόγος', primaryGloss: 'word', gloss: 'word', freq: 1 }],
+      hebrew: [{ lang: 'hebrew', word: 'יְהוָה', lemma: 'יהוה', primaryGloss: 'LORD', gloss: 'LORD', freq: 7 }]
+    }
+  };
+  await reader.openReaderTokenPopup({
+    dataset: { language: 'greek', surface: 'λόγος', lemma: 'λόγος', parse: 'N-NSM', book: 'john', bookName: 'John', chapter: '1', verse: '1' },
+    focus(){}
+  });
+  assert.equal(reader.readerState().activeToken.info.language, 'greek');
+  assert.match(overlay.innerHTML, /lang="grc" dir="ltr"/);
+  assert.doesNotMatch(overlay.innerHTML, /Root<\/span>/);
+  await reader.openReaderTokenPopup({
+    dataset: { language: 'hebrew', surface: 'יְהוָה', lemma: 'יהוה', root: 'יהוה', book: 'jonah', bookName: 'Jonah', chapter: '1', verse: '1' },
+    focus(){}
+  });
+  assert.equal(reader.readerState().activeToken.info.language, 'hebrew');
+  assert.match(overlay.innerHTML, /lang="he" dir="rtl"/);
+  assert.match(overlay.innerHTML, /Jonah 1:1/);
+  reader.closeReaderWordPopup();
+  delete global.state;
+});
+
+test('Reader context changes clear selected word details across languages', async () => {
+  storageHarness();
+  reader.saveReaderSettings({ ...reader.ReaderDefaultSettings, wordDetailsDisplay: 'overlay' });
+  readerLayoutHarness();
+  global.state = { data: { greek: [{ lang: 'greek', word: 'λόγος', lemma: 'λόγος', primaryGloss: 'word', gloss: 'word', freq: 1 }] } };
+  await reader.openReaderTokenPopup({
+    dataset: { language: 'greek', surface: 'λόγος', lemma: 'λόγος', parse: 'N-NSM', book: 'john', bookName: 'John', chapter: '1', verse: '1' },
+    focus(){}
+  });
+  assert.equal(reader.readerState().activeToken.info.language, 'greek');
+  await reader.setReaderLocation({ language: 'hebrew', book: 'jonah', chapter: 1 });
+  assert.equal(reader.readerState().activeToken, null);
+  await reader.openReaderTokenPopup({
+    dataset: { language: 'hebrew', surface: 'יְהוָה', lemma: 'יהוה', root: 'יהוה', book: 'jonah', bookName: 'Jonah', chapter: '1', verse: '1' },
+    focus(){}
+  });
+  assert.equal(reader.readerState().activeToken.info.language, 'hebrew');
+  await reader.setReaderLocation({ language: 'greek', book: 'john', chapter: 1 });
+  assert.equal(reader.readerState().activeToken, null);
+  delete global.state;
+});
+
+test('stale cross-language lookup results cannot overwrite newer selections', async () => {
+  storageHarness();
+  reader.saveReaderSettings({ ...reader.ReaderDefaultSettings, wordDetailsDisplay: 'overlay' });
+  readerLayoutHarness();
+  global.state = {
+    data: {
+      greek: [{ lang: 'greek', word: 'λόγος', lemma: 'λόγος', primaryGloss: 'word', gloss: 'word', freq: 1 }],
+      hebrew: [{ lang: 'hebrew', word: 'יְהוָה', lemma: 'יהוה', primaryGloss: 'LORD', gloss: 'LORD', freq: 7 }]
+    }
+  };
+  const greek = reader.openReaderTokenPopup({
+    dataset: { language: 'greek', surface: 'λόγος', lemma: 'λόγος', parse: 'N-NSM', book: 'john', bookName: 'John', chapter: '1', verse: '1' },
+    focus(){}
+  });
+  await reader.openReaderTokenPopup({
+    dataset: { language: 'hebrew', surface: 'יְהוָה', lemma: 'יהוה', root: 'יהוה', book: 'jonah', bookName: 'Jonah', chapter: '1', verse: '1' },
+    focus(){}
+  });
+  await greek;
+  assert.equal(reader.readerState().activeToken.info.language, 'hebrew');
+  const hebrew = reader.openReaderTokenPopup({
+    dataset: { language: 'hebrew', surface: 'יְהוָה', lemma: 'יהוה', root: 'יהוה', book: 'jonah', bookName: 'Jonah', chapter: '1', verse: '1' },
+    focus(){}
+  });
+  await reader.openReaderTokenPopup({
+    dataset: { language: 'greek', surface: 'λόγος', lemma: 'λόγος', parse: 'N-NSM', book: 'john', bookName: 'John', chapter: '1', verse: '1' },
+    focus(){}
+  });
+  await hebrew;
+  assert.equal(reader.readerState().activeToken.info.language, 'greek');
+  reader.closeReaderWordPopup();
+  delete global.state;
+});
+
+test('side-panel layout classes and mounts are fully synchronized on close and mode changes', async () => {
+  const { shell, layout, panel, overlay } = readerLayoutHarness();
+  const storage = storageHarness();
+  reader.saveReaderSettings({ ...reader.ReaderDefaultSettings, wordDetailsDisplay: 'side' });
+  global.state = { data: { greek: [{ lang: 'greek', word: 'λόγος', lemma: 'λόγος', primaryGloss: 'word', gloss: 'word', freq: 1 }] } };
+  await reader.openReaderTokenPopup({
+    dataset: { language: 'greek', surface: 'λόγος', lemma: 'λόγος', parse: 'N-NSM', book: 'john', bookName: 'John', chapter: '1', verse: '1' },
+    focus(){}
+  });
+  assert.equal(shell.classList.contains('reader-shell-with-details'), true);
+  assert.equal(layout.classList.contains('reader-content-layout-side'), true);
+  assert.match(panel.innerHTML, /reader-word-panel/);
+  assert.equal(overlay.innerHTML, '');
+  reader.closeReaderWordPopup();
+  assert.equal(reader.readerState().activeToken, null);
+  assert.equal(shell.classList.contains('reader-shell-with-details'), false);
+  assert.equal(layout.classList.contains('reader-content-layout-side'), false);
+  assert.equal(panel.innerHTML, '');
+  assert.equal(overlay.innerHTML, '');
+  overlay.innerHTML = '<div data-reader-popup-overlay></div>';
+  reader.syncReaderWordDetailsLayout('overlay', true);
+  assert.equal(shell.classList.contains('reader-shell-with-details'), false);
+  assert.equal(layout.classList.contains('reader-content-layout-side'), false);
+  assert.equal(panel.innerHTML, '');
+  reader.syncReaderWordDetailsLayout('side', true);
+  assert.equal(overlay.innerHTML, '');
+  reader.syncReaderWordDetailsLayout('side', false);
+  assert.equal(shell.classList.contains('reader-shell-with-details'), false);
+  assert.equal(layout.classList.contains('reader-content-layout-side'), false);
+  assert.equal(panel.innerHTML, '');
+  assert.equal(overlay.innerHTML, '');
+  assert.ok(storage.has('pp_reader_adaptive_settings'));
+  reader.saveReaderSettings({ ...reader.ReaderDefaultSettings, wordDetailsDisplay: 'overlay' });
+  delete global.state;
+});
+
 test('clicking a reader token opens and closes the popup', async () => {
   let popupHtml = '';
   const root = {

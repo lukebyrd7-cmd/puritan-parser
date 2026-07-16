@@ -108,6 +108,7 @@ let readerSearchOpen = false;
 let readerTouchStart = null;
 let readerInitialized = false;
 let readerScrollTimer = null;
+let readerWordLookupRequestId = 0;
 const ReaderWordDetailsLayout = { panelWidth: 400, minPassageWidth: 600, minSidePanelWidth: 1040 };
 
 function normalizeReaderWordDetailsDisplay(value){
@@ -128,6 +129,35 @@ function readerAvailableDetailsWidth(){
 }
 function currentReaderWordDetailsMode(settings = getActiveReaderSettings()){
   return resolveReaderWordDetailsMode(settings.wordDetailsDisplay, readerAvailableDetailsWidth());
+}
+
+
+function syncReaderWordDetailsLayout(effectiveMode = readerState.wordDetailsEffectiveMode, hasActiveToken = Boolean(readerState.activeToken)){
+  const sideActive = Boolean(hasActiveToken && effectiveMode === 'side');
+  const shell = typeof document !== 'undefined' ? document.getElementById('readerShell') : $('#readerShell');
+  const layout = typeof document !== 'undefined' ? document.querySelector?.('.reader-content-layout') : $('.reader-content-layout');
+  const panelRoot = $('#readerWordPanelRoot');
+  const overlayRoot = $('#readerWordPopupRoot');
+  shell?.classList?.toggle?.('reader-shell-with-details', sideActive);
+  layout?.classList?.toggle?.('reader-content-layout-side', sideActive);
+  if(!sideActive && panelRoot) panelRoot.innerHTML = '';
+  if((!hasActiveToken || effectiveMode === 'side') && overlayRoot) overlayRoot.innerHTML = '';
+  if(!hasActiveToken && overlayRoot) overlayRoot.innerHTML = '';
+  return sideActive;
+}
+function resetReaderWordDetailsState(options = {}){
+  const previousTrigger = readerPopupLastTrigger;
+  readerWordLookupRequestId += 1;
+  readerState.activeToken = null;
+  readerState.wordDetailsView = 'quick';
+  readerState.wordDetailsEffectiveMode = currentReaderWordDetailsMode();
+  syncReaderWordDetailsLayout(readerState.wordDetailsEffectiveMode, false);
+  if(options.restoreFocus !== false) previousTrigger?.focus?.();
+  if(options.clearTrigger !== false) readerPopupLastTrigger = null;
+  return null;
+}
+function readerTokenSelectionKey(info = {}){
+  return [info.language || '', info.reference || '', info.surface || '', info.lemma || '', info.parse || ''].join('|');
 }
 
 function normalizeReaderBook(book){
@@ -1137,6 +1167,7 @@ async function setReaderLocation(location = {}){
   await loadReaderManifest(language);
   const book = getReaderBook(language, location.book || readerState.book).id;
   const chapter = clampReaderChapter(language, book, location.chapter || readerState.chapter);
+  resetReaderWordDetailsState({ restoreFocus: false });
   readerState = { ...readerState, language, book, chapter, scrollY: Math.max(0, Number(location.scrollY) || 0), chapterData: null, translationData: null, translationStatus: null, loading: true, error: '', focusVerse: location.verse || '' };
   renderReader();
   try {
@@ -1364,7 +1395,7 @@ function renderReaderTokens(tokens, reference = {}, settings = getActiveReaderSe
     if(!assisted) classes.push('reader-token-unassisted');
     if(indicatorClass) classes.push(indicatorClass.trim());
     if(interlinear) classes.push('reader-token-interlinear');
-    return `<button class="${classes.join(' ')}" type="button" lang="${escReaderAttr(meta.htmlLang)}" dir="${escReaderAttr(meta.dir)}" data-reader-assisted="${assisted ? 'true' : 'false'}" data-surface="${escReaderAttr(normalized.surface || '')}" data-lemma="${escReaderAttr(normalized.lemma || '')}" data-parse="${escReaderAttr(normalized.parse || '')}" data-source-lemma="${escReaderAttr(normalized.sourceLemma || '')}" data-primary-gloss="${escReaderAttr(normalized.primaryGloss || '')}" data-gloss="${escReaderAttr(normalized.gloss || '')}" data-root="${escReaderAttr(normalized.root || '')}" data-hebrew-lemma="${escReaderAttr(normalized.hebrewLemma || '')}" data-stem="${escReaderAttr(normalized.stem || '')}" data-lexical-form="${escReaderAttr(normalized.lexicalForm || '')}" data-book="${escReaderAttr(reference.book || '')}" data-book-name="${escReaderAttr(reference.bookName || '')}" data-chapter="${escReaderAttr(reference.chapter || '')}" data-verse="${escReaderAttr(reference.verse || '')}" aria-label="${escReaderAttr(assisted ? `Show word info for ${normalized.surface || `token ${index + 1}`}` : `${normalized.surface || `token ${index + 1}`} hidden by Reader settings`)}"><span class="reader-token-surface" lang="${escReaderAttr(meta.htmlLang)}" dir="${escReaderAttr(meta.dir)}">${escHtml(normalized.surface)}</span>${interlinear ? `<span class="reader-token-gloss" lang="en" dir="ltr">${escHtml(gloss || ' ')}</span>${details ? `<span class="reader-token-details" lang="en" dir="ltr">${escHtml(details)}</span>` : ''}` : ''}${assisted && settings.indicator === 'footnote' ? '<sup class="reader-token-marker">•</sup>' : ''}</button>`;
+    return `<button class="${classes.join(' ')}" type="button" lang="${escReaderAttr(meta.htmlLang)}" dir="${escReaderAttr(meta.dir)}" data-reader-assisted="${assisted ? 'true' : 'false'}" data-language="${escReaderAttr(meta.language)}" data-surface="${escReaderAttr(normalized.surface || '')}" data-lemma="${escReaderAttr(normalized.lemma || '')}" data-parse="${escReaderAttr(normalized.parse || '')}" data-source-lemma="${escReaderAttr(normalized.sourceLemma || '')}" data-primary-gloss="${escReaderAttr(normalized.primaryGloss || '')}" data-gloss="${escReaderAttr(normalized.gloss || '')}" data-root="${escReaderAttr(normalized.root || '')}" data-hebrew-lemma="${escReaderAttr(normalized.hebrewLemma || '')}" data-stem="${escReaderAttr(normalized.stem || '')}" data-lexical-form="${escReaderAttr(normalized.lexicalForm || '')}" data-book="${escReaderAttr(reference.book || '')}" data-book-name="${escReaderAttr(reference.bookName || '')}" data-chapter="${escReaderAttr(reference.chapter || '')}" data-verse="${escReaderAttr(reference.verse || '')}" aria-label="${escReaderAttr(assisted ? `Show word info for ${normalized.surface || `token ${index + 1}`}` : `${normalized.surface || `token ${index + 1}`} hidden by Reader settings`)}"><span class="reader-token-surface" lang="${escReaderAttr(meta.htmlLang)}" dir="${escReaderAttr(meta.dir)}">${escHtml(normalized.surface)}</span>${interlinear ? `<span class="reader-token-gloss" lang="en" dir="ltr">${escHtml(gloss || ' ')}</span>${details ? `<span class="reader-token-details" lang="en" dir="ltr">${escHtml(details)}</span>` : ''}` : ''}${assisted && settings.indicator === 'footnote' ? '<sup class="reader-token-marker">•</sup>' : ''}</button>`;
   }).join(' ');
 }
 function wireReaderControls(){
@@ -1389,7 +1420,7 @@ function wireReaderControls(){
   $('#readerSettingsClose')?.addEventListener('click', closeReaderSettingsPanel);
   $$('[data-reader-setting]').forEach(btn => btn.addEventListener('click', () => updateReaderSetting(btn.dataset.readerSetting, btn.dataset.readerValue)));
   $('#readerHideKnownToggle')?.addEventListener('change', e => updateReaderSetting('hideKnown', e.target.checked));
-  $('#readerShowTranslationToggle')?.addEventListener('change', e => updateReaderSetting('showTranslationToggle', 'wordDetailsDisplay', e.target.checked));
+  $('#readerShowTranslationToggle')?.addEventListener('change', e => updateReaderSetting('showTranslationToggle', e.target.checked));
   $('#readerCustomThreshold')?.addEventListener('change', e => updateReaderSetting('customThreshold', e.target.value));
   $$('[data-reader-text-mode]').forEach(btn => btn.addEventListener('click', () => updateReaderSetting('textMode', btn.dataset.readerTextMode)));
   $$('.reader-token').forEach(btn => btn.addEventListener('click', () => openReaderTokenPopup(btn)));
@@ -1411,7 +1442,7 @@ function wireReaderControls(){
   }
 }
 function handleReaderResize(){
-  if(!readerState.activeToken) return;
+  if(!readerState.activeToken) { syncReaderWordDetailsLayout(currentReaderWordDetailsMode(), false); return; }
   const next = currentReaderWordDetailsMode();
   if(next === readerState.wordDetailsEffectiveMode) return;
   renderReaderWordPopup();
@@ -1512,6 +1543,7 @@ async function openReaderTokenPopup(button){
     showReaderHiddenBySettings();
     return null;
   }
+  const selectedLanguage = ReaderConfig[button?.dataset?.language] ? button.dataset.language : (ReaderConfig[readerState.language] ? readerState.language : 'greek');
   const token = {
     surface: button.dataset.surface || '',
     lemma: button.dataset.lemma || '',
@@ -1526,27 +1558,33 @@ async function openReaderTokenPopup(button){
   };
   readerPopupLastTrigger = button;
   const reference = {
-    language: readerState.language,
-    book: button.dataset.book || readerState.book,
-    bookName: button.dataset.bookName || getReaderBook(readerState.language, readerState.book)?.name,
-    chapter: Number(button.dataset.chapter) || readerState.chapter,
+    language: selectedLanguage,
+    book: button.dataset.book || (selectedLanguage === readerState.language ? readerState.book : getReaderBook(selectedLanguage)?.id),
+    bookName: button.dataset.bookName || getReaderBook(selectedLanguage, button.dataset.book || readerState.book)?.name,
+    chapter: Number(button.dataset.chapter) || (selectedLanguage === readerState.language ? readerState.chapter : 1),
     verse: button.dataset.verse || ''
   };
+  const readerContextAtSelection = { language: readerState.language, book: readerState.book, chapter: readerState.chapter };
+  const loadingInfo = { surface: token.surface, lemma: token.lemma, parse: token.parse, sourceLemma: token.sourceLemma, reference: readerReferenceLabel(reference), language: selectedLanguage };
+  const requestId = ++readerWordLookupRequestId;
+  const selectionKey = readerTokenSelectionKey(loadingInfo);
   readerState.wordDetailsView = 'quick';
-  readerState.activeToken = { loading: true, info: { surface: token.surface, lemma: token.lemma, parse: token.parse, sourceLemma: token.sourceLemma, reference: readerReferenceLabel(reference), language: readerState.language } };
+  readerState.activeToken = { loading: true, requestId, selectionKey, info: loadingInfo };
   renderReaderWordPopup();
-  readerState.activeToken = { loading: false, info: await lookupReaderWordInfo(token, reference, readerState.language) };
+  const info = await lookupReaderWordInfo(token, reference, selectedLanguage);
+  if(requestId !== readerWordLookupRequestId) return null;
+  if(!readerState.activeToken || readerState.activeToken.selectionKey !== selectionKey) return null;
+  if(readerState.language !== readerContextAtSelection.language || readerState.book !== readerContextAtSelection.book || readerState.chapter !== readerContextAtSelection.chapter) return null;
+  readerState.activeToken = { loading: false, requestId, selectionKey, info: { ...info, language: selectedLanguage } };
   renderReaderWordPopup();
+  return readerState.activeToken;
 }
 function closeReaderWordPopup(){
-  if(!readerState.activeToken) return;
-  readerState.activeToken = null;
-  readerState.wordDetailsView = 'quick';
-  renderReaderWordPopup();
-  readerPopupLastTrigger?.focus?.();
+  if(!readerState.activeToken) { syncReaderWordDetailsLayout(currentReaderWordDetailsMode(), false); return; }
+  resetReaderWordDetailsState();
 }
 function navigateReaderGrammarLink(topicId){
-  closeReaderWordPopup();
+  resetReaderWordDetailsState({ restoreFocus: false });
   const topic = (typeof PuritanReferenceLibrary !== 'undefined') ? PuritanReferenceLibrary.getReferenceTopic?.(topicId) : null;
   if(topic?.language && typeof setReferenceLanguage === 'function') setReferenceLanguage(topic.language, { render: false });
   if(typeof navigateTo === 'function') navigateTo('/grammar');
@@ -1563,7 +1601,7 @@ function openReaderBookProgress(){
 function openReaderWordPage(){
   const info = readerState.activeToken?.info || readerState.wordPageInfo;
   if(info?.lemma || info?.surface) readerState.wordPageInfo = { ...info };
-  if(readerState.activeToken && currentReaderWordDetailsMode() === 'side'){
+  if(readerState.activeToken && readerState.wordDetailsEffectiveMode === 'side' && $('#readerWordPanelRoot')){
     readerState.wordDetailsView = 'full';
     renderReaderWordPopup();
     return true;
@@ -1750,11 +1788,13 @@ function renderReaderWordPopup(){
   const panelRoot = $('#readerWordPanelRoot');
   if(!overlayRoot && !panelRoot) return;
   const active = readerState.activeToken;
-  if(!active){ if(overlayRoot) overlayRoot.innerHTML = ''; if(panelRoot) panelRoot.innerHTML = ''; return; }
+  if(!active){ syncReaderWordDetailsLayout(currentReaderWordDetailsMode(), false); return; }
   const info = active.info || {};
   const meta = getReaderLanguageMeta(info.language || readerState.language);
-  const effectiveMode = currentReaderWordDetailsMode();
+  let effectiveMode = currentReaderWordDetailsMode();
+  if(effectiveMode === 'side' && !panelRoot) effectiveMode = 'overlay';
   readerState.wordDetailsEffectiveMode = effectiveMode;
+  syncReaderWordDetailsLayout(effectiveMode, true);
   if(effectiveMode === 'side' && panelRoot){
     if(overlayRoot) overlayRoot.innerHTML = '';
     panelRoot.innerHTML = readerState.wordDetailsView === 'full'
@@ -1781,6 +1821,7 @@ function renderReaderWordPopup(){
     </div>`;
   }
   const root = effectiveMode === 'side' && panelRoot ? panelRoot : overlayRoot;
+  syncReaderWordDetailsLayout(effectiveMode, true);
   $('.reader-word-close', root)?.addEventListener('click', closeReaderWordPopup);
   $('[data-reader-popup-overlay]', root)?.addEventListener('click', event => { if(event.target?.dataset?.readerPopupOverlay !== undefined) closeReaderWordPopup(); });
   $$('.reader-word-link', root).forEach(btn => btn.addEventListener('click', () => navigateReaderGrammarLink(btn.dataset.topicId)));
@@ -1827,5 +1868,5 @@ async function initReader(){
   readerState = { ...readerState, ...loc };
   await setReaderLocation(loc);
 }
-if(typeof window !== 'undefined') Object.assign(window, { ReaderConfig, ReaderTranslationOptions, ReaderDefaultSettings, ReaderWordDetailsLayout, readerState, readerChapterCache, readerTranslationLoadCounts, readerManifestCache, readerLoadCounts, getReaderChapterPath, getReaderLanguageMeta, loadReaderManifest, loadReaderChapter, loadReaderTranslationChapter, ensureReaderTranslationLoaded, setReaderLocation, getAdjacentReaderLocation, navigateReaderAdjacent, handleReaderChapterKeydown, handleReaderTouchStart, handleReaderTouchEnd, renderReader, renderReaderChapter, renderReaderVerse, renderReaderTokens, initReader, runReaderSearch, loadReaderLocation, saveReaderLocation, loadReaderSettings, saveReaderSettings, getActiveReaderSettings, updateReaderSetting, openReaderSettingsPanel, closeReaderSettingsPanel, openReaderSearch, closeReaderSearch, readerTokenQualifiesForAssistance, renderReaderSettingsPanel, renderReaderTranslationToggle, normalizeReaderWordDetailsDisplay, resolveReaderWordDetailsMode, currentReaderWordDetailsMode, parseReaderReference, openReaderTokenPopup, closeReaderWordPopup, openReaderWordPage, openReaderWordStandalonePage, openReaderWordPageFromInfo, renderReaderWordPage, renderReaderWordPageContent, lookupReaderWordInfo, explainReaderParse, readerDisplayLemma, readerPrimaryHeadword, readerGrammarLinksForInfo, readerPartOfSpeechForInfo, readerMorphologyFields, renderReaderMorphology, renderReaderGrammar, renderReaderWordIdentity, renderReaderWordOccurrence, getReaderLemmaOccurrences, openReaderContextOccurrence, openReaderBookProgress, renderReaderWordLearning, renderReaderWordSaved, renderReaderWordStudySets, readerLearningStatusForInfo, readerLearningDetailsForInfo, introduceReaderWordFromPage, reviewReaderWordFromPage, toggleReaderSavedWord, addReaderWordToStudySet, createReaderStudySetFromWord });
-if(typeof module !== 'undefined') module.exports = { ReaderConfig, ReaderTranslationOptions, ReaderDefaultSettings, readerState: () => readerState, readerChapterCache, readerTranslationLoadCounts, readerManifestCache, readerLoadCounts, getReaderChapterPath, getReaderLanguageMeta, loadReaderManifest, normalizeReaderManifest, getReaderBookChapters, loadReaderChapter, loadReaderTranslationChapter, ensureReaderTranslationLoaded, setReaderLocation, getAdjacentReaderLocation, navigateReaderAdjacent, handleReaderChapterKeydown, handleReaderTouchStart, handleReaderTouchEnd, renderReader, renderReaderChapter, renderReaderVerse, renderReaderTokens, runReaderSearch, loadReaderLocation, saveReaderLocation, loadReaderSettings, saveReaderSettings, getActiveReaderSettings, updateReaderSetting, openReaderSettingsPanel, closeReaderSettingsPanel, openReaderSearch, closeReaderSearch, handleReaderPopupKeydown, handleReaderDocumentClick, readerAssistanceThreshold, readerTokenFrequency, readerTokenQualifiesForAssistance, renderReaderSettingsPanel, renderReaderTranslationToggle, normalizeReaderWordDetailsDisplay, resolveReaderWordDetailsMode, currentReaderWordDetailsMode, readerChapterHasEnglish, readerTranslationVerseEnglish, parseReaderReference, normalizeReaderText, lookupReaderWordInfo, explainReaderParse, readerDisplayLemma, readerPrimaryHeadword, readerGrammarLinksForInfo, readerParseKind, readerPartOfSpeechForInfo, readerMorphologyFields, renderReaderMorphology, renderReaderGrammar, renderReaderWordIdentity, renderReaderWordOccurrence, openReaderTokenPopup, closeReaderWordPopup, openReaderWordPage, openReaderWordStandalonePage, openReaderWordPageFromInfo, renderReaderWordPage, loadReaderSearchIndex, representativeReaderOccurrences, getReaderLemmaOccurrences, readerOccurrenceSnippet, renderReaderWordPageContext, renderReaderWordPageContextContent, attachReaderWordPageContextHandlers, openReaderContextOccurrence, openReaderBookProgress, renderReaderWordLearning, renderReaderWordSaved, renderReaderWordStudySets, readerLearningStatusForInfo, readerLearningDetailsForInfo, introduceReaderWordFromPage, reviewReaderWordFromPage, toggleReaderSavedWord, addReaderWordToStudySet, createReaderStudySetFromWord };
+if(typeof window !== 'undefined') Object.assign(window, { ReaderConfig, ReaderTranslationOptions, ReaderDefaultSettings, ReaderWordDetailsLayout, readerState, readerChapterCache, readerTranslationLoadCounts, readerManifestCache, readerLoadCounts, getReaderChapterPath, getReaderLanguageMeta, loadReaderManifest, loadReaderChapter, loadReaderTranslationChapter, ensureReaderTranslationLoaded, setReaderLocation, getAdjacentReaderLocation, navigateReaderAdjacent, handleReaderChapterKeydown, handleReaderTouchStart, handleReaderTouchEnd, renderReader, renderReaderChapter, renderReaderVerse, renderReaderTokens, initReader, runReaderSearch, loadReaderLocation, saveReaderLocation, loadReaderSettings, saveReaderSettings, getActiveReaderSettings, updateReaderSetting, openReaderSettingsPanel, closeReaderSettingsPanel, openReaderSearch, closeReaderSearch, readerTokenQualifiesForAssistance, renderReaderSettingsPanel, renderReaderTranslationToggle, normalizeReaderWordDetailsDisplay, resolveReaderWordDetailsMode, currentReaderWordDetailsMode, syncReaderWordDetailsLayout, resetReaderWordDetailsState, parseReaderReference, openReaderTokenPopup, closeReaderWordPopup, openReaderWordPage, openReaderWordStandalonePage, openReaderWordPageFromInfo, renderReaderWordPage, renderReaderWordPageContent, lookupReaderWordInfo, explainReaderParse, readerDisplayLemma, readerPrimaryHeadword, readerGrammarLinksForInfo, readerPartOfSpeechForInfo, readerMorphologyFields, renderReaderMorphology, renderReaderGrammar, renderReaderWordIdentity, renderReaderWordOccurrence, getReaderLemmaOccurrences, openReaderContextOccurrence, openReaderBookProgress, renderReaderWordLearning, renderReaderWordSaved, renderReaderWordStudySets, readerLearningStatusForInfo, readerLearningDetailsForInfo, introduceReaderWordFromPage, reviewReaderWordFromPage, toggleReaderSavedWord, addReaderWordToStudySet, createReaderStudySetFromWord });
+if(typeof module !== 'undefined') module.exports = { ReaderConfig, ReaderTranslationOptions, ReaderDefaultSettings, readerState: () => readerState, readerChapterCache, readerTranslationLoadCounts, readerManifestCache, readerLoadCounts, getReaderChapterPath, getReaderLanguageMeta, loadReaderManifest, normalizeReaderManifest, getReaderBookChapters, loadReaderChapter, loadReaderTranslationChapter, ensureReaderTranslationLoaded, setReaderLocation, getAdjacentReaderLocation, navigateReaderAdjacent, handleReaderChapterKeydown, handleReaderTouchStart, handleReaderTouchEnd, renderReader, renderReaderChapter, renderReaderVerse, renderReaderTokens, runReaderSearch, loadReaderLocation, saveReaderLocation, loadReaderSettings, saveReaderSettings, getActiveReaderSettings, updateReaderSetting, openReaderSettingsPanel, closeReaderSettingsPanel, openReaderSearch, closeReaderSearch, handleReaderPopupKeydown, handleReaderDocumentClick, readerAssistanceThreshold, readerTokenFrequency, readerTokenQualifiesForAssistance, renderReaderSettingsPanel, renderReaderTranslationToggle, normalizeReaderWordDetailsDisplay, resolveReaderWordDetailsMode, currentReaderWordDetailsMode, syncReaderWordDetailsLayout, resetReaderWordDetailsState, readerChapterHasEnglish, readerTranslationVerseEnglish, parseReaderReference, normalizeReaderText, lookupReaderWordInfo, explainReaderParse, readerDisplayLemma, readerPrimaryHeadword, readerGrammarLinksForInfo, readerParseKind, readerPartOfSpeechForInfo, readerMorphologyFields, renderReaderMorphology, renderReaderGrammar, renderReaderWordIdentity, renderReaderWordOccurrence, openReaderTokenPopup, closeReaderWordPopup, openReaderWordPage, openReaderWordStandalonePage, openReaderWordPageFromInfo, renderReaderWordPage, loadReaderSearchIndex, representativeReaderOccurrences, getReaderLemmaOccurrences, readerOccurrenceSnippet, renderReaderWordPageContext, renderReaderWordPageContextContent, attachReaderWordPageContextHandlers, openReaderContextOccurrence, openReaderBookProgress, renderReaderWordLearning, renderReaderWordSaved, renderReaderWordStudySets, readerLearningStatusForInfo, readerLearningDetailsForInfo, introduceReaderWordFromPage, reviewReaderWordFromPage, toggleReaderSavedWord, addReaderWordToStudySet, createReaderStudySetFromWord };
