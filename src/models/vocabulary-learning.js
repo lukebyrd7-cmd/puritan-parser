@@ -15,6 +15,8 @@
   };
   const RECOGNIZED_INTERVALS = [1, 3, 7];
   const KNOWN_SOURCES = { REVIEW: 'review', MANUAL: 'manual', SELF_REPORTED: 'self_reported' };
+  let cachedRaw = null;
+  let cachedStore = null;
 
   function clean(value){ return typeof value === 'string' ? value.trim() : ''; }
   function todayISO(){
@@ -87,13 +89,21 @@
     if(!adapter) return createStore();
     try {
       const raw = adapter.get(STORAGE_KEY);
-      return normalizeStore(raw ? JSON.parse(raw) : null);
+      if(raw === cachedRaw && cachedStore) return cachedStore;
+      cachedRaw = raw;
+      cachedStore = normalizeStore(raw ? JSON.parse(raw) : null);
+      return cachedStore;
     } catch(e){ return createStore(); }
   }
   function saveStore(store){
     const adapter = storage();
-    if(adapter) adapter.set(STORAGE_KEY, JSON.stringify(normalizeStore(store)));
-    return normalizeStore(store);
+    const normalized = normalizeStore(store);
+    const raw = JSON.stringify(normalized);
+    if(adapter) adapter.set(STORAGE_KEY, raw);
+    cachedRaw = raw;
+    cachedStore = normalized;
+    root.ProgressService?.invalidateProgressCache?.();
+    return normalized;
   }
   function getRecord(store, entry){
     const id = typeof entry === 'string' ? entry : lemmaId(entry);

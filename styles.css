@@ -2255,3 +2255,8 @@ button:focus-visible, input:focus-visible, select:focus-visible {
   .onboarding-actions { justify-content: stretch; }
   .onboarding-actions .btn { flex: 1 1 auto; }
 }
+html:not(.app-ready):not(.app-load-failed) .app { visibility: hidden; }
+.app-loading-shell { min-height: 100vh; display: grid; place-content: center; padding: 24px; color: #64748b; text-align: center; font: 16px/1.5 system-ui, sans-serif; }
+html.app-ready .app-loading-shell { display: none; }
+html.app-load-failed .app { display: none; }
+.app-loading-shell button { margin-top: 12px; padding: 8px 14px; border: 1px solid #cbd5e1; border-radius: 8px; background: white; cursor: pointer; }

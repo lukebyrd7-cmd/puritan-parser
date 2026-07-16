@@ -142,6 +142,13 @@ test('Progress overview renders empty states without fabricated statistics', () 
   assert.doesNotMatch(html, /progress-bar|badge|trophy|confetti|XP|coins|leaderboard/i);
 });
 
+test('Progress view cache invalidates after relevant learning data changes', () => {
+  ProgressView.progressState.overview = { vocabulary: { known: 1 } };
+  ProgressView.invalidateProgressViewCache();
+  assert.equal(ProgressView.progressState.overview, null);
+  assert.equal(ProgressView.progressState.error, '');
+});
+
 test('Progress readiness cards render safe actions back to Learn and Reader', () => {
   const html = ProgressView.renderReadingReadiness({
     closestBooks: [{

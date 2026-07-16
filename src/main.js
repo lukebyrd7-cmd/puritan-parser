@@ -71,4 +71,7 @@ PURITAN_PARSER_SCRIPTS.reduce(
   Promise.resolve()
 ).catch(error => {
   console.error('The Puritan Parser failed to load.', error);
+  document.documentElement.classList.add('app-load-failed');
+  const status = document.getElementById('appLoadingStatus');
+  if(status) status.innerHTML = '<strong>Puritan Parser could not start.</strong><br><button type="button" onclick="location.reload()">Try again</button>';
 });

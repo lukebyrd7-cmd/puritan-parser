@@ -5,6 +5,11 @@ const ProgressModel = (typeof ProgressService !== 'undefined')
 
 const progressState = { page: 'overview', overview: null, loading: false, error: '' };
 
+function invalidateProgressViewCache(){
+  progressState.overview = null;
+  progressState.error = '';
+}
+
 function setProgressPage(page = 'overview'){
   progressState.page = page === 'statistics' ? 'statistics' : 'overview';
   renderProgress();
@@ -339,5 +344,5 @@ function renderProgress(){
   if(progressState.page === 'overview') loadProgressOverview();
 }
 
-if(typeof window !== 'undefined') Object.assign(window, { progressState, setProgressPage, renderProgress, renderProgressPage, renderProgressOverview, renderProgressStatistics });
-if(typeof module !== 'undefined') module.exports = { progressState, setProgressPage, renderProgressPage, renderProgressOverview, renderProgressStatistics, progressMetric, progressList, progressCard, renderReadinessGoalCard, formatReadinessSummary, renderReaderGrowthSummary, renderReadingReadiness, renderVocabularyGrowth, renderGrammarGrowth, renderReadingHistory, renderDetailedAnalytics, renderRecommendationList };
+if(typeof window !== 'undefined') Object.assign(window, { progressState, invalidateProgressViewCache, setProgressPage, renderProgress, renderProgressPage, renderProgressOverview, renderProgressStatistics });
+if(typeof module !== 'undefined') module.exports = { progressState, invalidateProgressViewCache, setProgressPage, renderProgressPage, renderProgressOverview, renderProgressStatistics, progressMetric, progressList, progressCard, renderReadinessGoalCard, formatReadinessSummary, renderReaderGrowthSummary, renderReadingReadiness, renderVocabularyGrowth, renderGrammarGrowth, renderReadingHistory, renderDetailedAnalytics, renderRecommendationList };

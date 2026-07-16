@@ -1,92 +1,129 @@
-# The Puritan Parser
+# Puritan Parser
 
-The Puritan Parser is a local-first Biblical Greek and Hebrew study app. It combines a searchable vocabulary list, spaced-repetition flashcards, parsing drills, grammar-aware filtering, and import/export tools in a static web app that can be deployed with GitHub Pages.
+A reading-first companion for learning Biblical Greek and Hebrew.
+
+Puritan Parser brings reading, vocabulary learning, grammar reference, and progress tracking together in one offline-first application. It is designed for students and readers who want a practical way to work with the biblical texts while keeping their study data on their own device.
+
+## Philosophy
+
+The purpose of Puritan Parser is to help users read Scripture in its original languages. Vocabulary learning, grammar review, and spaced repetition support that goal; they are tools for developing reading competence, not substitutes for sustained reading.
 
 ## Features
 
-- Greek and Hebrew vocabulary from `vocab_all.json`
-- Expanded morphology-driven parsing entries generated from MorphGNT SBLGNT and Open Scriptures Hebrew Bible data
-- Word list with search, frequency filters, grammar category filters, due-only filtering, and mastery indicators
-- SM-2 or Leitner-style spaced repetition
-- Flashcard sessions for due, all filtered, new, or weakest cards
-- Parsing drills for nouns, verbs, mixed forms, and all forms of a selected lemma
-- Human-readable parse-code explanations such as `N-NSM` -> noun, nominative, singular, masculine
-- Dashboard with due counts, streaks, recent performance, heatmap, and upcoming reviews
-- Local JSON import/export
-- Offline-friendly PWA files and install icons
+### Adaptive Reader
 
-## Data Schema
+- Greek New Testament
+- Hebrew Bible
+- Adjustable reading assistance
+- Translation display
+- Word lookup
+- Mobile-friendly interface
 
-Vocabulary entries are JSON objects. Required fields:
+### Learn
 
-```json
-{
-  "word": "λόγος",
-  "lemma": "λόγος",
-  "gloss": "word, message",
-  "pos": "noun",
-  "freq": 330,
-  "lang": "greek",
-  "parse": "N-NSM",
-  "id": "gk-0001"
-}
+- Review Queue
+- Spaced-repetition (SRS) vocabulary learning
+- Reading Readiness
+- Vocabulary learning paths
+- Study Sets
+- Saved words
+- Paradigm Recognition
+- Grammar practice
+
+### Word Pages
+
+- Glosses
+- Morphology
+- Frequency
+- Usage examples
+- Read in Context
+- Grammar links
+- Learning status
+- Study Set integration
+
+### Reference
+
+- Grammar Handbook
+- Paradigm Charts
+- Morphology Guide
+- Searchable reference library
+
+### Progress
+
+- Vocabulary growth
+- Reading readiness
+- Reading history
+- Learning statistics
+
+### Global Search
+
+- Greek lemmas
+- Hebrew lemmas
+- English glosses
+- Greek transliteration search
+- References
+
+## Highlights
+
+- Offline-first Progressive Web App
+- Local-first data storage
+- No account required
+- Responsive desktop and mobile design
+- Automated test suite
+
+## Running Locally
+
+Clone the repository and install its development dependency:
+
+```sh
+git clone https://github.com/lukebyrd7-cmd/puritan-parser.git
+cd puritan-parser
+npm install
 ```
 
-`word`, `gloss`, and `lang` are required for imports. `lang` must be `greek` or `hebrew`. SRS fields such as `ease`, `interval`, `repetitions`, `due`, and `history` are added automatically when missing.
-
-Generated parser-only entries may have an empty `gloss`. The app includes them in parsing drills and grammar filters, but skips them in flashcard sessions so vocabulary cards still have real definitions.
-
-## Import Formats
-
-The importer accepts any of these shapes:
-
-```json
-[{ "word": "καί", "gloss": "and", "lang": "greek" }]
-```
-
-```json
-{ "items": [{ "word": "καί", "gloss": "and", "lang": "greek" }] }
-```
-
-```json
-{
-  "greek": [{ "word": "καί", "gloss": "and" }],
-  "hebrew": [{ "word": "אָמַר", "gloss": "to say" }]
-}
-```
-
-## Local Development
-
-Run the local static server from the repo root:
+Start the local development server:
 
 ```sh
 npm run dev
 ```
 
-Then open the localhost URL shown in the terminal. The dev server uses app-shell fallback so routes like `/list` and `/word` load the app cleanly.
+Open the localhost URL shown in the terminal. The development server uses an application-shell fallback, so routes within the app load directly.
 
-## Tests
+Run the automated tests with:
 
 ```sh
 npm test
 ```
 
-The tests cover parse-code decoding, grammar categories, weak-card detection, and import validation.
+### Data Maintenance
 
-## Data Refresh
-
-To rebuild the expanded morphology dataset:
+To download the source data and rebuild the expanded morphology dataset:
 
 ```sh
 npm run data:refresh
 ```
 
-This downloads source files into ignored local cache directory `data/source/` and regenerates `vocab_all.json`. See [data/ATTRIBUTION.md](data/ATTRIBUTION.md) for source and license notes.
+This stores downloaded source files in the ignored `data/source/` directory and regenerates `vocab_all.json`. See [data/ATTRIBUTION.md](data/ATTRIBUTION.md) for data sources and licensing notes.
 
-## Deployment
+### Deployment
 
-The included GitHub Actions workflow deploys the static app to GitHub Pages on pushes to `main`. Enable GitHub Pages for the repository and choose GitHub Actions as the source.
+The included GitHub Actions workflow deploys the static application to GitHub Pages on pushes to `main`. Configure GitHub Pages to use GitHub Actions as its source.
 
-## Notes
+Study progress is stored locally in the browser. Export your data before clearing browser storage or moving to another device.
 
-Study progress is stored in the browser with `localStorage`; it is not synced to a server. Export your data before clearing browser storage or switching devices.
+## Roadmap
+
+- Hebrew interlinear
+- Improved learning workflows
+- Expanded reference material
+- Optional cloud sync
+
+## Status
+
+**Current Version:** v1.0.0
+
+Puritan Parser has reached its first stable public milestone and will continue in active development.
+
+## License
+
+Puritan Parser is available under the [MIT License](LICENSE).

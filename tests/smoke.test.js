@@ -3,11 +3,20 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 
 const html = fs.readFileSync('index.html', 'utf8');
+const css = fs.readFileSync('styles.css', 'utf8');
+const bootstrap = fs.readFileSync('src/bootstrap.js', 'utf8');
 
 test('smoke: app shell loads required views and controls', () => {
   ['app', 'listView', 'flashView', 'parsingView', 'dashboardView', 'progressView', 'progressShell', 'settingsView', 'globalSearchView', 'globalSearchShell', 'wordPageView', 'learnView', 'learnShell', 'onboardingView', 'onboardingShell'].forEach(id => {
     assert.match(html, new RegExp(`id="${id}"`));
   });
+});
+
+test('smoke: startup hides legacy views behind a neutral loading shell', () => {
+  assert.match(html, /id="appLoadingStatus"[^>]*role="status"/);
+  assert.match(css, /html:not\(\.app-ready\):not\(\.app-load-failed\) \.app \{ visibility: hidden; \}/);
+  assert.match(bootstrap, /classList\.add\('app-ready'\)/);
+  assert.doesNotMatch(html, /<script[^>]+src="app\.js/);
 });
 
 test('smoke: global language toggle is removed and word list controls are present', () => {

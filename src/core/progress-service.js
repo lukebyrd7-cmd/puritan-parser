@@ -9,6 +9,8 @@
   const RecognitionModel = root.ParadigmRecognition || (typeof require === 'function' ? require('../features/learn/recognition-engine') : null);
   const RECOGNITION_STORAGE_KEY = 'pp_recognition_history';
   const NOT_TRACKED = 'Not yet tracked';
+  let statisticsCache = null;
+  let statisticsCacheStore = null;
 
   function clean(value){ return typeof value === 'string' ? value.trim() : ''; }
   function todayISO(){
@@ -77,7 +79,9 @@
       missed: Math.max(0, Number(session.missed) || 0),
       total: Math.max(0, Number(session.total) || Number(session.recognized) + Number(session.missed) || 0)
     });
-    return saveRecognitionHistory(history);
+    const saved = saveRecognitionHistory(history);
+    invalidateProgressCache();
+    return saved;
   }
   function stateEntries(language){
     const entries = Array.isArray(root.state?.data?.[language]) ? root.state.data[language] : [];
@@ -365,7 +369,9 @@
     };
   }
   function statistics(options = {}){
-    const vocabulary = vocabularyStatistics(options.store);
+    const sourceStore = options.store || loadVocabularyStore();
+    if(!options.recognitionHistory && statisticsCache && statisticsCacheStore === sourceStore) return statisticsCache;
+    const vocabulary = vocabularyStatistics(sourceStore);
     const recognition = recognitionProgress(options.recognitionHistory);
     const reader = readerStatistics();
     const grammar = {
@@ -373,12 +379,19 @@
       hebrewSessions: recognition.sessionsCompleted ? recognition.hebrew.sessions : NOT_TRACKED,
       totalParadigmsPracticed: recognition.sessionsCompleted ? recognition.totalParadigmsPracticed : NOT_TRACKED
     };
-    return {
+    const result = {
       vocabulary,
       grammar,
       reader,
       learning: learningStatistics(vocabulary, recognition)
     };
+    if(!options.recognitionHistory){ statisticsCache = result; statisticsCacheStore = sourceStore; }
+    return result;
+  }
+  function invalidateProgressCache(){
+    statisticsCache = null;
+    statisticsCacheStore = null;
+    root.invalidateProgressViewCache?.();
   }
 
   return {
@@ -400,6 +413,7 @@
     recommendationCandidates,
     overview,
     statistics,
+    invalidateProgressCache,
     readinessLabel
   };
 });

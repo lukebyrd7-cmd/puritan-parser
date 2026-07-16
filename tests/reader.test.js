@@ -98,7 +98,7 @@ test('Adaptive Reader settings render from the Reader and persist locally', () =
   assert.match(html, /<summary class="btn btn-ghost btn-sm">Settings<\/summary>/);
   assert.match(html, /Show Translation Toggle/);
   assert.match(html, /Indicator/);
-  assert.match(html, /Interlinear • OEB • 30\+ • Hide Known/);
+  assert.match(html, /Interlinear • WEB • 30\+ • Hide Known/);
   assert.match(html, /id="readerSearchToggle"[\s\S]*>Search<\/button>/);
   assert.match(html, /reader-search hidden/);
   assert.match(html, /aria-label="View Book Progress"[\s\S]*>Progress<\/button>/);
@@ -354,7 +354,7 @@ test('Reader render hides the translation toggle when Translation is Off', async
 
 test('Reader loads OEB English through the translation provider and preserves location', async () => {
   storageHarness();
-  reader.saveReaderSettings({ ...reader.ReaderDefaultSettings, translation: 'on', textMode: 'english' }, 'greek');
+  reader.saveReaderSettings({ ...reader.ReaderDefaultSettings, translation: 'on', translationProvider: 'oeb', textMode: 'english' }, 'greek');
   let html = '';
   const shell = { set innerHTML(value){ html = value; }, get innerHTML(){ return html; } };
   global.$ = selector => selector === '#readerShell' ? shell : null;
@@ -387,13 +387,21 @@ test('Reader uses WEB directly when selected', async () => {
   global.$ = selector => selector === '#readerShell' ? shell : null;
   global.$$ = () => [];
 
+  const beforeLoads = reader.readerTranslationLoadCounts['web/john/1'] || 0;
   await reader.setReaderLocation({ language: 'greek', book: 'john', chapter: 1 });
   assert.match(html, /In the beginning was the Word, and the Word was with God/);
   assert.doesNotMatch(html, /OEB unavailable here/);
   assert.equal(reader.readerState().translationData.translation, 'web');
   assert.equal(reader.readerState().translationStatus.active, 'web');
   assert.equal(reader.readerState().translationStatus.fallback, false);
-  assert.equal(reader.readerTranslationLoadCounts['web/john/1'], 1);
+  assert.equal(reader.readerTranslationLoadCounts['web/john/1'], beforeLoads + 1);
+});
+
+test('Reader defaults new users to WEB and preserves an existing OEB preference', () => {
+  storageHarness();
+  assert.equal(reader.loadReaderSettings('greek').translationProvider, 'web');
+  reader.saveReaderSettings({ ...reader.ReaderDefaultSettings, translationProvider: 'oeb' }, 'greek');
+  assert.equal(reader.loadReaderSettings('greek').translationProvider, 'oeb');
 });
 
 test('Reader falls back to WEB when OEB is selected but unavailable', async () => {
@@ -1288,8 +1296,8 @@ test('Reader text supports keyboard chapter navigation without stealing input ar
 
 test('last reader location persists', () => {
   storageHarness();
-  reader.saveReaderLocation({ language: 'greek', book: 'mark', chapter: 1 });
-  assert.deepEqual(reader.loadReaderLocation(), { language: 'greek', book: 'mark', chapter: 1 });
+  reader.saveReaderLocation({ language: 'greek', book: 'mark', chapter: 1, scrollY: 420 });
+  assert.deepEqual(reader.loadReaderLocation(), { language: 'greek', book: 'mark', chapter: 1, scrollY: 420 });
 });
 
 test('search supports lemma, surface text, and verse references', async () => {
