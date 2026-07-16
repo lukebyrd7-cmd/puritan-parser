@@ -457,7 +457,7 @@ test('Reference Search results render immediately under the search controls with
 test('service worker cache version and app shell cache bust are bumped', () => {
   const sw = fs.readFileSync('sw.js', 'utf8');
   const html = fs.readFileSync('index.html', 'utf8');
-  assert.match(sw, /const CACHE = 'puritan-parser-v38-v1\.3\.2'/);
+  assert.match(sw, /const CACHE = 'puritan-parser-v39-v1\.4\.1'/);
   assert.doesNotMatch(sw, /puritan-parser-v13-reader-startup/);
   assert.match(html, /src="src\/main\.js\?v=v1\.3\.2"/);
 });
