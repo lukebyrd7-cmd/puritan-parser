@@ -1597,7 +1597,6 @@ function renderReaderWordPage(){
   const partOfSpeech = readerPartOfSpeechForInfo(info);
   const links = readerGrammarLinksForInfo(info);
   const referenceItems = [
-    ['Quick Reference', partOfSpeech ? `${partOfSpeech} quick reference` : ''],
     ['Grammar Handbook', links.map(link => link.label).join(', ')],
     ['Paradigm Charts', readerParseKind(info.parse, info.parseExplanation) ? partOfSpeech : ''],
     ['Morphology Guide', cleanReaderTokenValue(info.parse) ? 'Parsing and morphology' : '']
