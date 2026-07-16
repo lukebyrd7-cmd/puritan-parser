@@ -38,12 +38,14 @@ test('v5.5 reference content exposes consultation-first handbook destinations', 
   }
 });
 
-test('v5.5 Reference landing tiers prioritize consultation needs', () => {
+test('v1.3 Reference landing is organized as a concise handbook', () => {
   for (const language of ['greek', 'hebrew']) {
     const sections = library.referenceLandingSections(language);
-    assert.deepEqual(sections.map(section => section.title), ['Primary', 'Secondary', 'Supplemental']);
-    assert.deepEqual(sections[0].entries.map(entry => entry.label), ['Quick Reference', 'Grammar Handbook', 'Paradigm Charts']);
-    assert.deepEqual(sections[1].entries.map(entry => entry.label), ['Morphology Guide', 'Reading Helps', 'Parsing Abbreviations']);
+    assert.deepEqual(sections.map(section => section.title), ['Grammar', 'Language Resources', 'Supplemental']);
+    assert.deepEqual(sections[0].entries.map(entry => entry.label), ['Grammar Handbook', 'Paradigm Charts']);
+    assert.deepEqual(sections[1].entries.map(entry => entry.label), ['Morphology Guide']);
+    assert.equal(sections[0].entries[1].featured, true);
+    assert.doesNotMatch(sections.flatMap(section => section.entries).map(entry => entry.label).join(' '), /Quick Reference|Reading Helps|Parsing Abbreviations/);
     assert.ok(sections[2].entries.length >= 2);
     for (const entry of sections.flatMap(section => section.entries)) {
       assert.ok(library.getReferenceTopic(entry.id), `${entry.id} should resolve`);
@@ -343,20 +345,20 @@ function renderGrammarHomeAfterLocalSelection(initialLanguage, selectedLanguage)
   return context.__renderedGrammarHome;
 }
 
-test('v5.5 Reference local language selector controls tiered Reference home language', () => {
+test('v1.3 Reference local language selector controls handbook home language', () => {
   const greek = renderGrammarHomeFor('greek');
   assert.match(greek, /<nav class="grammar-home" aria-label="Reference contents">/);
-  assert.match(greek, /<section class="grammar-home-language"><h2>Greek<\/h2>[\s\S]*<h2>Primary<\/h2>[\s\S]*>Quick Reference<[\s\S]*>Grammar Handbook<[\s\S]*>Paradigm Charts<[\s\S]*<h2>Secondary<\/h2>[\s\S]*>Morphology Guide<[\s\S]*>Reading Helps<[\s\S]*>Parsing Abbreviations<[\s\S]*<h2>Supplemental<\/h2>/);
+  assert.match(greek, /<section class="grammar-home-language"><h2>Greek<\/h2>[\s\S]*<h2>Grammar<\/h2>[\s\S]*>Grammar Handbook<[\s\S]*grammar-toc-featured[\s\S]*>Paradigm Charts<[\s\S]*<h2>Language Resources<\/h2>[\s\S]*>Morphology Guide<[\s\S]*<h2>Supplemental<\/h2>/);
   assert.doesNotMatch(greek, /<h2>Hebrew<\/h2>/);
   assert.doesNotMatch(greek, />Particles</);
 
   const hebrew = renderGrammarHomeFor('hebrew');
-  assert.match(hebrew, /<section class="grammar-home-language"><h2>Hebrew<\/h2>[\s\S]*<h2>Primary<\/h2>[\s\S]*>Quick Reference<[\s\S]*>Grammar Handbook<[\s\S]*>Paradigm Charts<[\s\S]*<h2>Secondary<\/h2>[\s\S]*>Morphology Guide<[\s\S]*>Reading Helps<[\s\S]*>Parsing Abbreviations<[\s\S]*<h2>Supplemental<\/h2>[\s\S]*>Particles and Prepositions<[\s\S]*>Stem Summaries</);
+  assert.match(hebrew, /<section class="grammar-home-language"><h2>Hebrew<\/h2>[\s\S]*<h2>Grammar<\/h2>[\s\S]*>Grammar Handbook<[\s\S]*>Paradigm Charts<[\s\S]*<h2>Language Resources<\/h2>[\s\S]*>Morphology Guide<[\s\S]*<h2>Supplemental<\/h2>[\s\S]*>Particles and Prepositions<[\s\S]*>Stem Summaries</);
   assert.doesNotMatch(hebrew, /<h2>Greek<\/h2>/);
   assert.doesNotMatch(hebrew, />Articles</);
   assert.doesNotMatch(hebrew, />Pronouns</);
 
-  for (const removed of ['Recently Visited','Recently Viewed','Favorites','Supporting Material','Supporting Reference','Start Here','Cheat Sheets','Featured Topics','Grammar Pages','Contract Verbs','Case Endings']) {
+  for (const removed of ['Quick Reference','Reading Helps','Parsing Abbreviations','Recently Visited','Recently Viewed','Favorites','Supporting Material','Supporting Reference','Start Here','Cheat Sheets','Featured Topics','Grammar Pages','Contract Verbs','Case Endings']) {
     assert.doesNotMatch(greek, new RegExp(`>${removed}<`), `${removed} should not appear on Grammar Home`);
     assert.doesNotMatch(hebrew, new RegExp(`>${removed}<`), `${removed} should not appear on Grammar Home`);
   }
@@ -422,7 +424,7 @@ test('Reference Search results render immediately under the search controls with
 test('service worker cache version and app shell cache bust are bumped', () => {
   const sw = fs.readFileSync('sw.js', 'utf8');
   const html = fs.readFileSync('index.html', 'utf8');
-  assert.match(sw, /const CACHE = 'puritan-parser-v33-v1\.1'/);
+  assert.match(sw, /const CACHE = 'puritan-parser-v36-v1\.3'/);
   assert.doesNotMatch(sw, /puritan-parser-v13-reader-startup/);
-  assert.match(html, /src="src\/main\.js\?v=v1\.1"/);
+  assert.match(html, /src="src\/main\.js\?v=v1\.3"/);
 });

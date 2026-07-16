@@ -463,9 +463,18 @@ test('Vocabulary Practice exposes on-demand sources and can practice non-due fre
   const home = renderPage('vocabulary:practice');
   const homeText = renderedText(home);
   assert.match(homeText, /Vocabulary Practice Drill on demand/);
-  assert.match(home, /data-learn-page="vocabulary:practice:frequency:greek:25"/);
-  assert.match(home, /data-learn-page="vocabulary:practice:status:greek:known"/);
-  assert.match(home, /data-learn-page="vocabulary:practice:status:hebrew:learning"/);
+  ['Frequency', 'Learning Status', 'Saved Words', 'Study Set', 'Book', 'Chapter', 'Overdue / Backlog'].forEach(source => assert.match(homeText, new RegExp(source.replace('/', '\\/'))));
+  assert.match(home, /data-learn-page="vocabulary:practice:frequency"/);
+  assert.match(home, /data-learn-page="vocabulary:practice:status"/);
+  assert.match(home, /data-learn-page="vocabulary:practice:saved"/);
+  assert.match(home, /data-learn-page="vocabulary:practice:study-sets"/);
+  assert.match(home, /data-learn-page="vocabulary:practice:book"/);
+  assert.match(home, /data-learn-page="vocabulary:practice:chapter"/);
+
+  const status = renderPage('vocabulary:practice:status:greek');
+  assert.match(renderedText(status), /Known Words/);
+  assert.match(renderedText(status), /Learning Words/);
+  assert.match(renderedText(status), /Not Learned Words/);
 
   let html = renderPage('vocabulary:practice:frequency:greek:25');
   assert.match(renderedText(html), /Greek 25\+ Practice On-demand practice/);
@@ -530,16 +539,74 @@ test('Vocabulary shell opens review and the new words path chooser', () => {
   assert.match(renderedText(review), /Hebrew Review/);
   assert.match(renderedText(review), /Mixed Review/);
   const newWords = renderPage('vocabulary:new-words');
-  assert.match(newWords, /Choose Language/);
-  assert.match(renderedText(newWords), /Greek Study Greek words by overall frequency/);
-  assert.match(renderedText(newWords), /Hebrew Study Hebrew words by overall frequency/);
-  assert.match(newWords, /data-learn-page="vocabulary:frequency:greek"/);
-  assert.match(newWords, /data-learn-page="vocabulary:frequency:hebrew"/);
-  assert.doesNotMatch(newWords, /data-learn-page="vocabulary:frequency:greek:25"/);
-  assert.doesNotMatch(newWords, /data-learn-page="vocabulary:frequency:hebrew:60"/);
-  assert.doesNotMatch(newWords, /data-learn-page="vocabulary:book"/);
-  assert.doesNotMatch(renderedText(newWords), /By Frequency/);
-  assert.doesNotMatch(renderedText(newWords), /By Book/);
+  assert.match(renderedText(newWords), /Start Learning Path Choose a structured vocabulary goal/);
+  assert.match(renderedText(newWords), /Frequency Vocabulary/);
+  assert.match(renderedText(newWords), /Book Vocabulary/);
+  assert.match(renderedText(newWords), /Chapter Vocabulary/);
+  assert.match(newWords, /data-learn-page="vocabulary:frequency"/);
+  assert.match(newWords, /data-learn-page="vocabulary:book"/);
+  assert.match(newWords, /data-learn-page="vocabulary:chapter"/);
+  assert.doesNotMatch(renderedText(newWords), /Grammar Paths/);
+});
+
+test('Book and chapter path choosers expose canonical books and selected-book chapters', async () => {
+  const bookShell = renderPage('vocabulary:book');
+  assert.match(renderedText(bookShell), /Old Testament/);
+  assert.match(renderedText(bookShell), /New Testament/);
+  assert.match(renderPage('vocabulary:book:new-testament'), /Matthew/);
+  assert.match(renderPage('vocabulary:book:new-testament'), /Romans/);
+
+  const chapterShell = renderPage('vocabulary:chapter');
+  assert.match(renderedText(chapterShell), /Chapter Vocabulary/);
+  assert.match(renderPage('vocabulary:chapter:new-testament'), /Romans/);
+  learn.learnState.progressCache['book:greek:romans'] = await BookProgress.bookProgress('greek', 'romans');
+  const chapters = renderPage('vocabulary:chapter:greek:romans');
+  assert.match(chapters, /data-learn-page="vocabulary:book:greek:romans:chapter:1"/);
+  assert.match(chapters, /data-learn-page="vocabulary:book:greek:romans:chapter:16"/);
+});
+
+test('Starting book and chapter paths persists one specific active path each', async () => {
+  storage.delete('pp_learn_active_paths');
+  learn.learnState.progressCache['book:greek:romans'] = await BookProgress.bookProgress('greek', 'romans');
+  learn.learnState.progressCache['chapter:greek:romans:8'] = await BookProgress.chapterProgress('greek', 'romans', 8);
+
+  learn.startLearnVocabularyPath('vocabulary:book:greek:romans:overall:all');
+  learn.startLearnVocabularyPath('vocabulary:book:greek:romans:chapter:8:all');
+  const records = JSON.parse(storage.get('pp_learn_active_paths'));
+  assert.equal(records.length, 2);
+  assert.equal(records[0].title, 'Romans 8 Vocabulary');
+  assert.equal(records[1].title, 'Romans Vocabulary');
+  assert.equal(records.filter(record => record.page === 'vocabulary:book:greek:romans:chapter:8:all').length, 1);
+
+  const home = renderedText(renderPage('home'));
+  assert.match(home, /Romans 8 Vocabulary/);
+  assert.match(home, /Romans Vocabulary/);
+  assert.doesNotMatch(home, /Continue Greek Vocabulary/);
+});
+
+test('Book and chapter practice use scoped words without creating active paths', async () => {
+  storage.delete('pp_learn_active_paths');
+  learn.learnState.progressCache['book:greek:romans'] = await BookProgress.bookProgress('greek', 'romans');
+  learn.learnState.progressCache['chapter:greek:romans:8'] = await BookProgress.chapterProgress('greek', 'romans', 8);
+
+  const book = renderPage('vocabulary:practice:book:greek:romans');
+  assert.match(renderedText(book), /Romans Vocabulary Practice/);
+  assert.match(book, /On-demand practice/);
+
+  const chapter = renderPage('vocabulary:practice:chapter:greek:romans:8');
+  assert.match(renderedText(chapter), /Romans 8 Vocabulary Practice/);
+  assert.match(chapter, /On-demand practice/);
+  assert.equal(storage.get('pp_learn_active_paths'), undefined);
+});
+
+test('Start Learning Path and Practice Vocabulary route to distinct source screens', () => {
+  const paths = renderPage('vocabulary:new-words');
+  const practice = renderPage('vocabulary:practice');
+  assert.match(paths, /data-learn-page="vocabulary:chapter"/);
+  assert.doesNotMatch(paths, /Learning Status|Saved Words|Overdue \/ Backlog/);
+  assert.match(practice, /data-learn-page="vocabulary:practice:chapter"/);
+  assert.match(renderedText(practice), /Learning Status/);
+  assert.doesNotMatch(practice, /data-learn-page="vocabulary:frequency:greek"/);
 });
 
 test('Vocabulary by frequency exposes permanent language thresholds', () => {

@@ -846,6 +846,14 @@ function learnPracticeTitleForPage(page = learnState.page){
   if(parts[0] === 'vocabulary' && parts[1] === 'practice'){
     if(parts[2] === 'frequency') return `${learnLanguageTitle(parts[3])} ${learnFrequencyLabel(parts[4] || '25')} Practice`;
     if(parts[2] === 'status') return `${learnLanguageTitle(parts[3])} ${parts[4] === 'known' ? 'Known' : parts[4] === 'learning' ? 'Learning' : parts[4] === 'saved' ? 'Saved Words' : parts[4] === 'overdue' ? 'Review Backlog' : 'Not Learned'} Practice`;
+    if(parts[2] === 'book'){
+      const book = learnBook(parts[3], parts[4]);
+      return `${book.name} Vocabulary Practice`;
+    }
+    if(parts[2] === 'chapter'){
+      const book = learnBook(parts[3], parts[4]);
+      return `${book.name} ${Number(parts[5]) || 1} Vocabulary Practice`;
+    }
     if(parts[2] === 'study-set'){
       const set = learnStudySet(parts.slice(3).join(':'));
       return set?.title || 'Study Set Practice';
@@ -865,8 +873,9 @@ function learnVocabularyPracticeEntriesForPage(page = learnState.page){
   if(parts[2] === 'status'){
     const language = parts[3] || 'greek';
     const status = parts[4] || 'learning';
+    const languages = language === 'mixed' ? ['greek','hebrew'] : [language];
     const store = learnVocabularyStore();
-    return learnVocabularyEntries(language).filter(entry => {
+    return languages.flatMap(learnVocabularyEntries).filter(entry => {
       const value = VocabularyLearningModel.learningStatus(store, entry);
       if(status === 'known') return value === VocabularyLearningModel.STATUS.KNOWN || value === VocabularyLearningModel.STATUS.KNOWN_SELF_REPORTED;
       if(status === 'learning') return value === VocabularyLearningModel.STATUS.LEARNING || value === VocabularyLearningModel.STATUS.REVIEWING;
@@ -875,13 +884,21 @@ function learnVocabularyPracticeEntriesForPage(page = learnState.page){
       return value === VocabularyLearningModel.STATUS.NOT_LEARNED;
     });
   }
+  if(parts[2] === 'book' && parts[3] && parts[4]){
+    const progress = learnState.progressCache[bookProgressKey(parts[3], parts[4])];
+    return progress?.overall?.vocabulary?.map(item => item.entry) || [];
+  }
+  if(parts[2] === 'chapter' && parts[3] && parts[4] && parts[5]){
+    const progress = learnState.progressCache[chapterProgressKey(parts[3], parts[4], parts[5])];
+    return progress?.overall?.vocabulary?.map(item => item.entry) || [];
+  }
   if(parts[2] === 'study-set') return learnStudySetEntries(learnStudySet(parts.slice(3).join(':')));
   return [];
 }
 function ensureLearnPracticeSession(page = learnState.page){
   const entries = learnVocabularyPracticeEntriesForPage(page).slice(0, 20);
   const existing = learnState.practiceSession;
-  if(existing?.page === page) return existing;
+  if(existing?.page === page && (existing.entries.length || !entries.length)) return existing;
   learnState.practiceSession = {
     page,
     entries,
@@ -1142,11 +1159,30 @@ function renderNewWordsPage(area){
   const item = learnChild(area, 'new-words');
   return `
     <section class="panel learn-panel" aria-labelledby="learnNewWordsTitle">
-      ${renderLearnHeader(item.title, 'Choose Language', 'learnNewWordsTitle')}
-      <div class="learn-card-grid learn-language-choice-grid">
-        ${learnCard({ title: 'Greek', description: 'Study Greek words by overall frequency.' }, 'vocabulary:frequency:greek')}
-        ${learnCard({ title: 'Hebrew', description: 'Study Hebrew words by overall frequency.' }, 'vocabulary:frequency:hebrew')}
+      ${renderLearnHeader('Start Learning Path', 'Choose a structured vocabulary goal.', 'learnNewWordsTitle')}
+      <div class="learn-card-grid">
+        ${learnCard({ title: 'Frequency Vocabulary', description: 'Build Greek or Hebrew vocabulary by frequency milestone.' }, 'vocabulary:frequency')}
+        ${learnCard({ title: 'Book Vocabulary', description: 'Persist progress toward all vocabulary in a selected book.' }, 'vocabulary:book')}
+        ${learnCard({ title: 'Chapter Vocabulary', description: 'Persist progress toward vocabulary in a selected chapter.' }, 'vocabulary:chapter')}
       </div>
+    </section>`;
+}
+function renderChapterShell(){
+  return `
+    <section class="panel learn-panel" aria-labelledby="learnChapterPathTitle">
+      ${renderLearnHeader('Chapter Vocabulary', 'Choose a testament.', 'learnChapterPathTitle')}
+      <div class="learn-card-grid">
+        ${learnCard({ title: 'Old Testament', description: 'Prepare Hebrew vocabulary by chapter.' }, 'vocabulary:chapter:old-testament')}
+        ${learnCard({ title: 'New Testament', description: 'Prepare Greek vocabulary by chapter.' }, 'vocabulary:chapter:new-testament')}
+      </div>
+    </section>`;
+}
+function renderChapterTestamentBooks(testamentId){
+  const testament = LearnTestaments[testamentId] || LearnTestaments['new-testament'];
+  return `
+    <section class="panel learn-panel learn-panel-wide" aria-labelledby="learnChapterBooksTitle">
+      ${renderLearnHeader(testament.title, 'Choose a book, then a chapter.', 'learnChapterBooksTitle')}
+      ${renderLearnBookGrid(testament.language, `vocabulary:chapter:${testament.language}`)}
     </section>`;
 }
 function renderFrequencyShell(){
@@ -1256,6 +1292,7 @@ function renderBookStudyPage(language, bookId, options = {}){
       ${progress?.error ? renderProgressError(progress.error) : progress ? renderProgressStats(progress.overall) : renderProgressLoading('Book Progress')}
       <section class="learn-language-group" aria-labelledby="learnStudyTitle">
         <h2 id="learnStudyTitle">Study</h2>
+        ${progress ? learnCard({ title: `${book.name} Vocabulary`, description: 'Study all vocabulary in this book as one persisted path.' }, `${basePage}:overall:all`, 'learn-card-compact') : ''}
         ${renderQuietFrequencyChoices(language, `${basePage}:overall`)}
         ${learnCard({ title: 'By Chapter', description: 'Study vocabulary for individual chapters.' }, `${basePage}:chapter`, 'learn-card-compact')}
         ${progress ? `<div class="learn-vocab-actions"><button class="btn btn-ghost btn-sm" type="button" data-learn-create-scope-set="${escHtml(`${basePage}:overall:all`)}" data-scope-status="all">Create Book Study Set</button><button class="btn btn-ghost btn-sm" type="button" data-learn-create-scope-set="${escHtml(`${basePage}:overall:all`)}" data-scope-status="not-learned">Unknown Words Set</button></div>` : ''}
@@ -1307,7 +1344,7 @@ function renderChapterStudyPage(language, bookId, chapter, options = {}){
       ${progress?.error ? renderProgressError(progress.error) : progress ? renderProgressStats(progress.overall) : renderProgressLoading('Chapter Progress')}
       <section class="learn-language-group" aria-labelledby="learnChapterStudyOptionsTitle">
         <h2 id="learnChapterStudyOptionsTitle">Study</h2>
-        ${progress ? renderQuietFrequencyChoices(language, basePage) : ''}
+        ${progress ? `${learnCard({ title: `${reference} Vocabulary`, description: 'Study all vocabulary in this chapter as one persisted path.' }, `${basePage}:all`, 'learn-card-compact')}${renderQuietFrequencyChoices(language, basePage)}` : ''}
       </section>
     </section>`;
 }
@@ -1554,42 +1591,96 @@ function renderReadingReadinessBooks(testamentId){
     </section>`;
 }
 function renderVocabularyPracticeHome(){
-  const sets = learnStudySets().filter(set => set.type === 'vocabulary');
   return `
     <section class="panel learn-panel" aria-labelledby="learnVocabularyPracticeTitle">
       ${renderLearnHeader('Vocabulary Practice', 'Drill on demand without waiting for words to be due.', 'learnVocabularyPracticeTitle')}
       <section class="learn-language-group" aria-labelledby="learnVocabularyPracticeFrequencyTitle">
-        <h2 id="learnVocabularyPracticeFrequencyTitle">Frequency</h2>
+        <h2 id="learnVocabularyPracticeFrequencyTitle">Choose a Source</h2>
         <div class="learn-card-grid learn-card-grid-compact">
-          ${learnCard({ title: 'Greek Frequency', description: 'Practice common Greek vocabulary.' }, 'vocabulary:practice:frequency:greek:25', 'learn-card-compact')}
-          ${learnCard({ title: 'Hebrew Frequency', description: 'Practice common Hebrew vocabulary.' }, 'vocabulary:practice:frequency:hebrew:60', 'learn-card-compact')}
-        </div>
-      </section>
-      <section class="learn-language-group" aria-labelledby="learnVocabularyPracticeStatusTitle">
-        <h2 id="learnVocabularyPracticeStatusTitle">Status</h2>
-        <div class="learn-card-grid learn-card-grid-compact">
-          ${['greek','hebrew'].map(language => `
-            ${learnCard({ title: `${learnLanguageTitle(language)} Known`, description: 'Practice words already marked Known.' }, `vocabulary:practice:status:${language}:known`, 'learn-card-compact')}
-            ${learnCard({ title: `${learnLanguageTitle(language)} Learning`, description: 'Practice words currently being learned.' }, `vocabulary:practice:status:${language}:learning`, 'learn-card-compact')}
-            ${learnCard({ title: `${learnLanguageTitle(language)} Review Backlog`, description: 'Practice due or overdue words without changing the queue until you choose.' }, `vocabulary:practice:status:${language}:overdue`, 'learn-card-compact')}`).join('')}
-        </div>
-      </section>
-      <section class="learn-language-group" aria-labelledby="learnVocabularyPracticeSavedTitle">
-        <h2 id="learnVocabularyPracticeSavedTitle">Saved Words</h2>
-        <div class="learn-card-grid learn-card-grid-compact">
-          ${['greek','hebrew'].map(language => learnCard({ title: `${learnLanguageTitle(language)} Saved`, description: `${learnSavedEntries(language).length} saved words.` }, `vocabulary:practice:status:${language}:saved`, 'learn-card-compact')).join('')}
-        </div>
-      </section>
-      <section class="learn-language-group" aria-labelledby="learnVocabularyPracticeSetsTitle">
-        <h2 id="learnVocabularyPracticeSetsTitle">Study Sets</h2>
-        <div class="learn-card-grid learn-card-grid-compact">
-          ${sets.length ? sets.slice(0, 6).map(set => learnCard({ title: set.title, description: StudySetsModel.sourceSummary(set) }, `vocabulary:practice:study-set:${set.id}`, 'learn-card-compact')).join('') : learnCard({ title: 'Create a Study Set', description: 'Make a focused set in under a minute.' }, 'study-sets:create', 'learn-card-compact')}
+          ${learnCard({ title: 'Frequency', description: 'Practice Greek or Hebrew words by frequency.' }, 'vocabulary:practice:frequency', 'learn-card-compact')}
+          ${learnCard({ title: 'Learning Status', description: 'Choose Known, Learning, or Not Learned words.' }, 'vocabulary:practice:status', 'learn-card-compact')}
+          ${learnCard({ title: 'Saved Words', description: 'Practice starred vocabulary.' }, 'vocabulary:practice:saved', 'learn-card-compact')}
+          ${learnCard({ title: 'Study Set', description: 'Practice one of your focused vocabulary sets.' }, 'vocabulary:practice:study-sets', 'learn-card-compact')}
+          ${learnCard({ title: 'Book', description: 'Practice vocabulary from a selected book.' }, 'vocabulary:practice:book', 'learn-card-compact')}
+          ${learnCard({ title: 'Chapter', description: 'Practice vocabulary from a selected chapter.' }, 'vocabulary:practice:chapter', 'learn-card-compact')}
+          ${learnCard({ title: 'Overdue / Backlog', description: 'Practice due and overdue words without requiring a path.' }, 'vocabulary:practice:backlog', 'learn-card-compact')}
         </div>
       </section>
       <p class="small muted">On-demand practice follows your Practice and SRS preference. Review Queue sessions always count as reviews.</p>
     </section>`;
 }
+function renderPracticeLanguageChoices(title, description, basePage, mixed = false){
+  return `
+    <section class="panel learn-panel" aria-labelledby="learnPracticeLanguageTitle">
+      ${renderLearnHeader(title, description, 'learnPracticeLanguageTitle')}
+      <div class="learn-card-grid">
+        ${learnCard({ title: 'Greek', description }, `${basePage}:greek`)}
+        ${learnCard({ title: 'Hebrew', description }, `${basePage}:hebrew`)}
+        ${mixed ? learnCard({ title: 'Mixed', description: 'Combine Greek and Hebrew in one temporary session.' }, `${basePage}:mixed`) : ''}
+      </div>
+    </section>`;
+}
+function renderPracticeFrequencyLanguage(language){
+  return `
+    <section class="panel learn-panel" aria-labelledby="learnPracticeFrequencyTitle">
+      ${renderLearnHeader(`${learnLanguageTitle(language)} Frequency Practice`, 'Choose a frequency range.', 'learnPracticeFrequencyTitle')}
+      ${renderLearnFrequencyCards(language, `vocabulary:practice:frequency:${language}`)}
+    </section>`;
+}
+function renderPracticeStatusChoices(language){
+  return `
+    <section class="panel learn-panel" aria-labelledby="learnPracticeStatusTitle">
+      ${renderLearnHeader(`${learnLanguageTitle(language)} Status Practice`, 'Choose the learning status to practice.', 'learnPracticeStatusTitle')}
+      <div class="learn-card-grid learn-card-grid-compact">
+        ${learnCard({ title: 'Known Words', description: 'Practice words already marked Known.' }, `vocabulary:practice:status:${language}:known`, 'learn-card-compact')}
+        ${learnCard({ title: 'Learning Words', description: 'Practice words currently being learned or reviewed.' }, `vocabulary:practice:status:${language}:learning`, 'learn-card-compact')}
+        ${learnCard({ title: 'Not Learned Words', description: 'Practice words not yet introduced into SRS.' }, `vocabulary:practice:status:${language}:not-learned`, 'learn-card-compact')}
+      </div>
+    </section>`;
+}
+function renderPracticeStatusLanguageChoices(title, description, status){
+  return `
+    <section class="panel learn-panel" aria-labelledby="learnPracticeStatusLanguageTitle">
+      ${renderLearnHeader(title, description, 'learnPracticeStatusLanguageTitle')}
+      <div class="learn-card-grid">
+        ${['greek','hebrew','mixed'].map(language => learnCard({
+          title: language === 'mixed' ? 'Mixed' : learnLanguageTitle(language),
+          description: language === 'mixed' ? 'Combine Greek and Hebrew in one temporary session.' : description
+        }, `vocabulary:practice:status:${language}:${status}`)).join('')}
+      </div>
+    </section>`;
+}
+function renderPracticeStudySets(){
+  const sets = learnStudySets().filter(set => set.type === 'vocabulary');
+  return `
+    <section class="panel learn-panel" aria-labelledby="learnPracticeSetsTitle">
+      ${renderLearnHeader('Study Set Practice', 'Choose a focused vocabulary set.', 'learnPracticeSetsTitle')}
+      <div class="learn-card-grid learn-card-grid-compact">
+        ${sets.length ? sets.map(set => learnCard({ title: set.title, description: StudySetsModel.sourceSummary(set) }, `vocabulary:practice:study-set:${set.id}`, 'learn-card-compact')).join('') : learnCard({ title: 'Create a Study Set', description: 'Make a focused set in under a minute.' }, 'study-sets:create', 'learn-card-compact')}
+      </div>
+    </section>`;
+}
+function renderPracticeBooks(language, mode){
+  return `
+    <section class="panel learn-panel learn-panel-wide" aria-labelledby="learnPracticeBooksTitle">
+      ${renderLearnHeader(`${learnLanguageTitle(language)} ${mode === 'chapter' ? 'Chapter' : 'Book'} Practice`, 'Choose a book.', 'learnPracticeBooksTitle')}
+      ${renderLearnBookGrid(language, `vocabulary:practice:${mode}:${language}`)}
+    </section>`;
+}
+function renderPracticeChapters(language, bookId){
+  const book = learnBook(language, bookId);
+  return `
+    <section class="panel learn-panel learn-panel-wide" aria-labelledby="learnPracticeChaptersTitle">
+      ${renderLearnHeader(`${book.name} Chapter Practice`, 'Choose a chapter.', 'learnPracticeChaptersTitle')}
+      <div class="learn-chapter-grid">
+        ${book.chapters.map(chapter => learnCard({ title: `Chapter ${chapter}`, description: `Practice words from ${book.name} ${chapter}.` }, `vocabulary:practice:chapter:${language}:${book.id}:${chapter}`, 'learn-card-compact')).join('')}
+      </div>
+    </section>`;
+}
 function renderVocabularyPracticeSessionPage(){
+  const parts = learnState.page.split(':');
+  if(parts[2] === 'book') ensureBookProgress(parts[3], parts[4]);
+  if(parts[2] === 'chapter') ensureChapterProgress(parts[3], parts[4], parts[5]);
   const session = ensureLearnPracticeSession();
   const current = session.entries[session.index];
   const done = !current;
@@ -1829,10 +1920,24 @@ function renderLearnPage(){
   if(areaId === 'mixed-practice') return renderMixedPracticePlaceholder();
   if(!area) return renderLearnHome();
   if(area.id === 'vocabulary' && childId === 'practice' && !thirdId) return renderVocabularyPracticeHome();
+  if(area.id === 'vocabulary' && childId === 'practice' && thirdId === 'frequency' && !fourthId) return renderPracticeLanguageChoices('Frequency Practice', 'Practice vocabulary by frequency.', 'vocabulary:practice:frequency');
+  if(area.id === 'vocabulary' && childId === 'practice' && thirdId === 'frequency' && fourthId && !fifthId) return renderPracticeFrequencyLanguage(fourthId);
+  if(area.id === 'vocabulary' && childId === 'practice' && thirdId === 'status' && !fourthId) return renderPracticeLanguageChoices('Learning Status Practice', 'Practice by current learning status.', 'vocabulary:practice:status', true);
+  if(area.id === 'vocabulary' && childId === 'practice' && thirdId === 'status' && fourthId && !fifthId) return renderPracticeStatusChoices(fourthId);
+  if(area.id === 'vocabulary' && childId === 'practice' && thirdId === 'saved' && !fourthId) return renderPracticeStatusLanguageChoices('Saved Words Practice', 'Practice saved or starred vocabulary.', 'saved');
+  if(area.id === 'vocabulary' && childId === 'practice' && thirdId === 'study-sets') return renderPracticeStudySets();
+  if(area.id === 'vocabulary' && childId === 'practice' && thirdId === 'backlog' && !fourthId) return renderPracticeStatusLanguageChoices('Overdue / Backlog Practice', 'Practice due and overdue vocabulary.', 'overdue');
+  if(area.id === 'vocabulary' && childId === 'practice' && (thirdId === 'book' || thirdId === 'chapter') && !fourthId) return renderPracticeLanguageChoices(`${thirdId === 'chapter' ? 'Chapter' : 'Book'} Practice`, 'Practice vocabulary from a reading scope.', `vocabulary:practice:${thirdId}`);
+  if(area.id === 'vocabulary' && childId === 'practice' && thirdId === 'book' && fourthId && !fifthId) return renderPracticeBooks(fourthId, 'book');
+  if(area.id === 'vocabulary' && childId === 'practice' && thirdId === 'chapter' && fourthId && !fifthId) return renderPracticeBooks(fourthId, 'chapter');
+  if(area.id === 'vocabulary' && childId === 'practice' && thirdId === 'chapter' && fourthId && fifthId && !sixthId) return renderPracticeChapters(fourthId, fifthId);
   if(area.id === 'vocabulary' && childId === 'practice' && thirdId) return renderVocabularyPracticeSessionPage();
   if(area.id === 'vocabulary' && childId === 'review' && !thirdId) return renderReviewChooser(area);
   if(area.id === 'vocabulary' && childId === 'review' && (thirdId === 'greek' || thirdId === 'hebrew' || thirdId === 'mixed')) return renderLanguageReviewPage(area, thirdId);
   if(area.id === 'vocabulary' && childId === 'new-words') return renderNewWordsPage(area);
+  if(area.id === 'vocabulary' && childId === 'chapter' && !thirdId) return renderChapterShell();
+  if(area.id === 'vocabulary' && childId === 'chapter' && LearnTestaments[thirdId]) return renderChapterTestamentBooks(thirdId);
+  if(area.id === 'vocabulary' && childId === 'chapter' && thirdId && fourthId && !fifthId) return renderChapterListPage(thirdId, fourthId, { basePage: `vocabulary:book:${thirdId}:${fourthId}:chapter` });
   if(area.id === 'vocabulary' && childId === 'frequency' && !thirdId) return renderFrequencyShell();
   if(area.id === 'vocabulary' && childId === 'frequency' && thirdId && !fourthId) return renderLanguageFrequencyPage(thirdId);
   if(area.id === 'vocabulary' && childId === 'frequency' && thirdId && fourthId) return renderFrequencyPlaceholder(thirdId, fourthId);
