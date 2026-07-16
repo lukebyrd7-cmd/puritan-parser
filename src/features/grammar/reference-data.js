@@ -99,9 +99,9 @@
       participles:[['masculine singular','מִתְכַּתֵּב'],['feminine singular','מִתְכַּתֶּבֶת'],['masculine plural','מִתְכַּתְּבִים'],['feminine plural','מִתְכַּתְּבוֹת']]
     }
   };
-  const noForm = note => ({ label:'Needs review', note });
-  const hebrewTabRows = value => value ? [[value]] : [[noForm('No strong-form command/infinitive supplied for this passive stem; verify in Phase B.')]];
-  const representativeForm = value => value || noForm('No representative strong form supplied; verify before using in drills.');
+  const noForm = note => ({ label:'Not supplied', note });
+  const hebrewTabRows = value => value ? [[value]] : [[noForm('No regular strong-form command or infinitive is supplied for this passive stem.')]];
+  const representativeForm = value => value || noForm('No representative strong form is supplied for this passive stem.');
   const hebrewRepresentativeRows = stem => {
     const forms = hebrewForms[stem];
     return hebrewStemRows.map(([label,, use]) => {
@@ -121,11 +121,11 @@
     return [
       {id:'perfect',label:'Perfect',charts:[chart(`${stem} Perfect: כתב`, ['Person',...hebPersons], [['Form',...forms.perfect]])]},
       {id:'imperfect',label:'Imperfect',charts:[chart(`${stem} Imperfect: כתב`, ['Person',...hebPersons], [['Form',...forms.imperfect]])]},
-      {id:'imperative',label:'Imperative',charts:[chart(`${stem} Imperative`, ['2ms','2fs','2mp','2fp'], [forms.imperative ? ['Form',...forms.imperative] : ['Form', noForm('Passive stems do not normally supply a standard imperative paradigm here.'), noForm('Phase B scholarly review'), noForm('Phase B scholarly review'), noForm('Phase B scholarly review')]])]},
+      {id:'imperative',label:'Imperative',charts:[chart(`${stem} Imperative`, ['Label','2ms','2fs','2mp','2fp'], [forms.imperative ? ['Form',...forms.imperative] : ['Form', noForm('Passive stems do not normally supply a standard imperative paradigm here.'), noForm('No standard imperative form is supplied here.'), noForm('No standard imperative form is supplied here.'), noForm('No standard imperative form is supplied here.')]])]},
       {id:'infinitive-construct',label:'Infinitive Construct',charts:[chart(`${stem} Infinitive Construct`, ['Form'], hebrewTabRows(forms.infinitiveConstruct))]},
       {id:'infinitive-absolute',label:'Infinitive Absolute',charts:[chart(`${stem} Infinitive Absolute`, ['Form'], hebrewTabRows(forms.infinitiveAbsolute))]},
       {id:'participles',label:'Participles',charts:[chart(`${stem} Participles`, ['Gender/Number','Form'], forms.participles)]},
-      {id:'recognition',label:'Recognition',charts:[chart(`${stem} recognition`, ['Clue','Tip'], [[stemInfo[stem][1], stemInfo[stem][2]],['Root','כתב'],['Audit status','Strong representative forms corrected for Phase A; full scholarly verification is a Phase B gate.']])]}
+      {id:'recognition',label:'Recognition',charts:[chart(`${stem} recognition`, ['Clue','Tip'], [[stemInfo[stem][1], stemInfo[stem][2]],['Root','כתב'],['Review status','Representative strong forms are structurally checked; unresolved passive-stem gaps are marked without supplying forms.']])]}
     ];
   };
   const decoderEntries = {
@@ -347,7 +347,7 @@
         'Confirm the root from context and lexicon when one radical disappears, weakens, or changes vowel behavior.'
       ],
       charts:[
-        chart(`${title} common forms`, ['Root','Form','Recognition','Reading'], commonForms.map(row => [root, ...row])),
+        chart(`${title} common forms`, ['Root','Form','Recognition','Note','Reading'], commonForms.map(row => [root, ...row])),
         chart(`${title} paradigm snapshot`, ['Form','Representative','What changed'], commonForms.slice(0,4).map(row => [row[1], row[0], row[2]]))
       ],
       examples
@@ -512,12 +512,12 @@
     ], charts:[], examples:[ex('דְּבַר יְהוָה','Jeremiah 1:2','word of YHWH'), ex('יָדַיִם','Representative','hands')], related:['hebrew-verbs','hebrew-particles'] },
     { id:'hebrew-verbs', language:'hebrew', title:'Verbs', category:'Verbs', color:'qal', summary:'Major Hebrew verb reference for strong forms, stems, weak verbs, aspect, and waw consecutive recognition.', body:['Start with the verbal pattern: prefixes/suffixes, stem markers, root consonants, and whether וַי marks narrative sequence.'], recognitionTips:['וַי plus an imperfect form is the classic waw consecutive / wayyiqtol clue, as in וַיֹּאמֶר.','Stem markers such as נִ, doubled middle radical, and הִ narrow the binyan.','Weak roots may hide or change consonants.'], searchTerms:['Strong Verb Paradigms','Perfect','Imperfect','Imperative','Infinitive Construct','Infinitive Absolute','Participle','Stems','Qal','Niphal','Piel','Pual','Hiphil','Hophal','Hitpael','Weak Verbs','I-Aleph','I-Nun','III-He','Geminate','Hollow','Aspect','Waw Consecutive','Wayyiqtol','וַיֹּאמֶר'], sections:[
       sectionFromTopic('hebrew-stem-markers','Recognition Cheat Sheet'),
-      { title:'Strong Verb Paradigms', body:['כתב is the representative strong verb pattern used for quick recognition.'], recognitionTips:['These Phase A forms are organized for recognition practice reuse; Phase B will perform the full scholarly verification.'], charts:hebrewStemIds.flatMap(id => (oldTopic(id).paradigmTabs||[]).flatMap(tab => tab.charts || [])), examples:[ex('כָּתַב','Jeremiah 36:2','he wrote / write')] },
+      { title:'Strong Verb Paradigms', body:['כתב is the representative strong verb pattern used for quick recognition.'], recognitionTips:['These representative forms are organized for consultation; unresolved passive-stem gaps remain marked without supplying forms.'], charts:hebrewStemIds.flatMap(id => (oldTopic(id).paradigmTabs||[]).flatMap(tab => tab.charts || [])), examples:[ex('כָּתַב','Jeremiah 36:2','he wrote / write')] },
       { title:'Perfect', body:[], recognitionTips:['Perfect forms often use suffixes for person, gender, and number.'], charts:chartsFromHebrewStemTabs(['Perfect']), examples:[] },
       { title:'Imperfect', body:[], recognitionTips:['Imperfect forms use prefixes plus endings.'], charts:chartsFromHebrewStemTabs(['Imperfect']), examples:[] },
-      { title:'Imperative', body:[], recognitionTips:['Imperatives are second-person command forms; passive stems may need Phase B verification rather than forced Qal-looking forms.'], charts:chartsFromHebrewStemTabs(['Imperative']), examples:[] },
-      { title:'Infinitive Construct', body:[], recognitionTips:['Often appears with לְ. Passive stem entries marked Needs review are intentionally not presented as Qal forms.'], charts:chartsFromHebrewStemTabs(['Infinitive Construct']), examples:[] },
-      { title:'Infinitive Absolute', body:[], recognitionTips:['Often reinforces a nearby finite verb. Passive stem entries marked Needs review are intentionally not presented as Qal forms.'], charts:chartsFromHebrewStemTabs(['Infinitive Absolute']), examples:[] },
+      { title:'Imperative', body:[], recognitionTips:['Imperatives are second-person command forms; passive stems are not filled with forced Qal-looking forms.'], charts:chartsFromHebrewStemTabs(['Imperative']), examples:[] },
+      { title:'Infinitive Construct', body:[], recognitionTips:['Often appears with לְ. Passive stem entries without supplied forms are intentionally not presented as Qal forms.'], charts:chartsFromHebrewStemTabs(['Infinitive Construct']), examples:[] },
+      { title:'Infinitive Absolute', body:[], recognitionTips:['Often reinforces a nearby finite verb. Passive stem entries without supplied forms are intentionally not presented as Qal forms.'], charts:chartsFromHebrewStemTabs(['Infinitive Absolute']), examples:[] },
       { title:'Participle', body:[], recognitionTips:['Participles often behave as verbal adjectives.'], charts:chartsFromHebrewStemTabs(['Participles']), examples:[] },
       { title:'Stems', body:['The stems modify the root idea in conventional active, passive, causative, intensive, reflexive, or reciprocal directions.'], recognitionTips:stemRelationships, charts:[chart('Stem overview', ['Stem','Typical value','Pattern','Recognition'], Object.entries(stemInfo).map(([s,v])=>[s,v[0],v[1],v[2]]))], examples:[] },
       ...['Qal','Niphal','Piel','Pual','Hiphil','Hophal','Hitpael'].map(hebrewStemSection),
@@ -617,7 +617,7 @@
       sectionFromTopic('greek-article-endings','Article'),
       sectionFromTopic('greek-pronoun-endings','Pronouns')
     ], charts:[], examples:[], related:['greek-grammar-handbook'] },
-    { id:'hebrew-paradigm-charts', language:'hebrew', title:'Paradigm Charts', category:'Paradigm Charts', summary:'Fast access to verified Hebrew strong verb, stem, noun, and suffix charts.', body:['Charts use the existing verified or audit-marked Reference material. Complex passive and weak forms that need review remain quietly marked rather than forced.'], recognitionTips:['Do not treat Needs review cells as drill-ready forms.'], searchTerms:['Paradigm Charts','strong verb paradigms','stem summaries','pronouns suffixes','weak verbs','Qal','Niphal','Piel','Hiphil'], sections:[
+    { id:'hebrew-paradigm-charts', language:'hebrew', title:'Paradigm Charts', category:'Paradigm Charts', summary:'Fast access to Hebrew strong verb, stem, noun, and suffix charts.', body:['Charts use existing Reference material. Complex passive and weak forms are not filled in when the current source data does not supply them.'], recognitionTips:['Do not treat unsupplied cells as complete paradigm forms.'], searchTerms:['Paradigm Charts','strong verb paradigms','stem summaries','pronouns suffixes','weak verbs','Qal','Niphal','Piel','Hiphil'], sections:[
       tabSection('hebrew-verbs','paradigms','Strong Verb Paradigms'),
       tabSection('hebrew-verbs','paradigms','Stems'),
       tabSection('hebrew-verbs','paradigms','Qal'),

@@ -174,7 +174,7 @@ test('v4.2.5 Hebrew non-Qal paradigms do not reuse Qal non-finite and participle
   const chartRows = label => paradigmCharts.find(chart => chart.label === label)?.rows || [];
   assert.deepEqual(chartRows('Hiphil Imperative')[0].slice(1), ['הַכְתֵּב','הַכְתִּיבִי','הַכְתִּיבוּ','הַכְתֵּבְנָה']);
   assert.deepEqual(chartRows('Hitpael Participles').map(row => row[1]), ['מִתְכַּתֵּב','מִתְכַּתֶּבֶת','מִתְכַּתְּבִים','מִתְכַּתְּבוֹת']);
-  assert.equal(chartRows('Pual Infinitive Construct')[0][0].label, 'Needs review');
+  assert.equal(chartRows('Pual Infinitive Construct')[0][0].label, 'Not supplied');
   assert.notEqual(chartRows('Niphal Participles')[0][1], 'כֹּתֵב');
 });
 
@@ -185,7 +185,7 @@ test('v4.2.5B Hebrew stem summary charts use the same stem-specific source rows 
   assert.equal(chartRows('Niphal representative paradigm: כתב').find(row => row[0] === 'Imperative')[1], 'הִכָּתֵב');
   assert.equal(chartRows('Piel representative paradigm: כתב').find(row => row[0] === 'Participle')[1], 'מְכַתֵּב');
   assert.equal(chartRows('Hiphil representative paradigm: כתב').find(row => row[0] === 'Infinitive Construct')[1], 'הַכְתִּיב');
-  assert.equal(chartRows('Pual representative paradigm: כתב').find(row => row[0] === 'Imperative')[1].label, 'Needs review');
+  assert.equal(chartRows('Pual representative paradigm: כתב').find(row => row[0] === 'Imperative')[1].label, 'Not supplied');
 });
 
 test('v4.2.5B Greek participle detail rows use real declension forms, not suffix guesses', () => {
@@ -456,7 +456,7 @@ test('Reference Search results render immediately under the search controls with
 test('service worker cache version and app shell cache bust are bumped', () => {
   const sw = fs.readFileSync('sw.js', 'utf8');
   const html = fs.readFileSync('index.html', 'utf8');
-  assert.match(sw, /const CACHE = 'puritan-parser-v36-v1\.3'/);
+  assert.match(sw, /const CACHE = 'puritan-parser-v37-v1\.3\.1'/);
   assert.doesNotMatch(sw, /puritan-parser-v13-reader-startup/);
   assert.match(html, /src="src\/main\.js\?v=v1\.3"/);
 });
