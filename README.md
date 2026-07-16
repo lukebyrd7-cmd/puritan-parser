@@ -95,6 +95,8 @@ Run the automated tests with:
 npm test
 ```
 
+Repository-development guidance for Codex and other coding agents lives in [AGENTS.md](AGENTS.md).
+
 ### Data Maintenance
 
 To download the source data and rebuild the expanded morphology dataset:
