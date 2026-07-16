@@ -95,31 +95,40 @@ function wireHomeReviewButtons(){
   };
 }
 
-test('Learn home opens the three permanent study areas', () => {
+test('Learn home exposes only Review Queue and Learning Paths workflows', () => {
   storage.delete(VocabularyLearning.STORAGE_KEY);
   storage.delete(StudySets.STORAGE_KEY);
+  storage.delete(learn.LearnActivePathsStorageKey || 'pp_learn_active_paths');
   const html = renderPage('home');
   const text = renderedText(html);
-  ['Review Queue', 'Continue Learning', 'Start Something New', 'Practice', 'Study Sets'].forEach(label => assert.match(text, new RegExp(label)));
-  const order = ['review-queue', 'continue-learning', 'start-new', 'practice', 'study-sets'].map(section => html.indexOf(`data-learn-dashboard-section="${section}"`));
+  ['Review Queue', 'Learning Paths', 'Active Paths', 'Study Sets', 'Practice Vocabulary', 'Paradigm Practice'].forEach(label => assert.match(text, new RegExp(label)));
+  const order = ['review-queue', 'learning-paths'].map(section => html.indexOf(`data-learn-dashboard-section="${section}"`));
   assert.deepEqual(order, [...order].sort((a, b) => a - b));
   assert.match(html, /data-learn-page="vocabulary:review:greek"/);
   assert.match(html, /data-learn-page="vocabulary:review:hebrew"/);
   assert.match(html, /data-learn-page="vocabulary:review:mixed"/);
-  assert.match(text, /Vocabulary Practice/);
-  assert.match(text, /Grammar Practice/);
-  assert.match(text, /Mixed Practice/);
-  assert.match(text, /Paradigm Recognition/);
+  assert.doesNotMatch(text, /Continue Learning|Start Something New|Grammar Paths|Grammar Practice|Mixed Practice/);
   assert.match(text, /Maintain what is due today/);
-  assert.match(text, /Pick up paths you have already started/);
-  assert.match(text, /Begin a new vocabulary or grammar path/);
-  assert.match(text, /Drill on demand, even when nothing is due/);
-  assert.match(text, /Create or review focused collections/);
-  assert.match(text, /No active learning paths yet/);
-  assert.doesNotMatch(text, /Greek Frequency Path/);
+  assert.match(text, /What you are actively learning/);
+  assert.match(text, /No active learning paths/);
   assert.equal((html.match(/data-learn-page="study-sets"/g) || []).length, 1);
   assert.doesNotMatch(html, /id="learnBackBtn"/);
   assert.doesNotMatch(html, /alert\(/);
+});
+
+test('Learning Paths renders a persisted actual path with progress and no generic Continue card', () => {
+  storage.delete('pp_learn_active_paths');
+  storage.delete(VocabularyLearning.STORAGE_KEY);
+  renderPage('vocabulary:frequency:greek:25');
+  learn.startLearnVocabularyPath('vocabulary:frequency:greek:25');
+  learn.learnCurrentVocabularyWord('greek', '25', 'vocabulary:frequency:greek:25');
+  const html = renderPage('home');
+  const text = renderedText(html);
+  assert.match(text, /Greek 25\+ Vocabulary/);
+  assert.match(text, /\d+% complete/);
+  assert.match(text, /\d+ of \d+ words remaining/);
+  assert.match(html, /data-learn-active-path="vocabulary:frequency:greek:25"/);
+  assert.doesNotMatch(text, /Continue Greek Vocabulary|Continue Learning Greek Words|Continue Vocabulary/);
 });
 
 test('Study Sets storage fails gracefully for missing and corrupt data', () => {

@@ -57,12 +57,10 @@ function wireEvents(){
   $$('.theme-btn').forEach(b=>b.addEventListener('click',()=>applyTheme(b.dataset.theme)));
   $('#applyAccent').addEventListener('click',()=>{
     const v=($('#customAccent').value||'').trim();
-    if(/^#[0-9a-f]{6}$/i.test(v)) setAccent(v); else toast('Enter valid hex #rrggbb','danger');
+    if(/^#[0-9a-f]{6}$/i.test(v)) setAccent(v);
   });
 
-  const srsFields=[['#useSM2','useSM2','bool'],['#initialEase','initialEase','num'],['#minEase','minEase','num'],
-    ['#dailyCap','dailyCap','num'],['#newPerDay','newPerDay','num'],
-    ['#showPosHint','showPosHint','bool'],['#autoNextCard','autoNextCard','bool']];
+  const srsFields=[['#showPosHint','showPosHint','bool'],['#autoNextCard','autoNextCard','bool']];
   srsFields.forEach(([sel,key,type])=>{
     const el=$(sel); if(!el) return;
     el.addEventListener('change',()=>{
@@ -72,12 +70,7 @@ function wireEvents(){
   });
 
 
-  $('#studyModeSetting')?.addEventListener('change', e=>{
-    state.prefs.studyMode = e.target.value === 'form' ? 'form' : 'lemma';
-    savePrefs();
-    renderList();
-    updateDueBadge();
-  });
+  $('#srsPreset')?.addEventListener('change', e=>applySrsPreset(e.target.value));
 
   ['greek','hebrew'].forEach(language => {
     const preset = $(`#${language}ReviewTargetPreset`);

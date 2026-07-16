@@ -632,6 +632,10 @@ canvas { display: block; }
 }
 .color-swatch:hover { transform: scale(1.15); }
 .color-swatch.active { border-color: var(--text); }
+.theme-preset-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(140px,1fr)); gap:8px; }
+.theme-preset-grid .color-swatch { width:auto; height:auto; border-radius:8px; padding:8px; display:flex; align-items:center; gap:8px; background:var(--surface); color:var(--text); transform:none; }
+.theme-preset-grid .color-swatch:hover { transform:none; border-color:var(--swatch-color); }
+.theme-preset-color { width:24px; height:24px; border-radius:50%; border:1px solid rgba(0,0,0,.15); flex:none; }
 .import-preview {
   margin-top: 8px;
   padding: 8px 10px;

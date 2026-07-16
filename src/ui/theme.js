@@ -26,15 +26,23 @@ function applyTheme(theme){
   $$('.theme-btn').forEach(b=>b.classList.toggle('active', b.dataset.theme===theme));
   savePrefs();
 }
-const ACCENTS = ['#4e8f6e','#246b9c','#2a9d8f','#8a2b2b','#d97706','#475569','#6b21a8','#b91c1c','#0ea5a4','#ef4444','#f97316','#06b6d4'];
+const ACCENTS = [
+  { name: 'Neutral Green', hex: '#4e8f6e' },
+  { name: 'Slate', hex: '#475569' },
+  { name: 'Ocean', hex: '#246b9c' },
+  { name: 'Warm Sand', hex: '#b7791f' },
+  { name: 'Deep Blue', hex: '#1e3a8a' },
+  { name: 'Burgundy', hex: '#8a2b2b' }
+];
 function renderAccentButtons(){
   const el = $('#accentPicker'); if(!el) return;
   el.innerHTML='';
-  ACCENTS.forEach(hex=>{
+  ACCENTS.forEach(({ name, hex })=>{
     const b = document.createElement('button');
     b.className = 'color-swatch' + (state.prefs.accent===hex?' active':'');
-    b.style.background = hex; b.title = hex;
-    b.setAttribute('aria-label', `Set accent to ${hex}`);
+    b.style.setProperty('--swatch-color', hex); b.title = name;
+    b.innerHTML = `<span class="theme-preset-color" style="background:${hex}"></span><span>${name}</span>`;
+    b.setAttribute('aria-label', `Use ${name} accent`);
     b.addEventListener('click', ()=>setAccent(hex));
     el.appendChild(b);
   });

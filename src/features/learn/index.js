@@ -65,7 +65,7 @@ const LearnAreas = [
   }
 ];
 
-const learnState = { page: 'home', history: [], customFrequencyErrors: {}, activeVocabularyPath: '', currentVocabularyWordId: '', focusedReviewWordId: '', reviewReveal: false, lastReviewResult: null, progressCache: {}, progressLoading: {}, recognitionSession: null, practiceSession: null, studySetFormError: '', studySetWordPickerQuery: '', selectedRecognitionTargets: {} };
+const learnState = { page: 'home', history: [], customFrequencyErrors: {}, activeVocabularyPath: '', activeReviewPage: '', currentVocabularyWordId: '', focusedReviewWordId: '', reviewReveal: false, lastReviewResult: null, progressCache: {}, progressLoading: {}, recognitionSession: null, practiceSession: null, studySetFormError: '', studySetWordPickerQuery: '', selectedRecognitionTargets: {} };
 const LearnFrequencyThresholds = {
   greek: ['25', '10', '5', 'all'],
   hebrew: ['60', '30', '10', '5', 'all']
@@ -81,6 +81,7 @@ const LearnReviewTargetPresets = {
 };
 const LearnReviewTargetStorageKey = 'pp_learn_review_targets';
 const LearnPracticeSrsPreferenceStorageKey = 'pp_learn_practice_srs_preference';
+const LearnActivePathsStorageKey = 'pp_learn_active_paths';
 const LearnPracticeSrsPreferenceDefault = 'ask';
 const LearnPracticeSrsPreferenceOptions = ['ask', 'practice-only', 'count-srs'];
 const LearnReviewTargetCustomMin = 1;
@@ -225,6 +226,7 @@ function setLearnPage(page, options = {}){
   const changed = learnState.page !== next;
   if(!options.skipHistory && changed) learnState.history.push(learnState.page);
   learnState.page = next;
+  if(/^vocabulary:review:(greek|hebrew|mixed)$/.test(next)) learnState.activeReviewPage = next;
   if(changed) learnState.reviewReveal = false;
   if(changed) learnState.lastReviewResult = null;
   if(changed && !next.includes(':session:')) learnState.recognitionSession = null;
@@ -684,6 +686,7 @@ function renderVocabularyLearningCard(entry, options = {}){
 }
 function startLearnVocabularyPath(pathPage){
   learnState.activeVocabularyPath = pathPage;
+  saveLearnActivePath(pathPage);
   learnState.currentVocabularyWordId = '';
   renderLearn();
 }
@@ -971,24 +974,43 @@ function renderLearnBookGrid(language, basePage){
     </div>`;
 }
 function learnActiveItems(){
-  const items = [];
-  const activePath = String(learnState.activeVocabularyPath || '').trim();
-  if(activePath) items.push({ title: learnPageTitle(activePath) || 'Current Vocabulary Path', description: 'Return to the vocabulary path currently in progress.', page: activePath });
-  const studySets = learnStudySets().filter(set => set.type === 'vocabulary' && learnStudySetEntries(set).length).slice(0, 2);
-  studySets.forEach(set => items.push({ title: set.title, description: `${StudySetsModel.sourceSummary(set)}.`, page: `vocabulary:practice:study-set:${set.id}` }));
-  ['greek','hebrew'].forEach(language => {
-    const learningCount = learnVocabularyEntries(language).filter(entry => {
-      if(!VocabularyLearningModel) return false;
-      const status = VocabularyLearningModel.learningStatus(learnVocabularyStore(), entry);
-      return status === VocabularyLearningModel.STATUS.LEARNING || status === VocabularyLearningModel.STATUS.REVIEWING;
-    }).length;
-    if(learningCount) items.push({ title: `${learnLanguageTitle(language)} learning words`, description: `${learningCount} words are in Learning or Reviewing.`, page: `vocabulary:practice:status:${language}:learning` });
-  });
-  ['greek','hebrew'].forEach(language => {
-    const savedCount = learnSavedEntries(language).length;
-    if(savedCount) items.push({ title: `${learnLanguageTitle(language)} saved words`, description: `${savedCount} saved for later practice.`, page: `vocabulary:practice:status:${language}:saved` });
-  });
-  return items.filter((item, index, list) => list.findIndex(other => other.page === item.page) === index).slice(0, 4);
+  const adapter = learnStorage();
+  let records = [];
+  try { records = JSON.parse(adapter?.get(LearnActivePathsStorageKey) || '[]'); } catch(e) {}
+  return (Array.isArray(records) ? records : []).map(learnPathDashboardItem).filter(Boolean);
+}
+function learnPathTitle(page){
+  const frequency = String(page).match(/^vocabulary:frequency:(greek|hebrew):(.+)$/);
+  if(frequency) return `${learnLanguageTitle(frequency[1])} ${learnFrequencyLabel(frequency[2])} Vocabulary`;
+  const scoped = learnScopedRoute(page);
+  if(scoped){
+    const book = learnBook(scoped.language, scoped.bookId);
+    return scoped.mode === 'chapter' ? `${book.name} ${scoped.chapter} Vocabulary` : `${book.name} Vocabulary`;
+  }
+  if(String(page).startsWith('paradigms:')) return 'Paradigm Practice';
+  return '';
+}
+function learnPathDashboardItem(record){
+  if(!record?.page) return null;
+  const path = learnPathForPage(record.page, record.language, record.threshold);
+  const entries = learnEntriesForPath(path);
+  const matching = entries.filter(entry => VocabularyLearningModel?.matchesStudyPath(entry, path));
+  const total = matching.length;
+  const remaining = VocabularyLearningModel ? VocabularyLearningModel.remainingNotLearnedCount(entries, learnVocabularyStore(), path) : total;
+  return { ...record, title: record.title || learnPathTitle(record.page), total, remaining, complete: total ? Math.round(((total - remaining) / total) * 100) : 0 };
+}
+function saveLearnActivePath(pathPage){
+  const route = learnScopedRoute(pathPage);
+  const parts = String(pathPage).split(':');
+  const language = route?.language || parts[2] || 'greek';
+  const threshold = route?.threshold || parts.at(-1);
+  const adapter = learnStorage();
+  let records = [];
+  try { records = JSON.parse(adapter?.get(LearnActivePathsStorageKey) || '[]'); } catch(e) {}
+  records = (Array.isArray(records) ? records : []).filter(record => record?.page !== pathPage);
+  records.unshift({ page: pathPage, title: learnPathTitle(pathPage), language, threshold });
+  adapter?.set(LearnActivePathsStorageKey, JSON.stringify(records.slice(0, 20)));
+  return records[0];
 }
 function renderLearnHome(){
   const summaries = ['greek','hebrew'].map(learnReviewQueueSummary);
@@ -996,13 +1018,13 @@ function renderLearnHome(){
   const totalMore = summaries.reduce((sum, item) => sum + item.moreAvailable, 0);
   const estimated = summaries.reduce((sum, item) => sum + (item.todayCount ? item.estimatedMinutes : 0), 0);
   const activeItems = learnActiveItems();
-  const continueLearningHtml = activeItems.length ? `
-        <div class="learn-card-grid">
-          ${activeItems.map(item => learnCard(item, item.page, 'learn-card-compact')).join('')}
+  const activePathsHtml = activeItems.length ? `
+        <div class="learn-path-list">
+          ${activeItems.map(item => `<article class="learn-progress-row" data-learn-active-path="${escHtml(item.page)}"><div><h3>${escHtml(item.title)}</h3><p>${escHtml(learnLanguageTitle(item.language))} · ${item.complete}% complete</p><p class="muted small">${item.remaining} of ${item.total} words remaining</p></div><button class="btn btn-primary btn-sm" type="button" data-learn-page="${escHtml(item.page)}">Continue</button></article>`).join('')}
         </div>` : `
         <section class="word-page-section learn-explainer">
-          <h2>No active learning paths yet</h2>
-          <p>Start with a frequency path, book vocabulary path, or Study Set.</p>
+          <h3>No active learning paths.</h3>
+          <button class="btn btn-primary" type="button" data-learn-page="vocabulary:new-words">Start a Learning Path</button>
         </section>`;
   return `
     <section class="panel learn-panel learn-dashboard" aria-labelledby="learnTitle">
@@ -1012,7 +1034,7 @@ function renderLearnHome(){
           <h2 id="learnReviewQueueTitle">Review Queue</h2>
           <p>Maintain what is due today.</p>
         </div>
-        <p class="muted small">${totalToday ? `${totalToday} in today's queue. About ${Math.max(1, estimated)} minutes.` : 'You are caught up for today. You can practice more or continue a learning path.'}</p>
+        <p class="muted small">${totalToday ? `${totalToday} in today's queue. About ${Math.max(1, estimated)} minutes.` : 'You are caught up for today.'}</p>
         <div class="learn-review-summary-grid">
           ${summaries.map(summary => `
             <article class="learn-review-summary" data-learn-review-language="${escHtml(summary.language)}">
@@ -1026,62 +1048,27 @@ function renderLearnHome(){
           <button class="btn btn-ghost btn-sm" type="button" data-learn-page="learning-preferences">Learning Preferences</button>
         </div>
         <div class="learn-vocab-actions">
-          <button class="btn btn-primary" type="button" data-learn-page="vocabulary:review:greek">Review Greek</button>
-          <button class="btn btn-primary" type="button" data-learn-page="vocabulary:review:hebrew">Review Hebrew</button>
-          <button class="btn btn-ghost btn-sm" type="button" data-learn-page="vocabulary:review:mixed">Review Mixed</button>
+          ${learnState.activeReviewPage ? `<button class="btn btn-primary" type="button" data-learn-page="${escHtml(learnState.activeReviewPage)}">Resume Review</button>` : ''}
+          ${learnState.activeReviewPage === 'vocabulary:review:greek' ? '' : '<button class="btn btn-primary" type="button" data-learn-page="vocabulary:review:greek">Review Greek</button>'}
+          ${learnState.activeReviewPage === 'vocabulary:review:hebrew' ? '' : '<button class="btn btn-primary" type="button" data-learn-page="vocabulary:review:hebrew">Review Hebrew</button>'}
+          ${learnState.activeReviewPage === 'vocabulary:review:mixed' ? '' : '<button class="btn btn-ghost btn-sm" type="button" data-learn-page="vocabulary:review:mixed">Review Mixed</button>'}
         </div>
         ${totalMore ? `<p class="muted small">The daily target limits today's queue without hiding the remaining backlog.</p>` : ''}
       </section>
-      <section class="learn-dashboard-section" aria-labelledby="learnContinueTitle" data-learn-dashboard-section="continue-learning">
+      <section class="learn-dashboard-section" aria-labelledby="learnPathsTitle" data-learn-dashboard-section="learning-paths">
         <div class="learn-section-heading">
-          <h2 id="learnContinueTitle">Continue Learning</h2>
-          <p>Pick up paths you have already started.</p>
+          <h2 id="learnPathsTitle">Learning Paths</h2>
+          <p>What you are actively learning.</p>
         </div>
-        ${continueLearningHtml}
-      </section>
-      <section class="learn-dashboard-section" aria-labelledby="learnStartTitle" data-learn-dashboard-section="start-new">
-        <div class="learn-section-heading">
-          <h2 id="learnStartTitle">Start Something New</h2>
-          <p>Begin a new vocabulary or grammar path.</p>
+        <h3>Active Paths</h3>
+        ${activePathsHtml}
+        <h3>Study Sets</h3>
+        <div class="learn-vocab-actions"><button class="btn btn-ghost btn-sm" type="button" data-learn-page="study-sets">Browse Study Sets</button></div>
+        <div class="learn-vocab-actions">
+          <button class="btn btn-primary" type="button" data-learn-page="vocabulary:new-words">Start Learning Path</button>
+          <button class="btn btn-ghost btn-sm" type="button" data-learn-page="vocabulary:practice">Practice Vocabulary</button>
+          <button class="btn btn-ghost btn-sm" type="button" data-learn-page="paradigms:recognition-practice">Paradigm Practice</button>
         </div>
-        <div class="learn-language-grid">
-          <section class="learn-language-group">
-            <h3>Vocabulary</h3>
-            <div class="learn-card-grid learn-card-grid-compact">
-              ${learnCard({ title: 'Frequency Paths', description: 'Core vocabulary by Greek or Hebrew frequency.' }, 'vocabulary:frequency', 'learn-card-compact')}
-              ${learnCard({ title: 'Reading Paths', description: 'Prepare vocabulary for books and chapters.' }, 'vocabulary:book', 'learn-card-compact')}
-            </div>
-          </section>
-          <section class="learn-language-group">
-            <h3>Grammar</h3>
-            <div class="learn-card-grid learn-card-grid-compact">
-              ${learnCard({ title: 'Greek Grammar Paths', description: 'Nouns, verbs, participles, infinitives, and syntax.' }, 'paradigms:recognition-practice', 'learn-card-compact')}
-              ${learnCard({ title: 'Hebrew Grammar Paths', description: 'Basics, stems, weak verbs, construct chains, and syntax.' }, 'paradigms:recognition-practice', 'learn-card-compact')}
-              ${learnCard({ title: 'Paradigm Recognition', description: 'Recognition remains the core grammar practice mode.' }, 'paradigms:recognition-practice', 'learn-card-compact')}
-            </div>
-          </section>
-        </div>
-      </section>
-      <section class="learn-dashboard-section" aria-labelledby="learnPracticeTitle" data-learn-dashboard-section="practice">
-        <div class="learn-section-heading">
-          <h2 id="learnPracticeTitle">Practice</h2>
-          <p>Drill on demand, even when nothing is due.</p>
-        </div>
-        <div class="learn-card-grid">
-          ${learnCard({ title: 'Vocabulary Practice', description: 'Frequency, Known words, Learning words, Not Learned words, and Study Sets.' }, 'vocabulary:practice', 'learn-card-compact')}
-          ${learnCard({ title: 'Grammar Practice', description: 'Recognition, parsing, weak verbs, advanced grammar, and paradigms.' }, 'paradigms', 'learn-card-compact')}
-          ${learnCard({ title: 'Mixed Practice', description: 'A supporting capstone foundation for vocabulary and grammar together.' }, 'mixed-practice', 'learn-card-compact')}
-        </div>
-      </section>
-      <section class="learn-dashboard-section learn-study-sets-supplement" aria-labelledby="learnStudySetsTitle" data-learn-dashboard-section="study-sets">
-        <div class="learn-section-heading">
-          <h2 id="learnStudySetsTitle">Study Sets</h2>
-          <p>Create or review focused collections.</p>
-        </div>
-        <button class="learn-card learn-card-compact" type="button" data-learn-page="study-sets">
-          <span class="learn-card-title">Study Sets</span>
-          <span class="learn-card-description">Quiet supplement to Frequency Paths, Reading Paths, and Grammar Learning Paths.</span>
-        </button>
       </section>
     </section>`;
 }
