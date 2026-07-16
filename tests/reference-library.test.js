@@ -15,14 +15,14 @@ const sectionTabLabels = topic => (topic.sectionTabs || []).map(tab => tab.label
 const sectionTabJumpLabels = topic => (topic.sectionTabs || []).flatMap(tab => (tab.jumpChips || []).map(chip => chip.label));
 const sectionTabCharts = topic => (topic.sectionTabs || []).flatMap(tab => (tab.sections || []).flatMap(section => section.charts || []));
 
-test('v1.3 reference content exposes simplified handbook destinations', () => {
+test('v1.3.2 reference content exposes paradigm-first destinations', () => {
   assert.deepEqual(
     library.referenceTopics.filter(t => t.language === 'greek').map(t => t.id),
-    ['greek-grammar-handbook','greek-paradigm-charts','greek-morphology-guide','greek-verbs','greek-nouns','greek-pronouns','greek-adjectives','greek-prepositions','grammar-parsing-ambiguity']
+    ['greek-paradigm-charts','greek-grammar-handbook','greek-verbs','greek-nouns','greek-pronouns','greek-adjectives']
   );
   assert.deepEqual(
     library.referenceTopics.filter(t => t.language === 'hebrew').map(t => t.id),
-    ['hebrew-grammar-handbook','hebrew-paradigm-charts','hebrew-morphology-guide','hebrew-verbs','hebrew-nouns','hebrew-particles']
+    ['hebrew-paradigm-charts','hebrew-grammar-handbook','hebrew-verbs','hebrew-nouns']
   );
   for (const topic of library.referenceTopics) {
     assert.ok(topic.id);
@@ -38,15 +38,13 @@ test('v1.3 reference content exposes simplified handbook destinations', () => {
   }
 });
 
-test('v1.3 Reference landing is organized as a concise handbook', () => {
+test('v1.3.2 Reference landing is organized around two primary destinations', () => {
   for (const language of ['greek', 'hebrew']) {
     const sections = library.referenceLandingSections(language);
-    assert.deepEqual(sections.map(section => section.title), ['Primary Reference', 'Supplemental Reference', 'Additional Tools']);
-    assert.deepEqual(sections[0].entries.map(entry => entry.label), ['Grammar Handbook', 'Paradigm Charts']);
-    assert.deepEqual(sections[1].entries.map(entry => entry.label), ['Morphology Guide']);
-    assert.equal(sections[0].entries[1].featured, true);
-    assert.doesNotMatch(sections.flatMap(section => section.entries).map(entry => entry.label).join(' '), /Quick Reference|Reading Helps|Parsing Abbreviations/);
-    assert.ok(sections[2].entries.length >= 2);
+    assert.deepEqual(sections.map(section => section.title), ['Reference']);
+    assert.deepEqual(sections[0].entries.map(entry => entry.label), ['Paradigm Charts', 'Grammar Handbook']);
+    assert.equal(sections[0].entries[0].featured, true);
+    assert.doesNotMatch(sections.flatMap(section => section.entries).map(entry => entry.label).join(' '), /Supplemental Reference|Additional Tools|Morphology Guide|Quick Reference|Reading Helps|Parsing Abbreviations/);
     for (const entry of sections.flatMap(section => section.entries)) {
       assert.ok(library.getReferenceTopic(entry.id), `${entry.id} should resolve`);
     }
@@ -60,7 +58,9 @@ test('v1.3 removed Reference routes redirect calmly to current destinations', ()
   assert.equal(library.getReferenceTopic('hebrew-quick-reference').id, 'hebrew-grammar-handbook');
   assert.equal(library.getReferenceTopic('greek-reading-helps').id, 'greek-grammar-handbook');
   assert.equal(library.getReferenceTopic('hebrew-reading-helps').id, 'hebrew-grammar-handbook');
-  assert.equal(library.getReferenceTopic('grammar-parsing-decoder').id, 'greek-morphology-guide');
+  assert.equal(library.getReferenceTopic('grammar-parsing-decoder').id, 'greek-grammar-handbook');
+  assert.equal(library.getReferenceTopic('greek-morphology-guide').id, 'greek-grammar-handbook');
+  assert.equal(library.getReferenceTopic('hebrew-morphology-guide').id, 'hebrew-grammar-handbook');
 });
 
 test('v5.5 Reference pages remain consultative rather than progress-based', () => {
@@ -129,7 +129,7 @@ test('v3.6.3 Greek adjectives, pronouns, and prepositions remain category pages'
   assert.ok(sectionCharts(adjectives).some(c => c.label === 'Adjective endings'));
   assert.equal(library.getReferenceTopic('greek-pronouns').title, 'Pronouns');
   assert.ok(library.getReferenceTopic('greek-pronouns').charts.some(c => c.label === 'Demonstrative pronouns'));
-  assert.ok(library.getReferenceTopic('greek-prepositions').charts.some(c => c.label === 'Common prepositions'));
+  assert.equal(library.getReferenceTopic('greek-prepositions').id, 'greek-grammar-handbook');
 });
 
 test('v3.6.3 Hebrew nouns consolidate state, number, suffixes, article, and examples', () => {
@@ -232,7 +232,7 @@ test('search preserves old terms while returning consolidated pages', () => {
     greek: {
       'Grammar Handbook':'greek-grammar-handbook',
       'Paradigm Charts':'greek-paradigm-charts',
-      'Morphology Guide':'greek-morphology-guide',
+      'Morphology Guide':'greek-grammar-handbook',
       'third declension':'greek-nouns',
       'noun endings':'greek-nouns',
       'article endings':'greek-nouns',
@@ -249,7 +249,7 @@ test('search preserves old terms while returning consolidated pages', () => {
     hebrew: {
       'Grammar Handbook':'hebrew-grammar-handbook',
       'Paradigm Charts':'hebrew-paradigm-charts',
-      'Morphology Guide':'hebrew-morphology-guide',
+      'Morphology Guide':'hebrew-grammar-handbook',
       'waw consecutive':'hebrew-verbs',
       'wayyiqtol':'hebrew-verbs',
       'Qal paradigms':'hebrew-verbs',
@@ -354,12 +354,12 @@ function renderGrammarHomeAfterLocalSelection(initialLanguage, selectedLanguage)
 test('v1.3 Reference local language selector controls handbook home language', () => {
   const greek = renderGrammarHomeFor('greek');
   assert.match(greek, /<nav class="grammar-home" aria-label="Reference contents">/);
-  assert.match(greek, /<section class="grammar-home-language"><h2>Greek<\/h2>[\s\S]*<h2>Primary Reference<\/h2>[\s\S]*>Grammar Handbook<[\s\S]*grammar-toc-featured[\s\S]*>Paradigm Charts<[\s\S]*<h2>Supplemental Reference<\/h2>[\s\S]*>Morphology Guide<[\s\S]*<h2>Additional Tools<\/h2>/);
+  assert.match(greek, /<section class="grammar-home-language"><h2>Greek<\/h2>[\s\S]*<h2>Reference<\/h2>[\s\S]*grammar-toc-featured[\s\S]*>Paradigm Charts<[\s\S]*>Grammar Handbook</);
   assert.doesNotMatch(greek, /<h2>Hebrew<\/h2>/);
   assert.doesNotMatch(greek, />Particles</);
 
   const hebrew = renderGrammarHomeFor('hebrew');
-  assert.match(hebrew, /<section class="grammar-home-language"><h2>Hebrew<\/h2>[\s\S]*<h2>Primary Reference<\/h2>[\s\S]*>Grammar Handbook<[\s\S]*>Paradigm Charts<[\s\S]*<h2>Supplemental Reference<\/h2>[\s\S]*>Morphology Guide<[\s\S]*<h2>Additional Tools<\/h2>[\s\S]*>Particles and Prepositions<[\s\S]*>Stem Summaries</);
+  assert.match(hebrew, /<section class="grammar-home-language"><h2>Hebrew<\/h2>[\s\S]*<h2>Reference<\/h2>[\s\S]*grammar-toc-featured[\s\S]*>Paradigm Charts<[\s\S]*>Grammar Handbook/);
   assert.doesNotMatch(hebrew, /<h2>Greek<\/h2>/);
   assert.doesNotMatch(hebrew, />Articles</);
   assert.doesNotMatch(hebrew, />Pronouns</);
@@ -405,7 +405,8 @@ test('v1.3 Grammar Handbook and Paradigm Charts expose compact internal navigati
   vm.runInContext(`renderReferenceTopic(PuritanReferenceLibrary.getReferenceTopic('greek-paradigm-charts'));`, context);
   assert.match(page.innerHTML, /aria-label="Topic sections"/);
   assert.match(page.innerHTML, /href="#present"/);
-  assert.match(page.innerHTML, /href="#noun-declensions"/);
+  assert.doesNotMatch(page.innerHTML, />Noun Declensions<[\s\S]*>Article<[\s\S]*>Pronouns</);
+  assert.doesNotMatch(page.innerHTML, />Common prepositions</);
 });
 
 test('Reference Search results render immediately under the search controls with count and empty state', () => {
@@ -456,7 +457,7 @@ test('Reference Search results render immediately under the search controls with
 test('service worker cache version and app shell cache bust are bumped', () => {
   const sw = fs.readFileSync('sw.js', 'utf8');
   const html = fs.readFileSync('index.html', 'utf8');
-  assert.match(sw, /const CACHE = 'puritan-parser-v37-v1\.3\.1'/);
+  assert.match(sw, /const CACHE = 'puritan-parser-v38-v1\.3\.2'/);
   assert.doesNotMatch(sw, /puritan-parser-v13-reader-startup/);
-  assert.match(html, /src="src\/main\.js\?v=v1\.3"/);
+  assert.match(html, /src="src\/main\.js\?v=v1\.3\.2"/);
 });
