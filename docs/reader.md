@@ -204,3 +204,17 @@ The Reader remains intentionally narrow. Do not add:
 ## Future Hebrew compatibility
 
 For future Hebrew Reader support, add `ReaderConfig.hebrew`, place data under `data/hebrew/<book>/<chapter>.json`, add a Hebrew search index, and reuse the same loader, route, state persistence, and navigation behavior. Hebrew generators should emit the same high-level chapter contract (`book`, `chapter`, `verses`) and may add token fields only when source data provides them. Hebrew-specific typography and RTL handling should be added in the UI layer without changing the Greek data generator contract.
+
+## v1.4.1 word-details display modes
+
+Reader word details now support three display preferences in the Reader settings panel:
+
+- **Auto** (default): uses a side panel when the Reader has enough horizontal space, and uses the overlay on smaller screens.
+- **Overlay**: always uses the established popup/overlay experience.
+- **Side panel**: keeps the passage and word details visible together when space permits, with an overlay fallback when the passage would become too narrow.
+
+Quick details continue to show the selected form, lemma/root, gloss, parsing, frequency, learning state, and Reference links when those data are available. On wide layouts, **Open full details** expands the side panel into the existing Word Page content while preserving the Reader passage and scroll position; **Back to quick details** returns to the compact view. **Open as full page** remains available for a standalone Word Page route with more horizontal space.
+
+On phone-width and narrow tablet layouts, Auto and Side panel fall back to the overlay so the biblical text is not crushed. In overlay mode, full details open as the standalone Word Page rather than a cramped in-place panel.
+
+This release does not implement continuous reading, adjacent chapter loading, or automatic URL updates while scrolling. Reader location, chapter, selected translation, and scroll restoration continue to use the existing Reader persistence flow.
