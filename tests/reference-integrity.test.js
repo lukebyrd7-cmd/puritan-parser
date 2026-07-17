@@ -3,6 +3,7 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 
 const library = require('../src/features/grammar/reference-data');
+const settings = require('../src/features/settings');
 
 const GREEK = /[\u0370-\u03ff\u1f00-\u1fff]/;
 const HEBREW = /[\u0590-\u05ff]/;
@@ -120,7 +121,7 @@ test('v1.3.1 Reference charts have consistent rows, supported labels, and langua
 
 test('v1.3.1 app shell and service worker keep Reference assets reachable without stale versioning', () => {
   const sw = fs.readFileSync('sw.js', 'utf8');
-  assert.match(sw, /puritan-parser-v40-v1\.4\.1-fix2/, 'service-worker cache version is bumped for Reference changes');
+  assert.match(sw, /puritan-parser-v41-v1\.3\.3-sources/, 'service-worker cache version is bumped for Reference changes');
   assert.match(sw, /\.\/src\/features\/grammar\/reference-data\.js/);
   assert.match(sw, /\.\/src\/features\/grammar\/index\.js/);
   assert.doesNotMatch(sw, /reference-audit\.md|reference-sources\.md/, 'docs are not app-shell assets');
@@ -208,4 +209,34 @@ test('v1.3.3 εἰμί indicatives and Paradigm Charts navigation remain focused
   assert.deepEqual(library.referenceLandingSections('greek').map(section => section.title), ['Reference']);
   assert.deepEqual(library.referenceLandingSections('greek')[0].entries.map(entry => entry.label), ['Paradigm Charts','Grammar Handbook']);
   assert.equal(library.greekCoreIndicativeCharts.some(chart => /Subjunctive|Imperative|Infinitive|Participle/.test(chart.label)), false, 'v1.3.4 material is absent from the core registry');
+});
+
+test('v1.3.3 About & Sources centralizes the complete Machen source map', () => {
+  const html = settings.renderGreekReferenceSources(library);
+  assert.match(html, /J\. Gresham Machen/);
+  assert.match(html, /New Testament Greek for Beginners/);
+  assert.match(html, /New York: The Macmillan Company, 1923/);
+  assert.match(html, /1923 first edition/);
+  assert.match(html, /CCEL digital facsimile v0\.1/);
+  for (const pages of new Set(library.greekCoreIndicativeCharts.map(chart => String(chart.source.printedPages)))) {
+    assert.ok(html.includes(pages), `printed pages ${pages} remain visible centrally`);
+  }
+  assert.match(html, /λείπω \/ ἔλιπον/);
+  assert.match(html, /pluperfect middle\/passive is honestly omitted/i);
+  assert.match(html, /movable/i);
+  assert.match(html, /λέλυκαν/);
+  assert.match(html, /initial augment is optional/i);
+});
+
+test('v1.3.3 paradigm charts keep source metadata but render only a centralized source-notes link', () => {
+  const ui = fs.readFileSync('src/features/grammar/index.js', 'utf8');
+  const html = fs.readFileSync('index.html', 'utf8');
+  for (const chart of library.greekCoreIndicativeCharts) assert.ok(chart.source?.printedPages, `${chart.id} keeps its source connection`);
+  assert.match(ui, /View source notes/);
+  assert.match(ui, /href="\/settings\/sources#greek-reference-sources"/);
+  assert.match(ui, /data-source-notes-target="greek-reference-sources"/);
+  assert.doesNotMatch(ui, /reference-source-note|Verified against the CCEL page image/);
+  assert.match(html, /id="openAboutSourcesBtn"/);
+  assert.match(html, /id="aboutSourcesView"/);
+  assert.match(html, /id="aboutSourcesShell"/);
 });

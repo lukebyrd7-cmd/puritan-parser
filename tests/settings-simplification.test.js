@@ -37,3 +37,16 @@ test('settings markup uses named theme swatches and a native custom color picker
   assert.match(html, /id="srsPreset"/);
   assert.doesNotMatch(html, /id="studyModeSetting"|id="initialEase"|id="minEase"/);
 });
+
+test('About & Sources is a normal Settings destination with the required sections', () => {
+  const html = fs.readFileSync('index.html', 'utf8');
+  const settings = fs.readFileSync('src/features/settings/index.js', 'utf8');
+  assert.match(html, /id="openAboutSourcesBtn"/);
+  assert.match(settings, /About The Puritan Parser/);
+  assert.match(settings, /Greek Reference Sources/);
+  assert.match(settings, /Hebrew Reference Sources/);
+  assert.match(settings, /Text and Translation Sources/);
+  assert.match(settings, /Data and Licensing/);
+  assert.match(settings, /Methodology and Limitations/);
+  assert.match(settings, /navigateTo\('\/settings'\)/, 'the page retains a normal return to Settings');
+});

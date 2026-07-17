@@ -8,6 +8,7 @@ const ROUTES = {
   '/dashboard': { viewId: 'dashboardView', nav: 'dashboard' },
   '/progress': { viewId: 'progressView', nav: 'progress' },
   '/settings': { viewId: 'settingsView', nav: 'settings' },
+  '/settings/sources': { viewId: 'aboutSourcesView', nav: 'settings' },
   '/search': { viewId: 'globalSearchView', nav: 'search' },
   '/grammar': { viewId: 'grammarView', nav: 'grammar' },
   '/reader': { viewId: 'readerView', nav: 'reader' },

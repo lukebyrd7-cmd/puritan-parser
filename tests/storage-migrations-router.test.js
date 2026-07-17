@@ -64,6 +64,10 @@ test('router changes routes and selects views', () => {
   assert.equal(app.routeForView('progressView'), '/progress');
   assert.equal(app.routeForView('globalSearchView'), '/search');
   assert.equal(app.routeForView('wordPageView'), '/word');
+  app.navigateTo('/settings/sources');
+  assert.equal(app.window.location.pathname, '/settings/sources');
+  assert.equal(shown.at(-1), 'aboutSourcesView');
+  assert.equal(app.routeForView('aboutSourcesView'), '/settings/sources');
 });
 
 test('router treats root as the Learn view', () => {
@@ -107,7 +111,7 @@ test('showView can display the static Word Page view', () => {
     };
   }
 
-  const ids = ['listView','flashView','parsingView','dashboardView','progressView','settingsView','globalSearchView','grammarView','readerView','wordPageView','onboardingView','profileView','sharedFilterBar','filterSearchGroup','filterSortGroup','filterEntriesCount','filterPosGroup','footerLang'];
+  const ids = ['listView','flashView','parsingView','dashboardView','progressView','settingsView','aboutSourcesView','globalSearchView','grammarView','readerView','wordPageView','onboardingView','profileView','sharedFilterBar','filterSearchGroup','filterSortGroup','filterEntriesCount','filterPosGroup','footerLang'];
   const elements = new Map(ids.map(id => [id, makeElement(id)]));
   const context = {
     console,
