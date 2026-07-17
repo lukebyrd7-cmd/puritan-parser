@@ -121,7 +121,7 @@ test('v1.3.1 Reference charts have consistent rows, supported labels, and langua
 
 test('v1.3.1 app shell and service worker keep Reference assets reachable without stale versioning', () => {
   const sw = fs.readFileSync('sw.js', 'utf8');
-  assert.match(sw, /puritan-parser-v41-v1\.3\.3-sources/, 'service-worker cache version is bumped for Reference changes');
+  assert.match(sw, /puritan-parser-v42-v1\.3\.4-paradigms/, 'service-worker cache version is bumped for Reference changes');
   assert.match(sw, /\.\/src\/features\/grammar\/reference-data\.js/);
   assert.match(sw, /\.\/src\/features\/grammar\/index\.js/);
   assert.doesNotMatch(sw, /reference-audit\.md|reference-sources\.md/, 'docs are not app-shell assets');
@@ -239,4 +239,120 @@ test('v1.3.3 paradigm charts keep source metadata but render only a centralized 
   assert.match(html, /id="openAboutSourcesBtn"/);
   assert.match(html, /id="aboutSourcesView"/);
   assert.match(html, /id="aboutSourcesShell"/);
+});
+
+test('v1.3.4 registers unique source-backed Greek additional paradigm charts', () => {
+  const charts = library.greekAdditionalParadigmCharts;
+  const ids = charts.map(chart => chart.id);
+  assert.ok(charts.length >= 70, 'the three-phase milestone has substantial focused coverage');
+  assert.equal(new Set(ids).size, ids.length, 'v1.3.4 chart ids are unique');
+  for (const chart of charts) {
+    assert.match(chart.id, /^greek-/);
+    assert.equal(chart.milestone, 'v1.3.4');
+    assert.equal(chart.source?.author, 'J. Gresham Machen');
+    assert.equal(chart.source?.edition, '1923 first edition');
+    assert.match(String(chart.source?.printedPages), /\d/);
+    assert.ok(chart.source?.sections, `${chart.id} records a section or table location`);
+    for (const value of chart.rows.flat()) {
+      if (typeof value === 'string' && GREEK.test(value)) assert.equal(value, value.normalize('NFC'), `${chart.id}: ${value} is NFC`);
+    }
+  }
+});
+
+test('v1.3.4 phase A covers regular omega non-indicatives with appropriate structures', () => {
+  const charts = library.greekAdditionalParadigmCharts;
+  const ids = new Set(charts.map(chart => chart.id));
+  [
+    'greek-present-active-subjunctive-lyo',
+    'greek-present-middle-passive-subjunctive-lyo',
+    'greek-aorist-active-subjunctive-lyo',
+    'greek-aorist-middle-subjunctive-lyo',
+    'greek-aorist-passive-subjunctive-lyo',
+    'greek-present-active-imperative-lyo',
+    'greek-present-middle-passive-imperative-lyo',
+    'greek-aorist-active-imperative-lyo',
+    'greek-aorist-middle-imperative-lyo',
+    'greek-aorist-passive-imperative-lyo',
+    'greek-infinitive-system-index-lyo',
+    'greek-present-active-participle-lyo',
+    'greek-aorist-passive-participle-lyo',
+    'greek-perfect-active-participle-lyo',
+    'greek-perfect-middle-passive-participle-lyo'
+  ].forEach(id => assert.ok(ids.has(id), `${id} is registered`));
+
+  for (const chart of charts.filter(item => item.id.includes('-imperative-'))) {
+    assert.deepEqual(chart.rows.map(row => row[0]), ['2nd', '3rd'], `${chart.id} contains only second and third persons`);
+  }
+  for (const chart of charts.filter(item => item.id.includes('-participle-lyo') && item.columns.includes('Case'))) {
+    assert.deepEqual(chart.columns, ['Case','Masculine','Feminine','Neuter']);
+    assert.ok(chart.rows.some(row => row[0] === 'Gen sg'), `${chart.id} supplies oblique singular recognition`);
+    assert.ok(chart.rows.some(row => row[0] === 'Nom pl'), `${chart.id} supplies plural recognition`);
+  }
+  const infinitives = charts.find(chart => chart.id === 'greek-infinitive-system-index-lyo');
+  assert.ok(infinitives.rows.some(row => row[0] === 'Future Active' && row[1] === 'λύσειν'));
+  assert.ok(infinitives.rows.some(row => row[0] === 'Perfect Middle/Passive' && row[1] === 'λελύσθαι'));
+  assert.equal(charts.some(chart => /Perfect.*Subjunctive/.test(chart.label)), false, 'unsupported perfect subjunctive is omitted');
+});
+
+test('v1.3.4 phase B supplies contract and major mi-verb representatives without inference', () => {
+  const charts = library.greekAdditionalParadigmCharts;
+  const ids = new Set(charts.map(chart => chart.id));
+  ['alpha-contract','epsilon-contract','omicron-contract'].forEach(type => assert.ok(charts.some(chart => chart.id.includes(type)), `${type} is represented`));
+  ['δίδωμι','τίθημι','ἵστημι'].forEach(lemma => assert.ok(charts.some(chart => chart.lemma === lemma), `${lemma} is represented`));
+  assert.ok(ids.has('greek-didomi-aorist-active-indicative'));
+  assert.ok(ids.has('greek-tithemi-aorist-middle-indicative'));
+  const histemi = charts.find(chart => chart.id === 'greek-histemi-second-aorist-active-indicative');
+  assert.deepEqual(histemi.rows[0].slice(1), ['ἔστην','ἔστημεν']);
+  assert.match(histemi.note, /intransitive/i);
+  assert.equal(charts.some(chart => chart.lemma === 'δείκνυμι'), false, 'no complete δείκνυμι paradigm is inferred from isolated forms');
+});
+
+test('v1.3.4 phase C supplies high-value noun, adjective, determiner, and pronoun families', () => {
+  const charts = library.greekAdditionalParadigmCharts;
+  const ids = new Set(charts.map(chart => chart.id));
+  [
+    'greek-first-declension-feminine-hora-graphe',
+    'greek-first-declension-masculine-prophetes-mathetes',
+    'greek-second-declension-masculine-logos',
+    'greek-second-declension-neuter-doron',
+    'greek-third-declension-guttural-nyx-sarx',
+    'greek-third-declension-nasal-archon',
+    'greek-third-declension-dental-elpis',
+    'greek-third-declension-s-stem-genos',
+    'greek-irregular-nouns-pater-aner',
+    'greek-adjective-first-second-agathos',
+    'greek-adjective-third-declension-alethes',
+    'greek-adjective-comparative-meizon',
+    'greek-pronouns-personal-autos-singular',
+    'greek-pronoun-demonstrative-houtos',
+    'greek-pronoun-relative-hos',
+    'greek-pronouns-interrogative-indefinite-singular',
+    'greek-determiner-pas',
+    'greek-pronouns-reflexive-reciprocal'
+  ].forEach(id => assert.ok(ids.has(id), `${id} is registered`));
+
+  const paradigms = library.getReferenceTopic('greek-paradigm-charts');
+  assert.deepEqual(paradigms.sectionTabs.map(tab => tab.label), ['Verb Paradigms','Noun Declensions','Participles','Infinitives','Adjectives','Pronouns']);
+  assert.ok(paradigms.sectionTabs.find(tab => tab.id === 'verbs').sections.some(section => section.title === 'Contract Verbs'));
+  assert.ok(paradigms.sectionTabs.find(tab => tab.id === 'verbs').sections.some(section => section.title === 'μι Verbs'));
+});
+
+test('v1.3.4 About & Sources covers new metadata while chart flow stays citation-free', () => {
+  const sourceHtml = settings.renderGreekReferenceSources(library);
+  for (const pages of new Set(library.greekAdditionalParadigmCharts.map(chart => String(chart.source.printedPages)))) {
+    assert.ok(sourceHtml.includes(pages), `About & Sources includes printed pages ${pages}`);
+  }
+  assert.match(sourceHtml, /perfect subjunctive/i);
+  assert.match(sourceHtml, /δείκνυμι/);
+  const ui = fs.readFileSync('src/features/grammar/index.js', 'utf8');
+  assert.match(ui, /href="\/settings\/sources#greek-reference-sources"/);
+  assert.doesNotMatch(ui, /New Testament Greek for Beginners|The Macmillan Company, 1923/);
+});
+
+test('v1.3.4 does not change Hebrew data or expand the Grammar Handbook prose', () => {
+  const additional = library.greekAdditionalParadigmCharts;
+  assert.equal(additional.some(chart => chart.rows.flat().some(value => HEBREW.test(cellText(value)))), false);
+  const handbook = library.getReferenceTopic('greek-grammar-handbook');
+  assert.equal(handbook.sectionTabs.some(tab => (tab.sections || []).some(section => /Optative|Future Perfect/.test(section.title))), false);
+  assert.doesNotMatch((handbook.body || []).join(' '), /v1\.3\.4|source map|page-image/i);
 });

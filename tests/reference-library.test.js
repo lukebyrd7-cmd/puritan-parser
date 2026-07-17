@@ -89,7 +89,7 @@ test('v3.6.3 Greek nouns consolidate article, declensions, endings, cases, and e
     assert.ok(sectionTitles(nouns).includes(title), `${title} section missing`);
   }
   assert.ok(sectionCharts(nouns).some(c => c.label === 'Greek article chart'));
-  assert.ok(sectionCharts(nouns).some(c => c.label === 'Third declension basic endings'));
+  assert.ok(sectionCharts(nouns).some(c => c.label === 'Third-declension guttural stems: νύξ and σάρξ'));
   assert.ok(sectionCharts(nouns).some(c => c.rows.some(r => r[0] === 'Vocative')));
   assert.ok(allExamples(nouns).some(e => e.word === 'σάρξ'));
 });
@@ -105,7 +105,7 @@ test('v3.6.3 Greek verbs consolidate paradigms, explanation sections, non-finite
   assert.deepEqual(verbs.principalParts, ['λύω','λύσω','ἔλυσα','λέλυκα','λέλυμαι','ἐλύθην']);
   assert.ok(sectionCharts(verbs).some(c => c.label === 'Aorist Passive Indicative'));
   assert.ok(sectionCharts(verbs).some(c => c.label === 'Participle quick index'));
-  assert.ok(sectionCharts(verbs).some(c => c.label === 'Contract verb clues'));
+  assert.ok(sectionCharts(verbs).some(c => c.label === 'τιμάω present active indicative'));
   assert.ok(allExamples(verbs).some(e => e.word === 'ἐλύθησαν'));
 });
 
@@ -118,7 +118,7 @@ test('v3.6.3d Greek verbs use recognition-first category tabs and jump chips', (
   assert.ok(sectionTabCharts(verbs).some(c => c.label === 'Aorist Passive Indicative'));
   assert.ok(sectionTabCharts(verbs).some(c => c.label === 'Infinitive quick index'));
   assert.ok(sectionTabCharts(verbs).some(c => c.label === 'Participle quick index'));
-  assert.ok(sectionTabCharts(verbs).some(c => c.label === 'Common μι verb anchors'));
+  assert.ok(sectionTabCharts(verbs).some(c => c.label === 'δίδωμι present active indicative'));
 });
 
 test('v3.6.3 Greek adjectives, pronouns, and prepositions remain category pages', () => {
@@ -128,7 +128,7 @@ test('v3.6.3 Greek adjectives, pronouns, and prepositions remain category pages'
   }
   assert.ok(sectionCharts(adjectives).some(c => c.label === 'Adjective endings'));
   assert.equal(library.getReferenceTopic('greek-pronouns').title, 'Pronouns');
-  assert.ok(library.getReferenceTopic('greek-pronouns').charts.some(c => c.label === 'Demonstrative pronouns'));
+  assert.ok(library.getReferenceTopic('greek-pronouns').charts.some(c => c.label === 'Demonstrative pronoun: οὗτος, αὕτη, τοῦτο'));
   assert.equal(library.getReferenceTopic('greek-prepositions').id, 'greek-grammar-handbook');
 });
 
@@ -194,7 +194,7 @@ test('v4.2.5B Greek participle detail rows use real declension forms, not suffix
   const chartRows = label => paradigmCharts.find(chart => chart.label === label)?.rows || [];
   assert.deepEqual(chartRows('Present Middle/Passive Participle')[1], ['Gen sg','λυομένου','λυομένης','λυομένου']);
   assert.deepEqual(chartRows('Aorist Active Participle')[1], ['Gen sg','λύσαντος','λυσάσης','λύσαντος']);
-  assert.deepEqual(chartRows('Aorist Passive Participle')[2], ['Nom pl','λυθέντες','λυθεῖσαι','λυθέντα']);
+  assert.deepEqual(chartRows('Aorist Passive Participle').find(row => row[0] === 'Nom pl'), ['Nom pl','λυθέντες','λυθεῖσαι','λυθέντα']);
   assert.deepEqual(chartRows('Perfect Active Participle')[1], ['Gen sg','λελυκότος','λελυκυίας','λελυκότος']);
 });
 
@@ -457,11 +457,11 @@ test('Reference Search results render immediately under the search controls with
 test('service worker cache version and app shell cache bust are bumped', () => {
   const sw = fs.readFileSync('sw.js', 'utf8');
   const html = fs.readFileSync('index.html', 'utf8');
-  assert.match(sw, /const CACHE = 'puritan-parser-v41-v1\.3\.3-sources'/);
+  assert.match(sw, /const CACHE = 'puritan-parser-v42-v1\.3\.4-paradigms'/);
   assert.doesNotMatch(sw, /puritan-parser-v39-v1\.4\.1/);
   assert.doesNotMatch(sw, /puritan-parser-v13-reader-startup/);
   assert.match(sw, /'\.\/src\/features\/reader\/index\.js'/);
   assert.match(sw, /caches\.delete\(k\)/);
   assert.match(sw, /self\.clients\.claim\(\)/);
-  assert.match(html, /src="src\/main\.js\?v=v1\.3\.3-sources"/);
+  assert.match(html, /src="src\/main\.js\?v=v1\.3\.4-paradigms"/);
 });

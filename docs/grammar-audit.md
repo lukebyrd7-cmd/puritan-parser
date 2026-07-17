@@ -16,17 +16,24 @@ Primary comparison anchors: Wallace and Mounce for Greek categories and regular 
 - v1.3.3 core indicative rows are verified against the CCEL page-image scan of Machen's 1923 first edition: regular λύω systems, λείπω / ἔλιπον second aorist, and present/imperfect/future indicative forms of εἰμί. Exact printed pages and conventions are recorded in `docs/reference-sources.md`.
 - The aorist passive chart is tied explicitly to the sixth principal part ἐλύθην rather than to active/middle aorist formation.
 - Machen's explicitly printed perfect active third-plural alternative λέλυκαν and movable-ν conventions are retained.
+- v1.3.4 adds a normalized registry of 73 page-image-verified Greek charts. Regular omega coverage includes present/aorist subjunctives and imperatives, present/future/aorist/perfect infinitives, and full recognition-oriented present/aorist/perfect participle declensions.
+- Contract present systems use Machen's directly supplied τιμάω, φιλέω, and δηλόω tables (printed pp. 239–241). The charts do not extend contraction into non-present systems.
+- Major μι-verb coverage uses Machen's δίδωμι, τίθημι, and ἵστημι tables (printed pp. 244–249), preserving reduplication, athematic endings, root-aorist behavior, and the transitive-present/intransitive-second-aorist distinction for ἵστημι.
+- Source-backed nominal coverage now includes representative first/second/third declensions, common irregular nouns, first/second- and third-declension adjectives, μείζων, personal/demonstrative/relative/interrogative/indefinite/reflexive/reciprocal forms, and πᾶς. Exact pages and limits are recorded in `docs/reference-sources.md`.
 
 ### ⚠ Needs Review
 
 - The Greek paradigms are representative rather than exhaustive. Future drill work should verify every generated drill form against a fuller paradigm source before reuse.
 - Pluperfect middle/passive remains deferred: Machen describes the system but does not directly supply a complete paradigm. The active chart is limited to Machen's p. 238 appendix forms and parenthesized-augment convention.
-- The mi-verb and irregular-verb sections are intentionally recognition-oriented snapshots, not full paradigms.
+- The μι-verb sections are recognition-oriented selections from complete supplied systems rather than attempts to enumerate every theoretical form. δείκνυμι remains omitted because Machen does not supply a complete chart in the approved passage.
+- A distinct second-declension feminine noun chart, a complete superlative chart, optative, future perfect, and perfect subjunctive remain deferred rather than inferred.
 
 ### ✖ Corrected
 
 - Corrected Greek participle detail tables. The previous helper guessed genitive singular and nominative plural forms by string replacement, which produced forms such as λυόμενοντος and left λύσας/λυθείς/λελυκώς unchanged in rows where declined forms were required. The tables now use explicit participle rows for present active, present middle/passive, aorist active, aorist middle, aorist passive, perfect active, and perfect middle/passive.
 - Corrected the pluperfect active plural from unsourced shortened forms to Machen's printed (ἐ)λελύκειμεν, (ἐ)λελύκειτε, and (ἐ)λελύκεισαν, and removed the unsupported complete pluperfect middle/passive chart.
+- Replaced the legacy partial Greek participle snapshots in Paradigm Charts with explicit eight-row case/number/gender tables tied to Machen's printed declensions.
+- Replaced unsourced contract/μι and nominal snapshots in the focused Paradigm Charts paths with stable, source-tagged v1.3.4 charts while leaving Handbook explanation scope unchanged.
 
 ## Hebrew
 
@@ -56,11 +63,12 @@ Primary comparison anchors: Wallace and Mounce for Greek categories and regular 
 - Before building paradigm drills, split representative reference forms from drill-validated forms so the app does not treat recognition summaries as complete paradigms.
 - Add a small grammar-data audit script that checks for duplicated Qal forms inside non-Qal charts, unresolved `Needs review` cells, and malformed object cells in drill-eligible data.
 - Add source notes in code comments or docs identifying which grammar family each paradigm convention follows when standard introductory grammars differ.
-- Expand Greek validation beyond spot checks before drill generation, especially participles, contract verbs, mi verbs, perfect/pluperfect alternates, and irregular principal parts.
+- Keep the v1.3.4 source-backed charts distinct from drill eligibility; structural and page-image verification do not by themselves define future recognition-item selection policy.
 - Expand Hebrew validation before drill generation, especially passive-stem non-finites, weak verbs, hollow/geminate roots, and stem-specific participles.
 
 ## Regression Notes
 
 - Added tests for Hebrew non-Qal summary charts to ensure imperative, infinitive, and participle rows use stem-specific source data or explicit `Needs review` cells.
 - Added tests for Greek participle declension rows to ensure detail tables use verified forms rather than suffix guesses.
+- Added v1.3.4 tests for unique IDs, source pages, NFC, imperative person restrictions, participle row structure, contract and μι representatives, nominal/pronoun categories, source-note links, Hebrew isolation, and Handbook scope.
 - Focused reference-library tests pass after corrections.

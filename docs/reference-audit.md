@@ -52,28 +52,28 @@ Current visible resources: 15. Route set exercised or covered by tests: 60 total
 | Nominal | Number/gender | Partial | Explained across nouns/adjectives; consolidate. |
 | Nominal | Definite article | Substantially complete for quick chart | Needs source note. |
 | Nominal | First declension | Partial | Representative charts only. |
-| Nominal | Second declension | Partial | Representative charts only. |
-| Nominal | Third declension patterns | Partial | Basic endings/examples; major patterns absent. |
-| Nominal | Adjectives/comparison | Partial | Endings/comparative/superlative present. |
-| Nominal | Personal/demonstrative/relative/interrogative pronouns | Partial | Forms present, not exhaustive. |
-| Nominal | Indefinite/reflexive/reciprocal/numerals | Absent/minimal | Add after core paradigms. |
+| Nominal | First and second declension | Verified within v1.3.4 scope | Machen pp. 225–226 supply feminine/masculine first-declension and masculine/neuter second-declension representatives. A distinct second-declension feminine chart remains deferred. |
+| Nominal | Third declension patterns | Verified within v1.3.4 scope | Machen pp. 227–229 supply representative guttural, nasal, dental, t-, s-, liquid, and irregular/stem-alternating nouns. |
+| Nominal | Adjectives/comparison | Verified within v1.3.4 scope | Machen pp. 230–231 supply ἀγαθός, two-termination ἀληθής, and comparative μείζων. Complete superlatives remain deferred. |
+| Nominal | Personal/demonstrative/relative/interrogative pronouns | Verified within v1.3.4 scope | Machen pp. 170–173 and 235 supply complete included paradigms. |
+| Nominal | Indefinite/reflexive/reciprocal/πᾶς | Verified within v1.3.4 scope | Machen pp. 150, 153–154, 171, and 231 supply the included forms; reciprocal coverage is limited to plural oblique forms. |
 | Verbal grammar | Tense/aspect, voice, mood, person/number | Partial | Concepts exist; expand Handbook cautiously. |
 | Verbal grammar | Principal parts, augment, reduplication | Partial | Present but concise. |
-| Verbal grammar | Contract/liquid/μι/irregular verbs | Minimal/partial | Recognition snapshots, not complete paradigms. |
+| Verbal grammar | Contract and major μι verbs | Verified within v1.3.4 scope | Machen pp. 239–249 supply τιμάω, φιλέω, δηλόω, δίδωμι, τίθημι, and ἵστημι paradigms. Liquid and other irregular verbs remain separate/deferred. |
 | Verbal paradigms | Present, imperfect, future, first aorist, aorist passive, perfect, pluperfect indicative | Verified within v1.3.3 scope | Machen (1923) page-image-verified λύω charts; pluperfect is active only because that is the complete paradigm directly supplied. |
 | Verbal paradigms | Second aorist | Verified within v1.3.3 scope | Machen's directly supplied λείπω / ἔλιπον active and middle paradigms are used. |
 | Verbal paradigms | Future perfect, optative, verbal adjectives | Absent | Do not add without sourced paradigms. |
-| Verbal paradigms | Subjunctive, imperative, infinitives, participles | Partial | Selected tenses/voices; not exhaustive. |
+| Verbal paradigms | Subjunctive, imperative, infinitives, participles | Verified within v1.3.4 scope | Page-image-verified regular omega-verb systems include present/aorist subjunctives and imperatives, present/future/aorist/perfect infinitives, and present/aorist/perfect participles. |
 | Syntax | Article, attributive/predicate, cases, prepositions, participles, infinitives, relative clauses, negation, particles, ambiguous forms | Minimal to partial | Grammar Handbook should own these explanations; current material is scattered. |
 | Syntax | Conditions, purpose/result, indirect discourse, aspect cautions | Absent/minimal | P1/P2 Handbook roadmap. |
 
 ### Greek actual verbal chart audit
 
-The v1.3.3 indicative charts are row-verified from Machen's 1923 first edition through the CCEL page-image scan; exact printed pages are recorded in `docs/reference-sources.md`. Representative lemmas are λύω for the regular systems, λείπω with second-aorist principal part ἔλιπον for the directly supplied second-aorist system, and εἰμί for its present, imperfect, and future indicatives. The verified finite charts provide 1st/2nd/3rd singular and plural rows. Machen's active pluperfect appendix paradigm is included with its parenthesized augment convention; the previous unsourced pluperfect middle/passive chart is omitted. Existing non-indicative charts remain outside the v1.3.3 verification claim.
+The v1.3.3 indicative charts and the v1.3.4 additional paradigms are row-verified from Machen's 1923 first edition through the CCEL page-image scan; exact printed pages are recorded in `docs/reference-sources.md`. The v1.3.4 normalized registry adds 73 charts for regular omega-verb non-indicatives, relevant εἰμί forms, contract verbs, major μι verbs, nouns, adjectives, determiners, and pronouns. Detailed participle charts use explicit case/number/gender rows rather than suffix generation. Contract charts stay limited to the present system, where Machen says contraction occurs. The ἵστημι charts preserve Machen's transitive present/intransitive second-aorist distinction.
 
 ### Greek missing core paradigms
 
-Optative, future perfect, verbal adjectives, major μι-verbs beyond the in-scope indicatives of εἰμί, common irregular verbs beyond the sourced λείπω second aorist, reflexive/reciprocal/indefinite pronouns, numerals, fuller third-declension patterns, and complete participle/adjective/pronoun declensions. Pluperfect middle/passive remains deferred because Machen does not directly supply a complete paradigm.
+Optative, future perfect, verbal adjectives, δείκνυμι as a full paradigm, liquid-verb expansion, numerals, a distinct second-declension feminine noun chart, a complete superlative chart, and exhaustive third-declension coverage remain deferred. Perfect subjunctive is omitted because Machen says it is too rare to learn and supplies no complete chart. Pluperfect middle/passive remains deferred because Machen does not directly supply a complete paradigm.
 
 ## Hebrew coverage matrix
 
@@ -119,8 +119,7 @@ Mapping: current Paradigm Charts, form sections from Verbs/Nouns/Adjectives/Pron
 |---|---|---|---|---|---|---|
 | v1.3.2 Two-section Reference architecture | P0/P1: landing, routes, selectors, stable ids, move Supplemental into Handbook | `reference-data.js`, `index.js`, `styles.css`, `tests/reference*.test.js`, docs | No new linguistic data; route map only | npm test, route tests, desktop/mobile visual QA, service-worker cache bump | Breaking legacy links; over-redesign | No new paradigms |
 | v1.3.3 Greek core indicative paradigms | Complete: source-tagged core indicatives for λύω, λείπω second aorist, and εἰμί | `reference-data.js`, `docs/reference-sources.md` | Machen 1923 row-level page-image verification complete for included material | Structural + source-note tests; visual wide-table QA | Pluperfect convention narrowed to directly supplied active forms | Optative, verbal adjectives, pluperfect middle/passive |
-| v1.3.4 Greek moods/non-finite | P1/P2: subjunctive, imperative, infinitives, participles | same | Source-tagged paradigms | Duplicate row/form tests, chart selector tests | Partial participle declensions | Irregular verbs unless sourced |
-| v1.3.5 Greek nominal/irregular | P2: third declension patterns, pronouns, μι/irregular anchors | same | Source-tagged noun/pronoun paradigms | Unicode/table integrity tests | Scope creep | Numerals may defer |
+| v1.3.4 Greek additional paradigms | Complete: moods/non-finites, contract and major μι verbs, high-value nouns/adjectives/pronouns | `reference-data.js`, Settings sources, tests, docs | Machen 1923 page-image verification complete for included material | Source/NFC/structure/category/UI tests; desktop/mobile visual QA | Large but focused chart registry | Optative, future perfect, δείκνυμι, complete superlatives, exhaustive third declension |
 | v1.3.6 Hebrew strong-verb stems | P0/P1: verify Qal through Hitpael strong-root rows; resolve/passively document Pual/Hophal gaps | same | Scholarly Hebrew paradigm source, edition, convention | Structural + provenance tests; Learn exclusion tests | Passive-stem overclaiming | Weak verbs |
 | v1.3.7 Hebrew suffix/nominal paradigms | P1/P2: pronominal suffixes, nouns, construct patterns | same | Source-tag suffix tables | Route/chart tests | Many allomorphs | Rare suffix variants |
 | v1.3.8 Weak-verb foundations | P2/P3: sourced recognition and limited paradigms for I-nun, III-he, hollow, geminate | same | Specialist-reviewed source | Drill exclusion tests until verified | High error risk | Doubly weak full coverage |
@@ -129,10 +128,11 @@ Mapping: current Paradigm Charts, form sections from Verbs/Nouns/Adjectives/Pron
 ## Questions requiring scholarly review
 
 - The v1.3.3 pluperfect convention follows Machen's printed p. 238 active paradigm, including parenthesized augment; broader pluperfect alternatives remain a future sourcing question.
+- Machen does not print a distinct second-declension feminine noun or complete superlative chart in the approved paradigm pages; another exact edition/page source would be needed before those are added.
 - Which source/edition should be authoritative for Hebrew strong-verb pointing and passive-stem non-finite treatment?
 - Which weak-verb categories should be included first for reader value without implying completeness?
 - How much pronunciation/accent material belongs in a reading reference versus Learn?
 
 ## Areas where evidence was insufficient
 
-No row-level citations were found for most Greek/Hebrew forms. Repository docs provide comparison anchors and prior audit notes, but not exact editions/page references. Several resources are product-authored explanations rather than scholarly datasets. The audit therefore distinguishes structural integrity from linguistic verification throughout.
+The normalized v1.3.3 and v1.3.4 Greek registries have exact row-level citations. Legacy Greek explanatory snapshots and most Hebrew forms still lack row-level citations. The audit therefore continues to distinguish source-backed registries from structurally checked legacy material.

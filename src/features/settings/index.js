@@ -43,7 +43,8 @@ function escapeAboutSourcesHtml(value){
 }
 function greekSourceCoverage(referenceLibrary){
   const groups = new Map();
-  for(const chart of referenceLibrary?.greekCoreIndicativeCharts || []){
+  const charts = [...(referenceLibrary?.greekCoreIndicativeCharts || []), ...(referenceLibrary?.greekAdditionalParadigmCharts || [])];
+  for(const chart of charts){
     if(!chart.source) continue;
     const key = `${chart.source.printedPages}|${chart.source.sections || ''}`;
     if(!groups.has(key)) groups.set(key, { source: chart.source, charts: [] });
@@ -52,7 +53,7 @@ function greekSourceCoverage(referenceLibrary){
   return Array.from(groups.values());
 }
 function renderGreekReferenceSources(referenceLibrary){
-  const charts = referenceLibrary?.greekCoreIndicativeCharts || [];
+  const charts = [...(referenceLibrary?.greekCoreIndicativeCharts || []), ...(referenceLibrary?.greekAdditionalParadigmCharts || [])];
   const source = charts.find(chart => chart.source)?.source;
   if(!source) return '<p>Detailed Greek Reference bibliography is not yet available in this installation.</p>';
   const chartById = id => charts.find(chart => chart.id === id);
@@ -79,7 +80,7 @@ function renderGreekReferenceSources(referenceLibrary){
     <ul class="about-sources-coverage">${coverage}</ul>
     <h3>Conventions and limitations</h3>
     <ul>${methodology}</ul>
-    <p>The pluperfect middle/passive is honestly omitted because Machen does not directly supply a complete paradigm. The second aorist uses Machen’s representative <span lang="grc">λείπω / ἔλιπον</span>, not an inferred <span lang="grc">λύω</span> paradigm.</p>`;
+    <p>The pluperfect middle/passive is honestly omitted because Machen does not directly supply a complete paradigm. The perfect subjunctive is likewise omitted because Machen calls it too rare to learn and does not supply a complete chart. The second aorist uses Machen’s representative <span lang="grc">λείπω / ἔλιπον</span>, not an inferred <span lang="grc">λύω</span> paradigm. The present-system chart for <span lang="grc">δείκνυμι</span>, a distinct second-declension feminine noun chart, and a complete superlative chart remain deferred rather than inferred from isolated forms.</p>`;
 }
 function renderAboutSources(){
   const shell = typeof $ === 'function' ? $('#aboutSourcesShell') : null;
