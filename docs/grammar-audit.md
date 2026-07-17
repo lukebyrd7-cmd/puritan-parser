@@ -13,16 +13,20 @@ Primary comparison anchors: Wallace and Mounce for Greek categories and regular 
 - The main λύω principal parts are suitable for a regular omega-verb reference: λύω, λύσω, ἔλυσα, λέλυκα, λέλυμαι, ἐλύθην.
 - Noun organization and terminology are appropriate: article as a parsing anchor, first/second/third declension, case endings, case functions, adjective agreement, and pronoun families.
 - Cross references and old topic aliases route to consolidated pages rather than adding duplicate navigation paths.
+- v1.3.3 core indicative rows are verified against the CCEL page-image scan of Machen's 1923 first edition: regular λύω systems, λείπω / ἔλιπον second aorist, and present/imperfect/future indicative forms of εἰμί. Exact printed pages and conventions are recorded in `docs/reference-sources.md`.
+- The aorist passive chart is tied explicitly to the sixth principal part ἐλύθην rather than to active/middle aorist formation.
+- Machen's explicitly printed perfect active third-plural alternative λέλυκαν and movable-ν conventions are retained.
 
 ### ⚠ Needs Review
 
 - The Greek paradigms are representative rather than exhaustive. Future drill work should verify every generated drill form against a fuller paradigm source before reuse.
-- Pluperfect active forms are acceptable as reader-facing anchors, but introductory grammars vary in which alternate endings they foreground. Leave them as reference material, not drill source, until the drill data is separately validated.
+- Pluperfect middle/passive remains deferred: Machen describes the system but does not directly supply a complete paradigm. The active chart is limited to Machen's p. 238 appendix forms and parenthesized-augment convention.
 - The mi-verb and irregular-verb sections are intentionally recognition-oriented snapshots, not full paradigms.
 
 ### ✖ Corrected
 
 - Corrected Greek participle detail tables. The previous helper guessed genitive singular and nominative plural forms by string replacement, which produced forms such as λυόμενοντος and left λύσας/λυθείς/λελυκώς unchanged in rows where declined forms were required. The tables now use explicit participle rows for present active, present middle/passive, aorist active, aorist middle, aorist passive, perfect active, and perfect middle/passive.
+- Corrected the pluperfect active plural from unsourced shortened forms to Machen's printed (ἐ)λελύκειμεν, (ἐ)λελύκειτε, and (ἐ)λελύκεισαν, and removed the unsupported complete pluperfect middle/passive chart.
 
 ## Hebrew
 

@@ -51,6 +51,7 @@ function wireEvents(){
 
   // Settings
   $('#openSettings').addEventListener('click',()=>showView('settingsView'));
+  $('#openAboutSourcesBtn')?.addEventListener('click',()=>openAboutSources());
   $('#openGlobalSearch')?.addEventListener('click',()=>showView('globalSearchView'));
   $('#closeSettingsBtn').addEventListener('click',()=>showView('listView'));
   $('#wordPageBackToReader')?.addEventListener('click',()=>showView('readerView'));

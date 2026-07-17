@@ -7,7 +7,7 @@ const css = fs.readFileSync('styles.css', 'utf8');
 const bootstrap = fs.readFileSync('src/bootstrap.js', 'utf8');
 
 test('smoke: app shell loads required views and controls', () => {
-  ['app', 'listView', 'flashView', 'parsingView', 'dashboardView', 'progressView', 'progressShell', 'settingsView', 'globalSearchView', 'globalSearchShell', 'wordPageView', 'learnView', 'learnShell', 'onboardingView', 'onboardingShell'].forEach(id => {
+  ['app', 'listView', 'flashView', 'parsingView', 'dashboardView', 'progressView', 'progressShell', 'settingsView', 'aboutSourcesView', 'aboutSourcesShell', 'globalSearchView', 'globalSearchShell', 'wordPageView', 'learnView', 'learnShell', 'onboardingView', 'onboardingShell'].forEach(id => {
     assert.match(html, new RegExp(`id="${id}"`));
   });
 });
