@@ -1,10 +1,34 @@
-# v1.3.1 Reference Sources and Provenance
+# Reference Sources and Provenance
 
-Reviewed: 2026-07-16. This file records provenance for the current static Reference datasets. It is a provenance audit, not scholarly verification. No new forms were generated for this release.
+Reviewed: 2026-07-17. This file records provenance for the current static Reference datasets. Material not listed as row-verified remains a provenance audit rather than scholarly verification.
+
+## v1.3.3 Greek core indicative source map
+
+Primary row-level source: J. Gresham Machen, *New Testament Greek for Beginners* (New York: The Macmillan Company, 1923), first edition. Scan used: Christian Classics Ethereal Library, digital facsimile v0.1 (1999-11-17), reduced PNG and original TIFF page images, [CCEL scan home](https://www.ccel.org/m/machen/greek/home.html). Printed page numbers below are those visible on the scanned 1923 pages. Every included form was checked against the page image rather than accepted from CCEL's uncorrected transcription.
+
+| Paradigm | Representative lemma | Voice | Machen printed page(s) | Complete six-person paradigm directly supplied | Alternate or movable-ν convention | Limitation |
+|---|---|---|---:|---|---|---|
+| Present indicative | λύω | Active | 20; movable ν 27 | Yes | λύουσι(ν), following §44 | Regular omega-verb convention. |
+| Present indicative | λύω | Middle/passive | 58–59 | Yes | None printed in these rows | Middle and passive are identical in form. |
+| Imperfect indicative | λύω | Active | 65–66 | Yes | ἔλυε(ν), §§129–130 | Regular augmented omega verb. |
+| Imperfect indicative | λύω | Middle/passive | 69–70 | Yes | None | Middle and passive are identical in form. |
+| Future indicative | λύω | Active/middle | 75 | Yes, both voices | λύσουσι(ν), following §44 | Formed from the second principal part, λύσω. |
+| Future indicative | λύω | Passive | 92–93 | Yes | None | Formed from the sixth-principal-part/aorist-passive stem without augment. |
+| First aorist indicative | λύω | Active/middle | 82–83 | Yes, both voices | ἔλυσε(ν), §176 | Formed from the third principal part, ἔλυσα. |
+| Second aorist indicative | λείπω; second aorist ἔλιπον | Active/middle | 87–90; consolidated paradigm 242 | Yes, both voices | ἔλιπε(ν) | Machen's supplied λείπω paradigm is used directly; no λύω analogy is generated. |
+| Aorist passive indicative | λύω; sixth principal part ἐλύθην | Passive | 92–93 | Yes | None | The sixth principal part is explicitly distinguished from active/middle aorist formation. |
+| Perfect indicative | λύω | Active | 183–184 | Yes | λέλυκαν explicitly supplied beside λελύκασι(ν) | Machen's pedagogical regular-verb convention. |
+| Perfect indicative | λύω | Middle/passive | 186–187 | Yes | None | Middle and passive are identical in form. |
+| Pluperfect indicative | λύω | Active | 187; complete appendix paradigm 238 | Yes | Initial augment printed as optional: (ἐ)- | Machen supplies no complete pluperfect middle/passive paradigm; none is included. |
+| Present indicative | εἰμί | — | 50 | Yes | ἐστί(ν), εἰσί(ν); enclitic accent convention stated there | Indicative only. |
+| Imperfect indicative | εἰμί | — | 66 | Yes | None | Indicative only. |
+| Future indicative | εἰμί | — | 152–153 | Yes | None | Indicative only. |
+
+The consolidated regular-verb chart on printed p. 238 (§589) also supports the six principal parts of λύω and the relationship of the present, future, first-aorist, perfect-active, perfect-middle/passive, and aorist-passive systems. Printed pp. 77 (§159), 92–93 (§§197–202), and 183–187 (§§426–450) supply the explanatory system relationships used in the concise principal-parts view.
 
 | Dataset or resource | Representative lemma/root | Source file | Source/provenance | Edition/version known | Transcription method | Verification status | Unresolved discrepancies | Provenance class | Date reviewed |
 |---|---:|---|---|---|---|---|---|---|---|
-| Greek verb paradigms | λύω | `src/features/grammar/reference-data.js` | Prior authored repository content; `docs/grammar-audit.md` names Wallace and Mounce as comparison anchors but does not document a row-by-row source. | Not recorded. | Polytonic Unicode Greek entered directly. | Structurally tested in v1.3.1; linguistically plausible but not row-by-row source verified. | Future perfect absent; optative absent; second-aorist and irregular paradigms only snapshots or absent. | Traceable from repository history; derived but undocumented. | 2026-07-16 |
+| Greek core indicative verb paradigms | λύω; λείπω; εἰμί | `src/features/grammar/reference-data.js` | Machen, *New Testament Greek for Beginners* (New York: Macmillan, 1923), first edition; CCEL page-image scan. Exact row ranges are mapped above. | 1923 first edition; CCEL digital facsimile v0.1. | Polytonic Unicode transcribed and NFC-checked against printed page images. | Row-verified for the v1.3.3 charts and alternatives mapped above. | Pluperfect middle/passive omitted because Machen does not directly supply a complete paradigm; future perfect and non-indicative expansion remain out of scope. | Direct scholarly row source. | 2026-07-17 |
 | Greek noun/article paradigms | λόγος, γραφή, σάρξ | `src/features/grammar/reference-data.js` | Prior authored repository content; `docs/grammar-audit.md` cites standard introductory comparison anchors. | Not recorded. | Polytonic Unicode Greek entered directly. | Structural integrity tested; major forms need source-tagged verification before expansion. | Third-declension coverage is representative, not exhaustive. | Traceable from repository history; derived but undocumented. | 2026-07-16 |
 | Greek participle and adjective charts | λύων, καλός | `src/features/grammar/reference-data.js` | Prior authored content; `docs/grammar-audit.md` notes participle rows were corrected away from suffix guesses. | Not recorded. | Polytonic Unicode Greek entered directly. | Structural tests check chart shape and Greek Unicode; scholarly verification incomplete. | Only selected case/number rows are supplied for participles. | Traceable from repository history; derived but undocumented. | 2026-07-16 |
 | Greek pronoun and preposition charts | ἐγώ, οὗτος | `src/features/grammar/reference-data.js` | Prior authored repository content. | Not recorded. | Polytonic Unicode Greek entered directly. | Structural tests only. | Reflexive, reciprocal, indefinite, and numeral paradigms incomplete or absent. | Derived but undocumented. | 2026-07-16 |

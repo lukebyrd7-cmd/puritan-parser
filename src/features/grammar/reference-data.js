@@ -3,6 +3,15 @@
   const COLORS = {};
   const ex = (word, reference, translation, note='') => ({ word, reference, translation, note });
   const chart = (label, columns, rows, options={}) => ({ label, columns, rows, ...options });
+  const MACHEN_1923 = Object.freeze({
+    author:'J. Gresham Machen',
+    title:'New Testament Greek for Beginners',
+    publication:'New York: The Macmillan Company, 1923',
+    edition:'1923 first edition',
+    scan:'CCEL digital facsimile v0.1 (page-image scan)',
+    scanUrl:'https://www.ccel.org/m/machen/greek/home.html'
+  });
+  const machenSource = (printedPages, sections) => ({ ...MACHEN_1923, printedPages, sections });
   const featureLinks = (...links) => links.map(([label, type, target]) => ({ label, type, target }));
   const greekVerbChart = chart('λύω present active indicative endings', ['Person','Singular','Plural','Recognition clue'], [['1st','λύω','λύομεν','ω / μεν'],['2nd','λύεις','λύετε','εις / τε'],['3rd','λύει','λύουσι(ν)','ει / ουσι']], { color:'tense', note:'Representative omega-verb forms; accents and movable nu may vary.' });
   const hebrewStemRows = [['Perfect','כָּתַב','completed/simple action'],['Imperfect','יִכְתֹּב','prefixed imperfect form'],['Imperative','כְּתֹב','command form'],['Infinitive Construct','כְּתֹב','verbal noun, often with לְ'],['Infinitive Absolute','כָּתוֹב','intensifying or verbal noun use'],['Participle','כֹּתֵב','verbal adjective/ongoing action']];
@@ -13,33 +22,62 @@
   const hebrewStemTopic = stem => ({ id:`hebrew-${stem.toLowerCase()}`, language:'hebrew', title:`${stem} Paradigms`, category:`${stem} Paradigms`, color:stem.toLowerCase(), frequency: stem==='Qal' ? '≈ majority of Hebrew verbal forms' : stem==='Niphal' ? 'common major stem' : 'regular major stem; less frequent than Qal', summary:`${stem} is one of the major Biblical Hebrew verbal stems (binyanim).`, body:[stem==='Qal'?'Qal is the basic/light stem and often carries the simple lexical meaning of the verb.':`${stem} modifies the root idea in a conventional stem relationship; exact meaning depends on the root and context.`, ...stemRelationships], recognitionTips: stem==='Hiphil' ? ['Look for prefixed הִ in perfect and infinitive forms.','Expect causative meaning when the lexicon and context support it.','Characteristic i-class vowels often mark the stem.'] : [`Watch for the ${stemInfo[stem][1]} pattern.`, stemInfo[stem][2], 'Confirm the stem by both consonantal pattern and vowels.'], charts:[chart(`${stem} quick profile`, ['Stem','Typical value','Pattern','Recognition'], [[stem, stemInfo[stem][0], stemInfo[stem][1], stemInfo[stem][2]]], { color:stem.toLowerCase(), note:'Representative strong-verb pattern.' }), chart(`${stem} representative paradigm: כתב`, ['Form','Representative','Use'], hebrewRepresentativeRows(stem), { color:stem.toLowerCase() })], examples:[ex(stem==='Hiphil'?'הִכְתִּיב':'כָּתַב', stem==='Qal'?'Jeremiah 36:2':'Reference example', stem==='Qal'?'he wrote / write':'representative stem form', `sample ${stem} form`)], paradigmTabs:hebrewTabs(stem), breadcrumbs:['Grammar','Hebrew',`${stem} Paradigms`], stemRelationships:{ root:'כתב', stems:['Qal','Niphal','Piel','Pual','Hiphil','Hophal','Hitpael'], explanation:stemRelationships }, featureLinks:featureLinks(['See words with this feature','feature',stem],['See related vocabulary','vocabulary',stem],['See related topics','topics',`hebrew-${stem.toLowerCase()}`]), related:['hebrew-qal','hebrew-niphal','hebrew-piel','hebrew-pual','hebrew-hiphil','hebrew-hophal','hebrew-hitpael','hebrew-stem-markers'].filter(id=>id!==`hebrew-${stem.toLowerCase()}`) });
 
   const six = rows => rows;
-  const greekFinite = (label, sg, pl) => chart(label, ['Person','Singular','Plural'], [['1st',sg[0],pl[0]],['2nd',sg[1],pl[1]],['3rd',sg[2],pl[2]]]);
+  const greekFinite = (label, sg, pl, options={}) => chart(label, ['Person','Singular','Plural'], [['1st',sg[0],pl[0]],['2nd',sg[1],pl[1]],['3rd',sg[2],pl[2]]], options);
   const greekImperative = (label, forms) => chart(label, ['Person','Singular','Plural'], [['2nd',forms[0],forms[2]],['3rd',forms[1],forms[3]]]);
   const greekInfinitive = (label, form) => chart(label, ['Form'], [[form]]);
   const greekParticiple = (label, rows) => chart(label, ['Case','Masculine','Feminine','Neuter'], rows);
   const greekLyoTabs = [
     { id:'present', label:'Present', charts:[
-      greekFinite('Present Active Indicative',['λύω','λύεις','λύει'],['λύομεν','λύετε','λύουσι(ν)']),
-      greekFinite('Present Middle/Passive Indicative',['λύομαι','λύῃ / λύει','λύεται'],['λυόμεθα','λύεσθε','λύονται']),
+      greekFinite('Present Active Indicative',['λύω','λύεις','λύει'],['λύομεν','λύετε','λύουσι(ν)'], { id:'greek-present-active-indicative-lyo', lemma:'λύω', source:machenSource('20, 27','§18; movable ν §44'), note:'Regular omega-verb paradigm; parenthesized ν is movable.' }),
+      greekFinite('Present Middle/Passive Indicative',['λύομαι','λύῃ','λύεται'],['λυόμεθα','λύεσθε','λύονται'], { id:'greek-present-middle-passive-indicative-lyo', lemma:'λύω', source:machenSource('58–59','§§110–112'), note:'The present middle and passive are identical in form.' }),
       greekFinite('Present Active Subjunctive',['λύω','λύῃς','λύῃ'],['λύωμεν','λύητε','λύωσι(ν)']),
       greekFinite('Present Middle/Passive Subjunctive',['λύωμαι','λύῃ','λύηται'],['λυώμεθα','λύησθε','λύωνται']),
       greekImperative('Present Active Imperative',['λῦε','λυέτω','λύετε','λυόντων']),
       greekImperative('Present Middle/Passive Imperative',['λύου','λυέσθω','λύεσθε','λυέσθων']),
       greekInfinitive('Present Active Infinitive','λύειν'), greekInfinitive('Present Middle/Passive Infinitive','λύεσθαι'),
       greekParticiple('Present Active Participle', [['Nom sg','λύων','λύουσα','λῦον'],['Gen sg','λύοντος','λυούσης','λύοντος'],['Nom pl','λύοντες','λύουσαι','λύοντα']]), greekParticiple('Present Middle/Passive Participle', [['Nom sg','λυόμενος','λυομένη','λυόμενον'],['Gen sg','λυομένου','λυομένης','λυομένου'],['Nom pl','λυόμενοι','λυόμεναι','λυόμενα']]) ]},
-    { id:'imperfect', label:'Imperfect', charts:[greekFinite('Imperfect Active Indicative',['ἔλυον','ἔλυες','ἔλυε(ν)'],['ἐλύομεν','ἐλύετε','ἔλυον']), greekFinite('Imperfect Middle/Passive Indicative',['ἐλυόμην','ἐλύου','ἐλύετο'],['ἐλυόμεθα','ἐλύεσθε','ἐλύοντο'])]},
-    { id:'future', label:'Future', charts:[greekFinite('Future Active Indicative',['λύσω','λύσεις','λύσει'],['λύσομεν','λύσετε','λύσουσι(ν)']), greekFinite('Future Middle Indicative',['λύσομαι','λύσῃ','λύσεται'],['λυσόμεθα','λύσεσθε','λύσονται']), greekFinite('Future Passive Indicative',['λυθήσομαι','λυθήσῃ','λυθήσεται'],['λυθησόμεθα','λυθήσεσθε','λυθήσονται'])]},
+    { id:'imperfect', label:'Imperfect', charts:[
+      greekFinite('Imperfect Active Indicative',['ἔλυον','ἔλυες','ἔλυε(ν)'],['ἐλύομεν','ἐλύετε','ἔλυον'], { id:'greek-imperfect-active-indicative-lyo', lemma:'λύω', source:machenSource('65–66','§§123–130'), note:'Augmented present stem with secondary active endings; ν is movable in ἔλυε(ν).' }),
+      greekFinite('Imperfect Middle/Passive Indicative',['ἐλυόμην','ἐλύου','ἐλύετο'],['ἐλυόμεθα','ἐλύεσθε','ἐλύοντο'], { id:'greek-imperfect-middle-passive-indicative-lyo', lemma:'λύω', source:machenSource('69–70','§§137–143'), note:'The imperfect middle and passive are identical in form.' })
+    ]},
+    { id:'future', label:'Future', charts:[
+      greekFinite('Future Active Indicative',['λύσω','λύσεις','λύσει'],['λύσομεν','λύσετε','λύσουσι(ν)'], { id:'greek-future-active-indicative-lyo', lemma:'λύω', source:machenSource('75, 27','§154; movable ν §44'), note:'Built from the second principal part, λύσω.' }),
+      greekFinite('Future Middle Indicative',['λύσομαι','λύσῃ','λύσεται'],['λυσόμεθα','λύσεσθε','λύσονται'], { id:'greek-future-middle-indicative-lyo', lemma:'λύω', source:machenSource('75','§155'), note:'Built from the second principal part, λύσω.' }),
+      greekFinite('Future Passive Indicative',['λυθήσομαι','λυθήσῃ','λυθήσεται'],['λυθησόμεθα','λυθήσεσθε','λυθήσονται'], { id:'greek-future-passive-indicative-lyo', lemma:'λύω', source:machenSource('92–93','§§197–202'), note:'Built from the aorist-passive stem represented by the sixth principal part, ἐλύθην, without the augment.' })
+    ]},
     { id:'aorist', label:'Aorist', charts:[
-      greekFinite('Aorist Active Indicative',['ἔλυσα','ἔλυσας','ἔλυσε(ν)'],['ἐλύσαμεν','ἐλύσατε','ἔλυσαν']), greekFinite('Aorist Middle Indicative',['ἐλυσάμην','ἐλύσω','ἐλύσατο'],['ἐλυσάμεθα','ἐλύσασθε','ἐλύσαντο']), greekFinite('Aorist Passive Indicative',['ἐλύθην','ἐλύθης','ἐλύθη'],['ἐλύθημεν','ἐλύθητε','ἐλύθησαν']),
+      greekFinite('First Aorist Active Indicative',['ἔλυσα','ἔλυσας','ἔλυσε(ν)'],['ἐλύσαμεν','ἐλύσατε','ἔλυσαν'], { id:'greek-first-aorist-active-indicative-lyo', lemma:'λύω', source:machenSource('82–83','§§171–177'), note:'First-aorist active system from the third principal part, ἔλυσα.' }),
+      greekFinite('First Aorist Middle Indicative',['ἐλυσάμην','ἐλύσω','ἐλύσατο'],['ἐλυσάμεθα','ἐλύσασθε','ἐλύσαντο'], { id:'greek-first-aorist-middle-indicative-lyo', lemma:'λύω', source:machenSource('83','§178'), note:'First-aorist middle system from the third principal part, ἔλυσα.' }),
+      greekFinite('Second Aorist Active Indicative',['ἔλιπον','ἔλιπες','ἔλιπε(ν)'],['ἐλίπομεν','ἐλίπετε','ἔλιπον'], { id:'greek-second-aorist-active-indicative-leipo', lemma:'λείπω', principalPart:'ἔλιπον', source:machenSource('87–89, 242','§§186–193; consolidated paradigm §593'), note:'Representative second aorist supplied by Machen: λείπω, second-aorist principal part ἔλιπον.' }),
+      greekFinite('Second Aorist Middle Indicative',['ἐλιπόμην','ἐλίπου','ἐλίπετο'],['ἐλιπόμεθα','ἐλίπεσθε','ἐλίποντο'], { id:'greek-second-aorist-middle-indicative-leipo', lemma:'λείπω', principalPart:'ἔλιπον', source:machenSource('87–90, 242','§§186–194; consolidated paradigm §593'), note:'Representative second aorist supplied by Machen; it is not generated from λύω.' }),
+      greekFinite('Aorist Passive Indicative',['ἐλύθην','ἐλύθης','ἐλύθη'],['ἐλύθημεν','ἐλύθητε','ἐλύθησαν'], { id:'greek-aorist-passive-indicative-lyo', lemma:'λύω', principalPart:'ἐλύθην', source:machenSource('92–93','§§197–201'), note:'The sixth principal part supplies the aorist-passive stem; this is distinct from active and middle aorist formation.' }),
       greekFinite('Aorist Active Subjunctive',['λύσω','λύσῃς','λύσῃ'],['λύσωμεν','λύσητε','λύσωσι(ν)']), greekFinite('Aorist Middle Subjunctive',['λύσωμαι','λύσῃ','λύσηται'],['λυσώμεθα','λύσησθε','λύσωνται']), greekFinite('Aorist Passive Subjunctive',['λυθῶ','λυθῇς','λυθῇ'],['λυθῶμεν','λυθῆτε','λυθῶσι(ν)']),
       greekImperative('Aorist Active Imperative',['λῦσον','λυσάτω','λύσατε','λυσάντων']), greekImperative('Aorist Middle Imperative',['λῦσαι','λυσάσθω','λύσασθε','λυσάσθων']), greekImperative('Aorist Passive Imperative',['λύθητι','λυθήτω','λύθητε','λυθέντων']),
       greekInfinitive('Aorist Active Infinitive','λῦσαι'), greekInfinitive('Aorist Middle Infinitive','λύσασθαι'), greekInfinitive('Aorist Passive Infinitive','λυθῆναι'),
       greekParticiple('Aorist Active Participle', [['Nom sg','λύσας','λύσασα','λῦσαν'],['Gen sg','λύσαντος','λυσάσης','λύσαντος'],['Nom pl','λύσαντες','λύσασαι','λύσαντα']]), greekParticiple('Aorist Middle Participle', [['Nom sg','λυσάμενος','λυσαμένη','λυσάμενον'],['Gen sg','λυσαμένου','λυσαμένης','λυσαμένου'],['Nom pl','λυσάμενοι','λυσάμεναι','λυσάμενα']]), greekParticiple('Aorist Passive Participle', [['Nom sg','λυθείς','λυθεῖσα','λυθέν'],['Gen sg','λυθέντος','λυθείσης','λυθέντος'],['Nom pl','λυθέντες','λυθεῖσαι','λυθέντα']]) ]},
-    { id:'perfect', label:'Perfect', charts:[greekFinite('Perfect Active Indicative',['λέλυκα','λέλυκας','λέλυκε(ν)'],['λελύκαμεν','λελύκατε','λελύκασι(ν)']), greekFinite('Perfect Middle/Passive Indicative',['λέλυμαι','λέλυσαι','λέλυται'],['λελύμεθα','λέλυσθε','λέλυνται']), greekInfinitive('Perfect Active Infinitive','λελυκέναι'), greekInfinitive('Perfect Middle/Passive Infinitive','λελύσθαι'), greekParticiple('Perfect Active Participle', [['Nom sg','λελυκώς','λελυκυῖα','λελυκός'],['Gen sg','λελυκότος','λελυκυίας','λελυκότος'],['Nom pl','λελυκότες','λελυκυῖαι','λελυκότα']]), greekParticiple('Perfect Middle/Passive Participle', [['Nom sg','λελυμένος','λελυμένη','λελυμένον'],['Gen sg','λελυμένου','λελυμένης','λελυμένου'],['Nom pl','λελυμένοι','λελυμέναι','λελυμένα']])]},
-    { id:'pluperfect', label:'Pluperfect', charts:[greekFinite('Pluperfect Active Indicative',['ἐλελύκειν','ἐλελύκεις','ἐλελύκει'],['ἐλελύκεμεν','ἐλελύκετε','ἐλελύκεσαν']), greekFinite('Pluperfect Middle/Passive Indicative',['ἐλελύμην','ἐλέλυσο','ἐλέλυτο'],['ἐλελύμεθα','ἐλέλυσθε','ἐλέλυντο'])]},
+    { id:'perfect', label:'Perfect', charts:[
+      greekFinite('Perfect Active Indicative',['λέλυκα','λέλυκας','λέλυκε(ν)'],['λελύκαμεν','λελύκατε','λελύκασι(ν) / λέλυκαν'], { id:'greek-perfect-active-indicative-lyo', lemma:'λύω', source:machenSource('183–184','§§426, 429–431'), note:'Machen explicitly supplies λέλυκαν as an alternate third-person plural beside λελύκασι(ν).' }),
+      greekFinite('Perfect Middle/Passive Indicative',['λέλυμαι','λέλυσαι','λέλυται'],['λελύμεθα','λέλυσθε','λέλυνται'], { id:'greek-perfect-middle-passive-indicative-lyo', lemma:'λύω', source:machenSource('186–187','§§442–448'), note:'Pedagogical regular omega-verb paradigm formed from the fifth principal part, λέλυμαι.' }),
+      greekInfinitive('Perfect Active Infinitive','λελυκέναι'), greekInfinitive('Perfect Middle/Passive Infinitive','λελύσθαι'), greekParticiple('Perfect Active Participle', [['Nom sg','λελυκώς','λελυκυῖα','λελυκός'],['Gen sg','λελυκότος','λελυκυίας','λελυκότος'],['Nom pl','λελυκότες','λελυκυῖαι','λελυκότα']]), greekParticiple('Perfect Middle/Passive Participle', [['Nom sg','λελυμένος','λελυμένη','λελυμένον'],['Gen sg','λελυμένου','λελυμένης','λελυμένου'],['Nom pl','λελυμένοι','λελυμέναι','λελυμένα']])
+    ]},
+    { id:'pluperfect', label:'Pluperfect', charts:[
+      greekFinite('Pluperfect Active Indicative',['ἐλελύκειν','ἐλελύκεις','ἐλελύκει'],['ἐλελύκειμεν','ἐλελύκειτε','ἐλελύκεισαν'], { id:'greek-pluperfect-active-indicative-lyo', lemma:'λύω', source:machenSource('187, 238','§450; regular-verb paradigm §589'), note:'Machen appendix convention: the initial augment is optional, (ἐ)-. The chart shows the augmented forms and does not infer a middle/passive pluperfect paradigm.' })
+    ]},
+    { id:'eimi', label:'εἰμί', charts:[
+      greekFinite('Present Indicative of εἰμί',['εἰμί','εἶ','ἐστί(ν)'],['ἐσμέν','ἐστέ','εἰσί(ν)'], { id:'greek-present-indicative-eimi', lemma:'εἰμί', source:machenSource('50','§98'), note:'All forms except εἶ are enclitic; accents appear here as Machen prints them in the paradigm. Movable ν is explicit in ἐστί(ν) and εἰσί(ν).' }),
+      greekFinite('Imperfect Indicative of εἰμί',['ἤμην','ἦς','ἦν'],['ἦμεν','ἦτε','ἦσαν'], { id:'greek-imperfect-indicative-eimi', lemma:'εἰμί', source:machenSource('66','§133'), note:'Complete six-person indicative paradigm.' }),
+      greekFinite('Future Indicative of εἰμί',['ἔσομαι','ἔσῃ','ἔσται'],['ἐσόμεθα','ἔσεσθε','ἔσονται'], { id:'greek-future-indicative-eimi', lemma:'εἰμί', source:machenSource('152–153','§335'), note:'Future indicative only; no non-indicative εἰμί forms are added in this milestone.' })
+    ]},
     { id:'non-finite', label:'Infinitives & Participles', charts:[chart('Infinitive quick index',['Tense/Voice','Form'],[['Present Active','λύειν'],['Present Middle/Passive','λύεσθαι'],['Aorist Active','λῦσαι'],['Aorist Middle','λύσασθαι'],['Aorist Passive','λυθῆναι'],['Perfect Active','λελυκέναι'],['Perfect Middle/Passive','λελύσθαι']]), chart('Participle quick index',['Tense/Voice','Masc nom sg','Fem nom sg','Neut nom sg'],[['Present Active','λύων','λύουσα','λῦον'],['Present Middle/Passive','λυόμενος','λυομένη','λυόμενον'],['Aorist Active','λύσας','λύσασα','λῦσαν'],['Aorist Middle','λυσάμενος','λυσαμένη','λυσάμενον'],['Aorist Passive','λυθείς','λυθεῖσα','λυθέν'],['Perfect Active','λελυκώς','λελυκυῖα','λελυκός'],['Perfect Middle/Passive','λελυμένος','λελυμένη','λελυμένον']])]},
-    { id:'principal-parts', label:'Principal Parts', charts:[chart('Principal parts', ['Part','Form'], [['Present','λύω'],['Future active','λύσω'],['Aorist active','ἔλυσα'],['Perfect active','λέλυκα'],['Perfect middle/passive','λέλυμαι'],['Aorist passive','ἐλύθην']])]}
+    { id:'principal-parts', label:'Principal Parts', charts:[
+      chart('λύω principal parts and indicative systems', ['Part','Form','Indicative relationship'], [['Present','λύω','present and imperfect stems'],['Future active','λύσω','future active and middle'],['Aorist active','ἔλυσα','first-aorist active and middle'],['Perfect active','λέλυκα','perfect and active pluperfect'],['Perfect middle/passive','λέλυμαι','perfect middle/passive'],['Aorist passive','ἐλύθην','aorist passive and future passive']], { id:'greek-principal-parts-lyo', lemma:'λύω', source:machenSource('77, 92–93, 183–187, 238','§§159, 197–202, 426–450; regular-verb paradigm §589'), note:'Recognition-oriented system map, not a principal-parts dictionary.' }),
+      chart('λείπω second-aorist relationship', ['Lexical form','Second-aorist principal part','Indicative systems'], [['λείπω','ἔλιπον','second-aorist active and middle']], { id:'greek-principal-parts-leipo-second-aorist', lemma:'λείπω', source:machenSource('87–90, 242','§§186–194; consolidated paradigm §593'), note:'Machen directly supplies λείπω as the representative second-aorist paradigm.' })
+    ]}
   ];
+  const greekCoreIndicativeCharts = greekLyoTabs
+    .flatMap(tab => tab.charts || [])
+    .filter(item => item.id?.startsWith('greek-') && item.source)
+    .filter(item => item.label.includes('Indicative') || item.id.startsWith('greek-principal-parts-'));
   const hebPersons = ['3ms','3fs','2ms','2fs','1cs','3mp','3fp','2mp','2fp','1cp'];
   const hebrewForms = {
     Qal:{
@@ -309,6 +347,7 @@
     const aorist = sectionWithId(sectionByTitle(sections,'Aorist'), 'aorist');
     const perfect = sectionWithId(sectionByTitle(sections,'Perfect'), 'perfect');
     const pluperfect = sectionWithId(sectionByTitle(sections,'Pluperfect'), 'pluperfect');
+    const eimi = { title:'εἰμί', id:'eimi', body:[], recognitionTips:['Recognize εἰμί as its own high-frequency indicative family.'], charts:chartsFromTabs('greek-lyo-paradigm',['εἰμί']), examples:[ex('ἐστίν','John 1:1','he/she/it is')] };
     const infinitiveCharts = chartsFromTabs('greek-lyo-paradigm',['Infinitives & Participles']).filter(c => c.label.includes('Infinitive'));
     const participleCharts = chartsFromTabs('greek-lyo-paradigm',['Infinitives & Participles']).filter(c => c.label.includes('Participle'));
     const participles = { title:'Participles', id:'participles', body:['Participles are verbal adjectives: recognize tense-form and voice, then match case, number, and gender to the noun or substantive use.'], recognitionTips:[...(oldTopic('greek-participles').recognitionTips||[])], charts:participleCharts, examples:oldTopic('greek-participles').examples || [] };
@@ -320,7 +359,7 @@
     const aspect = sectionWithId(sectionByTitle(sections,'Aspect'), 'aspect');
     const mood = sectionWithId(sectionByTitle(sections,'Moods'), 'mood');
     topic.sectionTabs = [
-      categoryTab('paradigms','Paradigms',[present, imperfect, future, aorist, perfect, pluperfect, participles, infinitives, contractVerbs, miVerbs, irregularVerbs],[chip('Present','present'),chip('Imperfect','imperfect'),chip('Future','future'),chip('Aorist','aorist'),chip('Perfect','perfect'),chip('Pluperfect','pluperfect'),chip('Participles','participles'),chip('Infinitives','infinitives'),chip('Contract Verbs','contract-verbs'),chip('μι Verbs','mi-verbs'),chip('Irregular Verbs','irregular-verbs')]),
+      categoryTab('paradigms','Paradigms',[present, imperfect, future, aorist, perfect, pluperfect, eimi, participles, infinitives, contractVerbs, miVerbs, irregularVerbs],[chip('Present','present'),chip('Imperfect','imperfect'),chip('Future','future'),chip('Aorist','aorist'),chip('Perfect','perfect'),chip('Pluperfect','pluperfect'),chip('εἰμί','eimi'),chip('Participles','participles'),chip('Infinitives','infinitives'),chip('Contract Verbs','contract-verbs'),chip('μι Verbs','mi-verbs'),chip('Irregular Verbs','irregular-verbs')]),
       categoryTab('concepts','Concepts',[voice, aspect, mood],[chip('Voice','voice'),chip('Aspect','aspect'),chip('Mood','mood')]),
       categoryTab('reference-material','Reference Material',[
         { title:'Augment', id:'augment', body:['Augment is the prefixed ε that commonly marks past-time indicative forms, especially imperfect and aorist indicatives.'], recognitionTips:['Look for ε before the stem in indicative forms: ἔλυον, ἔλυσα, ἐλύθην.','Compound verbs often place augment after the prepositional prefix.'], charts:[chart('Augment anchors', ['Form','Clue','Likely path'], [['ἔλυσα','augment + σα','aorist active indicative'],['ἐλύθην','augment + θη','aorist passive indicative'],['ἐξῆλθεν','augment inside compound','aorist of ἐξέρχομαι']])], examples:[ex('ἐλύθησαν','Reader example','they were released')] },
@@ -619,8 +658,8 @@
       tabSection('hebrew-verbs','paradigms','Weak Verbs'),
       tabSection('hebrew-verbs','concepts','Waw Consecutive')
     ]), charts:[], examples:[], related:['hebrew-paradigm-charts'] },
-    { id:'greek-paradigm-charts', language:'greek', title:'Paradigm Charts', category:'Paradigm Charts', summary:'Fast access to Greek noun, article, pronoun, adjective, and verb forms.', body:['Select a category, then consult the chart family you need.'], recognitionTips:[], searchTerms:['Paradigm Charts','Verb Paradigms','Noun Declensions','article','pronouns','adjectives','participles','infinitives','imperative','subjunctive','Greek present active indicative','Greek aorist passive indicative','Greek first declension nouns','Greek relative pronouns'], sectionTabs:[
-      categoryTab('verbs','Verb Paradigms',[tabSection('greek-verbs','paradigms','Present'), tabSection('greek-verbs','paradigms','Imperfect'), tabSection('greek-verbs','paradigms','Future'), tabSection('greek-verbs','paradigms','Aorist'), tabSection('greek-verbs','paradigms','Perfect'), tabSection('greek-verbs','paradigms','Pluperfect')]),
+    { id:'greek-paradigm-charts', language:'greek', title:'Paradigm Charts', category:'Paradigm Charts', summary:'Fast access to Greek noun, article, pronoun, adjective, and verb forms.', body:['Select a category, then consult the chart family you need.'], recognitionTips:[], searchTerms:['Paradigm Charts','Verb Paradigms','Noun Declensions','article','pronouns','adjectives','participles','infinitives','imperative','subjunctive','Greek present active indicative','Greek first aorist indicative','Greek second aorist indicative','Greek aorist passive indicative','Greek perfect indicative','Greek pluperfect indicative','εἰμί indicative','Greek first declension nouns','Greek relative pronouns'], sectionTabs:[
+      categoryTab('verbs','Verb Paradigms',[tabSection('greek-verbs','paradigms','Present'), tabSection('greek-verbs','paradigms','Imperfect'), tabSection('greek-verbs','paradigms','Future'), tabSection('greek-verbs','paradigms','Aorist'), tabSection('greek-verbs','paradigms','Perfect'), tabSection('greek-verbs','paradigms','Pluperfect'), tabSection('greek-verbs','paradigms','εἰμί')]),
       categoryTab('nouns','Noun Declensions',[sectionFromTopic('greek-case-endings','Noun Declensions'), sectionFromTopic('greek-article-endings','Article')]),
       categoryTab('participles','Participles',[tabSection('greek-verbs','paradigms','Participles')]),
       categoryTab('adjectives','Adjectives',[sectionFromTopic('greek-adjective-endings','Adjectives')]),
@@ -707,7 +746,7 @@
       }));
   }
   function decodeParsing(input){ const key=String(input||'').trim().toUpperCase().replace(/\s+/g,' '); return decoderEntries[key] || null; }
-  const api = { referenceTopics: visibleTopics, futureGrammarHooks, searchReferenceTopics, getReferenceTopic, topicLabel, referenceColors: COLORS, decodeParsing, decoderEntries, oldTopicAliases, canonicalTopicId, referenceParadigmGroups, referenceLandingSections };
+  const api = { referenceTopics: visibleTopics, futureGrammarHooks, greekCoreIndicativeCharts, searchReferenceTopics, getReferenceTopic, topicLabel, referenceColors: COLORS, decodeParsing, decoderEntries, oldTopicAliases, canonicalTopicId, referenceParadigmGroups, referenceLandingSections };
   if(typeof module !== 'undefined' && module.exports) module.exports = api;
   root.PuritanReferenceLibrary = api;
 })(typeof window !== 'undefined' ? window : globalThis);

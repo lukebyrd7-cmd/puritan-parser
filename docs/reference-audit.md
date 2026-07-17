@@ -60,19 +60,20 @@ Current visible resources: 15. Route set exercised or covered by tests: 60 total
 | Verbal grammar | Tense/aspect, voice, mood, person/number | Partial | Concepts exist; expand Handbook cautiously. |
 | Verbal grammar | Principal parts, augment, reduplication | Partial | Present but concise. |
 | Verbal grammar | Contract/liquid/μι/irregular verbs | Minimal/partial | Recognition snapshots, not complete paradigms. |
-| Verbal paradigms | Present, imperfect, future, first aorist, aorist passive, perfect, pluperfect indicative | Partial | λύω charts exist for core voices; source undocumented. |
-| Verbal paradigms | Second aorist, future perfect, optative, verbal adjectives | Absent | Do not add without sourced paradigms. |
+| Verbal paradigms | Present, imperfect, future, first aorist, aorist passive, perfect, pluperfect indicative | Verified within v1.3.3 scope | Machen (1923) page-image-verified λύω charts; pluperfect is active only because that is the complete paradigm directly supplied. |
+| Verbal paradigms | Second aorist | Verified within v1.3.3 scope | Machen's directly supplied λείπω / ἔλιπον active and middle paradigms are used. |
+| Verbal paradigms | Future perfect, optative, verbal adjectives | Absent | Do not add without sourced paradigms. |
 | Verbal paradigms | Subjunctive, imperative, infinitives, participles | Partial | Selected tenses/voices; not exhaustive. |
 | Syntax | Article, attributive/predicate, cases, prepositions, participles, infinitives, relative clauses, negation, particles, ambiguous forms | Minimal to partial | Grammar Handbook should own these explanations; current material is scattered. |
 | Syntax | Conditions, purpose/result, indirect discourse, aspect cautions | Absent/minimal | P1/P2 Handbook roadmap. |
 
 ### Greek actual verbal chart audit
 
-Representative lemma: λύω. Source: `reference-data.js`; provenance derived but undocumented. Verification: structural only. Charts exist for present active and middle/passive indicative/subjunctive/imperative/infinitive/participle; imperfect active and middle/passive indicative; future active/middle/passive indicative; aorist active/middle/passive indicative/subjunctive/imperative/infinitive/participle; perfect active and middle/passive indicative/infinitive/participle; pluperfect active and middle/passive indicative; principal parts. Person/number coverage is 1st/2nd/3rd singular/plural for finite indicative/subjunctive, 2nd/3rd for imperatives, selected nominative/genitive singular and nominative plural for participles.
+The v1.3.3 indicative charts are row-verified from Machen's 1923 first edition through the CCEL page-image scan; exact printed pages are recorded in `docs/reference-sources.md`. Representative lemmas are λύω for the regular systems, λείπω with second-aorist principal part ἔλιπον for the directly supplied second-aorist system, and εἰμί for its present, imperfect, and future indicatives. The verified finite charts provide 1st/2nd/3rd singular and plural rows. Machen's active pluperfect appendix paradigm is included with its parenthesized augment convention; the previous unsourced pluperfect middle/passive chart is omitted. Existing non-indicative charts remain outside the v1.3.3 verification claim.
 
 ### Greek missing core paradigms
 
-Second aorist paradigms, optative, future perfect, verbal adjectives, major μι-verbs, common irregular verbs beyond anchors, reflexive/reciprocal/indefinite pronouns, numerals, fuller third-declension patterns, and complete participle/adjective/pronoun declensions.
+Optative, future perfect, verbal adjectives, major μι-verbs beyond the in-scope indicatives of εἰμί, common irregular verbs beyond the sourced λείπω second aorist, reflexive/reciprocal/indefinite pronouns, numerals, fuller third-declension patterns, and complete participle/adjective/pronoun declensions. Pluperfect middle/passive remains deferred because Machen does not directly supply a complete paradigm.
 
 ## Hebrew coverage matrix
 
@@ -117,7 +118,7 @@ Mapping: current Paradigm Charts, form sections from Verbs/Nouns/Adjectives/Pron
 | Release | Priority/scope | Likely files | Source requirements | Tests/QA | Risks | Explicit deferrals |
 |---|---|---|---|---|---|---|
 | v1.3.2 Two-section Reference architecture | P0/P1: landing, routes, selectors, stable ids, move Supplemental into Handbook | `reference-data.js`, `index.js`, `styles.css`, `tests/reference*.test.js`, docs | No new linguistic data; route map only | npm test, route tests, desktop/mobile visual QA, service-worker cache bump | Breaking legacy links; over-redesign | No new paradigms |
-| v1.3.3 Greek core indicative paradigms | P1: source-tag λύω indicative set and fill core gaps where sourced | `reference-data.js`, `docs/reference-sources.md` | Row-level source/edition required | Structural + source-note tests; visual wide-table QA | Inventing forms; grammar convention differences | Optative, verbal adjectives |
+| v1.3.3 Greek core indicative paradigms | Complete: source-tagged core indicatives for λύω, λείπω second aorist, and εἰμί | `reference-data.js`, `docs/reference-sources.md` | Machen 1923 row-level page-image verification complete for included material | Structural + source-note tests; visual wide-table QA | Pluperfect convention narrowed to directly supplied active forms | Optative, verbal adjectives, pluperfect middle/passive |
 | v1.3.4 Greek moods/non-finite | P1/P2: subjunctive, imperative, infinitives, participles | same | Source-tagged paradigms | Duplicate row/form tests, chart selector tests | Partial participle declensions | Irregular verbs unless sourced |
 | v1.3.5 Greek nominal/irregular | P2: third declension patterns, pronouns, μι/irregular anchors | same | Source-tagged noun/pronoun paradigms | Unicode/table integrity tests | Scope creep | Numerals may defer |
 | v1.3.6 Hebrew strong-verb stems | P0/P1: verify Qal through Hitpael strong-root rows; resolve/passively document Pual/Hophal gaps | same | Scholarly Hebrew paradigm source, edition, convention | Structural + provenance tests; Learn exclusion tests | Passive-stem overclaiming | Weak verbs |
@@ -127,7 +128,7 @@ Mapping: current Paradigm Charts, form sections from Verbs/Nouns/Adjectives/Pron
 
 ## Questions requiring scholarly review
 
-- Which Greek paradigm convention should govern pluperfect and alternate endings?
+- The v1.3.3 pluperfect convention follows Machen's printed p. 238 active paradigm, including parenthesized augment; broader pluperfect alternatives remain a future sourcing question.
 - Which source/edition should be authoritative for Hebrew strong-verb pointing and passive-stem non-finite treatment?
 - Which weak-verb categories should be included first for reader value without implying completeness?
 - How much pronunciation/accent material belongs in a reading reference versus Learn?

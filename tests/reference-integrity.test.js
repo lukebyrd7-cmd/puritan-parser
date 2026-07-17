@@ -125,3 +125,87 @@ test('v1.3.1 app shell and service worker keep Reference assets reachable withou
   assert.match(sw, /\.\/src\/features\/grammar\/index\.js/);
   assert.doesNotMatch(sw, /reference-audit\.md|reference-sources\.md/, 'docs are not app-shell assets');
 });
+
+test('v1.3.3 registers the sourced Greek core indicative chart set with stable unique ids', () => {
+  const charts = library.greekCoreIndicativeCharts;
+  const ids = charts.map(chart => chart.id);
+  const required = [
+    'greek-present-active-indicative-lyo',
+    'greek-present-middle-passive-indicative-lyo',
+    'greek-imperfect-active-indicative-lyo',
+    'greek-imperfect-middle-passive-indicative-lyo',
+    'greek-future-active-indicative-lyo',
+    'greek-future-middle-indicative-lyo',
+    'greek-future-passive-indicative-lyo',
+    'greek-first-aorist-active-indicative-lyo',
+    'greek-first-aorist-middle-indicative-lyo',
+    'greek-second-aorist-active-indicative-leipo',
+    'greek-second-aorist-middle-indicative-leipo',
+    'greek-aorist-passive-indicative-lyo',
+    'greek-perfect-active-indicative-lyo',
+    'greek-perfect-middle-passive-indicative-lyo',
+    'greek-pluperfect-active-indicative-lyo',
+    'greek-present-indicative-eimi',
+    'greek-imperfect-indicative-eimi',
+    'greek-future-indicative-eimi',
+    'greek-principal-parts-lyo',
+    'greek-principal-parts-leipo-second-aorist'
+  ];
+
+  assert.deepEqual(new Set(ids).size, ids.length, 'core chart identifiers are unique');
+  for (const id of required) assert.ok(ids.includes(id), `${id} is registered`);
+});
+
+test('v1.3.3 core indicative charts carry complete rows, representative lemmas, and printed-page sources', () => {
+  const charts = library.greekCoreIndicativeCharts;
+  const finite = charts.filter(chart => chart.label.includes('Indicative'));
+  for (const chart of finite) {
+    assert.deepEqual(chart.rows.map(row => row[0]), ['1st','2nd','3rd'], `${chart.id} has ordered person rows`);
+    assert.ok(chart.rows.every(row => row[1] && row[2]), `${chart.id} has singular and plural forms`);
+    assert.match(chart.lemma, /^(λύω|λείπω|εἰμί)$/);
+    assert.equal(chart.source.author, 'J. Gresham Machen');
+    assert.equal(chart.source.edition, '1923 first edition');
+    assert.match(chart.source.scan, /page-image scan/);
+    assert.match(String(chart.source.printedPages), /\d/);
+  }
+
+  const secondAorist = charts.find(chart => chart.id === 'greek-second-aorist-active-indicative-leipo');
+  assert.equal(secondAorist.lemma, 'λείπω');
+  assert.equal(secondAorist.principalPart, 'ἔλιπον');
+  assert.equal(secondAorist.rows[0][1], 'ἔλιπον');
+
+  const passive = charts.find(chart => chart.id === 'greek-aorist-passive-indicative-lyo');
+  assert.equal(passive.principalPart, 'ἐλύθην');
+  assert.match(passive.note, /sixth principal part/i);
+});
+
+test('v1.3.3 preserves sourced alternates, NFC Greek, and honest pluperfect scope', () => {
+  const charts = library.greekCoreIndicativeCharts;
+  const forms = charts.flatMap(chart => chart.rows.flat().slice(1)).filter(value => GREEK.test(String(value)));
+  for (const form of forms) assert.equal(form, form.normalize('NFC'), `${form} is NFC-normalized`);
+
+  const perfect = charts.find(chart => chart.id === 'greek-perfect-active-indicative-lyo');
+  assert.equal(perfect.rows[2][2], 'λελύκασι(ν) / λέλυκαν');
+  const pluperfect = charts.find(chart => chart.id === 'greek-pluperfect-active-indicative-lyo');
+  assert.deepEqual(pluperfect.rows.map(row => row[2]), ['ἐλελύκειμεν','ἐλελύκειτε','ἐλελύκεισαν']);
+  assert.match(pluperfect.note, /\(ἐ\)-/);
+  assert.equal(charts.some(chart => /Pluperfect Middle|Pluperfect Passive/.test(chart.label)), false);
+  assert.equal(charts.some(chart => /Second Aorist Passive/.test(chart.label)), false);
+});
+
+test('v1.3.3 εἰμί indicatives and Paradigm Charts navigation remain focused', () => {
+  const eimi = library.greekCoreIndicativeCharts.filter(chart => chart.lemma === 'εἰμί');
+  assert.deepEqual(eimi.map(chart => chart.id), [
+    'greek-present-indicative-eimi',
+    'greek-imperfect-indicative-eimi',
+    'greek-future-indicative-eimi'
+  ]);
+  assert.deepEqual(eimi[0].rows[2].slice(1), ['ἐστί(ν)','εἰσί(ν)']);
+
+  const paradigms = library.getReferenceTopic('greek-paradigm-charts');
+  const verbSections = paradigms.sectionTabs.find(tab => tab.id === 'verbs').sections.map(section => section.title);
+  for (const title of ['Present','Imperfect','Future','Aorist','Perfect','Pluperfect','εἰμί']) assert.ok(verbSections.includes(title));
+  assert.deepEqual(library.referenceLandingSections('greek').map(section => section.title), ['Reference']);
+  assert.deepEqual(library.referenceLandingSections('greek')[0].entries.map(entry => entry.label), ['Paradigm Charts','Grammar Handbook']);
+  assert.equal(library.greekCoreIndicativeCharts.some(chart => /Subjunctive|Imperative|Infinitive|Participle/.test(chart.label)), false, 'v1.3.4 material is absent from the core registry');
+});
