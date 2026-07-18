@@ -120,10 +120,12 @@
     return [];
   }
 
-  function hebrewChartMeta(label){
-    const normalized = normalizeLabel(label);
-    const stem = [...VERIFIED_HEBREW_STEMS].find(value => normalized.startsWith(`${value} `));
-    const form = [...HEBREW_FORMS].find(value => normalized.includes(value));
+  function hebrewChartMeta(chart){
+    const normalized = normalizeLabel(chart.label);
+    const metadataStem = titleCaseTarget(chart.stemId || '');
+    const stem = [...VERIFIED_HEBREW_STEMS].find(value => value === metadataStem || normalized.toLowerCase().startsWith(`${value.toLowerCase()} `));
+    const metadataForm = titleCaseTarget(chart.formCategory || '');
+    const form = [...HEBREW_FORMS].find(value => value === metadataForm || normalized.toLowerCase().includes(value.toLowerCase()));
     if(!stem || !form) return null;
     return { stem, form, label: `${hebrewStemDisplay(stem)} ${form}` };
   }
@@ -144,11 +146,22 @@
 
   function hebrewItemsFromChart(section, chart){
     const source = chartSource(section, chart, 'hebrew-verbs');
-    const meta = hebrewChartMeta(chart.label);
+    const meta = hebrewChartMeta(chart);
     if(!meta) return [];
     const categories = ['hebrew-verbs', slug(meta.stem), slug(hebrewStemDisplay(meta.stem)), slug(meta.form), slug(meta.label)];
     const rows = chart.rows || [];
     const columns = chart.columns || [];
+    if(columns.includes('Hebrew form') || columns.includes('Hebrew pattern')){
+      const formColumn = columns.includes('Hebrew form') ? 'Hebrew form' : 'Hebrew pattern';
+      const formIndex = columns.indexOf(formColumn);
+      return rows.map((row, index) => {
+        const cell = row[formIndex];
+        const form = cleanForm(cell);
+        if(!form || isReviewCell(cell)) return null;
+        const detail = row.slice(0, formIndex).map(cleanForm).filter(Boolean).join(' ');
+        return item(['hebrew', meta.label, detail || index, form], source, form, [meta.label, detail || meta.form], hebrewClues(meta), categories.concat(slug(detail)));
+      }).filter(Boolean);
+    }
     if(columns.includes('Person')){
       return rows.flatMap(row => columns.slice(1).map((person, offset) => {
         const cell = row[offset + 1];

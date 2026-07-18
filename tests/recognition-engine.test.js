@@ -19,11 +19,11 @@ test('v4.2.6 recognition engine builds reusable Greek sessions from Reference', 
 
 test('v4.2.6 recognition engine builds verified Hebrew sessions and sequence recognition', () => {
   const qal = recognition.createSession('hebrew-qal');
-  assert.ok(qal.items.some(item => item.form === 'כָּתַב'));
+  assert.ok(qal.items.some(item => item.form === 'קָטַל'));
   assert.ok(qal.items.every(item => item.referenceTopicId === 'hebrew-verbs'));
 
   const hithpael = recognition.createSession('hebrew-hithpael');
-  assert.ok(hithpael.items.some(item => item.form === 'הִתְכַּתֵּב'));
+  assert.ok(hithpael.items.some(item => item.form === 'הִתְקַטֵּל'));
 
   assert.deepEqual(
     recognition.createSession('hebrew-wayyiqtol').items[0].answerLines,

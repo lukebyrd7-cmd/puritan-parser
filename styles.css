@@ -642,6 +642,7 @@ canvas { display: block; }
 .about-sources-details div { display: grid; grid-template-columns: 90px 1fr; gap: 12px; }
 .about-sources-details dt { color: var(--muted); font-size: 11px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; }
 .about-sources-details dd { margin: 0; color: var(--text-2); }
+.about-sources-details [lang="he"] { direction: rtl; unicode-bidi: isolate; }
 .about-sources-coverage { font-size: 13px; }
 .color-swatch {
   width: 28px; height: 28px; border-radius: 6px; border: 2px solid transparent;
@@ -1603,6 +1604,7 @@ button:focus-visible, input:focus-visible, select:focus-visible {
 .reference-section { margin-top: 18px; }
 .reference-section h3 { font-size: 15px; margin-bottom: 8px; color: var(--text); }
 .reference-table td, .reference-table th { white-space: normal; }
+.reference-table [lang="he"] { direction: rtl; unicode-bidi: isolate; text-align: right; font-family: var(--font-serif); font-size: 1.18em; line-height: 1.5; }
 .reference-examples { display: grid; gap: 8px; padding-left: 18px; }
 .reference-example-text { font-family: var(--font-serif); font-size: 20px; font-weight: 700; display: block; color: var(--text); }
 .reference-related { display: flex; gap: 8px; flex-wrap: wrap; }
