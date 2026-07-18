@@ -86,7 +86,8 @@ The v5.7 Onboarding foundation is complete. Current v5 work can move toward Stud
 - Complete: Establish Tier 2: Morphology Guide, Reading Helps, Parsing Abbreviations, Stem Summaries.
 - Complete: Keep supplemental material available without crowding the first screen.
 - Complete: Preserve Recognition engine compatibility with Reference-backed paradigm data.
-- Deferred: deeper advanced syntax, fuller supplemental resources, and specialist-reviewed weak-verb expansion.
+- Complete in v1.3.6a: source-backed Hebrew weak-verb recognition charts for the major weak classes, with exact Gesenius page/section metadata and focused filters.
+- Deferred: deeper advanced syntax, fuller supplemental resources, exhaustive doubly weak coverage, suffix systems, nominal morphology, and weak-verb Handbook explanation.
 
 ### v5.6: Progress Redesign
 

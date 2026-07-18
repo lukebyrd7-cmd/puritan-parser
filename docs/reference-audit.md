@@ -86,17 +86,19 @@ Optative, future perfect, verbal adjectives, δείκνυμι as a full paradigm
 | Nominal | Prepositions/particles/conjunctions | Minimal | Particles page should become Handbook topic. |
 | Verbal grammar | Root/stem concepts, perfect, imperfect, imperative, infinitives, participles | Verified within v1.3.5 strong-root scope | Gesenius 1910 Paradigm B pp. 510–511 supplies the registered קטל forms. Participles remain masculine-singular recognition anchors. |
 | Verbal grammar | Wayyiqtol/weqatal/cohortative/jussive | Wayyiqtol recognition verified narrowly; syntax remains minimal | Gesenius §49b–c, pp. 133–134 directly supplies the included Qal and Hiphil anchors; no complete paradigm is inferred. |
-| Verbal grammar | Strong vs weak verbs | Minimal | Weak verbs are recognition snapshots only. |
+| Verbal grammar | Strong vs weak verbs | Source-backed recognition coverage | v1.3.6a adds concise strong-pattern comparisons for eleven weak-class navigation IDs without expanding Handbook explanation. |
 | Stems | Qal | Verified within strong-model scope | Complete finite rows and directly supplied non-finite anchors for קטל; Qal wayyiqtol limited to two directly printed rows. |
 | Stems | Niphal/Piel/Hiphil/Hitpael | Verified within strong-model scope | Paradigm B rows are source-tagged by chart; Hiphil includes its printed shortened imperfect and one directly printed wayyiqtol row. |
 | Stems | Pual/Hophal | Verified with explicit omissions | Paradigm B supplies perfect, imperfect, infinitive absolute, and participle anchors, but marks infinitive construct and imperative “wanting”; omitted categories remain absent. |
-| Weak verbs | I-guttural/III-guttural/doubly weak | Absent/minimal | Defer until sourced. |
-| Weak verbs | I-nun/I-yod or Pe-yod/hollow/geminate/III-he | Minimal | Recognition snapshots only. |
+| Weak verbs | Initial/medial/final guttural; doubly weak | Verified within focused recognition scope | Gesenius §§62–65, §76 and Paradigms D–F; doubly weak examples remain explicitly limited. |
+| Weak verbs | Pe-nun/Pe-yod-Pe-waw/hollow/geminate/Lamed-he | Verified within focused recognition scope | Gesenius §§66–75 and Paradigms G–P; Ayin-yod uses directly printed §73 examples rather than an inferred full paradigm. |
 | Syntax | Construct chains, definiteness, adjective agreement, suffixes, verbal/nominal clauses, word order, waw, negation, relatives, particles, discourse sequencing | Minimal to partial | Current explanations are scattered and concise. |
 
 ### Hebrew stem audit
 
 The v1.3.5 registry contains 41 stable charts for Qal, Niphal, Piel, Pual, Hiphil, Hophal, and Hitpael using Gesenius' model strong root קטל. Perfect, imperfect, applicable imperatives, infinitives, and masculine-singular participial anchors were transcribed from Paradigm B on printed pp. 510–511 and checked against the Internet Archive/Wikisource page images. Pual and Hophal infinitive constructs and imperatives are absent because the table explicitly marks them “wanting.” Wayyiqtol is a separate recognition category containing only Qal 3ms/1cs and Hiphil 3ms forms directly printed in §49b–c, pp. 133–134. The app retains modern stem labels while About & Sources records Gesenius' older terminology.
+
+The v1.3.6a registry adds 37 stable weak-verb comparison charts from Gesenius §§62–78 (printed pp. 164–219) and Paradigms D–P (printed pp. 514–529). Navigation filters by weak-root class, stem, and form category. Every chart records a source-supplied representative root, affected radical, expected strong pattern, directly printed weak form, visible change, recognition cue, exact section/page/table, alternate convention, and limitation. The registry covers initial, medial, and final gutturals; Pe-nun; historical Pe-waw and true Pe-yod; Ayin-waw and Ayin-yod hollow roots; geminates; Lamed-he; doubly weak examples; and high-frequency אכל. It does not claim exhaustive weak morphology.
 
 ## Route and UI audit
 
@@ -121,16 +123,16 @@ Mapping: current Paradigm Charts, form sections from Verbs/Nouns/Adjectives/Pron
 | v1.3.3 Greek core indicative paradigms | Complete: source-tagged core indicatives for λύω, λείπω second aorist, and εἰμί | `reference-data.js`, `docs/reference-sources.md` | Machen 1923 row-level page-image verification complete for included material | Structural + source-note tests; visual wide-table QA | Pluperfect convention narrowed to directly supplied active forms | Optative, verbal adjectives, pluperfect middle/passive |
 | v1.3.4 Greek additional paradigms | Complete: moods/non-finites, contract and major μι verbs, high-value nouns/adjectives/pronouns | `reference-data.js`, Settings sources, tests, docs | Machen 1923 page-image verification complete for included material | Source/NFC/structure/category/UI tests; desktop/mobile visual QA | Large but focused chart registry | Optative, future perfect, δείκνυμι, complete superlatives, exhaustive third declension |
 | v1.3.5 Hebrew strong-verb stems | Complete: 41 Gesenius-backed charts for Qal through Hitpael, with narrow wayyiqtol recognition and explicit Pual/Hophal omissions | `reference-data.js`, Settings sources, tests, docs | Gesenius-Kautzsch-Cowley 1910, Paradigm B pp. 510–511 and §49b–c pp. 133–134, page-image verified | Structure, provenance, NFC/pointing, RTL, source-link, omission, Greek-isolation, and browser QA | Participles intentionally limited to printed anchors | Weak verbs, suffixes, nominal morphology, Handbook depth |
-| v1.3.6 Hebrew weak verbs, suffixes, and nominal morphology | P1/P2: source-backed weak-root foundations, pronominal suffixes, nouns, and construct patterns | same | Specialist-reviewed paradigms and source-tagged suffix/nominal tables | Route/chart tests; drill exclusion until verified | Many allomorphs and high weak-root error risk | Doubly weak exhaustive coverage and rare suffix variants |
+| v1.3.6a Hebrew weak verbs | Complete: 37 Gesenius-backed recognition charts across eleven weak-class navigation IDs, with class/stem/form filters and explicit limited examples | `reference-data.js`, Reference renderer, Settings sources, recognition compatibility, tests, docs | Gesenius-Kautzsch-Cowley 1910, §§62–78 pp. 164–219 and Paradigms D–P pp. 514–529, page-image verified | Source/ID/class/root/comparison/NFC/pointing/RTL/filter/About/recognition/isolation tests; desktop/mobile visual QA | Starred/bracketed alternatives and doubly weak complexity | Suffix systems, nominal morphology, exhaustive doubly weak coverage, Handbook explanation |
 | v1.3.7 Grammar Handbook expansion | P1/P2: syntax and usage topics for both languages, including fuller sequential-form explanation | same | Grammar source bibliography | Search/topic tests; browser QA | Duplicating chart explanations | Advanced/specialized debates |
 
 ## Questions requiring scholarly review
 
 - The v1.3.3 pluperfect convention follows Machen's printed p. 238 active paradigm, including parenthesized augment; broader pluperfect alternatives remain a future sourcing question.
 - Machen does not print a distinct second-declension feminine noun or complete superlative chart in the approved paradigm pages; another exact edition/page source would be needed before those are added.
-- Which weak-verb categories should be included first for reader value without implying completeness?
+- Which additional rare weak-root alternatives merit a second exact-edition source without making the reference look exhaustive?
 - How much pronunciation/accent material belongs in a reading reference versus Learn?
 
 ## Areas where evidence was insufficient
 
-The normalized v1.3.3/v1.3.4 Greek registries and v1.3.5 Hebrew strong-verb registry have exact row-level citations. Legacy explanatory snapshots, Hebrew weak verbs, suffixes, and nominal forms still lack equivalent row-level citations. The audit therefore continues to distinguish source-backed registries from structurally checked legacy material.
+The normalized v1.3.3/v1.3.4 Greek registries and v1.3.5/v1.3.6a Hebrew verb registries have exact row-level citations. Legacy explanatory prose, suffixes, and nominal forms still lack equivalent row-level citations. The audit therefore continues to distinguish source-backed registries from structurally checked legacy material.

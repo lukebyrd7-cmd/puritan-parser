@@ -1637,6 +1637,12 @@ button:focus-visible, input:focus-visible, select:focus-visible {
 .reference-tabbed-page { border-top: 1px solid var(--border); padding-top: 12px; }
 .reference-section-tabs { position: sticky; top: 0; background: var(--surface); z-index: 2; }
 .reference-section-tab-panel { max-height: min(68vh, 760px); overflow: auto; padding-right: 4px; scroll-behavior: smooth; }
+.reference-chart-filters { display: grid; grid-template-columns: repeat(3, minmax(140px, 1fr)) auto; gap: 10px; align-items: end; position: sticky; top: 0; z-index: 3; padding: 10px; margin-bottom: 12px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--surface); box-shadow: 0 4px 12px color-mix(in srgb, var(--text) 7%, transparent); }
+.reference-chart-filters label { display: grid; gap: 4px; color: var(--muted); font-size: 11px; font-weight: 800; letter-spacing: .04em; }
+.reference-chart-filters select { min-width: 0; width: 100%; border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 8px; background: var(--surface-2); color: var(--text); font: inherit; font-size: 13px; }
+.reference-chart-filters select:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.reference-filter-count { align-self: center; color: var(--muted); font-size: 12px; white-space: nowrap; }
+.reference-chart[hidden] { display: none; }
 .reference-jump-chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0 12px; }
 .reference-jump-chip { border: 1px solid var(--border); border-radius: 999px; background: var(--surface-2); color: var(--text-2); padding: 6px 9px; cursor: pointer; font-weight: 700; font-size: 12px; }
 .reference-jump-chip:hover { border-color: var(--accent); color: var(--accent); }
@@ -1653,6 +1659,10 @@ button:focus-visible, input:focus-visible, select:focus-visible {
 .grammar-toc-link { min-height: 40px; align-content: center; }
 .grammar-toc-featured { border-color: color-mix(in srgb, var(--accent) 55%, var(--border)); background: var(--surface-2); padding-block: 12px; }
 .grammar-toc-featured span::after { content: 'Charts'; display: inline-block; margin-left: 8px; border-radius: 999px; padding: 2px 6px; background: var(--accent); color: white; font-size: 10px; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; vertical-align: middle; }
+@media (max-width: 700px) {
+  .reference-chart-filters { grid-template-columns: 1fr; position: static; }
+  .reference-filter-count { justify-self: start; }
+}
 
 /* ---------- Global Search ---------- */
 .global-search-panel { display: grid; gap: 14px; max-width: 920px; margin: 0 auto; }

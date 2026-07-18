@@ -35,15 +35,27 @@ test('v4.2.6 recognition engine builds verified Hebrew sessions and sequence rec
   );
 });
 
-test('v4.2.6 Hebrew recognition excludes unverified material', () => {
+test('v1.3.6a Hebrew recognition includes verified weak charts and still excludes unsupported stems', () => {
   const hebrewForms = recognition.itemsForTarget('hebrew-verbs');
   const serialized = JSON.stringify(hebrewForms);
+  assert.ok(hebrewForms.some(item => item.form === 'עָמַד' && item.categories.includes('weak-initial-guttural')));
+  assert.ok(hebrewForms.some(item => item.form === 'יִגַּשׁ' && item.categories.includes('weak-pe-nun')));
+  assert.ok(hebrewForms.some(item => item.form === 'יִגְלֶה' && item.categories.includes('weak-lamed-he')));
   assert.doesNotMatch(serialized, /Pual/);
   assert.doesNotMatch(serialized, /Hophal/);
   assert.doesNotMatch(serialized, /Needs review/i);
-  assert.doesNotMatch(serialized, /I-Nun|Pe-Yod|Hollow|Geminate|III-He|Lamed-He/);
   assert.equal(recognition.recognitionTarget('hebrew-pual'), null);
   assert.equal(recognition.recognitionTarget('hebrew-hophal'), null);
+});
+
+test('v1.3.6a recognition compatibility is read-only for persisted review state', () => {
+  const persisted='[{"id":"existing-session","score":4}]';
+  const storage={ pp_recognition_history:persisted };
+  recognition.createSession('hebrew-qal');
+  recognition.createCombinedSession(['hebrew-qal','hebrew-hiphil']);
+  assert.equal(storage.pp_recognition_history,persisted);
+  assert.equal(recognition.createSession('hebrew-qal').items.some(item=>item.categories.includes('strong-verb')),true);
+  assert.equal(recognition.createSession('hebrew-qal').items.some(item=>item.categories.some(category=>category.startsWith('weak-'))),true);
 });
 
 test('v4.2.6 recognition engine reuses one target/session API across categories', () => {

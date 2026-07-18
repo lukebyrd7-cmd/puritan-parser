@@ -148,9 +148,19 @@
     const source = chartSource(section, chart, 'hebrew-verbs');
     const meta = hebrewChartMeta(chart);
     if(!meta) return [];
-    const categories = ['hebrew-verbs', slug(meta.stem), slug(hebrewStemDisplay(meta.stem)), slug(meta.form), slug(meta.label)];
+    const categories = ['hebrew-verbs', slug(meta.stem), slug(hebrewStemDisplay(meta.stem)), slug(meta.form), slug(meta.label), chart.weakClassId ? `weak-${slug(chart.weakClassId)}` : 'strong-verb'];
     const rows = chart.rows || [];
     const columns = chart.columns || [];
+    if(columns.includes('Attested weak form')){
+      const formIndex=columns.indexOf('Attested weak form');
+      return rows.map((row,index)=>{
+        const cell=row[formIndex];
+        const form=cleanForm(cell);
+        if(!form||isReviewCell(cell)) return null;
+        const detail=cleanForm(row[0])||`${meta.form} ${index+1}`;
+        return item(['hebrew',chart.weakClassId,meta.label,detail,form],source,form,[meta.label,chart.weakClassLabel||titleCaseTarget(chart.weakClassId),detail],hebrewClues(meta).concat(chart.comparison?.change||'').slice(0,3),categories.concat(slug(detail)));
+      }).filter(Boolean);
+    }
     if(columns.includes('Hebrew form') || columns.includes('Hebrew pattern')){
       const formColumn = columns.includes('Hebrew form') ? 'Hebrew form' : 'Hebrew pattern';
       const formIndex = columns.indexOf(formColumn);
@@ -245,7 +255,7 @@
     const base = [
       target('greek-verbs','Greek Verbs','All verified Greek verb recognition forms.','greek','verbs', item => item.categories.includes('greek-verbs'), 'greek-verbs'),
       target('greek-nouns','Greek Nouns','Greek noun, article, and ending recognition from Reference.','greek','nouns', item => item.categories.includes('greek-nouns'), 'greek-nouns'),
-      target('hebrew-verbs','Hebrew Verbs','Verified Hebrew strong-verb and sequence recognition forms.','hebrew','verbs', item => item.categories.includes('hebrew-verbs'), 'hebrew-verbs'),
+      target('hebrew-verbs','Hebrew Verbs','Verified Hebrew strong- and weak-verb recognition forms.','hebrew','verbs', item => item.categories.includes('hebrew-verbs'), 'hebrew-verbs'),
       target('hebrew-nouns','Hebrew Nouns','Verified Hebrew noun recognition forms already in Reference.','hebrew','nouns', item => item.categories.includes('hebrew-nouns'), 'hebrew-nouns')
     ];
     const greekParadigms = [
