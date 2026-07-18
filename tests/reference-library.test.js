@@ -148,7 +148,7 @@ test('v3.6.3 Hebrew verbs consolidate strong paradigms, stems, weak verbs, aspec
     assert.ok(sectionTitles(verbs).includes(title), `${title} section missing`);
   }
   assert.equal(sectionTitles(verbs).includes('Recognition Cheat Sheet'), false);
-  assert.ok(sectionCharts(verbs).some(c => c.label === 'Qal Perfect: כתב'));
+  assert.ok(sectionCharts(verbs).some(c => c.label === 'Qal perfect — קטל'));
   assert.ok(sectionCharts(verbs).some(c => c.label === 'Stem overview'));
   assert.ok(sectionCharts(verbs).some(c => c.label === 'Wayyiqtol clues'));
   assert.ok(allExamples(verbs).some(e => e.word === 'וַיֹּאמֶר'));
@@ -163,7 +163,7 @@ test('v3.6.3d Hebrew verbs use recognition-first category tabs and expanded weak
   for (const title of ['I-Aleph','I-Nun','Pe-Yod','Hollow','Geminate','III-He','Lamed-He']) {
     assert.ok(verbs.sectionTabs.flatMap(tab => tab.sections).some(section => section.title === title), `${title} weak verb section missing`);
   }
-  assert.ok(sectionTabCharts(verbs).some(c => c.label === 'Qal Perfect: כתב'));
+  assert.ok(sectionTabCharts(verbs).some(c => c.label === 'Qal perfect — קטל'));
   assert.ok(sectionTabCharts(verbs).some(c => c.label === 'Stem overview'));
   assert.ok(sectionTabCharts(verbs).some(c => c.label === 'Wayyiqtol clues'));
 });
@@ -172,20 +172,20 @@ test('v4.2.5 Hebrew non-Qal paradigms do not reuse Qal non-finite and participle
   const verbs = library.getReferenceTopic('hebrew-verbs');
   const paradigmCharts = verbs.sectionTabs.find(tab => tab.id === 'paradigms').sections.flatMap(section => section.charts || []);
   const chartRows = label => paradigmCharts.find(chart => chart.label === label)?.rows || [];
-  assert.deepEqual(chartRows('Hiphil Imperative')[0].slice(1), ['הַכְתֵּב','הַכְתִּיבִי','הַכְתִּיבוּ','הַכְתֵּבְנָה']);
-  assert.deepEqual(chartRows('Hitpael Participles').map(row => row[1]), ['מִתְכַּתֵּב','מִתְכַּתֶּבֶת','מִתְכַּתְּבִים','מִתְכַּתְּבוֹת']);
-  assert.equal(chartRows('Pual Infinitive Construct')[0][0].label, 'Not supplied');
-  assert.notEqual(chartRows('Niphal Participles')[0][1], 'כֹּתֵב');
+  assert.deepEqual(chartRows('Hiphil imperative — קטל').map(row => row[3]), ['הַקְטֵל','הַקְטִילִי','הַקְטִילוּ','הַקְטֵלְנָה']);
+  assert.deepEqual(chartRows('Hitpael participle anchor — קטל').map(row => row[4]), ['מִתְקַטֵּל']);
+  assert.equal(paradigmCharts.some(chart => chart.label === 'Pual infinitive construct — קטל'), false);
+  assert.notEqual(chartRows('Niphal participle anchor — קטל')[0][4], 'קֹטֵל');
 });
 
 test('v4.2.5B Hebrew stem summary charts use the same stem-specific source rows as the paradigm tabs', () => {
   const verbs = library.getReferenceTopic('hebrew-verbs');
   const paradigmCharts = verbs.sectionTabs.find(tab => tab.id === 'paradigms').sections.flatMap(section => section.charts || []);
   const chartRows = label => paradigmCharts.find(chart => chart.label === label)?.rows || [];
-  assert.equal(chartRows('Niphal representative paradigm: כתב').find(row => row[0] === 'Imperative')[1], 'הִכָּתֵב');
-  assert.equal(chartRows('Piel representative paradigm: כתב').find(row => row[0] === 'Participle')[1], 'מְכַתֵּב');
-  assert.equal(chartRows('Hiphil representative paradigm: כתב').find(row => row[0] === 'Infinitive Construct')[1], 'הַכְתִּיב');
-  assert.equal(chartRows('Pual representative paradigm: כתב').find(row => row[0] === 'Imperative')[1].label, 'Not supplied');
+  assert.equal(chartRows('Niphal representative paradigm: קטל').find(row => row[0] === 'Imperative')[1], 'הִקָּטֵל');
+  assert.equal(chartRows('Piel representative paradigm: קטל').find(row => row[0] === 'Participle')[1], 'מְקַטֵּל');
+  assert.equal(chartRows('Hiphil representative paradigm: קטל').find(row => row[0] === 'Infinitive Construct')[1], 'הַקְטִיל');
+  assert.equal(chartRows('Pual representative paradigm: קטל').find(row => row[0] === 'Imperative')[1].label, 'Not supplied');
 });
 
 test('v4.2.5B Greek participle detail rows use real declension forms, not suffix guesses', () => {
@@ -457,11 +457,11 @@ test('Reference Search results render immediately under the search controls with
 test('service worker cache version and app shell cache bust are bumped', () => {
   const sw = fs.readFileSync('sw.js', 'utf8');
   const html = fs.readFileSync('index.html', 'utf8');
-  assert.match(sw, /const CACHE = 'puritan-parser-v42-v1\.3\.4-paradigms'/);
+  assert.match(sw, /const CACHE = 'puritan-parser-v43-v1\.3\.5-hebrew-strong-verbs'/);
   assert.doesNotMatch(sw, /puritan-parser-v39-v1\.4\.1/);
   assert.doesNotMatch(sw, /puritan-parser-v13-reader-startup/);
   assert.match(sw, /'\.\/src\/features\/reader\/index\.js'/);
   assert.match(sw, /caches\.delete\(k\)/);
   assert.match(sw, /self\.clients\.claim\(\)/);
-  assert.match(html, /src="src\/main\.js\?v=v1\.3\.4-paradigms"/);
+  assert.match(html, /src="src\/main\.js\?v=v1\.3\.5-hebrew-strong-verbs"/);
 });

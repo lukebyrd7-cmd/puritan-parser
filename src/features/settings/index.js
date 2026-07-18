@@ -82,6 +82,43 @@ function renderGreekReferenceSources(referenceLibrary){
     <ul>${methodology}</ul>
     <p>The pluperfect middle/passive is honestly omitted because Machen does not directly supply a complete paradigm. The perfect subjunctive is likewise omitted because Machen calls it too rare to learn and does not supply a complete chart. The second aorist uses Machen’s representative <span lang="grc">λείπω / ἔλιπον</span>, not an inferred <span lang="grc">λύω</span> paradigm. The present-system chart for <span lang="grc">δείκνυμι</span>, a distinct second-declension feminine noun chart, and a complete superlative chart remain deferred rather than inferred from isolated forms.</p>`;
 }
+function hebrewSourceCoverage(referenceLibrary){
+  const groups = new Map();
+  for(const chart of referenceLibrary?.hebrewStrongVerbCharts || []){
+    if(!chart.source) continue;
+    const key = `${chart.source.printedPages}|${chart.source.sections}`;
+    if(!groups.has(key)) groups.set(key, { source:chart.source, charts:[] });
+    groups.get(key).charts.push(chart);
+  }
+  return Array.from(groups.values());
+}
+function renderHebrewReferenceSources(referenceLibrary){
+  const charts = referenceLibrary?.hebrewStrongVerbCharts || [];
+  const source = charts[0]?.source;
+  if(!source) return '<p>Detailed Hebrew strong-verb bibliography is not yet available in this installation.</p>';
+  const coverage = hebrewSourceCoverage(referenceLibrary).map(group => {
+    const pageLabel = String(group.source.printedPages).includes('–') ? 'pp.' : 'p.';
+    const chartLabels = group.charts.map(chart => `${chart.label}${chart.source.complete ? '' : ' (limited)'}`).join('; ');
+    return `<li><strong>Printed ${pageLabel} ${escapeAboutSourcesHtml(group.source.printedPages)}</strong> · ${escapeAboutSourcesHtml(group.source.sections)}<br><span>${escapeAboutSourcesHtml(chartLabels)}</span></li>`;
+  }).join('');
+  return `<p><cite>${escapeAboutSourcesHtml(source.author)}, <em>${escapeAboutSourcesHtml(source.title)}</em>, edited and enlarged by ${escapeAboutSourcesHtml(source.editor)}, translated and revised by ${escapeAboutSourcesHtml(source.translator)} (${escapeAboutSourcesHtml(source.publication)}).</cite></p>
+    <dl class="about-sources-details">
+      <div><dt>Edition</dt><dd>${escapeAboutSourcesHtml(source.edition)}</dd></div>
+      <div><dt>Scan used</dt><dd><a href="${escapeAboutSourcesHtml(source.scanUrl)}" target="_blank" rel="noopener noreferrer">${escapeAboutSourcesHtml(source.scan)} (${escapeAboutSourcesHtml(source.scanId)})</a></dd></div>
+      <div><dt>Representative root</dt><dd><span lang="he" dir="rtl">קטל</span> — model strong root, not an ordinary vocabulary lemma</dd></div>
+    </dl>
+    <p>Every included pointed form was checked against the printed page image. OCR was used only to locate candidate pages.</p>
+    <h3>Printed-page coverage</h3>
+    <ul class="about-sources-coverage">${coverage}</ul>
+    <h3>Conventions and limitations</h3>
+    <ul>
+      <li>The app uses Niphal, Piel, Pual, Hiphil, Hophal, and Hitpael where Gesenius prints Niphʿal, Piʿel, Puʿal, Hiphʿil, Hophʿal, and Hithpaʿel.</li>
+      <li>Wayyiqtol is the app’s label for Gesenius’ “imperfect with wāw consecutive.” Only the Qal and Hiphil row-level forms directly printed in §49 are included.</li>
+      <li>Paradigm B marks the Pual and Hophal infinitive construct and imperative as “wanting”; these charts are omitted rather than completed by analogy.</li>
+      <li>Participles are limited to the masculine-singular recognition anchors printed in Paradigm B. Full participial declensions are not inferred.</li>
+      <li>No weak-root paradigm, suffix expansion, or Grammar Handbook syntax expansion is included in this source-backed registry.</li>
+    </ul>`;
+}
 function renderAboutSources(){
   const shell = typeof $ === 'function' ? $('#aboutSourcesShell') : null;
   if(!shell) return '';
@@ -90,7 +127,7 @@ function renderAboutSources(){
     <div class="about-sources-header"><div><div class="panel-title">About &amp; Sources</div><div class="panel-sub">Project purpose, sources, and scholarly limits</div></div><button class="btn btn-ghost btn-sm" id="aboutSourcesBackBtn" type="button">← Settings</button></div>
     <section id="about-the-puritan-parser"><h2>About The Puritan Parser</h2><p>The Puritan Parser is a local-first reading and learning tool designed to help students become increasingly independent readers of biblical Greek and Hebrew.</p></section>
     <section id="greek-reference-sources"><h2>Greek Reference Sources</h2>${renderGreekReferenceSources(referenceLibrary)}</section>
-    <section id="hebrew-reference-sources"><h2>Hebrew Reference Sources</h2><p>The current Hebrew Reference material is structurally audited, but it does not yet have complete row-level source verification. This page therefore does not present an unsupported paradigm bibliography.</p></section>
+    <section id="hebrew-reference-sources"><h2>Hebrew Reference Sources</h2><h3>Strong verbs</h3>${renderHebrewReferenceSources(referenceLibrary)}</section>
     <section id="text-translation-sources"><h2>Text and Translation Sources</h2><p>Greek Reader data is generated from MorphGNT’s SBLGNT Edition. Hebrew Reader data comes from Open Scriptures Hebrew Bible morphology and the Westminster Leningrad Codex text. Built-in English translations are the Open English Bible and the World English Bible.</p></section>
     <section id="data-licensing"><h2>Data and Licensing</h2><p>MorphGNT morphology and lemmatization are provided under CC BY-SA; the SBLGNT text remains subject to its EULA. Open Scriptures Hebrew morphology is identified as CC BY 4.0 and the Westminster Leningrad Codex text as public domain. The Open English Bible is CC0, and the World English Bible is public domain.</p></section>
     <section id="methodology-limitations"><h2>Methodology and Limitations</h2><p>Source-backed forms are shown only where the repository records adequate support. Missing paradigms and variants are omitted or described as limited rather than generated by analogy. Structural tests protect data shape and navigation, but do not replace scholarly verification.</p></section>
@@ -109,4 +146,4 @@ function openAboutSources(anchor=''){
   showView('aboutSourcesView', { skipHistory: true });
 }
 if(typeof window !== 'undefined') Object.assign(window, { SRS_PRESETS, inferSrsPreset, applySrsPreset, renderAboutSources, openAboutSources });
-if(typeof module !== 'undefined') module.exports = { SRS_PRESETS, inferSrsPreset, applySrsPreset, greekSourceCoverage, renderGreekReferenceSources };
+if(typeof module !== 'undefined') module.exports = { SRS_PRESETS, inferSrsPreset, applySrsPreset, greekSourceCoverage, renderGreekReferenceSources, hebrewSourceCoverage, renderHebrewReferenceSources };

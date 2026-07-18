@@ -39,23 +39,28 @@ Primary comparison anchors: Wallace and Mounce for Greek categories and regular 
 
 ### ✔ Verified
 
-- Hebrew verb paradigms were checked across Qal, Niphal, Piel, Pual, Hiphil, Hophal, and Hitpael in the consolidated Hebrew Verbs page and in the reusable paradigm source groups.
-- The actual paradigm tabs for participles, infinitive construct, infinitive absolute, and imperatives are data-driven from `hebrewForms`; they are not rendered by falling back to Qal forms.
-- Qal, Niphal, Piel, Hiphil, and Hitpael non-finite and imperative rows display stem-specific forms rather than Qal rows.
-- Pual and Hophal passive-stem imperative and infinitive-construct entries are intentionally marked `Needs review` instead of forcing Qal-looking or invented forms.
+- The v1.3.5 strong-verb registry is checked row by row against the page-image scan of Gesenius-Kautzsch-Cowley, second English edition (Oxford: Clarendon Press, 1910), Paradigm B on printed pp. 510–511.
+- All seven major stems—Qal, Niphal, Piel, Pual, Hiphil, Hophal, and Hitpael—use Gesenius' model strong root קטל with stable chart, stem, category, root, and source metadata.
+- Perfect, imperfect, applicable imperatives, infinitive construct, infinitive absolute, and participial anchors follow the categories directly printed in Paradigm B. The table's explicit alternatives are retained without combining other pointing traditions.
+- Wayyiqtol is structurally distinct from the ordinary imperfect and is limited to Qal 3ms/1cs and Hiphil 3ms forms directly printed in §49b–c, pp. 133–134.
+- Pual and Hophal infinitive constructs and imperatives are omitted because Paradigm B explicitly marks them “wanting.” No empty or mathematically generated charts replace them.
+- User-facing stem labels follow the app's modern convention; About & Sources records Gesenius' Niphʿal, Piʿel, Puʿal, Hiphʿil, Hophʿal, and Hithpaʿel terminology.
 - Hebrew noun terminology is broadly appropriate: construct state, absolute state, dual, pronominal suffixes, article, suffix forms, and state-based reading.
 - Hebrew verb terminology is broadly appropriate: stem/binyan, strong verb, perfect, imperfect, imperative, infinitive construct, infinitive absolute, participle, aspect, wayyiqtol/waw consecutive, weak roots, and stem relationships.
 
 ### ⚠ Needs Review
 
-- Pual and Hophal infinitive construct and imperative paradigms remain intentionally unresolved. Passive stems may not provide ordinary command paradigms, and any drill-facing treatment should be checked against a fuller Hebrew paradigm reference before being exposed as practice data.
-- Pual and Hophal infinitive absolute rows remain supplied as representative strong forms but should receive a second specialist review before use in drills.
+- Participles remain limited to the masculine-singular anchor forms printed in Paradigm B. Full gender/number/state declensions need a separate row-level source before expansion.
+- Gesenius §49 explains the consecutive forms but does not print a complete person-by-person strong paradigm. Only its directly printed Qal and Hiphil examples are registered.
 - Weak-verb sections are recognition snapshots, not full paradigms. They should not become drill sources without separate weak-root paradigm validation.
 - Some Hebrew examples are labeled representative rather than tied to a specific verse. That is acceptable for the current reference section, but future scholarly polish could prefer attested examples where possible.
 
 ### ✖ Corrected
 
-- Corrected Hebrew non-Qal stem summary charts. The visible per-stem sections contained a "representative paradigm: כתב" chart that mechanically substituted the stem pattern into every row. For example, Niphal showed נִכְתַב for perfect, imperfect, imperative, infinitive construct, infinitive absolute, and participle. These charts now read from the same stem-specific `hebrewForms` data used by the actual paradigm tabs.
+- Replaced the legacy undocumented כתב strong-form dataset in focused Paradigm Charts with the source-backed קטל registry. The model root is identified as paradigmatic rather than presented as a normal vocabulary lemma.
+- Replaced visible “Not supplied” chart rows for Pual/Hophal imperative and infinitive construct with honest category omission, matching Gesenius' printed “wanting.”
+- Added separate navigation by stem and by form category, including a distinct wayyiqtol destination, without expanding the Grammar Handbook.
+- Earlier work corrected non-Qal stem summary aliasing. v1.3.5 now rebuilds those summaries from the same source-backed `hebrewStrongVerbCharts` registry used by focused Paradigm Charts.
 - Added regression coverage so non-Qal Hebrew summary rows cannot silently diverge from the stem-specific paradigm data.
 
 ## Future Improvements
@@ -64,11 +69,12 @@ Primary comparison anchors: Wallace and Mounce for Greek categories and regular 
 - Add a small grammar-data audit script that checks for duplicated Qal forms inside non-Qal charts, unresolved `Needs review` cells, and malformed object cells in drill-eligible data.
 - Add source notes in code comments or docs identifying which grammar family each paradigm convention follows when standard introductory grammars differ.
 - Keep the v1.3.4 source-backed charts distinct from drill eligibility; structural and page-image verification do not by themselves define future recognition-item selection policy.
-- Expand Hebrew validation before drill generation, especially passive-stem non-finites, weak verbs, hollow/geminate roots, and stem-specific participles.
+- Expand Hebrew validation before future weak-root, suffix, nominal, or full participle work; v1.3.5 deliberately does not infer those forms.
 
 ## Regression Notes
 
 - Added tests for Hebrew non-Qal summary charts to ensure imperative, infinitive, and participle rows use stem-specific source data or explicit `Needs review` cells.
 - Added tests for Greek participle declension rows to ensure detail tables use verified forms rather than suffix guesses.
 - Added v1.3.4 tests for unique IDs, source pages, NFC, imperative person restrictions, participle row structure, contract and μι representatives, nominal/pronoun categories, source-note links, Hebrew isolation, and Handbook scope.
+- Added v1.3.5 tests for all seven stems, valid finite/non-finite structures, honest passive-stem omissions, distinct wayyiqtol rows, exact Gesenius metadata, NFC/pointing, RTL markup, About & Sources coverage, and Greek/Handbook isolation.
 - Focused reference-library tests pass after corrections.

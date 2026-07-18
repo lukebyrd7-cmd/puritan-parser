@@ -107,12 +107,13 @@ test('v1.3.1 Reference charts have consistent rows, supported labels, and langua
         assert.doesNotMatch(row.map(cellText).join(' '), /lorem|placeholder|xxx|\[object Object\]/i, `${topic.id}:${chart.label} has no raw placeholders`);
       }
       const firstColumn = chart.rows.map(row => cellText(row[0]));
-      if (!['Root'].includes(chart.columns[0])) assert.equal(new Set(firstColumn).size, firstColumn.length, `${topic.id}:${chart.label} first-column row labels are unique`);
+      const rowLabels = chart.columns.includes('Gender') && chart.columns.includes('Number') ? chart.rows.map(row => row.slice(0,3).map(cellText).join('|')) : firstColumn;
+      if (!['Root'].includes(chart.columns[0])) assert.equal(new Set(rowLabels).size, rowLabels.length, `${topic.id}:${chart.label} row labels are unique`);
       if (chart.columns.includes('Person')) for (const label of firstColumn) assert.ok(PERSON_LABELS.has(label), `${topic.id}:${chart.label} supported person label ${label}`);
       if (topic.language === 'greek' && /paradigm|indicative|imperative|infinitive|participle|declension|pronoun|article|λύ|λόγ|καλ/i.test(chart.label)) {
         assert.ok(chartHasScript(chart, GREEK), `${topic.id}:${chart.label} contains Greek forms`);
       }
-      if (topic.language === 'hebrew' && /paradigm|perfect|imperfect|imperative|infinitive|participle|suffix|construct|כתב|pronoun/i.test(chart.label)) {
+      if (topic.language === 'hebrew' && /paradigm|perfect|imperfect|imperative|infinitive|participle|suffix|construct|כתב|קטל|pronoun/i.test(chart.label)) {
         assert.ok(chartHasScript(chart, HEBREW) || chart.rows.flat().some(cell => cellText(cell).includes('Not supplied')), `${topic.id}:${chart.label} contains Hebrew forms or explicit unsupplied cells`);
       }
     }
@@ -121,7 +122,8 @@ test('v1.3.1 Reference charts have consistent rows, supported labels, and langua
 
 test('v1.3.1 app shell and service worker keep Reference assets reachable without stale versioning', () => {
   const sw = fs.readFileSync('sw.js', 'utf8');
-  assert.match(sw, /puritan-parser-v42-v1\.3\.4-paradigms/, 'service-worker cache version is bumped for Reference changes');
+  assert.match(sw, /puritan-parser-v43-v1\.3\.5-hebrew-strong-verbs/, 'service-worker cache version is bumped for Reference changes');
+  assert.match(fs.readFileSync('index.html', 'utf8'), /src\/main\.js\?v=v1\.3\.5-hebrew-strong-verbs/, 'startup query string is bumped with the cache');
   assert.match(sw, /\.\/src\/features\/grammar\/reference-data\.js/);
   assert.match(sw, /\.\/src\/features\/grammar\/index\.js/);
   assert.doesNotMatch(sw, /reference-audit\.md|reference-sources\.md/, 'docs are not app-shell assets');
@@ -233,8 +235,9 @@ test('v1.3.3 paradigm charts keep source metadata but render only a centralized 
   const html = fs.readFileSync('index.html', 'utf8');
   for (const chart of library.greekCoreIndicativeCharts) assert.ok(chart.source?.printedPages, `${chart.id} keeps its source connection`);
   assert.match(ui, /View source notes/);
-  assert.match(ui, /href="\/settings\/sources#greek-reference-sources"/);
-  assert.match(ui, /data-source-notes-target="greek-reference-sources"/);
+  assert.match(ui, /source\.language === 'hebrew'/);
+  assert.match(ui, /href="\/settings\/sources#\$\{target\}"/);
+  assert.match(ui, /data-source-notes-target="\$\{target\}"/);
   assert.doesNotMatch(ui, /reference-source-note|Verified against the CCEL page image/);
   assert.match(html, /id="openAboutSourcesBtn"/);
   assert.match(html, /id="aboutSourcesView"/);
@@ -345,7 +348,7 @@ test('v1.3.4 About & Sources covers new metadata while chart flow stays citation
   assert.match(sourceHtml, /perfect subjunctive/i);
   assert.match(sourceHtml, /δείκνυμι/);
   const ui = fs.readFileSync('src/features/grammar/index.js', 'utf8');
-  assert.match(ui, /href="\/settings\/sources#greek-reference-sources"/);
+  assert.match(ui, /'greek-reference-sources'/);
   assert.doesNotMatch(ui, /New Testament Greek for Beginners|The Macmillan Company, 1923/);
 });
 
@@ -355,4 +358,105 @@ test('v1.3.4 does not change Hebrew data or expand the Grammar Handbook prose', 
   const handbook = library.getReferenceTopic('greek-grammar-handbook');
   assert.equal(handbook.sectionTabs.some(tab => (tab.sections || []).some(section => /Optative|Future Perfect/.test(section.title))), false);
   assert.doesNotMatch((handbook.body || []).join(' '), /v1\.3\.4|source map|page-image/i);
+});
+
+test('v1.3.5 registers the seven source-backed Hebrew strong stems with stable ids', () => {
+  const charts = library.hebrewStrongVerbCharts;
+  const ids = charts.map(chart => chart.id);
+  assert.equal(new Set(ids).size, ids.length);
+  assert.deepEqual([...new Set(charts.map(chart => chart.stemId))].sort(), ['hiphil','hitpael','hophal','niphal','piel','pual','qal']);
+  for(const chart of charts){
+    assert.match(chart.id, /^hebrew-strong-(qal|niphal|piel|pual|hiphil|hophal|hitpael)-[a-z-]+$/);
+    assert.equal(chart.milestone, 'v1.3.5');
+    assert.equal(chart.language, 'hebrew');
+    assert.equal(chart.representativeRoot, 'קטל');
+    assert.equal(chart.rootDescription, 'model strong root');
+  }
+});
+
+test('v1.3.5 form coverage follows Paradigm B and enforces honest passive-stem omissions', () => {
+  const categories = stem => library.hebrewStrongVerbCharts.filter(chart => chart.stemId === stem).map(chart => chart.formCategory).sort();
+  assert.deepEqual(categories('qal'), ['imperative','imperfect','infinitive-absolute','infinitive-construct','participle','perfect','wayyiqtol']);
+  assert.deepEqual(categories('niphal'), ['imperative','imperfect','infinitive-absolute','infinitive-construct','participle','perfect']);
+  assert.deepEqual(categories('piel'), ['imperative','imperfect','infinitive-absolute','infinitive-construct','participle','perfect']);
+  assert.deepEqual(categories('pual'), ['imperfect','infinitive-absolute','participle','perfect']);
+  assert.deepEqual(categories('hiphil'), ['imperative','imperfect','infinitive-absolute','infinitive-construct','participle','perfect','shortened-imperfect','wayyiqtol']);
+  assert.deepEqual(categories('hophal'), ['imperfect','infinitive-absolute','participle','perfect']);
+  assert.deepEqual(categories('hitpael'), ['imperative','imperfect','infinitive-absolute','infinitive-construct','participle','perfect']);
+});
+
+test('v1.3.5 finite and non-finite Hebrew rows carry valid grammatical structure', () => {
+  const validPerson = new Set(['1st','2nd','3rd']);
+  const validGender = new Set(['masculine','feminine','common']);
+  const validNumber = new Set(['singular','plural']);
+  for(const chart of library.hebrewStrongVerbCharts){
+    if(['perfect','imperfect','wayyiqtol'].includes(chart.formCategory)){
+      assert.deepEqual(chart.columns, ['Person','Gender','Number','Hebrew form']);
+      for(const row of chart.rows){
+        assert.ok(validPerson.has(row[0]));
+        assert.ok(validGender.has(row[1]));
+        assert.ok(validNumber.has(row[2]));
+      }
+    }
+    if(chart.formCategory === 'imperative'){
+      assert.equal(chart.rows.every(row => row[0] === '2nd'), true);
+      assert.equal(chart.rows.some(row => row[0] === '1st'), false);
+    }
+    if(chart.formCategory === 'participle'){
+      assert.deepEqual(chart.columns, ['Form','Gender','Number','State','Hebrew pattern']);
+      assert.equal(chart.rows.every(row => row[1] === 'masculine' && row[2] === 'singular' && row[3] === 'absolute'), true);
+    }
+    if(chart.formCategory.startsWith('infinitive-')) assert.deepEqual(chart.columns, ['Form','State','Hebrew pattern']);
+  }
+});
+
+test('v1.3.5 wayyiqtol remains a distinct, directly printed recognition category', () => {
+  const wayyiqtol = library.hebrewStrongVerbCharts.filter(chart => chart.formCategory === 'wayyiqtol');
+  assert.deepEqual(wayyiqtol.map(chart => chart.stemId), ['qal','hiphil']);
+  assert.deepEqual(wayyiqtol.flatMap(chart => chart.rows.map(row => row[3])), ['וַיִּקְטֹל','וָאֶקְטֹל','וַיַּקְטֵל']);
+  assert.equal(wayyiqtol.every(chart => chart.source.complete === false), true);
+  assert.equal(wayyiqtol.every(chart => /no complete paradigm is inferred/i.test(chart.source.limitation)), true);
+  assert.equal(wayyiqtol.some(chart => chart.id.includes('imperfect') && !chart.id.includes('wayyiqtol')), false);
+});
+
+test('v1.3.5 every Hebrew chart has exact Gesenius provenance and normalized pointing', () => {
+  for(const chart of library.hebrewStrongVerbCharts){
+    assert.equal(chart.source.author, 'Wilhelm Gesenius');
+    assert.equal(chart.source.edition, 'Second English edition, revised according to the twenty-eighth German edition of 1909');
+    assert.equal(chart.source.scanId, 'geseniushebrewgr00geseuoft');
+    assert.match(String(chart.source.printedPages), /\d/);
+    assert.match(chart.source.sections, /§|Paradigm B/);
+    assert.ok(chart.source.table);
+    const HebrewCells = chart.rows.flat().flatMap(cell => cellText(cell).match(/[\u0590-\u05ff]+/g) || []);
+    assert.ok(HebrewCells.length, `${chart.id} contains Hebrew`);
+    for(const value of HebrewCells){
+      assert.equal(value, value.normalize('NFC'), `${chart.id} Hebrew is NFC`);
+      assert.match(value, /[\u05b0-\u05bc]/, `${chart.id} preserves pointing`);
+    }
+  }
+});
+
+test('v1.3.5 Hebrew navigation, RTL markup, and source notes stay focused', () => {
+  const paradigms = library.getReferenceTopic('hebrew-paradigm-charts');
+  assert.deepEqual(paradigms.sectionTabs.slice(0,2).map(tab => tab.label), ['Strong Verbs by Stem','Strong Verbs by Form']);
+  assert.deepEqual(paradigms.sectionTabs[0].sections.map(section => section.title), ['Qal','Niphal','Piel','Pual','Hiphil','Hophal','Hitpael']);
+  assert.ok(paradigms.sectionTabs[1].sections.some(section => section.title === 'Wayyiqtol'));
+  const ui = fs.readFileSync('src/features/grammar/index.js', 'utf8');
+  assert.match(ui, /lang="he" dir="rtl"/);
+  assert.match(ui, /hebrew-reference-sources/);
+  assert.match(ui, /View source notes/);
+  assert.doesNotMatch(ui, /Gesenius' Hebrew Grammar|Clarendon Press, 1910/);
+});
+
+test('v1.3.5 About & Sources centralizes coverage without expanding Greek or the Handbook', () => {
+  const sourceHtml = settings.renderHebrewReferenceSources(library);
+  assert.match(sourceHtml, /Wilhelm Gesenius/);
+  assert.match(sourceHtml, /Clarendon Press, 1910/);
+  assert.match(sourceHtml, /Paradigm B/);
+  assert.match(sourceHtml, /§49/);
+  assert.match(sourceHtml, /Pual and Hophal/);
+  assert.equal(library.greekCoreIndicativeCharts.length, 20);
+  assert.equal(library.greekAdditionalParadigmCharts.length, 73);
+  assert.equal(topicCharts(library.getReferenceTopic('hebrew-grammar-handbook')).some(chart => chart.milestone === 'v1.3.5'), false);
+  assert.equal(library.hebrewStrongVerbCharts.some(chart => chart.representativeRoot !== 'קטל'), false);
 });

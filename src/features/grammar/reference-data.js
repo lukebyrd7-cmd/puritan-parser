@@ -14,12 +14,12 @@
   const machenSource = (printedPages, sections) => ({ ...MACHEN_1923, printedPages, sections });
   const featureLinks = (...links) => links.map(([label, type, target]) => ({ label, type, target }));
   const greekVerbChart = chart('λύω present active indicative endings', ['Person','Singular','Plural','Recognition clue'], [['1st','λύω','λύομεν','ω / μεν'],['2nd','λύεις','λύετε','εις / τε'],['3rd','λύει','λύουσι(ν)','ει / ουσι']], { color:'tense', note:'Representative omega-verb forms; accents and movable nu may vary.' });
-  const hebrewStemRows = [['Perfect','כָּתַב','completed/simple action'],['Imperfect','יִכְתֹּב','prefixed imperfect form'],['Imperative','כְּתֹב','command form'],['Infinitive Construct','כְּתֹב','verbal noun, often with לְ'],['Infinitive Absolute','כָּתוֹב','intensifying or verbal noun use'],['Participle','כֹּתֵב','verbal adjective/ongoing action']];
+  const hebrewStemRows = [['Perfect','קָטַל','suffix-conjugation form'],['Imperfect','יִקְטֹל','prefix-conjugation form'],['Imperative','קְטֹל','command form'],['Infinitive Construct','קְטֹל','construct infinitive'],['Infinitive Absolute','קָטוֹל','absolute infinitive'],['Participle','קֹטֵל','participle anchor']];
   const stemInfo = {
-    Qal:['simple active/stative','קָטַל','basic lexical action'], Niphal:['passive/reflexive of Qal','נִקְטַל','often has נ or assimilated nun'], Piel:['intensive/factitive active','קִטֵּל','doubled middle radical'], Pual:['passive of Piel','קֻטַּל','u-class vowel with doubling'], Hiphil:['causative active','הִקְטִיל','prefixed הִ and causative sense'], Hophal:['passive of Hiphil','הָקְטַל','ho/ha class causative passive'], Hitpael:['reflexive/reciprocal','הִתְקַטֵּל','הת prefix plus doubling']
+    Qal:['simple active/stative','קָטַל','basic lexical pattern'], Niphal:['passive/reflexive of Qal','נִקְטַל','often has נ or assimilated nun'], Piel:['intensive/factitive active','קִטֵּל','doubled middle radical'], Pual:['passive of Piel','קֻטַּל','u-class vowel with doubling'], Hiphil:['causative active','הִקְטִיל','prefixed הִ and characteristic i-class vowel'], Hophal:['passive of Hiphil','הָקְטַל','prefixed הָ in Gesenius’ strong model'], Hitpael:['reflexive/reciprocal','הִתְקַטֵּל','הת prefix plus doubling']
   };
   const stemRelationships = ['Qal gives the simple lexical baseline for many roots.','Niphal commonly presents the Qal idea as passive or reflexive.','Piel and Pual often form an active/passive pair with intensified, factitive, or result-focused force.','Hiphil and Hophal often form a causative active/passive pair.','Hitpael commonly adds reflexive or reciprocal involvement.'];
-  const hebrewStemTopic = stem => ({ id:`hebrew-${stem.toLowerCase()}`, language:'hebrew', title:`${stem} Paradigms`, category:`${stem} Paradigms`, color:stem.toLowerCase(), frequency: stem==='Qal' ? '≈ majority of Hebrew verbal forms' : stem==='Niphal' ? 'common major stem' : 'regular major stem; less frequent than Qal', summary:`${stem} is one of the major Biblical Hebrew verbal stems (binyanim).`, body:[stem==='Qal'?'Qal is the basic/light stem and often carries the simple lexical meaning of the verb.':`${stem} modifies the root idea in a conventional stem relationship; exact meaning depends on the root and context.`, ...stemRelationships], recognitionTips: stem==='Hiphil' ? ['Look for prefixed הִ in perfect and infinitive forms.','Expect causative meaning when the lexicon and context support it.','Characteristic i-class vowels often mark the stem.'] : [`Watch for the ${stemInfo[stem][1]} pattern.`, stemInfo[stem][2], 'Confirm the stem by both consonantal pattern and vowels.'], charts:[chart(`${stem} quick profile`, ['Stem','Typical value','Pattern','Recognition'], [[stem, stemInfo[stem][0], stemInfo[stem][1], stemInfo[stem][2]]], { color:stem.toLowerCase(), note:'Representative strong-verb pattern.' }), chart(`${stem} representative paradigm: כתב`, ['Form','Representative','Use'], hebrewRepresentativeRows(stem), { color:stem.toLowerCase() })], examples:[ex(stem==='Hiphil'?'הִכְתִּיב':'כָּתַב', stem==='Qal'?'Jeremiah 36:2':'Reference example', stem==='Qal'?'he wrote / write':'representative stem form', `sample ${stem} form`)], paradigmTabs:hebrewTabs(stem), breadcrumbs:['Grammar','Hebrew',`${stem} Paradigms`], stemRelationships:{ root:'כתב', stems:['Qal','Niphal','Piel','Pual','Hiphil','Hophal','Hitpael'], explanation:stemRelationships }, featureLinks:featureLinks(['See words with this feature','feature',stem],['See related vocabulary','vocabulary',stem],['See related topics','topics',`hebrew-${stem.toLowerCase()}`]), related:['hebrew-qal','hebrew-niphal','hebrew-piel','hebrew-pual','hebrew-hiphil','hebrew-hophal','hebrew-hitpael','hebrew-stem-markers'].filter(id=>id!==`hebrew-${stem.toLowerCase()}`) });
+  const hebrewStemTopic = stem => ({ id:`hebrew-${stem.toLowerCase()}`, language:'hebrew', title:`${stem} Paradigms`, category:`${stem} Paradigms`, color:stem.toLowerCase(), frequency: stem==='Qal' ? '≈ majority of Hebrew verbal forms' : stem==='Niphal' ? 'common major stem' : 'regular major stem; less frequent than Qal', summary:`${stem} is one of the major Biblical Hebrew verbal stems (binyanim).`, body:[stem==='Qal'?'Qal is the basic/light stem and often carries the simple lexical meaning of the verb.':`${stem} modifies the root idea in a conventional stem relationship; exact meaning depends on the root and context.`, ...stemRelationships], recognitionTips: stem==='Hiphil' ? ['Look for prefixed הִ in perfect and infinitive forms.','Characteristic i-class vowels often mark the stem.','Confirm the stem from the whole pointed pattern.'] : [`Watch for the ${stemInfo[stem][1]} pattern.`, stemInfo[stem][2], 'Confirm the stem by both consonantal pattern and vowels.'], charts:[chart(`${stem} quick profile`, ['Stem','Typical value','Pattern','Recognition'], [[stem, stemInfo[stem][0], stemInfo[stem][1], stemInfo[stem][2]]], { color:stem.toLowerCase(), note:'Representative strong-verb pattern.' }), chart(`${stem} representative paradigm: קטל`, ['Form','Representative','Recognition'], hebrewRepresentativeRows(stem), { color:stem.toLowerCase(), note:'קטל is a model strong root, not an ordinary vocabulary lemma.' })], examples:[ex(stemInfo[stem][1],'Gesenius Paradigm B','model strong-root pattern')], paradigmTabs:hebrewTabs(stem), breadcrumbs:['Grammar','Hebrew',`${stem} Paradigms`], stemRelationships:{ root:'קטל', stems:['Qal','Niphal','Piel','Pual','Hiphil','Hophal','Hitpael'], explanation:stemRelationships }, featureLinks:featureLinks(['See words with this feature','feature',stem],['See related vocabulary','vocabulary',stem],['See related topics','topics',`hebrew-${stem.toLowerCase()}`]), related:['hebrew-qal','hebrew-niphal','hebrew-piel','hebrew-pual','hebrew-hiphil','hebrew-hophal','hebrew-hitpael','hebrew-stem-markers'].filter(id=>id!==`hebrew-${stem.toLowerCase()}`) });
 
   const six = rows => rows;
   const greekFinite = (label, sg, pl, options={}) => chart(label, ['Person','Singular','Plural'], [['1st',sg[0],pl[0]],['2nd',sg[1],pl[1]],['3rd',sg[2],pl[2]]], options);
@@ -153,93 +153,75 @@
     ...greekAdjectiveCharts,
     ...greekPronounCharts
   ].filter(item => item.milestone === 'v1.3.4');
-  const hebPersons = ['3ms','3fs','2ms','2fs','1cs','3mp','3fp','2mp','2fp','1cp'];
-  const hebrewForms = {
-    Qal:{
-      perfect:['כָּתַב','כָּתְבָה','כָּתַבְתָּ','כָּתַבְתְּ','כָּתַבְתִּי','כָּתְבוּ','כָּתְבוּ','כְּתַבְתֶּם','כְּתַבְתֶּן','כָּתַבְנוּ'],
-      imperfect:['יִכְתֹּב','תִּכְתֹּב','תִּכְתֹּב','תִּכְתְּבִי','אֶכְתֹּב','יִכְתְּבוּ','תִּכְתֹּבְנָה','תִּכְתְּבוּ','תִּכְתֹּבְנָה','נִכְתֹּב'],
-      imperative:['כְּתֹב','כִּתְבִי','כִּתְבוּ','כְּתֹבְנָה'],
-      infinitiveConstruct:'כְּתֹב',
-      infinitiveAbsolute:'כָּתוֹב',
-      participles:[['masculine singular','כֹּתֵב'],['feminine singular','כֹּתֶבֶת'],['masculine plural','כֹּתְבִים'],['feminine plural','כֹּתְבוֹת']]
-    },
-    Niphal:{
-      perfect:['נִכְתַּב','נִכְתְּבָה','נִכְתַּבְתָּ','נִכְתַּבְתְּ','נִכְתַּבְתִּי','נִכְתְּבוּ','נִכְתְּבוּ','נִכְתַּבְתֶּם','נִכְתַּבְתֶּן','נִכְתַּבְנוּ'],
-      imperfect:['יִכָּתֵב','תִּכָּתֵב','תִּכָּתֵב','תִּכָּתְבִי','אִכָּתֵב','יִכָּתְבוּ','תִּכָּתַבְנָה','תִּכָּתְבוּ','תִּכָּתַבְנָה','נִכָּתֵב'],
-      imperative:['הִכָּתֵב','הִכָּתְבִי','הִכָּתְבוּ','הִכָּתַבְנָה'],
-      infinitiveConstruct:'הִכָּתֵב',
-      infinitiveAbsolute:'נִכְתֹּב',
-      participles:[['masculine singular','נִכְתָּב'],['feminine singular','נִכְתֶּבֶת'],['masculine plural','נִכְתָּבִים'],['feminine plural','נִכְתָּבוֹת']]
-    },
-    Piel:{
-      perfect:['כִּתֵּב','כִּתְּבָה','כִּתַּבְתָּ','כִּתַּבְתְּ','כִּתַּבְתִּי','כִּתְּבוּ','כִּתְּבוּ','כִּתַּבְתֶּם','כִּתַּבְתֶּן','כִּתַּבְנוּ'],
-      imperfect:['יְכַתֵּב','תְּכַתֵּב','תְּכַתֵּב','תְּכַתְּבִי','אֲכַתֵּב','יְכַתְּבוּ','תְּכַתֵּבְנָה','תְּכַתְּבוּ','תְּכַתֵּבְנָה','נְכַתֵּב'],
-      imperative:['כַּתֵּב','כַּתְּבִי','כַּתְּבוּ','כַּתֵּבְנָה'],
-      infinitiveConstruct:'כַּתֵּב',
-      infinitiveAbsolute:'כַּתֵּב',
-      participles:[['masculine singular','מְכַתֵּב'],['feminine singular','מְכַתֶּבֶת'],['masculine plural','מְכַתְּבִים'],['feminine plural','מְכַתְּבוֹת']]
-    },
-    Pual:{
-      perfect:['כֻּתַּב','כֻּתְּבָה','כֻּתַּבְתָּ','כֻּתַּבְתְּ','כֻּתַּבְתִּי','כֻּתְּבוּ','כֻּתְּבוּ','כֻּתַּבְתֶּם','כֻּתַּבְתֶּן','כֻּתַּבְנוּ'],
-      imperfect:['יְכֻתַּב','תְּכֻתַּב','תְּכֻתַּב','תְּכֻתְּבִי','אֲכֻתַּב','יְכֻתְּבוּ','תְּכֻתַּבְנָה','תְּכֻתְּבוּ','תְּכֻתַּבְנָה','נְכֻתַּב'],
-      imperative:null,
-      infinitiveConstruct:null,
-      infinitiveAbsolute:'כֻּתֹּב',
-      participles:[['masculine singular','מְכֻתָּב'],['feminine singular','מְכֻתֶּבֶת'],['masculine plural','מְכֻתָּבִים'],['feminine plural','מְכֻתָּבוֹת']]
-    },
-    Hiphil:{
-      perfect:['הִכְתִּיב','הִכְתִּיבָה','הִכְתַּבְתָּ','הִכְתַּבְתְּ','הִכְתַּבְתִּי','הִכְתִּיבוּ','הִכְתִּיבוּ','הִכְתַּבְתֶּם','הִכְתַּבְתֶּן','הִכְתַּבְנוּ'],
-      imperfect:['יַכְתִּיב','תַּכְתִּיב','תַּכְתִּיב','תַּכְתִּיבִי','אַכְתִּיב','יַכְתִּיבוּ','תַּכְתֵּבְנָה','תַּכְתִּיבוּ','תַּכְתֵּבְנָה','נַכְתִּיב'],
-      imperative:['הַכְתֵּב','הַכְתִּיבִי','הַכְתִּיבוּ','הַכְתֵּבְנָה'],
-      infinitiveConstruct:'הַכְתִּיב',
-      infinitiveAbsolute:'הַכְתֵּב',
-      participles:[['masculine singular','מַכְתִּיב'],['feminine singular','מַכְתִּיבָה'],['masculine plural','מַכְתִּיבִים'],['feminine plural','מַכְתִּיבוֹת']]
-    },
-    Hophal:{
-      perfect:['הָכְתַּב','הָכְתְּבָה','הָכְתַּבְתָּ','הָכְתַּבְתְּ','הָכְתַּבְתִּי','הָכְתְּבוּ','הָכְתְּבוּ','הָכְתַּבְתֶּם','הָכְתַּבְתֶּן','הָכְתַּבְנוּ'],
-      imperfect:['יָכְתַּב','תָּכְתַּב','תָּכְתַּב','תָּכְתְּבִי','אָכְתַּב','יָכְתְּבוּ','תָּכְתַּבְנָה','תָּכְתְּבוּ','תָּכְתַּבְנָה','נָכְתַּב'],
-      imperative:null,
-      infinitiveConstruct:null,
-      infinitiveAbsolute:'הָכְתֵּב',
-      participles:[['masculine singular','מָכְתָּב'],['feminine singular','מָכְתֶּבֶת'],['masculine plural','מָכְתָּבִים'],['feminine plural','מָכְתָּבוֹת']]
-    },
-    Hitpael:{
-      perfect:['הִתְכַּתֵּב','הִתְכַּתְּבָה','הִתְכַּתַּבְתָּ','הִתְכַּתַּבְתְּ','הִתְכַּתַּבְתִּי','הִתְכַּתְּבוּ','הִתְכַּתְּבוּ','הִתְכַּתַּבְתֶּם','הִתְכַּתַּבְתֶּן','הִתְכַּתַּבְנוּ'],
-      imperfect:['יִתְכַּתֵּב','תִּתְכַּתֵּב','תִּתְכַּתֵּב','תִּתְכַּתְּבִי','אֶתְכַּתֵּב','יִתְכַּתְּבוּ','תִּתְכַּתֵּבְנָה','תִּתְכַּתְּבוּ','תִּתְכַּתֵּבְנָה','נִתְכַּתֵּב'],
-      imperative:['הִתְכַּתֵּב','הִתְכַּתְּבִי','הִתְכַּתְּבוּ','הִתְכַּתֵּבְנָה'],
-      infinitiveConstruct:'הִתְכַּתֵּב',
-      infinitiveAbsolute:'הִתְכַּתֵּב',
-      participles:[['masculine singular','מִתְכַּתֵּב'],['feminine singular','מִתְכַּתֶּבֶת'],['masculine plural','מִתְכַּתְּבִים'],['feminine plural','מִתְכַּתְּבוֹת']]
-    }
+  const GESENIUS_1910 = Object.freeze({
+    language:'hebrew',
+    author:'Wilhelm Gesenius',
+    editor:'E. Kautzsch',
+    translator:'A. E. Cowley',
+    title:"Gesenius' Hebrew Grammar",
+    publication:'Oxford: Clarendon Press, 1910',
+    edition:'Second English edition, revised according to the twenty-eighth German edition of 1909',
+    scan:'Internet Archive/Wikisource page-image scan',
+    scanId:'geseniushebrewgr00geseuoft',
+    scanUrl:'https://en.wikisource.org/wiki/Index:Gesenius%27_Hebrew_Grammar_(1910_Kautzsch-Cowley_edition).djvu'
+  });
+  const geseniusSource = (printedPages, sections, complete, limitation='') => ({
+    ...GESENIUS_1910,
+    printedPages,
+    sections,
+    table:'Paradigm B, “Strong Verb”',
+    complete,
+    limitation
+  });
+  const perfectPersons = [['3rd','masculine','singular'],['3rd','feminine','singular'],['2nd','masculine','singular'],['2nd','feminine','singular'],['1st','common','singular'],['3rd','common','plural'],['2nd','masculine','plural'],['2nd','feminine','plural'],['1st','common','plural']];
+  const imperfectPersons = [['3rd','masculine','singular'],['3rd','feminine','singular'],['2nd','masculine','singular'],['2nd','feminine','singular'],['1st','common','singular'],['3rd','masculine','plural'],['3rd','feminine','plural'],['2nd','masculine','plural'],['2nd','feminine','plural'],['1st','common','plural']];
+  const imperativePersons = [['2nd','masculine','singular'],['2nd','feminine','singular'],['2nd','masculine','plural'],['2nd','feminine','plural']];
+  const finiteRows = (persons, forms) => persons.map((person,index) => [...person,forms[index]]);
+  const hebrewStrongVerbData = {
+    Qal:{ id:'qal', section:'§§43–50', page:'510', perfect:['קָטַל','קָטְלָה','קָטַלְתָּ','קָטַלְתְּ','קָטַלְתִּי','קָטְלוּ','קְטַלְתֶּם','קְטַלְתֶּן','קָטַלְנוּ'], imperfect:['יִקְטֹל','תִּקְטֹל','תִּקְטֹל','תִּקְטְלִי','אֶקְטֹל','יִקְטְלוּ','תִּקְטֹלְנָה','תִּקְטְלוּ','תִּקְטֹלְנָה','נִקְטֹל'], imperative:['קְטֹל','קִטְלִי','קִטְלוּ','קְטֹלְנָה'], infinitiveConstruct:['קְטֹל'], infinitiveAbsolute:['קָטוֹל'], participles:[['Active participle','masculine','singular','absolute','קֹטֵל'],['Passive participle','masculine','singular','absolute','קָטוּל']], wayyiqtol:[['3rd','masculine','singular','וַיִּקְטֹל'],['1st','common','singular','וָאֶקְטֹל']] },
+    Niphal:{ id:'niphal', section:'§51', page:'510', perfect:['נִקְטַל','נִקְטְלָה','נִקְטַלְתָּ','נִקְטַלְתְּ','נִקְטַלְתִּי','נִקְטְלוּ','נִקְטַלְתֶּם','נִקְטַלְתֶּן','נִקְטַלְנוּ'], imperfect:['יִקָּטֵל','תִּקָּטֵל','תִּקָּטֵל','תִּקָּטְלִי','אֶקָּטֵל','יִקָּטְלוּ','תִּקָּטַלְנָה','תִּקָּטְלוּ','תִּקָּטַלְנָה','נִקָּטֵל'], imperative:['הִקָּטֵל','הִקָּטְלִי','הִקָּטְלוּ','הִקָּטַלְנָה'], infinitiveConstruct:['הִקָּטֵל'], infinitiveAbsolute:['הִקָּטֹל','נִקְטֹל'], participles:[['Participle','masculine','singular','absolute','נִקְטָל']] },
+    Piel:{ id:'piel', section:'§52', page:'510', perfect:[{label:'קִטֵּל',note:'Gesenius also prints קִטַּל.'},'קִטְּלָה','קִטַּלְתָּ','קִטַּלְתְּ','קִטַּלְתִּי','קִטְּלוּ','קִטַּלְתֶּם','קִטַּלְתֶּן','קִטַּלְנוּ'], imperfect:['יְקַטֵּל','תְּקַטֵּל','תְּקַטֵּל','תְּקַטְּלִי','אֲקַטֵּל','יְקַטְּלוּ','תְּקַטֵּלְנָה','תְּקַטְּלוּ','תְּקַטֵּלְנָה','נְקַטֵּל'], imperative:['קַטֵּל','קַטְּלִי','קַטְּלוּ','קַטֵּלְנָה'], infinitiveConstruct:['קַטֵּל'], infinitiveAbsolute:['קַטֵּל','קַטֹּל'], participles:[['Active participle','masculine','singular','absolute','מְקַטֵּל']] },
+    Pual:{ id:'pual', section:'§52', page:'511', perfect:['קֻטַּל','קֻטְּלָה','קֻטַּלְתָּ','קֻטַּלְתְּ','קֻטַּלְתִּי','קֻטְּלוּ','קֻטַּלְתֶּם','קֻטַּלְתֶּן','קֻטַּלְנוּ'], imperfect:['יְקֻטַּל','תְּקֻטַּל','תְּקֻטַּל','תְּקֻטְּלִי','אֲקֻטַּל','יְקֻטְּלוּ','תְּקֻטַּלְנָה','תְּקֻטְּלוּ','תְּקֻטַּלְנָה','נְקֻטַּל'], infinitiveAbsolute:['קֻטֹּל'], participles:[['Passive participle','masculine','singular','absolute','מְקֻטָּל']] },
+    Hiphil:{ id:'hiphil', section:'§53', page:'511', perfect:['הִקְטִיל','הִקְטִילָה','הִקְטַלְתָּ','הִקְטַלְתְּ','הִקְטַלְתִּי','הִקְטִילוּ','הִקְטַלְתֶּם','הִקְטַלְתֶּן','הִקְטַלְנוּ'], imperfect:['יַקְטִיל','תַּקְטִיל','תַּקְטִיל','תַּקְטִילִי','אַקְטִיל','יַקְטִילוּ','תַּקְטֵלְנָה','תַּקְטִילוּ','תַּקְטֵלְנָה','נַקְטִיל'], imperative:['הַקְטֵל','הַקְטִילִי','הַקְטִילוּ','הַקְטֵלְנָה'], infinitiveConstruct:['הַקְטִיל'], infinitiveAbsolute:['הַקְטֵל'], participles:[['Active participle','masculine','singular','absolute','מַקְטִיל']], shortenedImperfect:['יַקְטֵל'], wayyiqtol:[['3rd','masculine','singular','וַיַּקְטֵל']] },
+    Hophal:{ id:'hophal', section:'§53', page:'511', perfect:['הָקְטַל','הָקְטְלָה','הָקְטַלְתָּ','הָקְטַלְתְּ','הָקְטַלְתִּי','הָקְטְלוּ','הָקְטַלְתֶּם','הָקְטַלְתֶּן','הָקְטַלְנוּ'], imperfect:['יָקְטַל','תָּקְטַל','תָּקְטַל','תָּקְטְלִי','אָקְטַל','יָקְטְלוּ','תָּקְטַלְנָה','תָּקְטְלוּ','תָּקְטַלְנָה','נָקְטַל'], infinitiveAbsolute:['הָקְטֵל'], participles:[['Passive participle','masculine','singular','absolute','מָקְטָל']] },
+    Hitpael:{ id:'hitpael', section:'§54', page:'511', perfect:['הִתְקַטֵּל','הִתְקַטְּלָה','הִתְקַטַּלְתָּ','הִתְקַטַּלְתְּ','הִתְקַטַּלְתִּי','הִתְקַטְּלוּ','הִתְקַטַּלְתֶּם','הִתְקַטַּלְתֶּן','הִתְקַטַּלְנוּ'], imperfect:['יִתְקַטֵּל','תִּתְקַטֵּל','תִּתְקַטֵּל','תִּתְקַטְּלִי','אֶתְקַטֵּל','יִתְקַטְּלוּ','תִּתְקַטֵּלְנָה','תִּתְקַטְּלוּ','תִּתְקַטֵּלְנָה','נִתְקַטֵּל'], imperative:['הִתְקַטֵּל','הִתְקַטְּלִי','הִתְקַטְּלוּ','הִתְקַטֵּלְנָה'], infinitiveConstruct:['הִתְקַטֵּל'], infinitiveAbsolute:['הִתְקַטֵּל'], participles:[['Participle','masculine','singular','absolute','מִתְקַטֵּל']] }
   };
-  const noForm = note => ({ label:'Not supplied', note });
-  const hebrewTabRows = value => value ? [[value]] : [[noForm('No regular strong-form command or infinitive is supplied for this passive stem.')]];
-  const representativeForm = value => value || noForm('No representative strong form is supplied for this passive stem.');
-  const hebrewRepresentativeRows = stem => {
-    const forms = hebrewForms[stem];
-    return hebrewStemRows.map(([label,, use]) => {
-      const representative = {
-        Perfect: forms.perfect[0],
-        Imperfect: forms.imperfect[0],
-        Imperative: forms.imperative?.[0],
-        'Infinitive Construct': forms.infinitiveConstruct,
-        'Infinitive Absolute': forms.infinitiveAbsolute,
-        Participle: forms.participles?.[0]?.[1]
-      }[label];
-      return [label, representativeForm(representative), use];
-    });
-  };
-  const hebrewTabs = stem => {
-    const forms = hebrewForms[stem];
-    return [
-      {id:'perfect',label:'Perfect',charts:[chart(`${stem} Perfect: כתב`, ['Person',...hebPersons], [['Form',...forms.perfect]])]},
-      {id:'imperfect',label:'Imperfect',charts:[chart(`${stem} Imperfect: כתב`, ['Person',...hebPersons], [['Form',...forms.imperfect]])]},
-      {id:'imperative',label:'Imperative',charts:[chart(`${stem} Imperative`, ['Label','2ms','2fs','2mp','2fp'], [forms.imperative ? ['Form',...forms.imperative] : ['Form', noForm('Passive stems do not normally supply a standard imperative paradigm here.'), noForm('No standard imperative form is supplied here.'), noForm('No standard imperative form is supplied here.'), noForm('No standard imperative form is supplied here.')]])]},
-      {id:'infinitive-construct',label:'Infinitive Construct',charts:[chart(`${stem} Infinitive Construct`, ['Form'], hebrewTabRows(forms.infinitiveConstruct))]},
-      {id:'infinitive-absolute',label:'Infinitive Absolute',charts:[chart(`${stem} Infinitive Absolute`, ['Form'], hebrewTabRows(forms.infinitiveAbsolute))]},
-      {id:'participles',label:'Participles',charts:[chart(`${stem} Participles`, ['Gender/Number','Form'], forms.participles)]},
-      {id:'recognition',label:'Recognition',charts:[chart(`${stem} recognition`, ['Clue','Tip'], [[stemInfo[stem][1], stemInfo[stem][2]],['Root','כתב'],['Review status','Representative strong forms are structurally checked; unresolved passive-stem gaps are marked without supplying forms.']])]}
+  const strongChart = (stem, formCategory, label, columns, rows, note='', sourceOverride={}) => chart(label, columns, rows, {
+    id:`hebrew-strong-${stem.id}-${formCategory}`,
+    milestone:'v1.3.5',
+    language:'hebrew',
+    stemId:stem.id,
+    formCategory,
+    representativeRoot:'קטל',
+    rootDescription:'model strong root',
+    source:{ ...geseniusSource(sourceOverride.printedPages || stem.page, sourceOverride.sections || `${stem.section}; Paradigm B, “Strong Verb”`, sourceOverride.complete ?? true, sourceOverride.limitation || ''), ...(sourceOverride.table ? { table:sourceOverride.table } : {}) },
+    note
+  });
+  const chartsForStrongStem = (label, stem) => {
+    const charts = [
+      strongChart(stem,'perfect',`${label} perfect — קטל`,['Person','Gender','Number','Hebrew form'],finiteRows(perfectPersons,stem.perfect),'Suffixes mark person, gender, and number.'),
+      strongChart(stem,'imperfect',`${label} imperfect — קטל`,['Person','Gender','Number','Hebrew form'],finiteRows(imperfectPersons,stem.imperfect),'Prefixed person markers and suffixed number or gender markers frame the root.')
     ];
+    if(stem.imperative) charts.push(strongChart(stem,'imperative',`${label} imperative — קטל`,['Person','Gender','Number','Hebrew form'],finiteRows(imperativePersons,stem.imperative),'Imperatives contain second-person forms only.'));
+    if(stem.infinitiveConstruct) charts.push(strongChart(stem,'infinitive-construct',`${label} infinitive construct — קטל`,['Form','State','Hebrew pattern'],stem.infinitiveConstruct.map(form=>['Infinitive','construct',form]),'Consult the visible stem pattern; no extra forms are generated.'));
+    if(stem.infinitiveAbsolute) charts.push(strongChart(stem,'infinitive-absolute',`${label} infinitive absolute — קטל`,['Form','State','Hebrew pattern'],stem.infinitiveAbsolute.map((form,index)=>[index ? 'Explicit alternate' : 'Infinitive','absolute',form]),'Only alternatives printed in Gesenius are included.'));
+    if(stem.participles) charts.push(strongChart(stem,'participle',`${label} participle anchor — קטל`,['Form','Gender','Number','State','Hebrew pattern'],stem.participles,'Paradigm B supplies masculine-singular recognition anchors; a full participial declension is not inferred.',{complete:false,limitation:'Masculine-singular participle anchor forms only.'}));
+    if(stem.shortenedImperfect) charts.push(strongChart(stem,'shortened-imperfect',`${label} shortened imperfect — קטל`,['Form','Hebrew pattern'],[['Jussive recognition anchor',stem.shortenedImperfect[0]]],'The shortened form is kept distinct from the ordinary imperfect.'));
+    if(stem.wayyiqtol) charts.push(strongChart(stem,'wayyiqtol',`${label} wayyiqtol — קטל`,['Person','Gender','Number','Hebrew form'],stem.wayyiqtol,'The prefixed conjunction and strengthened imperfect prefix are visible; syntax is deferred to the Grammar Handbook.',{printedPages:label==='Qal'?'133–134':'133',sections:'§49b–c, “The Perfect and Imperfect with Waw Consecutive”',table:'Directly printed consecutive-imperfect examples',complete:false,limitation:'Only the row-level forms printed in §49 are included; no complete paradigm is inferred.'}));
+    return charts;
+  };
+  const hebrewStrongVerbCharts = Object.entries(hebrewStrongVerbData).flatMap(([label,stem]) => chartsForStrongStem(label,stem));
+  const hebrewRepresentativeRows = stem => hebrewStemRows.map(([label,,use]) => {
+    const data = hebrewStrongVerbData[stem];
+    const representative = { Perfect:data.perfect[0], Imperfect:data.imperfect[0], Imperative:data.imperative?.[0], 'Infinitive Construct':data.infinitiveConstruct?.[0], 'Infinitive Absolute':data.infinitiveAbsolute?.[0], Participle:data.participles?.[0]?.[4] }[label];
+    return representative ? [label,representative,use] : [label,{label:'Not supplied',note:'Gesenius Paradigm B marks this category “wanting.”'},use];
+  });
+  const hebrewTabs = stem => {
+    const data = hebrewStrongVerbData[stem];
+    const byCategory = category => hebrewStrongVerbCharts.filter(item => item.stemId === data.id && item.formCategory === category);
+    return ['perfect','imperfect','wayyiqtol','imperative','infinitive-construct','infinitive-absolute','participle','shortened-imperfect']
+      .map(category => ({ id:category, label:category.split('-').map(word=>word[0].toUpperCase()+word.slice(1)).join(' '), charts:byCategory(category) }))
+      .filter(tab => tab.charts.length);
   };
   const decoderEntries = {
     'V-PAI-3S': { breakdown:['Verb','Present Active Indicative','3rd singular'], tips:['Look for present stem plus active ending.'], examples:['λύει'], related:['greek-lyo-paradigm','greek-verb-endings'] },
@@ -270,9 +252,9 @@
     { id:'hebrew-prefixes', language:'hebrew', title:'Prefixes cheat sheet', category:'Cheat sheets', summary:'Common Hebrew prefixes help identify conjunctions, prepositions, articles, and verbal forms.', body:['Prefixes stack, so identify each element from left to right.'], recognitionTips:['וַי → wayyiqtol narrative form.','הִ → often Hiphil in the right verbal context.','לְ, בְּ, כְּ attach directly to words.'], charts:[chart('Common prefixes', ['Prefix','Recognition'], [['וַי','wayyiqtol'],['הִ','Hiphil clue'],['נִ','Niphal clue'],['הַ','article or interrogative depending context'],['לְ','to/for or infinitive marker']])], examples:[ex('וַיֹּאמֶר','Genesis 1:3','and he said')], related:['hebrew-wayyiqtol','hebrew-stem-markers'] },
     { id:'hebrew-suffixes', language:'hebrew', title:'Suffixes cheat sheet', category:'Cheat sheets', summary:'Hebrew suffixes mark pronominal relationships and some verbal parsing information.', body:['Suffixes can show possession, objects, or verbal person/number/gender.'], recognitionTips:['וֹ often marks his/its on nouns.','תִּי often marks first common singular perfect.'], charts:[chart('Common suffix clues', ['Suffix','Often indicates'], [['וֹ','his/its'],['ךָ','your masculine singular'],['תִּי','I, perfect'],['וּ','they or plural marker depending form']])], examples:[ex('סוּסוֹ','Representative','his horse')], related:['hebrew-pronouns'] },
     { id:'hebrew-wayyiqtol', language:'hebrew', title:'Wayyiqtol recognition', category:'Cheat sheets', summary:'Wayyiqtol is a common Biblical Hebrew narrative sequence form.', body:['Wayyiqtol often advances narrative with “and he/they ...” in past-time contexts.'], recognitionTips:['וַי is the key visual clue.','Look for doubled prefix consonant when spelling allows.','Translate according to narrative context, not mechanically.'], charts:[chart('Wayyiqtol clues', ['Clue','Example'], [['וַי + imperfect','וַיֹּאמֶר'],['Narrative sequence','and he said / then he said']])], examples:[ex('וַיֹּאמֶר','Genesis 1:3','and he said')], related:['hebrew-prefixes','hebrew-qal'] },
-    { id:'hebrew-stem-markers', language:'hebrew', title:'Hebrew Cheat Sheets', category:'Cheat sheets', summary:'Quick recognition markers for the major Hebrew stems.', body:['Use consonants, vowels, and meaning together to identify a stem.'], recognitionTips:['נִ often points to Niphal.','Doubled middle radical often points to Piel/Pual/Hitpael.','הִ often points to Hiphil.'], charts:[chart('Stem marker overview', ['Stem','Marker','Typical relationship'], Object.entries(stemInfo).map(([s,v])=>[s,v[1],v[0]]))], examples:[ex('הִכְתִּיב','Representative','he caused to write')], related:['hebrew-qal','hebrew-niphal','hebrew-piel','hebrew-hiphil'] },
+    { id:'hebrew-stem-markers', language:'hebrew', title:'Hebrew Cheat Sheets', category:'Cheat sheets', summary:'Quick recognition markers for the major Hebrew stems.', body:['Use consonants and vowels together to identify a stem.'], recognitionTips:['נִ often points to Niphal.','Doubled middle radical often points to Piel/Pual/Hitpael.','הִ often points to Hiphil.'], charts:[chart('Stem marker overview', ['Stem','Marker','Typical relationship'], Object.entries(stemInfo).map(([s,v])=>[s,v[1],v[0]]))], examples:[ex('הִקְטִיל','Gesenius Paradigm B','Hiphil model pattern')], related:['hebrew-qal','hebrew-niphal','hebrew-piel','hebrew-hiphil'] },
     ...['Qal','Niphal','Piel','Pual','Hiphil','Hophal','Hitpael'].map(hebrewStemTopic),
-    { id:'hebrew-katav-stem-relationships', language:'hebrew', title:'כתב stem relationships', category:'Paradigms', summary:'A single-root overview showing how כתב relates across major Hebrew stems.', body:['This page compares stem relationships without generating forms dynamically.'], recognitionTips:['Start with the root consonants כ־ת־ב.','Then identify stem markers around the root.'], charts:[chart('כתב across stems', ['Stem','Relationship','Representative pattern'], Object.entries(stemInfo).map(([s,v])=>[s,v[0],v[1]]))], examples:[ex('אָמַר','Genesis 1:3','he said'), ex('כתב','Jeremiah 36:2','write')], stemRelationships:{ root:'כתב', stems:['Qal','Niphal','Piel','Pual','Hiphil','Hophal','Hitpael'], explanation:stemRelationships }, related:['hebrew-qal','hebrew-niphal','hebrew-piel','hebrew-pual','hebrew-hiphil','hebrew-hophal','hebrew-hitpael'] }
+    { id:'hebrew-katav-stem-relationships', language:'hebrew', title:'קטל stem relationships', category:'Paradigms', summary:'A model-root overview of the seven major strong-verb stems.', body:['קטל is the model strong root printed in Gesenius Paradigm B; it is not presented as an ordinary vocabulary lemma.'], recognitionTips:['Start with the root consonants ק־ט־ל.','Then identify stem markers around the root.'], charts:[chart('קטל across stems', ['Stem','Relationship','Representative pattern'], Object.entries(stemInfo).map(([s,v])=>[s,v[0],v[1]]))], examples:[ex('קטל','Gesenius Paradigm B','model strong root')], stemRelationships:{ root:'קטל', stems:['Qal','Niphal','Piel','Pual','Hiphil','Hophal','Hitpael'], explanation:stemRelationships }, related:['hebrew-qal','hebrew-niphal','hebrew-piel','hebrew-pual','hebrew-hiphil','hebrew-hophal','hebrew-hitpael'] }
   ];
 
 
@@ -397,6 +379,22 @@
     jumpChips: chips.length ? chips : sections.map(section => chip(section.title, section.id || section.title.toLowerCase().replace(/[^a-z0-9\u0370-\u03ff\u0590-\u05ff]+/g,'-').replace(/^-|-$/g,''))),
     sections
   });
+  const strongStemSection = label => ({
+    id:`strong-${label.toLowerCase()}`,
+    title:label,
+    body:[],
+    recognitionTips:[stemInfo[label][2]],
+    charts:hebrewStrongVerbCharts.filter(chart => chart.stemId === label.toLowerCase()),
+    examples:[]
+  });
+  const strongFormSection = (id, title) => ({
+    id:`strong-${id}`,
+    title,
+    body:[],
+    recognitionTips:id === 'wayyiqtol' ? ['The prefixed conjunction is part of the displayed form; this recognition chart is not a syntax lesson.'] : [],
+    charts:hebrewStrongVerbCharts.filter(chart => chart.formCategory === id),
+    examples:[]
+  });
   const greekMiVerbSection = () => ({
     title:'μι Verbs',
     id:'mi-verbs',
@@ -455,7 +453,7 @@
       id:title.toLowerCase().replace(/[^a-z0-9]+/g,'-'),
       body:[why],
       recognitionTips:[
-        `Recognition notes: ${hebrewClass} roots may not look like the strong כתב pattern.`,
+        `Recognition notes: ${hebrewClass} roots may not look like the strong קטל model.`,
         `Common forms: ${commonForms.map(form => form[0]).join(', ')}.`,
         'Confirm the root from context and lexicon when one radical disappears, weakens, or changes vowel behavior.'
       ],
@@ -625,7 +623,7 @@
     ], charts:[], examples:[ex('דְּבַר יְהוָה','Jeremiah 1:2','word of YHWH'), ex('יָדַיִם','Representative','hands')], related:['hebrew-verbs','hebrew-particles'] },
     { id:'hebrew-verbs', language:'hebrew', title:'Verbs', category:'Verbs', color:'qal', summary:'Major Hebrew verb reference for strong forms, stems, weak verbs, aspect, and waw consecutive recognition.', body:['Start with the verbal pattern: prefixes/suffixes, stem markers, root consonants, and whether וַי marks narrative sequence.'], recognitionTips:['וַי plus an imperfect form is the classic waw consecutive / wayyiqtol clue, as in וַיֹּאמֶר.','Stem markers such as נִ, doubled middle radical, and הִ narrow the binyan.','Weak roots may hide or change consonants.'], searchTerms:['Strong Verb Paradigms','Perfect','Imperfect','Imperative','Infinitive Construct','Infinitive Absolute','Participle','Stems','Qal','Niphal','Piel','Pual','Hiphil','Hophal','Hitpael','Weak Verbs','I-Aleph','I-Nun','III-He','Geminate','Hollow','Aspect','Waw Consecutive','Wayyiqtol','וַיֹּאמֶר'], sections:[
       sectionFromTopic('hebrew-stem-markers','Recognition Cheat Sheet'),
-      { title:'Strong Verb Paradigms', body:['כתב is the representative strong verb pattern used for quick recognition.'], recognitionTips:['These representative forms are organized for consultation; unresolved passive-stem gaps remain marked without supplying forms.'], charts:hebrewStemIds.flatMap(id => (oldTopic(id).paradigmTabs||[]).flatMap(tab => tab.charts || [])), examples:[ex('כָּתַב','Jeremiah 36:2','he wrote / write')] },
+      { title:'Strong Verb Paradigms', body:['קטל is Gesenius’ model strong root and is used here for form recognition, not as an ordinary vocabulary lemma.'], recognitionTips:['The charts reproduce the forms supplied in Paradigm B.','Pual and Hophal categories marked “wanting” by Gesenius remain omitted.'], charts:hebrewStrongVerbCharts, examples:[ex('קָטַל','Gesenius Paradigm B','Qal model form')] },
       { title:'Perfect', body:[], recognitionTips:['Perfect forms often use suffixes for person, gender, and number.'], charts:chartsFromHebrewStemTabs(['Perfect']), examples:[] },
       { title:'Imperfect', body:[], recognitionTips:['Imperfect forms use prefixes plus endings.'], charts:chartsFromHebrewStemTabs(['Imperfect']), examples:[] },
       { title:'Imperative', body:[], recognitionTips:['Imperatives are second-person command forms; passive stems are not filled with forced Qal-looking forms.'], charts:chartsFromHebrewStemTabs(['Imperative']), examples:[] },
@@ -640,7 +638,7 @@
       sectionFromTopic('hebrew-wayyiqtol','Waw Consecutive', { searchTerms:['wayyiqtol','וַיֹּאמֶר'] }),
       sectionFromTopic('hebrew-stem-markers','Recognition Tips'),
       { title:'Examples', body:[], recognitionTips:[], charts:[], examples:[ex('וַיֹּאמֶר','Genesis 1:3','and he said'), ...(oldTopic('hebrew-qal').examples||[]), ...(oldTopic('hebrew-wayyiqtol').examples||[])] }
-    ], charts:[], examples:[ex('וַיֹּאמֶר','Genesis 1:3','and he said'), ex('כָּתַב','Jeremiah 36:2','he wrote / write')], related:['hebrew-nouns','hebrew-particles'] },
+    ], charts:[], examples:[ex('וַיֹּאמֶר','Genesis 1:3','and he said'), ex('וַיִּקְטֹל','Gesenius §49','Qal wayyiqtol model form')], related:['hebrew-nouns','hebrew-particles'] },
     { id:'hebrew-particles', language:'hebrew', title:'Particles', category:'Particles', summary:'Common Hebrew prefixes, particles, and small-form recognition cues.', body:['Particles and prefixed elements shape reading before full parsing begins.'], recognitionTips:['וְ/וַ marks conjunction or sequence depending form.','לְ, בְּ, כְּ attach directly to nouns and infinitives.','הַ may be article or interrogative depending context.'], searchTerms:['Prefixes cheat sheet','particles','prepositions','article'], sections:[
       sectionFromTopic('hebrew-prefixes','Prefixes'),
       { title:'Article', body:['The article is usually prefixed הַ, sometimes absorbed into a prefixed preposition.'], recognitionTips:['Look for הַ and following doubling when spelling allows.'], charts:[chart('Particle/article anchors', ['Form','Reading'], [['הַ','the / question marker by context'],['בַּ','in the'],['לַ','to the']])], examples:[ex('בַּבַּיִת','Representative','in the house')] },
@@ -687,7 +685,7 @@
       { title:'Particles and Prepositions', body:['Small words shape the sentence before a full syntax decision is possible.'], recognitionTips:['ἐν commonly takes the dative; εἰς commonly takes the accusative; ἐκ/ἐξ commonly takes the genitive.'], charts:[...(topicById('greek-prepositions')?.charts || [])], examples:[ex('ἐν ἀρχῇ','John 1:1','in the beginning')] }
     ], ['greek-grammar-handbook','greek-paradigm-charts','greek-morphology-guide']),
     quickTopic('hebrew', 'Hebrew', [
-      { title:'Stems and Strong Forms', body:['Start with the binyan and the strong-form shape, then adjust for weak roots only where the form itself requires it.'], recognitionTips:['Qal is the simple baseline; Niphal is often passive/reflexive; Hiphil is often causative.'], charts:[...sectionChartsByTitle('hebrew-verbs','Stems'), ...tabSection('hebrew-verbs','paradigms','Strong Verb Paradigms').charts.slice(0, 4)], examples:[ex('כָּתַב','Jeremiah 36:2','he wrote / write')] },
+      { title:'Stems and Strong Forms', body:['Start with the binyan and the strong-form shape, then use Paradigm Charts for the source-backed forms.'], recognitionTips:['Qal is the simple baseline; Niphal is often passive/reflexive; Hiphil is often causative.'], charts:sectionChartsByTitle('hebrew-verbs','Stems'), examples:[] },
       { title:'Prefixes, Suffixes, and Pronouns', body:['Prefixed particles and pronominal suffixes often explain the word before the full parse is needed.'], recognitionTips:['וְ/וַ may be conjunction or sequence.','וֹ commonly marks his/its on nouns.'], charts:[...sectionChartsByTitle('hebrew-particles','Prefixes'), ...sectionChartsByTitle('hebrew-nouns','Pronominal Suffixes')], examples:[ex('סוּסוֹ','Representative','his horse')] },
       { title:'Construct Chain', body:['Translate the first pass with “of,” then refine by context.'], recognitionTips:['A construct noun is bound to the following noun and often receives definiteness from the final noun.'], charts:sectionChartsByTitle('hebrew-nouns','Construct State'), examples:[ex('דְּבַר יְהוָה','Jeremiah 1:2','word of YHWH')] },
       { title:'Particles and Prepositions', body:['Attached particles are ordinary in Hebrew reading; identify them before treating the remaining form.'], recognitionTips:['לְ, בְּ, and כְּ attach directly to nouns and infinitives.'], charts:[...(topicById('hebrew-particles')?.charts || [])], examples:[ex('בַּבַּיִת','Representative','in the house')] }
@@ -722,7 +720,7 @@
       sectionWithId(sectionByTitle(oldTopic('hebrew-morphology-guide').sections || [], 'What morphology describes'), 'morphology-terminology'),
       sectionWithId(sectionByTitle(oldTopic('hebrew-morphology-guide').sections || [], 'Person, Gender, Number'), 'person-gender-number')
     ], [
-      tabSection('hebrew-verbs','paradigms','Qal'),
+      { ...tabSection('hebrew-verbs','paradigms','Qal'), charts:[] },
       tabSection('hebrew-verbs','concepts','Stem Meanings'),
       tabSection('hebrew-verbs','paradigms','Weak Verbs'),
       tabSection('hebrew-verbs','concepts','Waw Consecutive')
@@ -735,9 +733,9 @@
       categoryTab('adjectives','Adjectives',[tabSection('greek-adjectives','paradigms','Common Patterns')]),
       categoryTab('pronouns','Pronouns',[sectionFromTopic('greek-pronouns','Pronoun Forms')])
     ], charts:[], examples:[], breadcrumbs:['Reference','Paradigm Charts'], related:['greek-grammar-handbook'] },
-    { id:'hebrew-paradigm-charts', language:'hebrew', title:'Paradigm Charts', category:'Paradigm Charts', summary:'Fast access to Hebrew strong verb, stem, noun, and suffix charts.', body:['Select a category, then consult the supplied strong-root forms. Unsupplied passive-stem forms are not offered as selections.'], recognitionTips:[], searchTerms:['Paradigm Charts','Verb Stems','Verbal Forms','Pronominal Suffixes','Nominal Patterns','strong verb paradigms','Qal','Niphal','Piel','Pual','Hiphil','Hophal','Hitpael'], sectionTabs:[
-      categoryTab('verb-stems','Verb Stems',[tabSection('hebrew-verbs','paradigms','Qal'), tabSection('hebrew-verbs','paradigms','Niphal'), tabSection('hebrew-verbs','paradigms','Piel'), tabSection('hebrew-verbs','paradigms','Pual'), tabSection('hebrew-verbs','paradigms','Hiphil'), tabSection('hebrew-verbs','paradigms','Hophal'), tabSection('hebrew-verbs','paradigms','Hitpael')]),
-      categoryTab('verbal-forms','Verbal Forms',[tabSection('hebrew-verbs','paradigms','Strong Verb Paradigms'), tabSection('hebrew-verbs','paradigms','Participles'), tabSection('hebrew-verbs','paradigms','Infinitives'), tabSection('hebrew-verbs','paradigms','Imperatives')]),
+    { id:'hebrew-paradigm-charts', language:'hebrew', title:'Paradigm Charts', category:'Paradigm Charts', summary:'Fast access to source-backed Hebrew strong-verb patterns and the existing noun and suffix charts.', body:['Browse the strong system by stem or by form. קטל is Gesenius’ model strong root, not an ordinary vocabulary lemma. Categories not supplied by the approved source are omitted.'], recognitionTips:[], searchTerms:['Paradigm Charts','Strong Verbs by Stem','Strong Verbs by Form','wayyiqtol','Pronominal Suffixes','Nominal Patterns','model strong root','קטל','Qal','Niphal','Piel','Pual','Hiphil','Hophal','Hitpael'], sectionTabs:[
+      categoryTab('strong-verb-stems','Strong Verbs by Stem',['Qal','Niphal','Piel','Pual','Hiphil','Hophal','Hitpael'].map(strongStemSection)),
+      categoryTab('strong-verb-forms','Strong Verbs by Form',[strongFormSection('perfect','Perfect'),strongFormSection('imperfect','Imperfect'),strongFormSection('wayyiqtol','Wayyiqtol'),strongFormSection('imperative','Imperative'),strongFormSection('infinitive-construct','Infinitive Construct'),strongFormSection('infinitive-absolute','Infinitive Absolute'),strongFormSection('participle','Participles'),strongFormSection('shortened-imperfect','Shortened Imperfect')]),
       categoryTab('suffixes','Pronominal Suffixes',[sectionFromTopic('hebrew-pronominal-suffixes','Pronominal Suffixes')]),
       categoryTab('nominals','Nominal Patterns',[sectionFromTopic('hebrew-noun-basics','Nouns and Adjectives'), sectionFromTopic('hebrew-construct-chains','Construct State')]),
       categoryTab('weak-verbs','Weak Verbs',[tabSection('hebrew-verbs','paradigms','Weak Verbs')])
@@ -816,7 +814,7 @@
       }));
   }
   function decodeParsing(input){ const key=String(input||'').trim().toUpperCase().replace(/\s+/g,' '); return decoderEntries[key] || null; }
-  const api = { referenceTopics: visibleTopics, futureGrammarHooks, greekCoreIndicativeCharts, greekAdditionalParadigmCharts, searchReferenceTopics, getReferenceTopic, topicLabel, referenceColors: COLORS, decodeParsing, decoderEntries, oldTopicAliases, canonicalTopicId, referenceParadigmGroups, referenceLandingSections };
+  const api = { referenceTopics: visibleTopics, futureGrammarHooks, greekCoreIndicativeCharts, greekAdditionalParadigmCharts, hebrewStrongVerbCharts, hebrewStrongVerbSource:GESENIUS_1910, searchReferenceTopics, getReferenceTopic, topicLabel, referenceColors: COLORS, decodeParsing, decoderEntries, oldTopicAliases, canonicalTopicId, referenceParadigmGroups, referenceLandingSections };
   if(typeof module !== 'undefined' && module.exports) module.exports = api;
   root.PuritanReferenceLibrary = api;
 })(typeof window !== 'undefined' ? window : globalThis);
