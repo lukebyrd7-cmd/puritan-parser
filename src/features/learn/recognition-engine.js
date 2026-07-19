@@ -193,8 +193,9 @@
   function nounRecognitionItems(topicId, language){
     const api = ReferenceLibrary();
     const topic = api?.getReferenceTopic?.(topicId);
-    const sections = topic?.sectionTabs?.find(tab => tab.id === 'paradigms')?.sections || [];
+    const sections = topic?.recognitionSections || topic?.sectionTabs?.find(tab => tab.id === 'paradigms')?.sections || [];
     return sections.flatMap(section => (section.charts || []).flatMap(chart => {
+      if(chart.milestone === 'v1.3.6b') return [];
       const source = chartSource(section, chart, topicId);
       return (chart.rows || []).slice(0, 3).flatMap((row, rowIndex) => (chart.columns || []).slice(1).map((column, offset) => {
         const cell = row[offset + 1];

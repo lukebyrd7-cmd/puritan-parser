@@ -66,3 +66,13 @@ test('v4.2.6 recognition engine reuses one target/session API across categories'
     assert.ok(session.items.every(item => item.referenceTopicId.startsWith(id.split('-')[0])));
   }
 });
+
+test('v1.3.6b Reference forms do not automatically enter Learn recognition or write review state', () => {
+  const before='[{"id":"existing-session","score":4}]';
+  const storage={ pp_recognition_history:before };
+  const items=recognition.itemsForTarget('hebrew-nouns');
+  const serialized=JSON.stringify(items);
+  for(const form of ['אָבִיךָ','בָּנַי','מִמֶּנִּי','חֲקַרְתַּנִי']) assert.doesNotMatch(serialized,new RegExp(form));
+  recognition.createSession('hebrew-nouns');
+  assert.equal(storage.pp_recognition_history,before);
+});
