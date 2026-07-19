@@ -502,8 +502,45 @@
     baseType,
     ...options
   });
+  const HEBREW_NOMINAL_CLASSROOM_LABELS = Object.freeze({
+    'construct-state':'Construct State',
+    'nominal-patterns':'Noun Patterns',
+    'prepositional-suffixes':'Suffixes on Prepositions',
+    'pronominal-suffixes':'Suffixes on Nouns',
+    'verbal-object-suffixes':'Object Suffixes on Verbs',
+    'assimilation':'Assimilating Preposition',
+    'direct-attachment':'Direct-attaching Preposition',
+    'direct-object-suffix':'Object Suffixes',
+    'nominal-suffixes':'Pronominal Suffixes',
+    'peculiar-construct':'Irregular Construct Forms',
+    'peculiar-nouns':'Irregular Nouns',
+    'plural-like-base':'Plural-like Prepositional Base',
+    'plural-noun-base':'Plural Noun-like Base',
+    'reducible-vowels':'Reducible-vowel Nouns',
+    'segolate':'Segolate Nouns',
+    'state-and-number':'Absolute and Construct Forms',
+    'unchanged-construct':'Unchanged Construct Forms',
+    'acharei-preposition':'אַחֲרֵי',
+    'al-preposition':'עַל',
+    'body-and-place-nouns':'Body and Place Nouns',
+    'el-preposition':'אֶל',
+    'feminine-singular-nouns':'Feminine Singular Nouns',
+    'high-frequency-nouns':'High-frequency Nouns',
+    'masculine-nouns':'Masculine Nouns',
+    'masculine-plural-noun':'Masculine Plural Noun',
+    'min-preposition':'מִן',
+    'mixed-noun-classes':'Mixed Noun Classes',
+    'peculiar-singular-noun':'Irregular Singular Noun',
+    'prefixed-preposition':'Prefixed Preposition',
+    'qatl-ground-form':'qaṭl Pattern',
+    'representative-perfect-forms':'Limited Perfect Examples',
+    'segolate-and-peculiar-nouns':'Segolate and Irregular Nouns',
+    '1st':'First Person',
+    '2nd':'Second Person',
+    '3rd':'Third Person'
+  });
   const hebrewNominalMorphologyCharts = [
-    nominalChart('hebrew-nominal-state-number-endings','construct-state','state-and-number','mixed-noun-classes','Absolute and construct state by number',
+    nominalChart('hebrew-nominal-state-number-endings','construct-state','state-and-number','mixed-noun-classes','Absolute and Construct Forms by Number',
       ['Gender','Number','Base noun','Absolute','Construct','Visible change','Recognition cue'],[
         ['masculine','singular','דָּבָר','דָּבָר','דְּבַר','Qamets reduces to shewa.','The bound form precedes its genitive.'],
         ['masculine','plural','דָּבָר','דְּבָרִים','דִּבְרֵי','־ִים becomes ־ֵי; the stem vowels change.','Final ־ֵי is the common plural construct ending.'],
@@ -511,7 +548,7 @@
         ['feminine','plural','מַלְכָּה','מְלָכוֹת','מַלְכוֹת','־וֹת remains; the stem vowel changes.','The plural ending alone does not distinguish state.'],
         ['common','dual','עַיִן','עֵינַיִם','עֵינֵי','־ַיִם becomes ־ֵי.','Dual construct and masculine plural construct share ־ֵי.']
       ], { representativeLexemes:['דָּבָר','מַלְכָּה','עַיִן'], stateCoverage:['absolute','construct'], numberCoverage:['singular','plural','dual'], genderCoverage:['masculine','feminine','common'], comparison:{ focus:'absolute versus construct', cue:'Watch the ending and any reduced stem vowel.' }, source:nominalSource('247, 264–266, 277','§89a–e; §93 paradigms I–II; §95 paradigm I','Construct-state rules and noun paradigms',true,'Representative noun classes only; this is not a productive noun generator.'), note:'Representative classes only. A matching surface form may belong to a different noun class.' }),
-    nominalChart('hebrew-nominal-construct-unchanged','construct-state','unchanged-construct','segolate-and-peculiar-nouns','Construct forms that remain unchanged',
+    nominalChart('hebrew-nominal-construct-unchanged','construct-state','unchanged-construct','segolate-and-peculiar-nouns','Construct Forms with No Spelling Change',
       ['Gender','Number','Base noun','Absolute','Construct','Visible change','Recognition cue'],[
         ['masculine','singular','מֶלֶךְ','מֶלֶךְ','מֶלֶךְ','No visible change.','State must be recognized from the following genitive.'],
         ['masculine','singular','סֵפֶר','סֵפֶר','סֵפֶר','No visible change.','Syntax, not spelling, identifies construct.'],
@@ -519,7 +556,7 @@
         ['feminine','singular','בַּת','בַּת','בַּת','No visible change.','Do not assume every construct changes its ending.'],
         ['masculine','singular','יוֹם','יוֹם','יוֹם','No visible change.','Read the bound relationship from context.']
       ], { representativeLexemes:['מֶלֶךְ','סֵפֶר','אִישׁ','בַּת','יוֹם'], stateCoverage:['absolute','construct'], numberCoverage:['singular'], genderCoverage:['masculine','feminine'], comparison:{ focus:'unchanged construct forms', cue:'Use the following genitive to identify state.' }, source:nominalSource('264, 282–284','§93 paradigm I; §96, nouns of peculiar formation','Masculine noun paradigm and peculiar noun tables',true,'Only the directly printed representative nouns are included.'), note:'These examples are source-supplied; they do not imply that every noun in the same gender behaves identically.' }),
-    nominalChart('hebrew-nominal-irregular-constructs','construct-state','peculiar-construct','high-frequency-nouns','High-frequency peculiar construct forms',
+    nominalChart('hebrew-nominal-irregular-constructs','construct-state','peculiar-construct','high-frequency-nouns','Common Irregular Construct Forms',
       ['Gender','Number','Base noun','Absolute','Construct','Visible change','Recognition cue'],[
         ['masculine','singular','אָב','אָב','אֲבִי','The stem gains final ־ִי and the first vowel reduces.','אֲבִי before a noun means “father of.”'],
         ['masculine','singular','אָח','אָח','אֲחִי','The stem gains final ־ִי and the first vowel reduces.','אֲחִי before a noun means “brother of.”'],
@@ -530,7 +567,7 @@
   ];
   const nounSuffixRows = (base, stem, rows) => rows.map(([person,gender,number,suffix,result,english,change]) => [person,gender,number,base,stem,suffix,result,english,change]);
   const hebrewNominalSuffixCharts = [
-    nominalChart('hebrew-noun-suffix-singular-av','pronominal-suffixes','nominal-suffixes','peculiar-singular-noun','Pronominal suffixes on a singular noun — אָב',
+    nominalChart('hebrew-noun-suffix-singular-av','pronominal-suffixes','nominal-suffixes','peculiar-singular-noun','Pronominal Suffixes on a Singular Noun — אָב',
       ['Person','Gender','Number','Base noun','Suffix stem','Suffix','Result','Identification','Visible change'],nounSuffixRows('אָב','אֲבִי',[
         ['1st','common','singular','־ִי','אָבִי','my father','The first vowel lengthens in the resulting form.'],
         ['2nd','masculine','singular','־ךָ','אָבִיךָ','your father','The vowel-final suffix stem remains visible.'],
@@ -543,7 +580,7 @@
         ['3rd','masculine','plural','־הֶם','אֲבִיהֶם','their father','Plural gender is distinguished.'],
         ['3rd','feminine','plural','־הֶן','אֲבִיהֶן','their father','Plural gender is distinguished.']
       ]), { representativeLexemes:['אָב'], suffixPersons:['1st','2nd','3rd'], suffixGenderNumber:true, stateCoverage:['absolute','suffix stem'], numberCoverage:['singular'], genderCoverage:['masculine'], comparison:{ focus:'base, suffix stem, suffix, result', cue:'The peculiar vowel-final stem אֲבִי controls attachment.' }, source:nominalSource('254–259, 282','§91a–l; §96, nouns of peculiar formation','Singular noun suffix inventory and אָב paradigm',true,'The alternate long 3ms form אָבִיהוּ is recorded by the source but omitted from the main row.'), note:'אָב uses a peculiar vowel-final suffix stem; do not transfer this pattern mechanically to other nouns.' }),
-    nominalChart('hebrew-noun-suffix-plural-banim','pronominal-suffixes','nominal-suffixes','masculine-plural-noun','Pronominal suffixes on a masculine plural noun — בָּנִים',
+    nominalChart('hebrew-noun-suffix-plural-banim','pronominal-suffixes','nominal-suffixes','masculine-plural-noun','Pronominal Suffixes on a Masculine Plural Noun — בָּנִים',
       ['Person','Gender','Number','Base noun','Suffix stem','Suffix','Result','Identification','Visible change'],nounSuffixRows('בָּנִים','בָּנַי / בְּנֵי',[
         ['1st','common','singular','־י','בָּנַי','my sons','The plural ending becomes ־ַי.'],
         ['2nd','masculine','singular','־ךָ','בָּנֶיךָ','your sons','The plural suffix base retains yod.'],
@@ -555,7 +592,7 @@
         ['3rd','masculine','plural','־הֶם','בְּנֵיהֶם','their sons','The stem reduces before the heavy suffix.'],
         ['3rd','feminine','plural','־הֶן','בְּנֵיהֶן','their sons','Plural gender remains distinct.']
       ]), { representativeLexemes:['בֵּן','בָּנִים'], suffixPersons:['1st','2nd','3rd'], suffixGenderNumber:true, stateCoverage:['absolute','suffix stem'], numberCoverage:['plural'], genderCoverage:['masculine'], comparison:{ focus:'masculine plural suffix bases', cue:'Look for plural yod before the pronominal suffix.' }, source:nominalSource('255–259, 283','§91g–k; §96, nouns of peculiar formation','Plural noun suffix inventory and בָּנִים paradigm',false,'The printed בָּנִים table does not supply a 2fp result; none is inferred.'), note:'The source does not print a 2fp result for this representative noun, so the chart is intentionally incomplete.' }),
-    nominalChart('hebrew-noun-suffix-feminine-comparison','pronominal-suffixes','nominal-suffixes','feminine-singular-nouns','Feminine suffix stems — direct comparisons',
+    nominalChart('hebrew-noun-suffix-feminine-comparison','pronominal-suffixes','nominal-suffixes','feminine-singular-nouns','Feminine Nouns with Pronominal Suffixes',
       ['Person','Gender','Number','Base noun','Suffix stem','Suffix','Result','Identification','Visible change'],[
         ['1st','common','singular','אִשָּׁה','אִשְׁתּ','־ִי','אִשְׁתִּי','my wife','The peculiar construct stem replaces the absolute form.'],
         ['2nd','masculine','singular','אִשָּׁה','אִשְׁתּ','־ךָ','אִשְׁתְּךָ','your wife','The suffix attaches to the construct-like stem.'],
@@ -566,29 +603,29 @@
   ];
   const prepositionRows = (baseType, rows) => rows.map(([person,gender,number,suffix,result,english,change]) => [person,gender,number,baseType,suffix,result,english,change]);
   const hebrewPrepositionalSuffixCharts = [
-    nominalChart('hebrew-preposition-suffix-lamed','prepositional-suffixes','direct-attachment','prefixed-preposition','Pronominal suffixes with לְ',
+    nominalChart('hebrew-preposition-suffix-lamed','prepositional-suffixes','direct-attachment','prefixed-preposition','Pronominal Suffixes with לְ',
       ['Person','Gender','Number','Base','Suffix','Result','Identification','Visible change'],prepositionRows('לְ',[
         ['1st','common','singular','־ִי','לִי','to me','The prefixed preposition takes a full vowel.'],['2nd','masculine','singular','־ךָ','לְךָ','to you','Direct attachment.'],['2nd','feminine','singular','־ךְ','לָךְ','to you','Qamets distinguishes the common feminine form.'],['3rd','masculine','singular','־וֹ','לוֹ','to him','Direct contraction.'],['3rd','feminine','singular','־הּ','לָהּ','to her','Mappiq marks the suffix.'],['1st','common','plural','־נוּ','לָנוּ','to us','The suffix is not gendered.'],['2nd','masculine','plural','־כֶם','לָכֶם','to you','The preposition takes Qamets.'],['2nd','feminine','plural','־כֶן','לָכֶן','to you','Plural gender is distinguished.'],['3rd','masculine','plural','־הֶם','לָהֶם','to them','Plural gender is distinguished.'],['3rd','feminine','plural','־הֶן','לָהֶן','to them','Plural gender is distinguished.']
       ]), { representativeLexemes:['לְ'], suffixPersons:['1st','2nd','3rd'], suffixGenderNumber:true, attachmentType:'direct', comparison:{ focus:'prefixed preposition plus suffix', cue:'The one-letter preposition gains a full vowel in several forms.' }, source:nominalSource('301','§103e–g','לְ with pronominal suffixes',true,'Rare or poetic alternates are omitted from the main chart.'), note:'Common prose forms are shown; bracketed and poetic alternatives remain in the source notes.' }),
-    nominalChart('hebrew-preposition-suffix-min','prepositional-suffixes','assimilation','min-preposition','Pronominal suffixes with מִן',
+    nominalChart('hebrew-preposition-suffix-min','prepositional-suffixes','assimilation','min-preposition','Pronominal Suffixes with מִן',
       ['Person','Gender','Number','Base','Suffix','Result','Identification','Visible change'],prepositionRows('מִן',[
         ['1st','common','singular','־ִי','מִמֶּנִּי','from me','Nun assimilates and consonants double.'],['2nd','masculine','singular','־ךָ','מִמְּךָ','from you','Nun assimilates.'],['2nd','feminine','singular','־ךְ','מִמֵּךְ','from you','Nun assimilates.'],['3rd','masculine','singular','־וּ','מִמֶּנּוּ','from him','The expanded stem is used.'],['3rd','feminine','singular','־הָ','מִמֶּנָּה','from her','The expanded stem is used.'],['1st','common','plural','־נוּ','מִמֶּנּוּ','from us','The result is identical in spelling to 3ms.'],['2nd','masculine','plural','־כֶם','מִכֶּם','from you','The shorter assimilated base is used.'],['2nd','feminine','plural','־כֶן','מִכֶּן','from you','Plural gender is distinguished.'],['3rd','masculine','plural','־הֶם','מֵהֶם','from them','The source prints a contracted plural form.'],['3rd','feminine','plural','־הֶן','מֵהֶן','from them','Plural gender is distinguished.']
       ]), { representativeLexemes:['מִן'], suffixPersons:['1st','2nd','3rd'], suffixGenderNumber:true, attachmentType:'assimilation', comparison:{ focus:'assimilation and expanded stem', cue:'Expect doubled consonants or contracted מֵ־ forms.' }, source:nominalSource('303','§103i–m','מִן with pronominal suffixes',true,'Poetic and pausal alternates are omitted; 3ms and 1cp remain homographic.'), note:'The 3ms and 1cp forms are homographic; context supplies person and number.' }),
-    nominalChart('hebrew-preposition-suffix-el','prepositional-suffixes','plural-like-base','el-preposition','Pronominal suffixes with אֶל',
+    nominalChart('hebrew-preposition-suffix-el','prepositional-suffixes','plural-like-base','el-preposition','Pronominal Suffixes with אֶל',
       ['Person','Gender','Number','Base','Suffix','Result','Identification','Visible change'],prepositionRows('אֶל',[
         ['1st','common','singular','־ַי','אֵלַי','to me','The suffix base ends in yod.'],['2nd','masculine','singular','־ֶיךָ','אֵלֶיךָ','to you','A plural-like suffix shape appears.'],['2nd','feminine','singular','־ַיִךְ','אֵלַיִךְ','to you','Gender is visible in the ending.'],['3rd','masculine','singular','־ָיו','אֵלָיו','to him','The plural-like suffix shape remains.'],['3rd','feminine','singular','־ֶיהָ','אֵלֶיהָ','to her','The plural-like suffix shape remains.'],['1st','common','plural','־ֵינוּ','אֵלֵינוּ','to us','The suffix is not gendered.'],['2nd','masculine','plural','־ֵיכֶם','אֲלֵיכֶם','to you','The initial vowel reduces.'],['3rd','masculine','plural','־ֵיהֶם','אֲלֵיהֶם','to them','The initial vowel reduces.'],['3rd','feminine','plural','־ֵיהֶן','אֲלֵיהֶן','to them','Plural gender is distinguished.']
       ]), { representativeLexemes:['אֶל'], suffixPersons:['1st','2nd','3rd'], suffixGenderNumber:true, attachmentType:'plural-like-base', comparison:{ focus:'plural-like suffix base', cue:'Look for ־ַי / ־ֶי / ־ֵי shapes.' }, source:nominalSource('304–305','§103n–p','Spatial prepositions with suffixes',false,'The printed comparison table supplies no 2fp form; none is inferred.'), note:'The source table does not print a 2fp form.' }),
-    nominalChart('hebrew-preposition-suffix-al','prepositional-suffixes','plural-like-base','al-preposition','Pronominal suffixes with עַל',
+    nominalChart('hebrew-preposition-suffix-al','prepositional-suffixes','plural-like-base','al-preposition','Pronominal Suffixes with עַל',
       ['Person','Gender','Number','Base','Suffix','Result','Identification','Visible change'],prepositionRows('עַל',[
         ['1st','common','singular','־ַי','עָלַי','on me','The suffix base ends in yod.'],['2nd','masculine','singular','־ֶיךָ','עָלֶיךָ','on you','A plural-like suffix shape appears.'],['2nd','feminine','singular','־ַיִךְ','עָלַיִךְ','on you','Gender is visible in the ending.'],['3rd','masculine','singular','־ָיו','עָלָיו','on him','The plural-like suffix shape remains.'],['3rd','feminine','singular','־ֶיהָ','עָלֶיהָ','on her','The plural-like suffix shape remains.'],['1st','common','plural','־ֵינוּ','עָלֵינוּ','on us','The suffix is not gendered.'],['2nd','masculine','plural','־ֵיכֶם','עֲלֵיכֶם','on you','The first vowel reduces.'],['3rd','masculine','plural','־ֵיהֶם','עֲלֵיהֶם','on them','The first vowel reduces.'],['3rd','feminine','plural','־ֵיהֶן','עֲלֵיהֶן','on them','Plural gender is distinguished.']
       ]), { representativeLexemes:['עַל'], suffixPersons:['1st','2nd','3rd'], suffixGenderNumber:true, attachmentType:'plural-like-base', comparison:{ focus:'plural-like suffix base', cue:'Look for ־ַי / ־ֶי / ־ֵי shapes.' }, source:nominalSource('304–305','§103n–p','Spatial prepositions with suffixes',false,'The printed comparison table supplies no 2fp form; none is inferred.'), note:'The source table does not print a 2fp form.' }),
-    nominalChart('hebrew-preposition-suffix-acharei','prepositional-suffixes','plural-noun-base','acharei-preposition','Pronominal suffixes with אַחֲרֵי',
+    nominalChart('hebrew-preposition-suffix-acharei','prepositional-suffixes','plural-noun-base','acharei-preposition','Pronominal Suffixes with אַחֲרֵי',
       ['Person','Gender','Number','Base','Suffix','Result','Identification','Visible change'],prepositionRows('אַחֲרֵי',[
         ['1st','common','singular','־ַי','אַחֲרַי','after me','The plural noun-like base takes a suffix.'],['2nd','masculine','singular','־ֶיךָ','אַחֲרֶיךָ','after you','The plural-like suffix shape appears.'],['2nd','feminine','singular','־ַיִךְ','אַחֲרַיִךְ','after you','Gender is visible in the ending.'],['3rd','masculine','singular','־ָיו','אַחֲרָיו','after him','The plural-like suffix shape remains.'],['3rd','feminine','singular','־ֶיהָ','אַחֲרֶיהָ','after her','The plural-like suffix shape remains.'],['1st','common','plural','־ֵינוּ','אַחֲרֵינוּ','after us','The suffix is not gendered.'],['2nd','masculine','plural','־ֵיכֶם','אַחֲרֵיכֶם','after you','The plural noun-like base remains.'],['3rd','masculine','plural','־ֵיהֶם','אַחֲרֵיהֶם','after them','The plural noun-like base remains.'],['3rd','feminine','plural','־ֵיהֶן','אַחֲרֵיהֶן','after them','Plural gender is distinguished.']
       ]), { representativeLexemes:['אַחֲרֵי'], suffixPersons:['1st','2nd','3rd'], suffixGenderNumber:true, attachmentType:'plural-noun-base', comparison:{ focus:'plural noun-like suffix base', cue:'The preposition behaves like a plural construct noun.' }, source:nominalSource('304–305','§103n–p','Spatial prepositions with suffixes',false,'The printed comparison table supplies no 2fp form; none is inferred.'), note:'The source table does not print a 2fp form.' })
   ];
   const hebrewVerbalObjectSuffixCharts = [
-    nominalChart('hebrew-verbal-object-suffix-perfect-examples','verbal-object-suffixes','direct-object-suffix','representative-perfect-forms','Verbal direct-object suffixes — limited perfect examples',
+    nominalChart('hebrew-verbal-object-suffix-perfect-examples','verbal-object-suffixes','direct-object-suffix','representative-perfect-forms','Object Suffixes on Verbs — Limited Perfect Examples',
       ['Verbal base','Subject','Object person','Object gender','Object number','Suffix','Result','Identification','Visible change'],[
         ['חָקַר','2ms','1st','common','singular','־נִי','חֲקַרְתַּנִי','you searched me','The object suffix follows the perfect subject ending.'],
         ['עָזַב','2ms','1st','common','singular','־נִי','עֲזַבְתָּנִי','you forsook me','Pausal Qamets is retained in the source example.'],
@@ -598,20 +635,20 @@
       ], { representativeLexemes:['חָקַר','עָזַב','זָנַח','פָּרַץ','יָכֹל'], suffixPersons:['1st','3rd'], suffixGenderNumber:true, attachmentType:'direct-object', comparison:{ focus:'finite verbal base plus object suffix', cue:'Separate the subject ending from the following object suffix.' }, source:nominalSource('155, 158–160','§§58–59','Verbal suffix inventory and directly cited perfect examples',false,'Selected attested perfect examples only; no stem-by-person generator or complete paradigm is supplied.'), note:'This is a recognition sample, not a complete verbal-suffix paradigm. Core strong and weak verb charts remain unchanged.' })
   ];
   const hebrewNominalPatternCharts = [
-    nominalChart('hebrew-nominal-segolate-patterns','nominal-patterns','segolate','qatl-ground-form','Segolate noun comparisons — qatl ground form',
+    nominalChart('hebrew-nominal-segolate-patterns','nominal-patterns','segolate','qatl-ground-form','Segolate Nouns — qaṭl Pattern',
       ['Pattern','Base noun','Absolute singular','Construct singular','Suffixed form','Absolute plural','Construct plural','Recognition cue'],[
         ['qaṭl — מלך','מֶלֶךְ','מֶלֶךְ','מֶלֶךְ','מַלְכִּי','מְלָכִים','מַלְכֵי','The helping vowel disappears before suffixes and endings.'],
         ['qaṭl — ספר','סֵפֶר','סֵפֶר','סֵפֶר','סִפְרִי','סְפָרִים','סִפְרֵי','The construct singular is unchanged; the suffix stem is reduced.'],
         ['qaṭl — קדש','קֹדֶשׁ','קֹדֶשׁ','קֹדֶשׁ','קָדְשִׁי','קֳדָשִׁים','קָדְשֵׁי','The source prints a distinct suffixed stem.'],
         ['qaṭl — נער','נַעַר','נַעַר','נַעַר','נַעֲרִי','נְעָרִים','נַעֲרֵי','The guttural takes a reduced vowel.']
       ], { representativeLexemes:['מֶלֶךְ','סֵפֶר','קֹדֶשׁ','נַעַר'], stateCoverage:['absolute','construct','suffixed'], numberCoverage:['singular','plural'], genderCoverage:['masculine'], comparison:{ focus:'segolate surface and suffix stems', cue:'Do not expect the helping vowel to remain before every ending.' }, source:nominalSource('264','§93g–h; paradigm I a–d','Masculine noun paradigm I',true,'Recognition-oriented representatives of the qatl ground-form class only.'), note:'The qatl label describes the source’s stated ground form; it is not an exhaustive historical classification.' }),
-    nominalChart('hebrew-nominal-reducible-vowels','nominal-patterns','reducible-vowels','masculine-nouns','Common reducible-vowel noun patterns',
+    nominalChart('hebrew-nominal-reducible-vowels','nominal-patterns','reducible-vowels','masculine-nouns','Nouns with Reducible Vowels',
       ['Base noun','Absolute singular','Construct singular','Suffixed form','Absolute plural','Construct plural','Visible change','Recognition cue'],[
         ['דָּבָר','דָּבָר','דְּבַר','דְּבָרִי','דְּבָרִים','דִּבְרֵי','Qamets reduces and the plural stem shifts.','Compare state before deciding the lexical form.'],
         ['חָכָם','חָכָם','חֲכַם','חֲכָמִי','חֲכָמִים','חַכְמֵי','A reduced vowel appears near the guttural.','Gutturals often take a reduced vowel instead of shewa.'],
         ['זָקֵן','זָקֵן','זְקַן','זְקֵנִי','זְקֵנִים','זִקְנֵי','The first vowel reduces; the construct plural shifts.','The lexical long vowels may not survive in bound forms.']
       ], { representativeLexemes:['דָּבָר','חָכָם','זָקֵן'], stateCoverage:['absolute','construct','suffixed'], numberCoverage:['singular','plural'], genderCoverage:['masculine'], comparison:{ focus:'reduced and shifted vowels', cue:'Recover the lexical form from the consonants and noun class.' }, source:nominalSource('264','§93 paradigm II a–c','Masculine noun paradigm II',true,'Representative reducible-vowel patterns only.'), note:'These comparisons show directly printed representatives, not a rule that predicts every noun.' }),
-    nominalChart('hebrew-nominal-peculiar-high-frequency','nominal-patterns','peculiar-nouns','high-frequency-nouns','High-frequency nouns with peculiar stems',
+    nominalChart('hebrew-nominal-peculiar-high-frequency','nominal-patterns','peculiar-nouns','high-frequency-nouns','High-frequency Irregular Nouns',
       ['Base noun','Gender','Absolute singular','Construct singular','1cs suffixed','Absolute plural','Construct plural','Recognition cue'],[
         ['אָב','masculine','אָב','אֲבִי','אָבִי','אָבוֹת','אֲבוֹת','The singular construct ends in yod; the plural is suppletive-looking.'],
         ['אָח','masculine','אָח','אֲחִי','אָחִי','אַחִים','אֲחֵי','The singular and plural construct stems differ.'],
@@ -622,7 +659,7 @@
         ['בַּת','feminine','בַּת','בַּת','בִּתִּי','בָּנוֹת','בְּנוֹת','The plural uses the בן consonantal base.'],
         ['יוֹם','masculine','יוֹם','יוֹם','יוֹמוֹ','יָמִים','יְמֵי','The plural vowels shift in construct.']
       ], { representativeLexemes:['אָב','אָח','אִישׁ','אִשָּׁה','בַּיִת','בֵּן','בַּת','יוֹם'], stateCoverage:['absolute','construct','suffixed'], numberCoverage:['singular','plural'], genderCoverage:['masculine','feminine'], comparison:{ focus:'peculiar high-frequency stems', cue:'Treat these forms as lexical recognition families.' }, source:nominalSource('282–283','§96, nouns of peculiar formation','Peculiar noun paradigms',true,'Eight high-frequency noun families selected from the larger printed table.'), note:'The source calls these nouns of peculiar formation; the chart does not claim one shared productive rule.' }),
-    nominalChart('hebrew-nominal-peculiar-body-place','nominal-patterns','peculiar-nouns','body-and-place-nouns','Additional peculiar noun anchors',
+    nominalChart('hebrew-nominal-peculiar-body-place','nominal-patterns','peculiar-nouns','body-and-place-nouns','Additional Irregular Nouns',
       ['Base noun','Gender','Absolute singular','Construct singular','1cs suffixed','Absolute plural','Construct plural','Recognition cue'],[
         ['רֹאשׁ','masculine','רֹאשׁ','רֹאשׁ','רֹאשִׁי','רָאשִׁים','רָאשֵׁי','The plural vowel differs from the singular.'],
         ['פֶּה','masculine','פֶּה','פִּי','פִּי','פִּיּוֹת','פִּיּוֹת','The construct and suffix stem are פִּי.'],
@@ -994,9 +1031,9 @@
     ];
     topic.sectionTabs = [
       { ...categoryTab('paradigms','Paradigms',[
-        { title:'State and Number', id:'state-and-number', body:[], recognitionTips:['Compare the ending and any reduced vowel before deciding state.'], charts:hebrewNominalMorphologyCharts, examples:[] },
-        { title:'Nominal Suffixes', id:'nominal-suffixes', body:[], recognitionTips:['Identify the noun class and suffix stem before reading person, gender, and number.'], charts:hebrewNominalSuffixCharts, examples:[] },
-        { title:'Nominal Patterns', id:'nominal-patterns', body:[], recognitionTips:['Use these as representative recognition families, not as a noun generator.'], charts:hebrewNominalPatternCharts, examples:[] }
+        { title:'Construct State', id:'state-and-number', body:[], recognitionTips:['Compare the ending and any reduced vowel before deciding state.'], charts:hebrewNominalMorphologyCharts, examples:[] },
+        { title:'Pronominal Suffixes on Nouns', id:'nominal-suffixes', body:[], recognitionTips:['Identify the noun class and suffix stem before reading person, gender, and number.'], charts:hebrewNominalSuffixCharts, examples:[] },
+        { title:'Segolate and Irregular Nouns', id:'nominal-patterns', body:[], recognitionTips:['Use these as representative recognition families, not as a noun generator.'], charts:hebrewNominalPatternCharts, examples:[] }
       ]), filterableNominalCharts:true },
       categoryTab('concepts','Concepts',[
         sectionWithId(sectionByTitle(sections,'Construct State'), 'construct-state-usage'),
@@ -1179,10 +1216,11 @@
       categoryTab('strong-verb-stems','Strong Verbs — by Stem',['Qal','Niphal','Piel','Pual','Hiphil','Hophal','Hitpael'].map(strongStemSection)),
       categoryTab('strong-verb-forms','Strong Verbs — by Form',[strongFormSection('perfect','Perfect'),strongFormSection('imperfect','Imperfect'),strongFormSection('wayyiqtol','Wayyiqtol'),strongFormSection('imperative','Imperative'),strongFormSection('infinitive-construct','Infinitive Construct'),strongFormSection('infinitive-absolute','Infinitive Absolute'),strongFormSection('participle','Participles'),strongFormSection('shortened-imperfect','Shortened Imperfect')]),
       { ...categoryTab('weak-verbs','Weak Verbs',[tabSection('hebrew-verbs','paradigms','Weak Verbs')],[],false), filterableWeakCharts:true },
-      { ...categoryTab('noun-construct','Nouns and Construct Forms',[{ id:'state-and-number', title:'State and Number', body:[], recognitionTips:[], charts:hebrewNominalMorphologyCharts, examples:[] },{ id:'nominal-patterns', title:'Nominal Patterns and Peculiar Nouns', body:[], recognitionTips:[], charts:hebrewNominalPatternCharts, examples:[] }]), filterableNominalCharts:true },
-      { ...categoryTab('nominal-suffixes','Pronominal Suffixes',[{ id:'nominal-suffixes', title:'Suffixes on Nouns', body:[], recognitionTips:[], charts:hebrewNominalSuffixCharts, examples:[] }]), filterableNominalCharts:true },
-      { ...categoryTab('prepositional-suffixes','Prepositional Suffixes',[{ id:'prepositional-suffixes', title:'Prepositions with Suffixes', body:[], recognitionTips:[], charts:hebrewPrepositionalSuffixCharts, examples:[] }]), filterableNominalCharts:true },
-      { ...categoryTab('verbal-object-suffixes','Verbal Object Suffixes',[{ id:'verbal-object-suffixes', title:'Limited Direct-object Examples', body:[], recognitionTips:[], charts:hebrewVerbalObjectSuffixCharts, examples:[] }]), filterableNominalCharts:true }
+      { ...categoryTab('noun-construct','Construct State',[{ id:'state-and-number', title:'Construct State', body:[], recognitionTips:[], charts:hebrewNominalMorphologyCharts, examples:[] }]), filterableNominalCharts:true },
+      { ...categoryTab('nominal-suffixes','Pronominal Suffixes on Nouns',[{ id:'nominal-suffixes', title:'Singular, Plural, and Feminine Noun Patterns', body:[], recognitionTips:[], charts:hebrewNominalSuffixCharts, examples:[] }]), filterableNominalCharts:true },
+      { ...categoryTab('prepositional-suffixes','Pronominal Suffixes on Prepositions',[{ id:'prepositional-suffixes', title:'Common Prepositions with Pronominal Suffixes', body:[], recognitionTips:[], charts:hebrewPrepositionalSuffixCharts, examples:[] }]), filterableNominalCharts:true },
+      { ...categoryTab('verbal-object-suffixes','Object Suffixes on Verbs',[{ id:'verbal-object-suffixes', title:'Limited Perfect Examples', body:[], recognitionTips:[], charts:hebrewVerbalObjectSuffixCharts, examples:[] }]), filterableNominalCharts:true },
+      { ...categoryTab('noun-patterns','Segolate and Irregular Nouns',[{ id:'nominal-patterns', title:'Segolate Nouns', body:[], recognitionTips:[], charts:hebrewNominalPatternCharts.filter(chart=>chart.grammaticalCategory!=='peculiar-nouns'), examples:[] },{ id:'irregular-nouns', title:'Irregular Nouns', body:[], recognitionTips:[], charts:hebrewNominalPatternCharts.filter(chart=>chart.grammaticalCategory==='peculiar-nouns'), examples:[] }]), filterableNominalCharts:true }
     ], charts:[], examples:[], breadcrumbs:['Reference','Paradigm Charts'], related:['hebrew-grammar-handbook'] },
     { id:'greek-morphology-guide', language:'greek', title:'Morphology Guide', category:'Language Resources', summary:'How Greek words change form to express their role.', body:['Morphology connects a word’s form with the grammatical information it carries. Start with the category and visible form; compact labels are secondary.'], recognitionTips:['Read the part of speech first, then identify the categories that apply to it.'], searchTerms:['Morphology Guide','Parsing Abbreviations','N-NSM','V-AAI-3S','person gender number','tense voice mood','case number gender','abbreviations'], sections:[
       { title:'What morphology describes', body:['Nominal forms express case, number, and gender. Finite verb forms express tense-form, voice, mood, person, and number. Participles combine verbal features with case, number, and gender.'], recognitionTips:['Not every category applies to every part of speech.','Agreement links nouns with articles, adjectives, pronouns, and participles.'], charts:[], examples:[] },
@@ -1258,7 +1296,7 @@
       }));
   }
   function decodeParsing(input){ const key=String(input||'').trim().toUpperCase().replace(/\s+/g,' '); return decoderEntries[key] || null; }
-  const api = { referenceTopics: visibleTopics, futureGrammarHooks, greekCoreIndicativeCharts, greekAdditionalParadigmCharts, hebrewStrongVerbCharts, hebrewWeakVerbCharts, hebrewNominalMorphologyCharts, hebrewNominalSuffixCharts, hebrewPrepositionalSuffixCharts, hebrewVerbalObjectSuffixCharts, hebrewNominalPatternCharts, hebrewNominalAndSuffixCharts, hebrewWeakClassLabels:HEBREW_WEAK_CLASS_LABELS, filterHebrewWeakVerbCharts, filterHebrewNominalCharts, hebrewStrongVerbSource:GESENIUS_1910, searchReferenceTopics, getReferenceTopic, topicLabel, referenceColors: COLORS, decodeParsing, decoderEntries, oldTopicAliases, canonicalTopicId, referenceParadigmGroups, referenceLandingSections };
+  const api = { referenceTopics: visibleTopics, futureGrammarHooks, greekCoreIndicativeCharts, greekAdditionalParadigmCharts, hebrewStrongVerbCharts, hebrewWeakVerbCharts, hebrewNominalMorphologyCharts, hebrewNominalSuffixCharts, hebrewPrepositionalSuffixCharts, hebrewVerbalObjectSuffixCharts, hebrewNominalPatternCharts, hebrewNominalAndSuffixCharts, hebrewWeakClassLabels:HEBREW_WEAK_CLASS_LABELS, hebrewNominalClassroomLabels:HEBREW_NOMINAL_CLASSROOM_LABELS, filterHebrewWeakVerbCharts, filterHebrewNominalCharts, hebrewStrongVerbSource:GESENIUS_1910, searchReferenceTopics, getReferenceTopic, topicLabel, referenceColors: COLORS, decodeParsing, decoderEntries, oldTopicAliases, canonicalTopicId, referenceParadigmGroups, referenceLandingSections };
   if(typeof module !== 'undefined' && module.exports) module.exports = api;
   root.PuritanReferenceLibrary = api;
 })(typeof window !== 'undefined' ? window : globalThis);

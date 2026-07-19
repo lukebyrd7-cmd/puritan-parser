@@ -124,8 +124,8 @@ test('v1.3.1 Reference charts have consistent rows, supported labels, and langua
 
 test('v1.3.1 app shell and service worker keep Reference assets reachable without stale versioning', () => {
   const sw = fs.readFileSync('sw.js', 'utf8');
-  assert.match(sw, /puritan-parser-v46-v1\.3\.6b-hebrew-nominals/, 'service-worker cache version is bumped for Reference changes');
-  assert.match(fs.readFileSync('index.html', 'utf8'), /src\/main\.js\?v=v1\.3\.6b-hebrew-nominals/, 'startup query string is bumped with the cache');
+  assert.match(sw, /puritan-parser-v47-v1\.3\.6b-classroom-terminology/, 'service-worker cache version is bumped for Reference changes');
+  assert.match(fs.readFileSync('index.html', 'utf8'), /src\/main\.js\?v=v1\.3\.6b-classroom-terminology/, 'startup query string is bumped with the cache');
   assert.match(sw, /\.\/src\/features\/grammar\/reference-data\.js/);
   assert.match(sw, /\.\/src\/features\/grammar\/index\.js/);
   assert.doesNotMatch(sw, /reference-audit\.md|reference-sources\.md/, 'docs are not app-shell assets');
@@ -618,6 +618,19 @@ test('v1.3.6b registers normalized Hebrew noun and suffix chart families with st
   }
 });
 
+test('v1.3.6b refinement preserves every chart id, Hebrew form fragment, and source location', () => {
+  const charts=library.hebrewNominalAndSuffixCharts;
+  const ids=charts.map(chart=>chart.id);
+  const hebrewForms=charts.flatMap(chart=>chart.rows.flatMap(row=>row.flatMap(value=>String(value).match(/[\u0590-\u05ff]+/g)||[])));
+  const sources=charts.map(chart=>[chart.id,chart.source.printedPages,chart.source.sections,chart.source.table]);
+  const hash=value=>crypto.createHash('sha256').update(JSON.stringify(value)).digest('hex');
+  assert.equal(ids.length,16);
+  assert.equal(hash(ids),'b7ba143cddfbc5cd94e1a3cdfecfc020c5afcb484673163d9a6bcf44596ad997');
+  assert.equal(hebrewForms.length,446);
+  assert.equal(hash(hebrewForms),'08cbc3acfdedee45aec5f3688650ca3653c39c9076e81d2a572522f7b019a8af');
+  assert.equal(hash(sources),'157c328655944725cc6b022afe78daf47ece4de3ac9f434615b534c82336b0e7');
+});
+
 test('v1.3.6b suffix rows preserve person, gender, and number without inferred gaps', () => {
   const suffixCharts=[...library.hebrewNominalSuffixCharts,...library.hebrewPrepositionalSuffixCharts];
   for(const chart of suffixCharts){
@@ -674,9 +687,16 @@ test('v1.3.6b filters chart metadata and keeps verb, Greek, Handbook, and persis
 test('v1.3.6b navigation, filters, RTL rendering, and centralized source disclosure are accessible', () => {
   const paradigms=library.getReferenceTopic('hebrew-paradigm-charts');
   assert.deepEqual(paradigms.sectionTabs.map(tab=>tab.label),[
-    'Strong Verbs — by Stem','Strong Verbs — by Form','Weak Verbs','Nouns and Construct Forms','Pronominal Suffixes','Prepositional Suffixes','Verbal Object Suffixes'
+    'Strong Verbs — by Stem','Strong Verbs — by Form','Weak Verbs','Construct State','Pronominal Suffixes on Nouns','Pronominal Suffixes on Prepositions','Object Suffixes on Verbs','Segolate and Irregular Nouns'
+  ]);
+  assert.deepEqual(paradigms.sectionTabs.map(tab=>tab.id),[
+    'strong-verb-stems','strong-verb-forms','weak-verbs','noun-construct','nominal-suffixes','prepositional-suffixes','verbal-object-suffixes','noun-patterns'
   ]);
   assert.ok(paradigms.sectionTabs.slice(3).every(tab=>tab.filterableNominalCharts));
+  assert.equal(paradigms.sectionTabs[3].sections[0].title,'Construct State');
+  assert.equal(paradigms.sectionTabs[7].sections[0].title,'Segolate Nouns');
+  assert.equal(paradigms.sectionTabs[7].sections[1].title,'Irregular Nouns');
+  assert.match(library.hebrewVerbalObjectSuffixCharts[0].label,/Limited Perfect Examples/);
   const ui=fs.readFileSync('src/features/grammar/index.js','utf8');
   assert.match(ui,/Filter Hebrew noun and suffix charts/);
   assert.match(ui,/data-nominal-filter="morphologyFamily"/);
@@ -685,10 +705,22 @@ test('v1.3.6b navigation, filters, RTL rendering, and centralized source disclos
   assert.match(ui,/data-nominal-filter="suffixPerson"/);
   assert.match(ui,/attachNominalChartFilters\(page\)/);
   assert.match(ui,/event\.key==='Enter'\|\|event\.key===' '/);
-  assert.match(ui,/lang="he" dir="rtl"/);
+  assert.match(ui,/class="hebrew-text" lang="he" dir="rtl"/);
+  assert.match(ui,/Chart family/);
+  assert.match(ui,/Form pattern/);
+  assert.match(ui,/Base form/);
   assert.doesNotMatch(ui,/Clarendon Press, 1910|Gesenius' Hebrew Grammar/);
+  assert.doesNotMatch(ui,/style="[^"]*font-family/i);
+  const css=fs.readFileSync('styles.css','utf8');
+  assert.match(css,/\.hebrew-text\s*\{[^}]*font-family:\s*var\(--font-serif\)/s);
+  assert.match(css,/\.reference-chart-filters\s*\{[^}]*font-family:\s*inherit/s);
+  assert.match(css,/\.reference-tab\s*\{[^}]*font-family:\s*inherit/s);
   const html=settings.renderHebrewNominalSuffixSources(library);
   assert.match(html,/Gesenius-Kautzsch-Cowley 1910/);
+  assert.match(html,/Gary D\. Pratico and Miles V\. Van Pelt/);
+  assert.match(html,/guide the modern classroom terminology, grouping, and presentation order/i);
+  assert.match(html,/not claimed as the transcription source/i);
+  assert.match(html,/User-facing labels may therefore differ from the source's technical headings/i);
   assert.match(html,/complete for the named rows/);
   assert.match(html,/limited to the named examples/);
   assert.match(html,/No complete[\s\S]*בְּ[\s\S]*כְּ[\s\S]*לִפְנֵי/);
