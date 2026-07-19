@@ -124,7 +124,7 @@ function hebrewWeakSourceCoverage(referenceLibrary){
   for(const chart of referenceLibrary?.hebrewWeakVerbCharts || []){
     if(!chart.source) continue;
     const key = `${chart.weakClassId}|${chart.source.printedPages}|${chart.source.sections}`;
-    if(!groups.has(key)) groups.set(key, { weakClassId:chart.weakClassId, weakClassLabel:chart.weakClassLabel, source:chart.source, roots:new Set(), stems:new Set(), forms:new Set(), charts:[] });
+    if(!groups.has(key)) groups.set(key, { weakClassId:chart.weakClassId, weakClassLabel:chart.weakClassDisplayLabel||chart.weakClassLabel, source:chart.source, roots:new Set(), stems:new Set(), forms:new Set(), charts:[] });
     const group=groups.get(key);
     group.roots.add(chart.representativeRoot);
     group.stems.add(chart.stemId);
@@ -143,13 +143,16 @@ function renderHebrewWeakVerbSources(referenceLibrary){
     return `<li><strong>${escapeAboutSourcesHtml(group.weakClassLabel)}</strong> · Printed ${pageLabel} ${escapeAboutSourcesHtml(group.source.printedPages)} · ${escapeAboutSourcesHtml(group.source.sections)}<br><span>Representative root${group.roots.size===1?'':'s'}: ${roots}; stems: ${escapeAboutSourcesHtml([...group.stems].join(', '))}; forms: ${escapeAboutSourcesHtml([...group.forms].join(', '))}${group.source.complete?'':' (limited examples)'}</span></li>`;
   }).join('');
   return `<p>The weak-verb charts use the same Gesenius-Kautzsch-Cowley edition and page-image scan recorded above. Printed paradigms D–P and the corresponding discussions in §§62–78 were checked directly; OCR was used only to locate candidate rows.</p>
+    <p><strong>Display terminology.</strong> Weak-class labels follow the positional classification commonly used by Gary D. Pratico and Miles V. Van Pelt, <cite>Basics of Biblical Hebrew Grammar</cite>, 3rd ed. (Zondervan Academic, 2019). This terminology source supplies the class names only; the Hebrew forms remain verified against Gesenius. Historical and morphological subtypes remain visible where they aid recognition.</p>
     <h4>Class, root, stem, and form coverage</h4>
     <ul class="about-sources-coverage">${coverage}</ul>
     <h4>Conventions and honest omissions</h4>
     <ul>
       <li>Starred and bracketed alternatives in Gesenius are not silently reconciled. The charts use the directly printed main forms; alternate pointing is recorded in chart metadata and narrowed notes.</li>
-      <li>Pe-yod / Pe-waw distinguishes Gesenius’ historically Pe-waw <span lang="he" dir="rtl">ישב</span> from true Pe-yod <span lang="he" dir="rtl">יטב</span>.</li>
-      <li>Hollow Ayin-yod, doubly weak, and high-frequency irregular coverage is limited to directly printed examples. It is not presented as a complete productive paradigm.</li>
+      <li>The I-Yod family distinguishes historical I-Waw <span lang="he" dir="rtl">ישב</span> from true I-Yod <span lang="he" dir="rtl">יטב</span>.</li>
+      <li>Biconsonantal Middle Waw and Middle Yod subtypes remain distinct.</li>
+      <li>Biconsonantal Middle Yod, Doubly Weak, and Irregular coverage is limited to directly printed examples. It is not presented as a complete productive paradigm.</li>
+      <li>III-Aleph is a recognized positional class but has no source-backed v1.3.6a paradigm and is not presented as implemented coverage.</li>
       <li>No pronominal suffix system, nominal morphology, or Grammar Handbook explanation was added. Full weak-verb explanation remains deferred.</li>
     </ul>`;
 }

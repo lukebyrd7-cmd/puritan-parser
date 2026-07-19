@@ -1,6 +1,7 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
+const crypto = require('node:crypto');
 
 const library = require('../src/features/grammar/reference-data');
 const settings = require('../src/features/settings');
@@ -122,8 +123,8 @@ test('v1.3.1 Reference charts have consistent rows, supported labels, and langua
 
 test('v1.3.1 app shell and service worker keep Reference assets reachable without stale versioning', () => {
   const sw = fs.readFileSync('sw.js', 'utf8');
-  assert.match(sw, /puritan-parser-v44-v1\.3\.6a-hebrew-weak-verbs/, 'service-worker cache version is bumped for Reference changes');
-  assert.match(fs.readFileSync('index.html', 'utf8'), /src\/main\.js\?v=v1\.3\.6a-hebrew-weak-verbs/, 'startup query string is bumped with the cache');
+  assert.match(sw, /puritan-parser-v45-v1\.3\.6a-weak-verb-terminology/, 'service-worker cache version is bumped for Reference changes');
+  assert.match(fs.readFileSync('index.html', 'utf8'), /src\/main\.js\?v=v1\.3\.6a-weak-verb-terminology/, 'startup query string is bumped with the cache');
   assert.match(sw, /\.\/src\/features\/grammar\/reference-data\.js/);
   assert.match(sw, /\.\/src\/features\/grammar\/index\.js/);
   assert.doesNotMatch(sw, /reference-audit\.md|reference-sources\.md/, 'docs are not app-shell assets');
@@ -555,4 +556,43 @@ test('v1.3.6a About & Sources covers weak verbs without expanding deferred areas
   assert.equal(library.greekAdditionalParadigmCharts.length,73);
   assert.equal(library.hebrewWeakVerbCharts.some(chart=>/suffix/i.test(chart.formCategory)),false);
   assert.equal(library.hebrewWeakVerbCharts.some(chart=>/noun|nominal/i.test(chart.label)),false);
+});
+
+test('v1.3.6a visible weak-class terminology follows the approved positional labels', () => {
+  assert.deepEqual(library.hebrewWeakClassLabels, {
+    'pe-nun':'I-Nun',
+    'pe-yod-waw':'I-Yod',
+    'hollow-ayin-waw':'Biconsonantal — Middle Waw',
+    'hollow-ayin-yod':'Biconsonantal — Middle Yod',
+    geminate:'Geminate',
+    'lamed-he':'III-He',
+    'initial-guttural':'I-Guttural',
+    'medial-guttural':'II-Guttural',
+    'final-guttural':'III-ח/ע',
+    'doubly-weak':'Doubly Weak',
+    irregular:'Irregular'
+  });
+  const historical=library.hebrewWeakVerbCharts.filter(chart=>chart.representativeRoot==='ישב');
+  const trueYod=library.hebrewWeakVerbCharts.filter(chart=>chart.representativeRoot==='יטב');
+  assert.ok(historical.length && historical.every(chart=>chart.label.includes('I-Yod — Historical I-Waw') && chart.weakClassDisplayLabel==='I-Yod — Historical I-Waw'));
+  assert.ok(trueYod.length && trueYod.every(chart=>chart.label.includes('I-Yod — True I-Yod') && chart.weakClassDisplayLabel==='I-Yod — True I-Yod'));
+  assert.ok(library.hebrewWeakVerbCharts.filter(chart=>chart.weakClassId==='hollow-ayin-waw').every(chart=>chart.label.includes('Biconsonantal — Middle Waw')));
+  assert.ok(library.hebrewWeakVerbCharts.filter(chart=>chart.weakClassId==='hollow-ayin-yod').every(chart=>chart.label.includes('Biconsonantal — Middle Yod')));
+  assert.ok(library.hebrewWeakVerbCharts.filter(chart=>chart.weakClassId==='final-guttural').every(chart=>chart.label.startsWith('III-ח/ע')));
+  assert.equal(library.hebrewWeakVerbCharts.some(chart=>/^Final guttural|^III-Guttural/.test(chart.label)),false);
+});
+
+test('v1.3.6a terminology refinement preserves stable ids, Hebrew forms, and persistence boundaries', () => {
+  const stableIds=library.hebrewWeakVerbCharts.map(chart=>chart.id).sort();
+  assert.equal(crypto.createHash('sha256').update(JSON.stringify(stableIds)).digest('hex'),'c49713f4a2307b7c3bed4ded9c5eb5eb6e7ab3a4e7582069100b97bdf1aef81e');
+  const hebrewForms=library.hebrewWeakVerbCharts.flatMap(chart=>chart.rows.flatMap(row=>row.slice(1,3).map(String).filter(value=>HEBREW.test(value))));
+  assert.equal(hebrewForms.length,286);
+  assert.equal(crypto.createHash('sha256').update(JSON.stringify(hebrewForms)).digest('hex'),'17143ebb4f6cba0813b186a60ce5d2a00268d0bc2b84687fc1a03603318a35aa');
+  assert.doesNotMatch(fs.readFileSync('src/core/migrations/migrations.js','utf8'),/v1\.3\.6a|weak-class|pe-yod-waw|hollow-ayin/);
+  const html=settings.renderHebrewWeakVerbSources(library);
+  assert.match(html,/Gary D\. Pratico and Miles V\. Van Pelt/);
+  assert.match(html,/Basics of Biblical Hebrew Grammar/);
+  assert.match(html,/terminology source supplies the class names only/i);
+  assert.match(html,/forms remain verified against Gesenius/i);
+  assert.match(html,/III-Aleph is a recognized positional class but has no source-backed v1\.3\.6a paradigm/i);
 });

@@ -212,17 +212,17 @@
   };
   const hebrewStrongVerbCharts = Object.entries(hebrewStrongVerbData).flatMap(([label,stem]) => chartsForStrongStem(label,stem));
   const HEBREW_WEAK_CLASS_LABELS = Object.freeze({
-    'pe-nun':'Pe-nun',
-    'pe-yod-waw':'Pe-yod / Pe-waw',
-    'hollow-ayin-waw':'Hollow (Ayin-waw)',
-    'hollow-ayin-yod':'Hollow (Ayin-yod)',
+    'pe-nun':'I-Nun',
+    'pe-yod-waw':'I-Yod',
+    'hollow-ayin-waw':'Biconsonantal — Middle Waw',
+    'hollow-ayin-yod':'Biconsonantal — Middle Yod',
     'geminate':'Geminate',
-    'lamed-he':'Lamed-he',
-    'initial-guttural':'Initial guttural',
-    'medial-guttural':'Medial guttural',
-    'final-guttural':'Final guttural',
-    'doubly-weak':'Doubly weak',
-    'irregular':'High-frequency irregular'
+    'lamed-he':'III-He',
+    'initial-guttural':'I-Guttural',
+    'medial-guttural':'II-Guttural',
+    'final-guttural':'III-ח/ע',
+    'doubly-weak':'Doubly Weak',
+    'irregular':'Irregular'
   });
   const weakSource = (printedPages, sections, table, complete=true, limitation='', alternatePointing='Bracketed forms and starred variants in Gesenius are omitted unless named in the chart note.') => ({
     ...geseniusSource(printedPages, sections, complete, limitation),
@@ -230,12 +230,17 @@
     alternatePointing
   });
   const HEBREW_WEAK_ROOT_IDS = Object.freeze({ עמד:'amad', שחט:'shachat', ברך:'barakh', שלח:'shalach', סבב:'savav', נגש:'nagash', נפל:'naphal', אכל:'akhal', ישב:'yashav', יטב:'yatav', קום:'qum', שית:'shit', גלה:'galah', נשא:'nasa', היה:'hayah' });
+  const weakClassDisplayLabel = (weakClassId, representativeRoot) => {
+    if(weakClassId === 'pe-yod-waw') return `I-Yod — ${representativeRoot === 'ישב' ? 'Historical I-Waw' : 'True I-Yod'}`;
+    return HEBREW_WEAK_CLASS_LABELS[weakClassId];
+  };
   const weakChart = (weakClassId, stemId, formCategory, representativeRoot, affectedRadical, label, rows, source, note='') => chart(label, ['Form','Strong pattern','Attested weak form','Recognition cue'], rows, {
     id:`hebrew-weak-${weakClassId}-${stemId}-${formCategory}-${HEBREW_WEAK_ROOT_IDS[representativeRoot]}`,
     milestone:'v1.3.6a',
     language:'hebrew',
     weakClassId,
     weakClassLabel:HEBREW_WEAK_CLASS_LABELS[weakClassId],
+    weakClassDisplayLabel:weakClassDisplayLabel(weakClassId, representativeRoot),
     stemId,
     formCategory,
     representativeRoot,
@@ -251,62 +256,62 @@
     note
   });
   const hebrewWeakVerbCharts = [
-    weakChart('initial-guttural','qal','perfect','עמד','first', 'Initial guttural · Qal perfect — עמד', [
+    weakChart('initial-guttural','qal','perfect','עמד','first', 'I-Guttural · Qal perfect — עמד', [
       ['3ms','קָטַל','עָמַד','The guttural remains visible.'],
       ['3fs','קָטְלָה','עָמְדָה','No doubling is expected.'],
       ['2mp','קְטַלְתֶּם','עֲמַדְתֶּם','A reduced vowel replaces vocal shewa.']
     ], weakSource('514','§§62–63; Paradigm D','Paradigm D, verbs first guttural')),
-    weakChart('initial-guttural','qal','imperfect','עמד','first', 'Initial guttural · Qal imperfect — עמד', [
+    weakChart('initial-guttural','qal','imperfect','עמד','first', 'I-Guttural · Qal imperfect — עמד', [
       ['3ms','יִקְטֹל','יַעֲמֹד','The prefix vowel and reduced vowel mark the guttural.'],
       ['1cs','אֶקְטֹל','אֶעֱמֹד','Aleph takes a reduced vowel after the prefix.'],
       ['3mp','יִקְטְלוּ','יַעַמְדוּ','The reduced vowel becomes a full short vowel before vocal shewa.']
     ], weakSource('514','§§62–63; Paradigm D','Paradigm D, verbs first guttural')),
-    weakChart('initial-guttural','niphal','imperfect','עמד','first', 'Initial guttural · Niphal imperfect — עמד', [
+    weakChart('initial-guttural','niphal','imperfect','עמד','first', 'I-Guttural · Niphal imperfect — עמד', [
       ['3ms','יִקָּטֵל','יֵעָמֵד','The guttural resists doubling; the prefix vowel lengthens.'],
       ['Infinitive construct','הִקָּטֵל','הֵעָמֵד','No dagesh appears in the first radical.'],
       ['Imperative 2ms','הִקָּטֵל','הֵעָמֵד','Tsere compensates for missing doubling.']
     ], weakSource('514','§63h; Paradigm D','Paradigm D, verbs first guttural')),
-    weakChart('initial-guttural','hiphil','perfect','עמד','first', 'Initial guttural · Hiphil anchors — עמד', [
+    weakChart('initial-guttural','hiphil','perfect','עמד','first', 'I-Guttural · Hiphil anchors — עמד', [
       ['Perfect 3ms','הִקְטִיל','הֶעֱמִיד','The guttural takes a reduced vowel.'],
       ['Imperfect 3ms','יַקְטִיל','יַעֲמִיד','The initial radical remains audible.'],
       ['Participle ms','מַקְטִיל','מַעֲמִיד','Reduced vowel follows the participial prefix.']
     ], weakSource('514','§63; Paradigm D','Paradigm D, verbs first guttural')),
 
-    weakChart('medial-guttural','qal','perfect','שחט','second', 'Medial guttural · Qal perfect — שחט', [
+    weakChart('medial-guttural','qal','perfect','שחט','second', 'II-Guttural · Qal perfect — שחט', [
       ['3ms','קָטַל','שָׁחַט','The medial guttural remains undoubled.'],
       ['3fs','קָטְלָה','שָׁחֲטָה','A reduced vowel appears under the guttural.'],
       ['3cp','קָטְלוּ','שָׁחֲטוּ','The guttural takes a reduced vowel before the suffix.']
     ], weakSource('515','§64; Paradigm E','Paradigm E, verbs middle guttural')),
-    weakChart('medial-guttural','piel','perfect','ברך','second', 'Medial guttural · Piel anchors — ברך', [
+    weakChart('medial-guttural','piel','perfect','ברך','second', 'II-Guttural · Piel anchors — ברך', [
       ['Perfect 3ms','קִטֵּל','בֵּרַךְ','The medial guttural cannot carry the expected dagesh.'],
       ['Imperfect 3ms','יְקַטֵּל','יְבָרֵךְ','Compensatory vowel change replaces doubling.'],
       ['Imperative 2ms','קַטֵּל','בָּרֵךְ','The Piel is recognized without medial doubling.'],
       ['Participle ms','מְקַטֵּל','מְבָרֵךְ','The stem vowel pattern identifies Piel.']
     ], weakSource('515','§64; Paradigm E','Paradigm E, verbs middle guttural')),
-    weakChart('medial-guttural','pual','perfect','ברך','second', 'Medial guttural · Pual anchors — ברך', [
+    weakChart('medial-guttural','pual','perfect','ברך','second', 'II-Guttural · Pual anchors — ברך', [
       ['Perfect 3ms','קֻטַּל','בֹּרַךְ','The guttural resists doubling and the vowels compensate.'],
       ['Imperfect 3ms','יְקֻטַּל','יְבֹרַךְ','The passive stem remains visible through its vowels.'],
       ['Participle ms','מְקֻטָּל','מְבֹרָךְ','No dagesh appears in the guttural.']
     ], weakSource('515','§64; Paradigm E','Paradigm E, verbs middle guttural')),
-    weakChart('medial-guttural','hitpael','imperfect','ברך','second', 'Medial guttural · Hitpael anchors — ברך', [
+    weakChart('medial-guttural','hitpael','imperfect','ברך','second', 'II-Guttural · Hitpael anchors — ברך', [
       ['Perfect 3ms','הִתְקַטֵּל','הִתְבָּרֵךְ','The הת prefix identifies the stem; the guttural remains undoubled.'],
       ['Imperfect 3ms','יִתְקַטֵּל','יִתְבָּרֵךְ','Compensatory vowels replace expected doubling.'],
       ['Participle ms','מִתְקַטֵּל','מִתְבָּרֵךְ','The middle guttural has no dagesh.']
     ], weakSource('515','§64; Paradigm E','Paradigm E, verbs middle guttural')),
 
-    weakChart('final-guttural','qal','imperfect','שלח','third', 'Final guttural · Qal anchors — שלח', [
+    weakChart('final-guttural','qal','imperfect','שלח','third', 'III-ח/ע · Qal anchors — שלח', [
       ['Imperfect 3ms','יִקְטֹל','יִשְׁלַח','Patah appears before the final guttural.'],
       ['Infinitive construct','קְטֹל','שְׁלֹחַ','Furtive patah is retained under final ח.'],
       ['Active participle ms','קֹטֵל','שֹׁלֵחַ','Furtive patah follows the long vowel.'],
       ['Passive participle ms','קָטוּל','שָׁלוּחַ','The final guttural remains explicit.']
     ], weakSource('516–517','§65; Paradigm F','Paradigm F, verbs third guttural')),
-    weakChart('final-guttural','hiphil','perfect','שלח','third', 'Final guttural · Hiphil anchors — שלח', [
+    weakChart('final-guttural','hiphil','perfect','שלח','third', 'III-ח/ע · Hiphil anchors — שלח', [
       ['Perfect 3ms','הִקְטִיל','הִשְׁלִיחַ','Furtive patah follows the long i-class vowel.'],
       ['Imperfect 3ms','יַקְטִיל','יַשְׁלִיחַ','The final ח retains furtive patah.'],
       ['Infinitive construct','הַקְטִיל','הַשְׁלִיחַ','The final guttural changes the word ending.'],
       ['Participle ms','מַקְטִיל','מַשְׁלִיחַ','The causative prefix and furtive patah are both visible.']
     ], weakSource('517','§65; Paradigm F','Paradigm F, verbs third guttural')),
-    weakChart('final-guttural','hitpael','imperfect','שלח','third', 'Final guttural · Hitpael anchors — שלח', [
+    weakChart('final-guttural','hitpael','imperfect','שלח','third', 'III-ח/ע · Hitpael anchors — שלח', [
       ['Perfect 3ms','הִתְקַטֵּל','הִשְׁתַּלֵּחַ','Furtive patah marks final ח.'],
       ['Imperfect 3ms','יִתְקַטֵּל','יִשְׁתַּלֵּחַ','The final guttural alters the ending, not the stem prefix.'],
       ['Participle ms','מִתְקַטֵּל','מִשְׁתַּלֵּחַ','The Hitpael prefix remains the primary stem cue.']
@@ -336,86 +341,86 @@
       ['Participle ms','מַקְטִיל','מֵסֵב','The participial prefix vowel lengthens.']
     ], weakSource('519','§67; Paradigm G','Paradigm G, verbs middle geminate')),
 
-    weakChart('pe-nun','qal','imperfect','נגש','first', 'Pe-nun · Qal imperfect — נגש', [
+    weakChart('pe-nun','qal','imperfect','נגש','first', 'I-Nun · Qal imperfect — נגש', [
       ['3ms','יִקְטֹל','יִגַּשׁ','Initial nun assimilates into dagesh in the second radical.'],
       ['Infinitive construct','קְטֹל','גֶּשֶׁת','The initial nun is absent and doubling remains.'],
       ['Infinitive alternate','קְטֹל','נְגֹשׁ','The source also prints a form where nun remains.']
     ], weakSource('520','§66; Paradigm H','Paradigm H, verbs Pe-nun')),
-    weakChart('pe-nun','qal','wayyiqtol','נפל','first', 'Pe-nun · Qal sequence anchor — נפל', [
+    weakChart('pe-nun','qal','wayyiqtol','נפל','first', 'I-Nun · Qal sequence anchor — נפל', [
       ['Imperfect 3ms','יִקְטֹל','יִפֹּל','The nun assimilates and dagesh marks its loss.'],
       ['Wayyiqtol 3ms','וַיִּקְטֹל','וַיִּפֹּל','The assimilated nun remains distinct from the sequence prefix.'],
       ['Infinitive construct','קְטֹל','נְפֹל','Nun remains in this infinitive.']
     ], weakSource('520','§66; Paradigm H','Paradigm H, verbs Pe-nun')),
-    weakChart('pe-nun','hiphil','perfect','נגש','first', 'Pe-nun · Hiphil anchors — נגש', [
+    weakChart('pe-nun','hiphil','perfect','נגש','first', 'I-Nun · Hiphil anchors — נגש', [
       ['Perfect 3ms','הִקְטִיל','הִגִּישׁ','Nun assimilates into the doubled second radical.'],
       ['Imperfect 3ms','יַקְטִיל','יַגִּישׁ','Dagesh is the visible trace of initial nun.'],
       ['Participle ms','מַקְטִיל','מַגִּישׁ','The causative prefix precedes the assimilated root.']
     ], weakSource('520','§66; Paradigm H','Paradigm H, verbs Pe-nun')),
-    weakChart('pe-nun','hophal','perfect','נגש','first', 'Pe-nun · Hophal anchors — נגש', [
+    weakChart('pe-nun','hophal','perfect','נגש','first', 'I-Nun · Hophal anchors — נגש', [
       ['Perfect 3ms','הָקְטַל','הֻגַּשׁ','Nun assimilates; dagesh remains in the second radical.'],
       ['Imperfect 3ms','יָקְטַל','יֻגַּשׁ','The passive u-class vowel and doubling identify the form.'],
       ['Participle ms','מָקְטָל','מֻגָּשׁ','The root begins visibly with the doubled second radical.']
     ], weakSource('520','§66; Paradigm H','Paradigm H, verbs Pe-nun')),
 
-    weakChart('irregular','qal','imperfect','אכל','first', 'High-frequency irregular · Qal — אכל', [
+    weakChart('irregular','qal','imperfect','אכל','first', 'Irregular · Qal — אכל', [
       ['Perfect 3ms','קָטַל','אָכַל','The aleph remains in the perfect.'],
       ['Imperfect 3ms','יִקְטֹל','יֹאכַל','The prefix and initial aleph contract visibly.'],
       ['Wayyiqtol 3ms','וַיִּקְטֹל','וַיֹּאכַל','The high-frequency sequence form is printed directly.'],
       ['Imperative 2ms','קְטֹל','אֱכֹל','A reduced vowel appears under aleph.'],
       ['Participle ms','קֹטֵל','אֹכֵל','Aleph carries the initial vowel.']
     ], weakSource('521','§68; Paradigm I','Paradigm I, weak verbs Pe-aleph')),
-    weakChart('irregular','hiphil','perfect','אכל','first', 'High-frequency irregular · Hiphil — אכל', [
+    weakChart('irregular','hiphil','perfect','אכל','first', 'Irregular · Hiphil — אכל', [
       ['Perfect 3ms','הִקְטִיל','הֶאֱכִיל','Aleph remains with a reduced vowel.'],
       ['Imperfect 3ms','יַקְטִיל','יַאֲכִיל','The causative prefix precedes audible aleph.'],
       ['Infinitive construct','הַקְטִיל','הַאֲכִיל','The printed form preserves the guttural sequence.'],
       ['Participle ms','מַקְטִיל','מַאֲכִיל','The participle preserves initial aleph.']
     ], weakSource('521','§68; Paradigm I','Paradigm I, weak verbs Pe-aleph')),
 
-    weakChart('pe-yod-waw','qal','imperfect','ישב','first', 'Pe-yod / Pe-waw · Qal — ישב', [
+    weakChart('pe-yod-waw','qal','imperfect','ישב','first', 'I-Yod — Historical I-Waw · Qal — ישב', [
       ['Perfect 3ms','קָטַל','יָשַׁב','Initial yod appears without a preformative.'],
       ['Imperfect 3ms','יִקְטֹל','יֵשֵׁב','The historical first radical is absent from the imperfect stem.'],
       ['Infinitive construct','קְטֹל','שֶׁבֶת','Initial yod is lost and the feminine ending is visible.'],
       ['Imperative 2ms','קְטֹל','שֵׁב','Initial yod is absent.'],
       ['Wayyiqtol 3ms','וַיִּקְטֹל','וַיֵּשֶׁב','The shortened stem follows the sequence prefix.']
     ], weakSource('522','§69; Paradigm K','Paradigm K, verbs originally Pe-waw')),
-    weakChart('pe-yod-waw','hiphil','perfect','ישב','first', 'Pe-yod / Pe-waw · Hiphil — ישב', [
+    weakChart('pe-yod-waw','hiphil','perfect','ישב','first', 'I-Yod — Historical I-Waw · Hiphil — ישב', [
       ['Perfect 3ms','הִקְטִיל','הוֹשִׁיב','Historical waw appears as holem-waw.'],
       ['Imperfect 3ms','יַקְטִיל','יוֹשִׁיב','The initial radical is represented by וֹ.'],
       ['Imperative 2ms','הַקְטֵל','הוֹשֵׁב','The causative prefix and historical vowel are visible.'],
       ['Participle ms','מַקְטִיל','מוֹשִׁיב','The participle retains וֹ.']
     ], weakSource('523','§69; Paradigm K','Paradigm K, verbs originally Pe-waw')),
-    weakChart('pe-yod-waw','qal','imperfect','יטב','first', 'True Pe-yod · Qal and Hiphil — יטב', [
+    weakChart('pe-yod-waw','qal','imperfect','יטב','first', 'I-Yod — True I-Yod · Qal and Hiphil — יטב', [
       ['Qal perfect 3ms','קָטַל','יָטַב','True initial yod remains.'],
       ['Qal imperfect 3ms','יִקְטֹל','יִיטַב','Yod is retained or written defectively.'],
       ['Hiphil perfect 3ms','הִקְטִיל','הֵיטִיב','The source distinguishes true Pe-yod contraction.'],
       ['Hiphil imperfect 3ms','יַקְטִיל','יֵיטִיב','Long vowels mark the contracted Hiphil.']
     ], weakSource('523','§70; Paradigm L','Paradigm L, verbs properly Pe-yod')),
 
-    weakChart('hollow-ayin-waw','qal','perfect','קום','second', 'Hollow Ayin-waw · Qal perfect — קום', [
+    weakChart('hollow-ayin-waw','qal','perfect','קום','second', 'Biconsonantal — Middle Waw · Qal perfect — קום', [
       ['3ms','קָטַל','קָם','The weak middle radical contracts into the stem vowel.'],
       ['3fs','קָטְלָה','קָמָה','The long vowel remains before the suffix.'],
       ['2ms','קָטַלְתָּ','קַמְתָּ','The long vowel shortens before a consonantal suffix.'],
       ['3cp','קָטְלוּ','קָמוּ','The contracted stem remains visible.']
     ], weakSource('524','§72; Paradigm M','Paradigm M, hollow verbs Ayin-waw')),
-    weakChart('hollow-ayin-waw','qal','imperfect','קום','second', 'Hollow Ayin-waw · Qal imperfect — קום', [
+    weakChart('hollow-ayin-waw','qal','imperfect','קום','second', 'Biconsonantal — Middle Waw · Qal imperfect — קום', [
       ['Infinitive construct','קְטֹל','קוּם','The middle radical is represented by a long vowel.'],
       ['Imperative 2ms','קְטֹל','קוּם','The contracted stem is monosyllabic.'],
       ['Imperfect 3ms','יִקְטֹל','יָקוּם','The stem vowel carries the weak radical.'],
       ['Wayyiqtol 3ms','וַיִּקְטֹל','וַיָּקָם','The sequence form shortens the hollow stem.'],
       ['Participle ms','קֹטֵל','קָם','The participle is contracted.']
     ], weakSource('524','§72; Paradigm M','Paradigm M, hollow verbs Ayin-waw')),
-    weakChart('hollow-ayin-waw','hiphil','perfect','קום','second', 'Hollow Ayin-waw · Hiphil — קום', [
+    weakChart('hollow-ayin-waw','hiphil','perfect','קום','second', 'Biconsonantal — Middle Waw · Hiphil — קום', [
       ['Perfect 3ms','הִקְטִיל','הֵקִים','The weak middle radical contracts into long vowels.'],
       ['Imperfect 3ms','יַקְטִיל','יָקִים','The Hiphil stem is compact.'],
       ['Imperative 2ms','הַקְטֵל','הָקֵם','The weak radical is carried by the stem vowel.'],
       ['Participle ms','מַקְטִיל','מֵקִים','The participial prefix vowel lengthens.']
     ], weakSource('524','§72; Paradigm M','Paradigm M, hollow verbs Ayin-waw')),
-    weakChart('hollow-ayin-waw','hophal','perfect','קום','second', 'Hollow Ayin-waw · Hophal — קום', [
+    weakChart('hollow-ayin-waw','hophal','perfect','קום','second', 'Biconsonantal — Middle Waw · Hophal — קום', [
       ['Perfect 3ms','הָקְטַל','הוּקַם','The hollow root contracts after the passive prefix.'],
       ['Imperfect 3ms','יָקְטַל','יוּקַם','The u-class vowel carries the weak radical.'],
       ['Participle ms','מָקְטָל','מוּקָם','The contracted passive stem remains visible.']
     ], weakSource('525','§72; Paradigm M','Paradigm M, hollow verbs Ayin-waw')),
-    weakChart('hollow-ayin-yod','qal','imperfect','שית','second', 'Hollow Ayin-yod · Qal anchors — שית', [
+    weakChart('hollow-ayin-yod','qal','imperfect','שית','second', 'Biconsonantal — Middle Yod · Qal anchors — שית', [
       ['Perfect 3ms','קָטַל','שָׁת','The middle yod is absent from the contracted perfect.'],
       ['Infinitive construct','קְטֹל','שִׁית','Yod appears as mater lectionis.'],
       ['Infinitive absolute','קָטוֹל','שׁוֹת','The source prints a distinct absolute form.'],
@@ -423,41 +428,41 @@
       ['Wayyiqtol 3ms','וַיִּקְטֹל','וַיָּשֶׁת','The sequence form shortens the stem.']
     ], weakSource('202','§73, verbs middle i','Directly printed examples in §73',false,'Gesenius supplies representative Qal forms in the discussion, not a complete root-by-root paradigm.')),
 
-    weakChart('lamed-he','qal','perfect','גלה','third', 'Lamed-he · Qal perfect — גלה', [
+    weakChart('lamed-he','qal','perfect','גלה','third', 'III-He · Qal perfect — גלה', [
       ['3ms','קָטַל','גָּלָה','Final ה marks the unsuffixed form.'],
       ['3fs','קָטְלָה','גָּלְתָה','Final ה drops before the suffix.'],
       ['2ms','קָטַלְתָּ','גָּלִיתָ','Yod appears before a consonantal suffix.'],
       ['3cp','קָטְלוּ','גָּלוּ','Final ה drops before the vowel suffix.']
     ], weakSource('528','§75; Paradigm P','Paradigm P, weak verbs Lamed-he')),
-    weakChart('lamed-he','qal','imperfect','גלה','third', 'Lamed-he · Qal imperfect — גלה', [
+    weakChart('lamed-he','qal','imperfect','גלה','third', 'III-He · Qal imperfect — גלה', [
       ['Imperfect 3ms','יִקְטֹל','יִגְלֶה','Final ה carries the ending vowel.'],
       ['Shortened imperfect','יִקְטֹל','יִגֶל','Apocope removes final ה.'],
       ['Infinitive construct','קְטֹל','גְּלוֹת','The final weak radical becomes וֹת.'],
       ['Imperative 2ms','קְטֹל','גְּלֵה','Final ה remains in the unsuffixed command.'],
       ['Participle ms','קֹטֵל','גֹּלֶה','Final ה marks the participle.']
     ], weakSource('528','§75; Paradigm P','Paradigm P, weak verbs Lamed-he')),
-    weakChart('lamed-he','niphal','imperfect','גלה','third', 'Lamed-he · Niphal anchors — גלה', [
+    weakChart('lamed-he','niphal','imperfect','גלה','third', 'III-He · Niphal anchors — גלה', [
       ['Perfect 3ms','נִקְטַל','נִגְלָה','Final ה remains unsuffixed.'],
       ['Infinitive construct','הִקָּטֵל','הִגָּלוֹת','The final weak radical becomes וֹת.'],
       ['Imperative 2ms','הִקָּטֵל','הִגָּלֵה','Final ה carries the ending vowel.'],
       ['Imperfect 3ms','יִקָּטֵל','יִגָּלֶה','The Niphal prefix and final ה are both visible.'],
       ['Participle ms','נִקְטָל','נִגְלֶה','The final radical is represented by ה.']
     ], weakSource('528','§75; Paradigm P','Paradigm P, weak verbs Lamed-he')),
-    weakChart('lamed-he','piel','imperfect','גלה','third', 'Lamed-he · Piel anchors — גלה', [
+    weakChart('lamed-he','piel','imperfect','גלה','third', 'III-He · Piel anchors — גלה', [
       ['Perfect 3ms','קִטֵּל','גִּלָּה','Final ה replaces the ordinary ending.'],
       ['Infinitive construct','קַטֵּל','גַּלּוֹת','The final weak radical becomes וֹת.'],
       ['Imperative 2ms','קַטֵּל','גַּלֵּה','Final ה is retained.'],
       ['Imperfect 3ms','יְקַטֵּל','יְגַלֶּה','The doubled middle radical remains the Piel cue.'],
       ['Participle ms','מְקַטֵּל','מְגַלֶּה','Final ה carries the ending vowel.']
     ], weakSource('528','§75; Paradigm P','Paradigm P, weak verbs Lamed-he')),
-    weakChart('lamed-he','hiphil','imperfect','גלה','third', 'Lamed-he · Hiphil anchors — גלה', [
+    weakChart('lamed-he','hiphil','imperfect','גלה','third', 'III-He · Hiphil anchors — גלה', [
       ['Perfect 3ms','הִקְטִיל','הִגְלָה','The final weak radical changes the Hiphil ending.'],
       ['Infinitive construct','הַקְטִיל','הַגְלוֹת','The final radical becomes וֹת.'],
       ['Imperative 2ms','הַקְטֵל','הַגְלֵה','Final ה remains in the command.'],
       ['Imperfect 3ms','יַקְטִיל','יַגְלֶה','The usual Hiphil i-class ending is absent.'],
       ['Participle ms','מַקְטִיל','מַגְלֶה','Final ה carries the ending vowel.']
     ], weakSource('529','§75; Paradigm P','Paradigm P, weak verbs Lamed-he')),
-    weakChart('lamed-he','hitpael','imperfect','גלה','third', 'Lamed-he · Hitpael anchors — גלה', [
+    weakChart('lamed-he','hitpael','imperfect','גלה','third', 'III-He · Hitpael anchors — גלה', [
       ['Perfect 3ms','הִתְקַטֵּל','הִתְגַּלָּה','Final ה replaces the ordinary ending.'],
       ['Infinitive construct','הִתְקַטֵּל','הִתְגַּלּוֹת','The final weak radical becomes וֹת.'],
       ['Imperative 2ms','הִתְקַטֵּל','הִתְגַּלֵּה','The stem prefix and final ה remain visible.'],
@@ -465,14 +470,14 @@
       ['Participle ms','מִתְקַטֵּל','מִתְגַּלֶּה','The Hitpael prefix remains the primary cue.']
     ], weakSource('529','§75; Paradigm P','Paradigm P, weak verbs Lamed-he')),
 
-    weakChart('doubly-weak','qal','infinitive-construct','נשא','first and third', 'Doubly weak · Qal anchors — נשא', [
+    weakChart('doubly-weak','qal','infinitive-construct','נשא','first and third', 'Doubly Weak · Qal anchors — נשא', [
       ['Perfect 3ms','קָטַל','נָשָׂא','Both initial nun and final aleph are visible.'],
       ['Imperative 2ms','קְטֹל','שָׂא','Initial nun is lost.'],
       ['Infinitive construct','קְטֹל','שְׂאֵת','Initial nun is lost and the final weak radical reshapes the form.'],
       ['Infinitive with ל','לִקְטֹל','לָשֵׂאת','The directly printed prefixed infinitive contracts.'],
       ['Imperfect 3fp','תִּקְטֹלְנָה','תִּשֶּׂנָה','Both weak behaviors affect the form.']
     ], weakSource('217–218','§76c, verbs doubly weak','Direct examples for Pe-nun + Lamed-aleph',false,'Gesenius prints selected difficult forms, not a complete paradigm; no unprinted forms are inferred.')),
-    weakChart('doubly-weak','qal','wayyiqtol','היה','first and third', 'Doubly weak high-frequency anchors — היה', [
+    weakChart('doubly-weak','qal','wayyiqtol','היה','first and third', 'Doubly Weak · High-frequency anchors — היה', [
       ['Perfect 3ms','קָטַל','הָיָה','Initial guttural and final weak radical remain visible.'],
       ['Shortened imperfect 3ms','יִקְטֹל','יְהִי','The final ה drops and the middle yod carries the vowel.'],
       ['Wayyiqtol 3ms','וַיִּקְטֹל','וַיְהִי','The high-frequency sequence form is strongly contracted.']
