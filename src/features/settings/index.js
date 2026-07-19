@@ -41,6 +41,9 @@ function applySrsPreset(preset){
 function escapeAboutSourcesHtml(value){
   return String(value ?? '').replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
 }
+function renderAboutSourcesText(value){
+  return String(value ?? '').split(/([\u0590-\u05ff]+)/g).map(part=>/[\u0590-\u05ff]/.test(part)?`<span class="hebrew-text" lang="he" dir="rtl">${escapeAboutSourcesHtml(part)}</span>`:escapeAboutSourcesHtml(part)).join('');
+}
 function greekSourceCoverage(referenceLibrary){
   const groups = new Map();
   const charts = [...(referenceLibrary?.greekCoreIndicativeCharts || []), ...(referenceLibrary?.greekAdditionalParadigmCharts || [])];
@@ -105,7 +108,7 @@ function renderHebrewReferenceSources(referenceLibrary){
     <dl class="about-sources-details">
       <div><dt>Edition</dt><dd>${escapeAboutSourcesHtml(source.edition)}</dd></div>
       <div><dt>Scan used</dt><dd><a href="${escapeAboutSourcesHtml(source.scanUrl)}" target="_blank" rel="noopener noreferrer">${escapeAboutSourcesHtml(source.scan)} (${escapeAboutSourcesHtml(source.scanId)})</a></dd></div>
-      <div><dt>Representative root</dt><dd><span lang="he" dir="rtl">קטל</span> — model strong root, not an ordinary vocabulary lemma</dd></div>
+      <div><dt>Representative root</dt><dd><span class="hebrew-text" lang="he" dir="rtl">קטל</span> — model strong root, not an ordinary vocabulary lemma</dd></div>
     </dl>
     <p>Every included pointed form was checked against the printed page image. OCR was used only to locate candidate pages.</p>
     <h3>Printed-page coverage</h3>
@@ -139,7 +142,7 @@ function renderHebrewWeakVerbSources(referenceLibrary){
   if(!source) return '<p>Detailed Hebrew weak-verb bibliography is not yet available in this installation.</p>';
   const coverage=hebrewWeakSourceCoverage(referenceLibrary).map(group=>{
     const pageLabel=String(group.source.printedPages).includes('–')?'pp.':'p.';
-    const roots=[...group.roots].map(root=>`<span lang="he" dir="rtl">${escapeAboutSourcesHtml(root)}</span>`).join(', ');
+    const roots=[...group.roots].map(root=>`<span class="hebrew-text" lang="he" dir="rtl">${escapeAboutSourcesHtml(root)}</span>`).join(', ');
     return `<li><strong>${escapeAboutSourcesHtml(group.weakClassLabel)}</strong> · Printed ${pageLabel} ${escapeAboutSourcesHtml(group.source.printedPages)} · ${escapeAboutSourcesHtml(group.source.sections)}<br><span>Representative root${group.roots.size===1?'':'s'}: ${roots}; stems: ${escapeAboutSourcesHtml([...group.stems].join(', '))}; forms: ${escapeAboutSourcesHtml([...group.forms].join(', '))}${group.source.complete?'':' (limited examples)'}</span></li>`;
   }).join('');
   return `<p>The weak-verb charts use the same Gesenius-Kautzsch-Cowley edition and page-image scan recorded above. Printed paradigms D–P and the corresponding discussions in §§62–78 were checked directly; OCR was used only to locate candidate rows.</p>
@@ -149,11 +152,49 @@ function renderHebrewWeakVerbSources(referenceLibrary){
     <h4>Conventions and honest omissions</h4>
     <ul>
       <li>Starred and bracketed alternatives in Gesenius are not silently reconciled. The charts use the directly printed main forms; alternate pointing is recorded in chart metadata and narrowed notes.</li>
-      <li>The I-Yod family distinguishes historical I-Waw <span lang="he" dir="rtl">ישב</span> from true I-Yod <span lang="he" dir="rtl">יטב</span>.</li>
+      <li>The I-Yod family distinguishes historical I-Waw <span class="hebrew-text" lang="he" dir="rtl">ישב</span> from true I-Yod <span class="hebrew-text" lang="he" dir="rtl">יטב</span>.</li>
       <li>Biconsonantal Middle Waw and Middle Yod subtypes remain distinct.</li>
       <li>Biconsonantal Middle Yod, Doubly Weak, and Irregular coverage is limited to directly printed examples. It is not presented as a complete productive paradigm.</li>
       <li>III-Aleph is a recognized positional class but has no source-backed v1.3.6a paradigm and is not presented as implemented coverage.</li>
-      <li>No pronominal suffix system, nominal morphology, or Grammar Handbook explanation was added. Full weak-verb explanation remains deferred.</li>
+      <li>The weak-verb registry does not generate noun or suffix forms. The separate v1.3.6b noun-and-suffix registry below remains independently sourced.</li>
+      <li>Full weak-verb explanation in the Grammar Handbook remains deferred.</li>
+    </ul>`;
+}
+function hebrewNominalSourceCoverage(referenceLibrary){
+  const groups=new Map();
+  for(const chart of referenceLibrary?.hebrewNominalAndSuffixCharts||[]){
+    if(!chart.source) continue;
+    const key=`${chart.morphologyFamily}|${chart.source.printedPages}|${chart.source.sections}|${chart.source.table}`;
+    if(!groups.has(key)) groups.set(key,{ source:chart.source, morphologyFamily:chart.morphologyFamily, charts:[] });
+    groups.get(key).charts.push(chart);
+  }
+  return Array.from(groups.values());
+}
+function renderHebrewNominalSuffixSources(referenceLibrary){
+  const charts=referenceLibrary?.hebrewNominalAndSuffixCharts||[];
+  const source=charts[0]?.source;
+  if(!source) return '<p>Detailed Hebrew noun-and-suffix bibliography is not yet available in this installation.</p>';
+  const coverage=hebrewNominalSourceCoverage(referenceLibrary).map(group=>{
+    const pageLabel=String(group.source.printedPages).includes('–')||String(group.source.printedPages).includes(',')?'pp.':'p.';
+    const familyLabel=referenceLibrary?.hebrewNominalClassroomLabels?.[group.morphologyFamily]||group.morphologyFamily;
+    const labels=group.charts.map(chart=>`${renderAboutSourcesText(chart.label)}${chart.source.complete?'':' (limited)'}`).join('; ');
+    const representatives=[...new Set(group.charts.flatMap(chart=>chart.representativeLexemes||[]))].join(', ');
+    return `<li><strong>${escapeAboutSourcesHtml(familyLabel)}</strong> · Printed ${pageLabel} ${escapeAboutSourcesHtml(group.source.printedPages)} · ${escapeAboutSourcesHtml(group.source.sections)}<br><span>${labels}</span>${representatives?`<br><span>Representatives: <span class="hebrew-text" lang="he" dir="rtl">${escapeAboutSourcesHtml(representatives)}</span></span>`:''}<br><span>Table: ${escapeAboutSourcesHtml(group.source.table)}. Coverage: ${group.source.complete?'complete for the named rows':'limited to the named examples'}.</span>${group.source.limitation?`<br><span>Limit: ${escapeAboutSourcesHtml(group.source.limitation)}</span>`:''}</li>`;
+  }).join('');
+  return `<p>Gesenius-Kautzsch-Cowley 1910 supplies the row-level forms for the construct-state, pronominal-suffix, prepositional-suffix, limited verbal-object-suffix, segolate, reducible-vowel, and irregular-noun charts. Every displayed Hebrew form was checked against the printed image; OCR was used only for location.</p>
+    <p>Gary D. Pratico and Miles V. Van Pelt, <cite>Basics of Biblical Hebrew Grammar</cite>, 3rd ed. (2019), guide the modern classroom terminology, grouping, and presentation order where practical; they are not claimed as the transcription source for these rows. Gesenius terminology remains in source notes where it is historically or technically useful. User-facing labels may therefore differ from the source's technical headings.</p>
+    <p>Coverage labels distinguish complete paradigms for the named rows from limited examples. Neither label implies a productive generator or exhaustive account of the noun class.</p>
+    <h4>Chart and printed-page coverage</h4>
+    <ul class="about-sources-coverage">${coverage}</ul>
+    <h4>Conventions and honest omissions</h4>
+    <ul>
+      <li>First-person suffixes are common gender. Second- and third-person rows preserve person, gender, and number separately.</li>
+      <li>Construct and suffixed stems are shown only for the named representative nouns; the charts are not productive noun generators.</li>
+      <li>The plural <span class="hebrew-text" lang="he" dir="rtl">בָּנִים</span> and selected spatial-preposition tables omit 2fp because the approved table does not print it.</li>
+      <li>No complete <span class="hebrew-text" lang="he" dir="rtl">בְּ</span>, <span class="hebrew-text" lang="he" dir="rtl">כְּ</span>, or <span class="hebrew-text" lang="he" dir="rtl">לִפְנֵי</span> suffix system is inferred from neighboring patterns.</li>
+      <li>Verbal object suffixes are limited to five directly printed perfect examples. They do not alter or generate the strong- or weak-verb registries.</li>
+      <li>Segolate and peculiar-noun labels are recognition descriptions, not claims of an exhaustive historical or lexical classification.</li>
+      <li>Grammar Handbook explanation and Learn drill behavior remain deferred.</li>
     </ul>`;
 }
 function renderAboutSources(){
@@ -164,7 +205,7 @@ function renderAboutSources(){
     <div class="about-sources-header"><div><div class="panel-title">About &amp; Sources</div><div class="panel-sub">Project purpose, sources, and scholarly limits</div></div><button class="btn btn-ghost btn-sm" id="aboutSourcesBackBtn" type="button">← Settings</button></div>
     <section id="about-the-puritan-parser"><h2>About The Puritan Parser</h2><p>The Puritan Parser is a local-first reading and learning tool designed to help students become increasingly independent readers of biblical Greek and Hebrew.</p></section>
     <section id="greek-reference-sources"><h2>Greek Reference Sources</h2>${renderGreekReferenceSources(referenceLibrary)}</section>
-    <section id="hebrew-reference-sources"><h2>Hebrew Reference Sources</h2><h3>Strong verbs</h3>${renderHebrewReferenceSources(referenceLibrary)}<h3>Weak verbs</h3>${renderHebrewWeakVerbSources(referenceLibrary)}</section>
+    <section id="hebrew-reference-sources"><h2>Hebrew Reference Sources</h2><h3>Strong verbs</h3>${renderHebrewReferenceSources(referenceLibrary)}<h3>Weak verbs</h3>${renderHebrewWeakVerbSources(referenceLibrary)}<div id="hebrew-nominal-suffix-sources"><h3>Nouns and suffixes</h3>${renderHebrewNominalSuffixSources(referenceLibrary)}</div></section>
     <section id="text-translation-sources"><h2>Text and Translation Sources</h2><p>Greek Reader data is generated from MorphGNT’s SBLGNT Edition. Hebrew Reader data comes from Open Scriptures Hebrew Bible morphology and the Westminster Leningrad Codex text. Built-in English translations are the Open English Bible and the World English Bible.</p></section>
     <section id="data-licensing"><h2>Data and Licensing</h2><p>MorphGNT morphology and lemmatization are provided under CC BY-SA; the SBLGNT text remains subject to its EULA. Open Scriptures Hebrew morphology is identified as CC BY 4.0 and the Westminster Leningrad Codex text as public domain. The Open English Bible is CC0, and the World English Bible is public domain.</p></section>
     <section id="methodology-limitations"><h2>Methodology and Limitations</h2><p>Source-backed forms are shown only where the repository records adequate support. Missing paradigms and variants are omitted or described as limited rather than generated by analogy. Structural tests protect data shape and navigation, but do not replace scholarly verification.</p></section>
@@ -183,4 +224,4 @@ function openAboutSources(anchor=''){
   showView('aboutSourcesView', { skipHistory: true });
 }
 if(typeof window !== 'undefined') Object.assign(window, { SRS_PRESETS, inferSrsPreset, applySrsPreset, renderAboutSources, openAboutSources });
-if(typeof module !== 'undefined') module.exports = { SRS_PRESETS, inferSrsPreset, applySrsPreset, greekSourceCoverage, renderGreekReferenceSources, hebrewSourceCoverage, renderHebrewReferenceSources, hebrewWeakSourceCoverage, renderHebrewWeakVerbSources };
+if(typeof module !== 'undefined') module.exports = { SRS_PRESETS, inferSrsPreset, applySrsPreset, greekSourceCoverage, renderGreekReferenceSources, hebrewSourceCoverage, renderHebrewReferenceSources, hebrewWeakSourceCoverage, renderHebrewWeakVerbSources, hebrewNominalSourceCoverage, renderHebrewNominalSuffixSources };
