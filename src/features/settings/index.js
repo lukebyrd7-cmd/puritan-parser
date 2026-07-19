@@ -116,7 +116,44 @@ function renderHebrewReferenceSources(referenceLibrary){
       <li>Wayyiqtol is the app’s label for Gesenius’ “imperfect with wāw consecutive.” Only the Qal and Hiphil row-level forms directly printed in §49 are included.</li>
       <li>Paradigm B marks the Pual and Hophal infinitive construct and imperative as “wanting”; these charts are omitted rather than completed by analogy.</li>
       <li>Participles are limited to the masculine-singular recognition anchors printed in Paradigm B. Full participial declensions are not inferred.</li>
-      <li>No weak-root paradigm, suffix expansion, or Grammar Handbook syntax expansion is included in this source-backed registry.</li>
+      <li>This strong-root registry remains separate from the weak-root charts below. No suffix expansion or Grammar Handbook syntax expansion is included.</li>
+    </ul>`;
+}
+function hebrewWeakSourceCoverage(referenceLibrary){
+  const groups = new Map();
+  for(const chart of referenceLibrary?.hebrewWeakVerbCharts || []){
+    if(!chart.source) continue;
+    const key = `${chart.weakClassId}|${chart.source.printedPages}|${chart.source.sections}`;
+    if(!groups.has(key)) groups.set(key, { weakClassId:chart.weakClassId, weakClassLabel:chart.weakClassDisplayLabel||chart.weakClassLabel, source:chart.source, roots:new Set(), stems:new Set(), forms:new Set(), charts:[] });
+    const group=groups.get(key);
+    group.roots.add(chart.representativeRoot);
+    group.stems.add(chart.stemId);
+    group.forms.add(chart.formCategory);
+    group.charts.push(chart);
+  }
+  return Array.from(groups.values());
+}
+function renderHebrewWeakVerbSources(referenceLibrary){
+  const charts=referenceLibrary?.hebrewWeakVerbCharts||[];
+  const source=charts[0]?.source;
+  if(!source) return '<p>Detailed Hebrew weak-verb bibliography is not yet available in this installation.</p>';
+  const coverage=hebrewWeakSourceCoverage(referenceLibrary).map(group=>{
+    const pageLabel=String(group.source.printedPages).includes('–')?'pp.':'p.';
+    const roots=[...group.roots].map(root=>`<span lang="he" dir="rtl">${escapeAboutSourcesHtml(root)}</span>`).join(', ');
+    return `<li><strong>${escapeAboutSourcesHtml(group.weakClassLabel)}</strong> · Printed ${pageLabel} ${escapeAboutSourcesHtml(group.source.printedPages)} · ${escapeAboutSourcesHtml(group.source.sections)}<br><span>Representative root${group.roots.size===1?'':'s'}: ${roots}; stems: ${escapeAboutSourcesHtml([...group.stems].join(', '))}; forms: ${escapeAboutSourcesHtml([...group.forms].join(', '))}${group.source.complete?'':' (limited examples)'}</span></li>`;
+  }).join('');
+  return `<p>The weak-verb charts use the same Gesenius-Kautzsch-Cowley edition and page-image scan recorded above. Printed paradigms D–P and the corresponding discussions in §§62–78 were checked directly; OCR was used only to locate candidate rows.</p>
+    <p><strong>Display terminology.</strong> Weak-class labels follow the positional classification commonly used by Gary D. Pratico and Miles V. Van Pelt, <cite>Basics of Biblical Hebrew Grammar</cite>, 3rd ed. (Zondervan Academic, 2019). This terminology source supplies the class names only; the Hebrew forms remain verified against Gesenius. Historical and morphological subtypes remain visible where they aid recognition.</p>
+    <h4>Class, root, stem, and form coverage</h4>
+    <ul class="about-sources-coverage">${coverage}</ul>
+    <h4>Conventions and honest omissions</h4>
+    <ul>
+      <li>Starred and bracketed alternatives in Gesenius are not silently reconciled. The charts use the directly printed main forms; alternate pointing is recorded in chart metadata and narrowed notes.</li>
+      <li>The I-Yod family distinguishes historical I-Waw <span lang="he" dir="rtl">ישב</span> from true I-Yod <span lang="he" dir="rtl">יטב</span>.</li>
+      <li>Biconsonantal Middle Waw and Middle Yod subtypes remain distinct.</li>
+      <li>Biconsonantal Middle Yod, Doubly Weak, and Irregular coverage is limited to directly printed examples. It is not presented as a complete productive paradigm.</li>
+      <li>III-Aleph is a recognized positional class but has no source-backed v1.3.6a paradigm and is not presented as implemented coverage.</li>
+      <li>No pronominal suffix system, nominal morphology, or Grammar Handbook explanation was added. Full weak-verb explanation remains deferred.</li>
     </ul>`;
 }
 function renderAboutSources(){
@@ -127,7 +164,7 @@ function renderAboutSources(){
     <div class="about-sources-header"><div><div class="panel-title">About &amp; Sources</div><div class="panel-sub">Project purpose, sources, and scholarly limits</div></div><button class="btn btn-ghost btn-sm" id="aboutSourcesBackBtn" type="button">← Settings</button></div>
     <section id="about-the-puritan-parser"><h2>About The Puritan Parser</h2><p>The Puritan Parser is a local-first reading and learning tool designed to help students become increasingly independent readers of biblical Greek and Hebrew.</p></section>
     <section id="greek-reference-sources"><h2>Greek Reference Sources</h2>${renderGreekReferenceSources(referenceLibrary)}</section>
-    <section id="hebrew-reference-sources"><h2>Hebrew Reference Sources</h2><h3>Strong verbs</h3>${renderHebrewReferenceSources(referenceLibrary)}</section>
+    <section id="hebrew-reference-sources"><h2>Hebrew Reference Sources</h2><h3>Strong verbs</h3>${renderHebrewReferenceSources(referenceLibrary)}<h3>Weak verbs</h3>${renderHebrewWeakVerbSources(referenceLibrary)}</section>
     <section id="text-translation-sources"><h2>Text and Translation Sources</h2><p>Greek Reader data is generated from MorphGNT’s SBLGNT Edition. Hebrew Reader data comes from Open Scriptures Hebrew Bible morphology and the Westminster Leningrad Codex text. Built-in English translations are the Open English Bible and the World English Bible.</p></section>
     <section id="data-licensing"><h2>Data and Licensing</h2><p>MorphGNT morphology and lemmatization are provided under CC BY-SA; the SBLGNT text remains subject to its EULA. Open Scriptures Hebrew morphology is identified as CC BY 4.0 and the Westminster Leningrad Codex text as public domain. The Open English Bible is CC0, and the World English Bible is public domain.</p></section>
     <section id="methodology-limitations"><h2>Methodology and Limitations</h2><p>Source-backed forms are shown only where the repository records adequate support. Missing paradigms and variants are omitted or described as limited rather than generated by analogy. Structural tests protect data shape and navigation, but do not replace scholarly verification.</p></section>
@@ -146,4 +183,4 @@ function openAboutSources(anchor=''){
   showView('aboutSourcesView', { skipHistory: true });
 }
 if(typeof window !== 'undefined') Object.assign(window, { SRS_PRESETS, inferSrsPreset, applySrsPreset, renderAboutSources, openAboutSources });
-if(typeof module !== 'undefined') module.exports = { SRS_PRESETS, inferSrsPreset, applySrsPreset, greekSourceCoverage, renderGreekReferenceSources, hebrewSourceCoverage, renderHebrewReferenceSources };
+if(typeof module !== 'undefined') module.exports = { SRS_PRESETS, inferSrsPreset, applySrsPreset, greekSourceCoverage, renderGreekReferenceSources, hebrewSourceCoverage, renderHebrewReferenceSources, hebrewWeakSourceCoverage, renderHebrewWeakVerbSources };

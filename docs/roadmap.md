@@ -86,7 +86,10 @@ The v5.7 Onboarding foundation is complete. Current v5 work can move toward Stud
 - Complete: Establish Tier 2: Morphology Guide, Reading Helps, Parsing Abbreviations, Stem Summaries.
 - Complete: Keep supplemental material available without crowding the first screen.
 - Complete: Preserve Recognition engine compatibility with Reference-backed paradigm data.
-- Deferred: deeper advanced syntax, fuller supplemental resources, and specialist-reviewed weak-verb expansion.
+- Complete in v1.3.6a: source-backed Hebrew weak-verb recognition charts for the major weak classes, with exact Gesenius page/section metadata and focused filters.
+- Complete in PR #63 refinement: adopt Pratico–Van Pelt positional terminology for visible weak-class labels while preserving Gesenius as the form source and retaining stable internal IDs.
+- Deferred: a separately sourced III-Aleph paradigm; the label is recognized but no v1.3.6a chart is inferred.
+- Deferred: deeper advanced syntax, fuller supplemental resources, exhaustive doubly weak coverage, suffix systems, nominal morphology, and weak-verb Handbook explanation.
 
 ### v5.6: Progress Redesign
 

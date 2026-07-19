@@ -45,6 +45,10 @@ Primary comparison anchors: Wallace and Mounce for Greek categories and regular 
 - Wayyiqtol is structurally distinct from the ordinary imperfect and is limited to Qal 3ms/1cs and Hiphil 3ms forms directly printed in §49b–c, pp. 133–134.
 - Pual and Hophal infinitive constructs and imperatives are omitted because Paradigm B explicitly marks them “wanting.” No empty or mathematically generated charts replace them.
 - User-facing stem labels follow the app's modern convention; About & Sources records Gesenius' Niphʿal, Piʿel, Puʿal, Hiphʿil, Hophʿal, and Hithpaʿel terminology.
+- The v1.3.6a weak-verb forms are checked directly against Gesenius §§62–78 (printed pp. 164–219) and Paradigms D–P (printed pp. 514–529). User-facing class labels follow Pratico–Van Pelt positional terminology while the stable internal IDs retain their original v1.3.6a values.
+- Visible coverage is I-Guttural, II-Guttural, III-ח/ע, I-Nun, I-Yod, Biconsonantal, Geminate, III-He, Doubly Weak, and Irregular. Historical I-Waw/true I-Yod and Middle Waw/Middle Yod remain distinct subtypes. III-Aleph is recognized but not implemented in this milestone.
+- Each weak chart records the affected radical and a concise expected-strong versus attested-weak comparison. The Reference UI filters the normalized registry by weak class, stem, and form category.
+- Pointing, dagesh, reduced vowels, mater behavior, and furtive patah in included forms were checked against the printed page images. OCR was used only to locate candidate rows.
 - Hebrew noun terminology is broadly appropriate: construct state, absolute state, dual, pronominal suffixes, article, suffix forms, and state-based reading.
 - Hebrew verb terminology is broadly appropriate: stem/binyan, strong verb, perfect, imperfect, imperative, infinitive construct, infinitive absolute, participle, aspect, wayyiqtol/waw consecutive, weak roots, and stem relationships.
 
@@ -52,7 +56,8 @@ Primary comparison anchors: Wallace and Mounce for Greek categories and regular 
 
 - Participles remain limited to the masculine-singular anchor forms printed in Paradigm B. Full gender/number/state declensions need a separate row-level source before expansion.
 - Gesenius §49 explains the consecutive forms but does not print a complete person-by-person strong paradigm. Only its directly printed Qal and Hiphil examples are registered.
-- Weak-verb sections are recognition snapshots, not full paradigms. They should not become drill sources without separate weak-root paradigm validation.
+- Weak-verb coverage is reading-recognition focused rather than exhaustive. Biconsonantal Middle Yod, Doubly Weak, and Irregular charts are deliberately limited to directly printed examples; starred and bracketed variants are not silently reconciled.
+- Recognition practice consumes the newly verified Qal/Niphal/Piel/Hiphil/Hitpael charts through the existing Reference-backed API. Pual and Hophal remain excluded from Learn recognition targets, and no SRS or persisted-state behavior changed.
 - Some Hebrew examples are labeled representative rather than tied to a specific verse. That is acceptable for the current reference section, but future scholarly polish could prefer attested examples where possible.
 
 ### ✖ Corrected
@@ -62,6 +67,7 @@ Primary comparison anchors: Wallace and Mounce for Greek categories and regular 
 - Added separate navigation by stem and by form category, including a distinct wayyiqtol destination, without expanding the Grammar Handbook.
 - Earlier work corrected non-Qal stem summary aliasing. v1.3.5 now rebuilds those summaries from the same source-backed `hebrewStrongVerbCharts` registry used by focused Paradigm Charts.
 - Added regression coverage so non-Qal Hebrew summary rows cannot silently diverge from the stem-specific paradigm data.
+- Replaced the undocumented weak snapshots in focused Paradigm Charts with the 37-chart source-backed v1.3.6a registry while keeping full explanatory prose out of Paradigm Charts and the Grammar Handbook.
 
 ## Future Improvements
 
@@ -69,7 +75,7 @@ Primary comparison anchors: Wallace and Mounce for Greek categories and regular 
 - Add a small grammar-data audit script that checks for duplicated Qal forms inside non-Qal charts, unresolved `Needs review` cells, and malformed object cells in drill-eligible data.
 - Add source notes in code comments or docs identifying which grammar family each paradigm convention follows when standard introductory grammars differ.
 - Keep the v1.3.4 source-backed charts distinct from drill eligibility; structural and page-image verification do not by themselves define future recognition-item selection policy.
-- Expand Hebrew validation before future weak-root, suffix, nominal, or full participle work; v1.3.5 deliberately does not infer those forms.
+- Use a separately approved source map before adding rare weak-root variants, suffix, nominal, or full participle work; v1.3.6a deliberately does not infer those forms.
 
 ## Regression Notes
 
@@ -77,4 +83,5 @@ Primary comparison anchors: Wallace and Mounce for Greek categories and regular 
 - Added tests for Greek participle declension rows to ensure detail tables use verified forms rather than suffix guesses.
 - Added v1.3.4 tests for unique IDs, source pages, NFC, imperative person restrictions, participle row structure, contract and μι representatives, nominal/pronoun categories, source-note links, Hebrew isolation, and Handbook scope.
 - Added v1.3.5 tests for all seven stems, valid finite/non-finite structures, honest passive-stem omissions, distinct wayyiqtol rows, exact Gesenius metadata, NFC/pointing, RTL markup, About & Sources coverage, and Greek/Handbook isolation.
+- Added v1.3.6a tests for required weak classes, stable IDs, representative roots, exact provenance, strong/weak comparisons, NFC and pointing, furtive patah/dagesh/reduced vowels, RTL markup, class/stem/form filtering, centralized source notes, recognition compatibility, and Greek/suffix/nominal/Handbook/persistence isolation.
 - Focused reference-library tests pass after corrections.

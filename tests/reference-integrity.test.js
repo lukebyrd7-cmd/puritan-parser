@@ -1,6 +1,7 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
+const crypto = require('node:crypto');
 
 const library = require('../src/features/grammar/reference-data');
 const settings = require('../src/features/settings');
@@ -122,8 +123,8 @@ test('v1.3.1 Reference charts have consistent rows, supported labels, and langua
 
 test('v1.3.1 app shell and service worker keep Reference assets reachable without stale versioning', () => {
   const sw = fs.readFileSync('sw.js', 'utf8');
-  assert.match(sw, /puritan-parser-v43-v1\.3\.5-hebrew-strong-verbs/, 'service-worker cache version is bumped for Reference changes');
-  assert.match(fs.readFileSync('index.html', 'utf8'), /src\/main\.js\?v=v1\.3\.5-hebrew-strong-verbs/, 'startup query string is bumped with the cache');
+  assert.match(sw, /puritan-parser-v45-v1\.3\.6a-weak-verb-terminology/, 'service-worker cache version is bumped for Reference changes');
+  assert.match(fs.readFileSync('index.html', 'utf8'), /src\/main\.js\?v=v1\.3\.6a-weak-verb-terminology/, 'startup query string is bumped with the cache');
   assert.match(sw, /\.\/src\/features\/grammar\/reference-data\.js/);
   assert.match(sw, /\.\/src\/features\/grammar\/index\.js/);
   assert.doesNotMatch(sw, /reference-audit\.md|reference-sources\.md/, 'docs are not app-shell assets');
@@ -459,4 +460,139 @@ test('v1.3.5 About & Sources centralizes coverage without expanding Greek or the
   assert.equal(library.greekAdditionalParadigmCharts.length, 73);
   assert.equal(topicCharts(library.getReferenceTopic('hebrew-grammar-handbook')).some(chart => chart.milestone === 'v1.3.5'), false);
   assert.equal(library.hebrewStrongVerbCharts.some(chart => chart.representativeRoot !== 'קטל'), false);
+});
+
+test('v1.3.6a registers every required Hebrew weak class with stable unique ids', () => {
+  const charts=library.hebrewWeakVerbCharts;
+  const required=['pe-nun','pe-yod-waw','hollow-ayin-waw','hollow-ayin-yod','geminate','lamed-he','initial-guttural','medial-guttural','final-guttural','doubly-weak','irregular'];
+  assert.ok(charts.length >= 35, 'weak-root coverage is substantial');
+  assert.equal(new Set(charts.map(chart=>chart.id)).size, charts.length);
+  assert.deepEqual([...new Set(charts.map(chart=>chart.weakClassId))].sort(), required.sort());
+  for(const chart of charts){
+    assert.match(chart.id,/^hebrew-weak-[a-z-]+$/);
+    assert.equal(chart.milestone,'v1.3.6a');
+    assert.equal(chart.language,'hebrew');
+    assert.ok(library.hebrewWeakClassLabels[chart.weakClassId]);
+    assert.match(chart.stemId,/^(qal|niphal|piel|pual|hiphil|hophal|hitpael)$/);
+    assert.ok(chart.formCategory);
+  }
+});
+
+test('v1.3.6a weak representative roots and comparison metadata match their classes', () => {
+  const validRoots={
+    'pe-nun':new Set(['נגש','נפל']), 'pe-yod-waw':new Set(['ישב','יטב']),
+    'hollow-ayin-waw':new Set(['קום']), 'hollow-ayin-yod':new Set(['שית']), geminate:new Set(['סבב']),
+    'lamed-he':new Set(['גלה']), 'initial-guttural':new Set(['עמד']), 'medial-guttural':new Set(['שחט','ברך']),
+    'final-guttural':new Set(['שלח']), 'doubly-weak':new Set(['נשא','היה']), irregular:new Set(['אכל'])
+  };
+  for(const chart of library.hebrewWeakVerbCharts){
+    assert.ok(validRoots[chart.weakClassId].has(chart.representativeRoot),`${chart.id} root matches its class`);
+    assert.ok(chart.affectedRadical);
+    assert.ok(chart.comparison.expectedStrong);
+    assert.ok(chart.comparison.attestedWeak);
+    assert.ok(chart.comparison.change);
+    assert.ok(chart.comparison.recognitionCue);
+    assert.deepEqual(chart.columns,['Form','Strong pattern','Attested weak form','Recognition cue']);
+  }
+});
+
+test('v1.3.6a weak charts retain exact Gesenius provenance and normalized pointing', () => {
+  for(const chart of library.hebrewWeakVerbCharts){
+    assert.equal(chart.source.author,'Wilhelm Gesenius');
+    assert.equal(chart.source.edition,'Second English edition, revised according to the twenty-eighth German edition of 1909');
+    assert.equal(chart.source.scanId,'geseniushebrewgr00geseuoft');
+    assert.match(String(chart.source.printedPages),/\d/);
+    assert.match(chart.source.sections,/§|Paradigm/);
+    assert.ok(chart.source.table);
+    assert.equal(typeof chart.source.complete,'boolean');
+    assert.equal(typeof chart.source.alternatePointing,'string');
+    const forms=chart.rows.flatMap(row=>row.slice(1,3)).flatMap(value=>String(value).match(/[\u0590-\u05ff]+/g)||[]);
+    assert.ok(forms.length);
+    for(const form of forms){
+      assert.equal(form,form.normalize('NFC'),`${chart.id}: ${form} is NFC`);
+      assert.match(form,/[\u05b0-\u05bc]/,`${chart.id}: ${form} retains pointing`);
+    }
+  }
+  assert.ok(library.hebrewWeakVerbCharts.some(chart=>chart.rows.flat().includes('שְׁלֹחַ')),'furtive patah is retained');
+  assert.ok(library.hebrewWeakVerbCharts.some(chart=>chart.rows.flat().includes('יִגַּשׁ')),'nun assimilation dagesh is retained');
+  assert.ok(library.hebrewWeakVerbCharts.some(chart=>chart.rows.flat().includes('עֲמַדְתֶּם')),'reduced vowel is retained');
+});
+
+test('v1.3.6a filters weak charts by class, stem, and form without touching strong charts', () => {
+  const peNun=library.filterHebrewWeakVerbCharts({weakClassId:'pe-nun'});
+  assert.ok(peNun.length>0 && peNun.every(chart=>chart.weakClassId==='pe-nun'));
+  const qalImperfect=library.filterHebrewWeakVerbCharts({stemId:'qal',formCategory:'imperfect'});
+  assert.ok(qalImperfect.length>0 && qalImperfect.every(chart=>chart.stemId==='qal'&&chart.formCategory==='imperfect'));
+  assert.equal(library.filterHebrewWeakVerbCharts({weakClassId:'lamed-he',stemId:'hiphil',formCategory:'imperfect'}).length,1);
+  assert.equal(library.hebrewStrongVerbCharts.length,41);
+  assert.equal(new Set([...library.hebrewStrongVerbCharts,...library.hebrewWeakVerbCharts].map(chart=>chart.id)).size,library.hebrewStrongVerbCharts.length+library.hebrewWeakVerbCharts.length);
+});
+
+test('v1.3.6a weak navigation, RTL cells, filters, and source links remain accessible', () => {
+  const paradigms=library.getReferenceTopic('hebrew-paradigm-charts');
+  const weakTab=paradigms.sectionTabs.find(tab=>tab.id==='weak-verbs');
+  assert.ok(weakTab?.filterableWeakCharts);
+  assert.equal(weakTab.sections[0].charts.length,library.hebrewWeakVerbCharts.length);
+  const ui=fs.readFileSync('src/features/grammar/index.js','utf8');
+  assert.match(ui,/Filter Hebrew weak-verb charts/);
+  assert.match(ui,/data-weak-filter="weakClass"/);
+  assert.match(ui,/data-weak-filter="stem"/);
+  assert.match(ui,/data-weak-filter="formCategory"/);
+  assert.match(ui,/lang="he" dir="rtl"/);
+  assert.match(ui,/View source notes/);
+  assert.doesNotMatch(ui,/Clarendon Press, 1910|Gesenius' Hebrew Grammar/);
+  const ids=[...fs.readFileSync('index.html','utf8').matchAll(/\sid="([^"]+)"/g)].map(match=>match[1]);
+  assert.equal(new Set(ids).size,ids.length,'static app shell has no duplicate DOM ids');
+});
+
+test('v1.3.6a About & Sources covers weak verbs without expanding deferred areas', () => {
+  const html=settings.renderHebrewWeakVerbSources(library);
+  for(const label of Object.values(library.hebrewWeakClassLabels)) assert.match(html,new RegExp(label.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')));
+  assert.match(html,/printed paradigms D–P/i);
+  assert.match(html,/limited examples/i);
+  assert.match(html,/No pronominal suffix system, nominal morphology, or Grammar Handbook explanation/i);
+  assert.equal(topicCharts(library.getReferenceTopic('hebrew-grammar-handbook')).some(chart=>chart.milestone==='v1.3.6a'),false);
+  assert.equal(library.greekCoreIndicativeCharts.length,20);
+  assert.equal(library.greekAdditionalParadigmCharts.length,73);
+  assert.equal(library.hebrewWeakVerbCharts.some(chart=>/suffix/i.test(chart.formCategory)),false);
+  assert.equal(library.hebrewWeakVerbCharts.some(chart=>/noun|nominal/i.test(chart.label)),false);
+});
+
+test('v1.3.6a visible weak-class terminology follows the approved positional labels', () => {
+  assert.deepEqual(library.hebrewWeakClassLabels, {
+    'pe-nun':'I-Nun',
+    'pe-yod-waw':'I-Yod',
+    'hollow-ayin-waw':'Biconsonantal — Middle Waw',
+    'hollow-ayin-yod':'Biconsonantal — Middle Yod',
+    geminate:'Geminate',
+    'lamed-he':'III-He',
+    'initial-guttural':'I-Guttural',
+    'medial-guttural':'II-Guttural',
+    'final-guttural':'III-ח/ע',
+    'doubly-weak':'Doubly Weak',
+    irregular:'Irregular'
+  });
+  const historical=library.hebrewWeakVerbCharts.filter(chart=>chart.representativeRoot==='ישב');
+  const trueYod=library.hebrewWeakVerbCharts.filter(chart=>chart.representativeRoot==='יטב');
+  assert.ok(historical.length && historical.every(chart=>chart.label.includes('I-Yod — Historical I-Waw') && chart.weakClassDisplayLabel==='I-Yod — Historical I-Waw'));
+  assert.ok(trueYod.length && trueYod.every(chart=>chart.label.includes('I-Yod — True I-Yod') && chart.weakClassDisplayLabel==='I-Yod — True I-Yod'));
+  assert.ok(library.hebrewWeakVerbCharts.filter(chart=>chart.weakClassId==='hollow-ayin-waw').every(chart=>chart.label.includes('Biconsonantal — Middle Waw')));
+  assert.ok(library.hebrewWeakVerbCharts.filter(chart=>chart.weakClassId==='hollow-ayin-yod').every(chart=>chart.label.includes('Biconsonantal — Middle Yod')));
+  assert.ok(library.hebrewWeakVerbCharts.filter(chart=>chart.weakClassId==='final-guttural').every(chart=>chart.label.startsWith('III-ח/ע')));
+  assert.equal(library.hebrewWeakVerbCharts.some(chart=>/^Final guttural|^III-Guttural/.test(chart.label)),false);
+});
+
+test('v1.3.6a terminology refinement preserves stable ids, Hebrew forms, and persistence boundaries', () => {
+  const stableIds=library.hebrewWeakVerbCharts.map(chart=>chart.id).sort();
+  assert.equal(crypto.createHash('sha256').update(JSON.stringify(stableIds)).digest('hex'),'c49713f4a2307b7c3bed4ded9c5eb5eb6e7ab3a4e7582069100b97bdf1aef81e');
+  const hebrewForms=library.hebrewWeakVerbCharts.flatMap(chart=>chart.rows.flatMap(row=>row.slice(1,3).map(String).filter(value=>HEBREW.test(value))));
+  assert.equal(hebrewForms.length,286);
+  assert.equal(crypto.createHash('sha256').update(JSON.stringify(hebrewForms)).digest('hex'),'17143ebb4f6cba0813b186a60ce5d2a00268d0bc2b84687fc1a03603318a35aa');
+  assert.doesNotMatch(fs.readFileSync('src/core/migrations/migrations.js','utf8'),/v1\.3\.6a|weak-class|pe-yod-waw|hollow-ayin/);
+  const html=settings.renderHebrewWeakVerbSources(library);
+  assert.match(html,/Gary D\. Pratico and Miles V\. Van Pelt/);
+  assert.match(html,/Basics of Biblical Hebrew Grammar/);
+  assert.match(html,/terminology source supplies the class names only/i);
+  assert.match(html,/forms remain verified against Gesenius/i);
+  assert.match(html,/III-Aleph is a recognized positional class but has no source-backed v1\.3\.6a paradigm/i);
 });
