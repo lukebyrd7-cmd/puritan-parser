@@ -1,6 +1,18 @@
-# Reader Architecture (v3.6.2a Reader Popup Refinement)
+# Reader Architecture
 
 Historical note: this file records the v3.6 Reader architecture snapshot. Current Reader direction is governed by [Product Bible v5](product-bible-v5.md), with current shared Reader architecture summarized in [Architecture](architecture.md). Do not treat the older scope boundaries below as current v5 product limits.
+
+## v1.4.2 reading modes and place restoration
+
+The shared Greek/Hebrew Reader supports two explicit modes. Chapter mode preserves the established single-chapter behavior and remains the backward-compatible default. Continuous mode renders the selected chapter with nearby chapters from the same book, then incrementally loads another adjacent chapter near a scroll boundary. The rendered window is bounded to five chapters, uses the existing `language/book/chapter` memory cache, preserves canonical order, and rejects duplicates. It does not load a whole book or cross a book boundary automatically; restrained beginning/end labels make the boundary clear and the existing book selector remains the transition control.
+
+Continuous mode observes the small set of rendered chapter sections relative to the active scroll viewport. The chapter nearest the reading anchor becomes current, updating the chapter selector and status labels without pushing or replacing browser history. Observer callbacks do not rerender merely to change the current indicator. Scroll persistence remains debounced.
+
+`pp_reader_location` remains the sole Reader location key. Its older `language`, `book`, `chapter`, and `scrollY` records remain readable. New records also store `mode`, a stable verse anchor, the verse's viewport-relative offset, and the Scripture pane's scroll offset. Restoration waits for chapter content to render and is cancelled when newer user scrolling wins. Mode changes, original/English visibility changes, translation changes, and other Reader rerenders capture and restore the same logical anchor rather than returning to the top. No migration or storage-key rename is required.
+
+Original and English visibility share one settings state and can show original only, English only, or both. When both are visible, English is visually secondary and follows its corresponding source paragraph. The same state drives the primary controls and the mobile toolbar, so the controls cannot drift apart. At widths up to 640px the primary controls participate in document scrolling; once they leave the viewport, an IntersectionObserver reveals a compact, safe-area-aware toolbar with the current chapter and the two visibility buttons. The toolbar is absent on desktop and reserves bottom passage space on mobile.
+
+Continuous reading deliberately omits automatic book transitions, unbounded DOM retention, interlinear realignment work, annotations, bookmarks, and reading-history analytics. Chapter JSON and translation JSON remain runtime-loaded and runtime-cached; none are added to the startup precache.
 
 The Reader is a reading-first shell for the Greek New Testament. It intentionally avoids interlinear display, inline glosses, notes, highlighting, commentary, AI, accounts, sync, and Hebrew reading.
 
@@ -163,13 +175,13 @@ Known limitation: the audit reports verse-number gaps where the SBLGNT/MorphGNT 
 
 ## Lazy loading philosophy
 
-The Reader loads only the current chapter with `fetch()` through `loadReaderChapter(language, book, chapter)`. Loaded chapters are cached in memory by `language/book/chapter` so revisiting a chapter does not refetch it during the same session.
+Chapter mode loads only the current chapter with `fetch()` through `loadReaderChapter(language, book, chapter)`. Continuous mode starts with the current and immediately adjacent chapters that exist in the selected book, then grows a bounded five-chapter window as the user approaches either edge. Loaded chapters are cached in memory by `language/book/chapter` so revisiting a chapter does not refetch it during the same session.
 
 The service worker keeps JSON files out of the install precache. JSON is cached at runtime only after a feature requests it. This keeps the startup bundle small and avoids preloading the whole New Testament.
 
 ## State persistence
 
-The Reader persists the last language, book, and chapter under `pp_reader_location`. Reopening the Reader restores that location and then lazy-loads only that chapter.
+The Reader persists the last language, book, chapter, reading mode, verse anchor, anchor-relative offset, and scroll fallback under `pp_reader_location`. Reopening the Reader restores the relevant bounded content first and then restores the verse-relative place. Older location records without the added fields open in chapter mode and continue to restore safely.
 
 ## Matthew v3.6.1c audit results
 

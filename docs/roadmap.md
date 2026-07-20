@@ -23,6 +23,8 @@ Puritan Parser is a local-first Biblical Greek and Hebrew reading and study app.
 - Reader handoff into current-book Reading Readiness
 - Adaptive Reader display, translation, assistance, known-word filtering, and indicators
 - OEB and WEB Translation Integration with WEB fallback for OEB gaps
+- Chapter and bounded continuous Reader modes with stable place restoration
+- Sticky mobile original-language and English Reader controls
 - Shared Reader infrastructure for Greek and Hebrew
 - Generated data pipelines for vocabulary, glosses, and Reader chapter files
 - Local import/export and versioned storage migrations
@@ -30,6 +32,8 @@ Puritan Parser is a local-first Biblical Greek and Hebrew reading and study app.
 ## Current Focus
 
 The v5.7 Onboarding foundation is complete. Current v5 work can move toward Study Sets and practice improvements while preserving the distinction: Onboarding helps users begin, Learn trains, Reader applies, Progress measures, Reference explains, and Settings controls behavior.
+
+The v1.4.2 Reader milestone adds an opt-in continuous mode alongside the existing chapter mode. It incrementally renders nearby chapters within the selected book, tracks the chapter in view, restores a verse-relative reading anchor, and exposes compact mobile text-visibility controls after the primary controls scroll away. Crossing books remains an explicit selection rather than an automatic continuous-reading transition.
 
 ## v5 Roadmap
 

@@ -17,6 +17,10 @@ function normalizeViewId(viewId){
 }
 function showView(viewId, options = {}){
   viewId = normalizeViewId(viewId);
+  if(state.currentView === 'readerView' && viewId !== 'readerView'){
+    if(typeof suspendReader === 'function') suspendReader();
+    else if(typeof persistReaderPlaceNow === 'function') persistReaderPlaceNow();
+  }
   const views = Object.values(typeof ROUTES !== 'undefined' ? ROUTES : {}).map(route => route.viewId);
   if(!views.length) views.push('listView','flashView','parsingView','dashboardView','progressView','settingsView','aboutSourcesView','globalSearchView','grammarView','readerView','wordPageView','learnView','onboardingView','profileView');
   views.forEach(id=>{ const el=document.getElementById(id); if(el) el.classList.toggle('hidden', id!==viewId); });
