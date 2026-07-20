@@ -341,6 +341,25 @@ test('Adaptive Reader translation mode shows the Original English toggle and dis
   assert.match(unavailable, /English unavailable for this passage/);
 });
 
+test('Reader can show original and English together without duplicate anchors', () => {
+  const chapter = {
+    language: 'greek', book: 'john', bookName: 'John', chapter: 1,
+    verses: [{ verse: 1, text: 'Ἐν ἀρχῇ.', english: 'In the beginning.', tokens: [{ surface: 'Ἐν', lemma: 'ἐν', parse: 'P' }] }]
+  };
+  const html = reader.renderReaderChapter(chapter, {
+    ...reader.ReaderDefaultSettings,
+    translation: 'on',
+    showOriginal: true,
+    showEnglish: true
+  });
+  assert.match(html, /reader-parallel-paragraph/);
+  assert.match(html, /Ἐν/);
+  assert.match(html, /In the beginning/);
+  assert.equal((html.match(/data-reader-verse="1"/g) || []).length, 1);
+  const ids = [...html.matchAll(/\sid="([^"]+)"/g)].map(match => match[1]);
+  assert.equal(new Set(ids).size, ids.length);
+});
+
 test('Reader render hides the translation toggle when Translation is Off', async () => {
   storageHarness();
   reader.saveReaderSettings({ ...reader.ReaderDefaultSettings, translation: 'off' }, 'greek');
@@ -1263,7 +1282,7 @@ test('clicking a read in context occurrence opens Reader at that reference', asy
   assert.equal(reader.readerState().chapter, 1);
   assert.equal(reader.readerState().focusVerse, '1');
   assert.match(readerHtml, /John 1/);
-  assert.match(readerHtml, /readerVerse-1/);
+  assert.match(readerHtml, /readerVerse-(?:john-1-)?1/);
   delete global.showView;
 });
 
@@ -1470,7 +1489,120 @@ test('Reader text supports keyboard chapter navigation without stealing input ar
 test('last reader location persists', () => {
   storageHarness();
   reader.saveReaderLocation({ language: 'greek', book: 'mark', chapter: 1, scrollY: 420 });
-  assert.deepEqual(reader.loadReaderLocation(), { language: 'greek', book: 'mark', chapter: 1, scrollY: 420 });
+  assert.deepEqual(reader.loadReaderLocation(), {
+    language: 'greek',
+    book: 'mark',
+    chapter: 1,
+    mode: 'chapter',
+    verse: '',
+    anchorOffset: 0,
+    scrollTop: 0,
+    scrollY: 420
+  });
+});
+
+test('legacy Reader locations remain compatible and continuous locations persist stable anchors', () => {
+  const storage = storageHarness();
+  storage.set('pp_reader_location', JSON.stringify({ language: 'greek', book: 'john', chapter: 3, scrollY: 90 }));
+  assert.deepEqual(reader.loadReaderLocation(), {
+    language: 'greek', book: 'john', chapter: 3, mode: 'chapter', verse: '', anchorOffset: 0, scrollTop: 0, scrollY: 90
+  });
+
+  reader.saveReaderLocation({
+    language: 'hebrew', book: 'psalms', chapter: 23, mode: 'continuous', verse: '4', anchorOffset: 76, scrollTop: 940
+  });
+  assert.deepEqual(reader.loadReaderLocation(), {
+    language: 'hebrew', book: 'psalms', chapter: 23, mode: 'continuous', verse: '4', anchorOffset: 76, scrollTop: 940, scrollY: 0
+  });
+});
+
+test('continuous Reader window loads adjacent chapters once in canonical bounded order', async () => {
+  await reader.loadReaderManifest('greek');
+  reader.readerChapterCache.clear();
+  for(const key of Object.keys(reader.readerLoadCounts)) delete reader.readerLoadCounts[key];
+  const passages = await reader.loadReaderContinuousWindow('greek', 'john', 3, { ...reader.ReaderDefaultSettings, translation: 'off' });
+  assert.deepEqual(passages.map(item => item.chapter), [2, 3, 4]);
+  assert.equal(new Set(passages.map(item => item.chapter)).size, passages.length);
+  assert.equal(reader.readerLoadCounts['greek/john/2'], 1);
+  assert.equal(reader.readerLoadCounts['greek/john/3'], 1);
+  assert.equal(reader.readerLoadCounts['greek/john/4'], 1);
+  assert.equal(passages.length <= 5, true);
+});
+
+test('continuous Reader handles book boundaries without crossing books', async () => {
+  await reader.setReaderLocation({ language: 'greek', book: 'john', chapter: 1, mode: 'continuous' });
+  assert.equal(reader.getAdjacentReaderLocation(-1), null);
+  assert.match(reader.renderReaderPassages(), /Beginning of John/);
+  assert.deepEqual(reader.readerState().continuousChapters.map(item => item.chapter), [1, 2]);
+
+  await reader.setReaderLocation({ language: 'greek', book: 'john', chapter: 21, mode: 'continuous' });
+  assert.equal(reader.getAdjacentReaderLocation(1), null);
+  assert.match(reader.renderReaderPassages(), /End of John/);
+  assert.deepEqual(reader.readerState().continuousChapters.map(item => item.chapter), [20, 21]);
+});
+
+test('chapter and continuous mode controls are accessible and do not duplicate verse ids', async () => {
+  let html = '';
+  const shell = { set innerHTML(value){ html = value; }, get innerHTML(){ return html; } };
+  global.$ = selector => selector === '#readerShell' ? shell : null;
+  global.$$ = () => [];
+  await reader.setReaderLocation({ language: 'greek', book: 'john', chapter: 2, mode: 'continuous' });
+  assert.match(html, /aria-label="Reading mode"/);
+  assert.match(html, /data-reader-mode="chapter" aria-pressed="false"/);
+  assert.match(html, /data-reader-mode="continuous" aria-pressed="true"/);
+  const ids = [...html.matchAll(/\sid="([^"]+)"/g)].map(match => match[1]);
+  assert.equal(new Set(ids).size, ids.length);
+  assert.deepEqual(reader.readerState().continuousChapters.map(item => item.chapter), [1, 2, 3]);
+});
+
+test('switching Reader modes preserves the logical verse and chapter', async () => {
+  await reader.setReaderLocation({ language: 'greek', book: 'john', chapter: 2, mode: 'chapter', verse: '5', anchorOffset: 88 });
+  await reader.setReaderMode('continuous');
+  assert.equal(reader.readerState().mode, 'continuous');
+  assert.equal(reader.readerState().chapter, 2);
+  assert.equal(reader.readerState().focusVerse, '5');
+  assert.equal(reader.readerState().anchorVerse, '5');
+  assert.equal(reader.readerState().anchorOffset, 88);
+  await reader.setReaderMode('chapter');
+  assert.equal(reader.readerState().mode, 'chapter');
+  assert.equal(reader.readerState().chapter, 2);
+  assert.equal(reader.readerState().anchorVerse, '5');
+});
+
+test('current-chapter tracking updates controls without browser-history writes', async () => {
+  await reader.setReaderLocation({ language: 'greek', book: 'john', chapter: 2, mode: 'continuous' });
+  let historyWrites = 0;
+  const previousHistory = global.history;
+  global.history = { pushState(){ historyWrites += 1; }, replaceState(){ historyWrites += 1; } };
+  const changed = reader.updateReaderCurrentChapter(3, { persist: false });
+  assert.equal(changed, true);
+  assert.equal(reader.readerState().chapter, 3);
+  assert.equal(reader.readerState().chapterData.chapter, 3);
+  assert.equal(historyWrites, 0);
+  global.history = previousHistory;
+});
+
+test('invalid Reader location fields fail safely', async () => {
+  assert.equal(reader.normalizeReaderMode('endless'), 'chapter');
+  await reader.setReaderLocation({ language: 'unknown', book: 'missing', chapter: -50, mode: 'endless' });
+  assert.equal(reader.readerState().language, 'greek');
+  assert.equal(reader.readerState().book, 'matthew');
+  assert.equal(reader.readerState().chapter, 1);
+  assert.equal(reader.readerState().mode, 'chapter');
+});
+
+test('primary and sticky text controls expose shared pressed state and mobile safe-area styling', () => {
+  const settings = { ...reader.ReaderDefaultSettings, showOriginal: true, showEnglish: true };
+  const primary = reader.renderReaderTranslationToggle(settings, reader.readerState().chapterData);
+  const sticky = reader.renderReaderStickyToolbar(settings);
+  assert.match(primary, /data-reader-visibility="original"[^>]*aria-pressed="true"/);
+  assert.match(primary, /data-reader-visibility="english"[^>]*aria-pressed="true"/);
+  assert.match(sticky, /role="toolbar"/);
+  assert.match(sticky, /data-reader-visibility="original"[^>]*aria-pressed="true"/);
+  assert.match(sticky, /data-reader-visibility="english"[^>]*aria-pressed="true"/);
+  const css = fs.readFileSync(path.join(process.cwd(), 'styles.css'), 'utf8');
+  assert.match(css, /@media \(max-width: 640px\)[\s\S]*\.reader-sticky-toolbar[\s\S]*env\(safe-area-inset-bottom\)/);
+  assert.match(css, /\.reader-sticky-toolbar\s*\{\s*display: none/);
 });
 
 test('search supports lemma, surface text, and verse references', async () => {
