@@ -1,5 +1,6 @@
 /* ---------- Grammar & Reference Library Data ---------- */
 (function(root){
+  const handbookLibrary = root.PuritanHandbookData || (typeof module !== 'undefined' && module.exports ? require('./handbook-data') : null);
   const COLORS = {};
   const ex = (word, reference, translation, note='') => ({ word, reference, translation, note });
   const chart = (label, columns, rows, options={}) => ({ label, columns, rows, ...options });
@@ -1175,35 +1176,8 @@
     { id:'verbals', label:'Verbs & verbal forms', collapsible:true, jumpChips:verbals.map((section,index)=>({ label:section.title, target:referenceSectionSlug(section,index) })), sections:verbals }
   ];
   topics.push(
-    { id:'greek-grammar-handbook', language:'greek', title:'Grammar Handbook', category:'Grammar', summary:'Concepts and patterns for reading Greek.', body:['Choose a category, then open only the topic you need.'], recognitionTips:[], searchTerms:['Grammar Handbook','Morphology Guide','Parsing Abbreviations','N-NSM','V-AAI-3S','nouns and cases','article','adjectives','pronouns','prepositions','ambiguous forms','indicative verbs','participles','infinitives','subjunctive','imperative','middle passive voice','verbal aspect','syntax'], sectionTabs:handbookTabs([
-      sectionFromTopic('greek-case-functions','Nouns and Cases'),
-      sectionFromTopic('greek-article-endings','Article'),
-      sectionFromTopic('greek-adjective-endings','Adjectives'),
-      sectionFromTopic('greek-pronouns','Pronouns'),
-      sectionWithId(sectionByTitle(oldTopic('greek-morphology-guide').sections || [], 'What morphology describes'), 'morphology-terminology'),
-      sectionWithId(sectionByTitle(oldTopic('greek-morphology-guide').sections || [], 'Parsing Abbreviations'), 'parsing-abbreviations'),
-      sectionFromTopic('greek-prepositions','Prepositions and Particles'),
-      sectionFromTopic('grammar-parsing-ambiguity','Understanding Ambiguous Forms')
-    ], [
-      tabSection('greek-verbs','concepts','Voice'),
-      tabSection('greek-verbs','concepts','Aspect'),
-      tabSection('greek-verbs','concepts','Mood'),
-      tabSection('greek-verbs','paradigms','Participles'),
-      tabSection('greek-verbs','paradigms','Infinitives')
-    ]), charts:[], examples:[], related:['greek-paradigm-charts','grammar-parsing-ambiguity'] },
-    { id:'hebrew-grammar-handbook', language:'hebrew', title:'Grammar Handbook', category:'Grammar', summary:'Concepts and patterns for reading Hebrew.', body:['Choose a category, then open only the topic you need.'], recognitionTips:[], searchTerms:['Grammar Handbook','Morphology Guide','Parsing Abbreviations','person gender number','nouns adjectives','construct chain','pronominal suffixes','Qal verbs','derived stems','weak verbs','wayyiqtol','waw consecutive','particles','prepositions','word order','clause basics'], sectionTabs:handbookTabs([
-      sectionFromTopic('hebrew-noun-basics','Nouns and Adjectives'),
-      sectionFromTopic('hebrew-construct-chains','Construct Chain'),
-      sectionFromTopic('hebrew-pronominal-suffixes','Pronominal Suffixes'),
-      sectionFromTopic('hebrew-prefixes','Particles and Prepositions'),
-      sectionWithId(sectionByTitle(oldTopic('hebrew-morphology-guide').sections || [], 'What morphology describes'), 'morphology-terminology'),
-      sectionWithId(sectionByTitle(oldTopic('hebrew-morphology-guide').sections || [], 'Person, Gender, Number'), 'person-gender-number')
-    ], [
-      { ...tabSection('hebrew-verbs','paradigms','Qal'), charts:[] },
-      tabSection('hebrew-verbs','concepts','Stem Meanings'),
-      { ...tabSection('hebrew-verbs','paradigms','Weak Verbs'), charts:[] },
-      tabSection('hebrew-verbs','concepts','Waw Consecutive')
-    ]), charts:[], examples:[], related:['hebrew-paradigm-charts'] },
+    { id:'greek-grammar-handbook', language:'greek', title:'Grammar Handbook', category:'Grammar', summary:'A lean, reading-oriented guide to Greek forms and sentence structure.', body:['Choose a section or search for the form, structure, or reading question you need.'], recognitionTips:[], searchTerms:['Grammar Handbook','Morphology Guide','Parsing Abbreviations','N-NSM','V-AAI-3S','cases','principal parts','deponent','middle voice','genitive absolute','articular infinitive','contract verb','mi verb','μί verb','verbal aspect','syntax'], handbookSections:handbookLibrary?.sectionsForLanguage('greek') || [], charts:[], examples:[], related:['greek-paradigm-charts'] },
+    { id:'hebrew-grammar-handbook', language:'hebrew', title:'Grammar Handbook', category:'Grammar', summary:'A lean, reading-oriented guide to Hebrew forms and clause structure.', body:['Choose a section or search for the form, structure, or reading question you need.'], recognitionTips:[], searchTerms:['Grammar Handbook','Morphology Guide','Parsing Abbreviations','person gender number','construct chain','construct state','object suffix','pronominal suffix','segolate','wayyiqtol','waw consecutive','Qal','Hiphil','weak verb','I-Nun','III-He','hollow verb','geminate'], handbookSections:handbookLibrary?.sectionsForLanguage('hebrew') || [], charts:[], examples:[], related:['hebrew-paradigm-charts'] },
     { id:'greek-paradigm-charts', language:'greek', title:'Paradigm Charts', category:'Paradigm Charts', summary:'Fast access to Greek noun, article, pronoun, adjective, and verb forms.', body:['Select a category, then consult the chart family you need.'], recognitionTips:[], searchTerms:['Paradigm Charts','Verb Paradigms','Noun Declensions','article','pronouns','adjectives','participles','infinitives','imperative','subjunctive','Greek present active indicative','Greek first aorist indicative','Greek second aorist indicative','Greek aorist passive indicative','Greek perfect indicative','Greek pluperfect indicative','εἰμί indicative','Greek first declension nouns','Greek relative pronouns'], sectionTabs:[
       categoryTab('verbs','Verb Paradigms',[tabSection('greek-verbs','paradigms','Present'), tabSection('greek-verbs','paradigms','Imperfect'), tabSection('greek-verbs','paradigms','Future'), tabSection('greek-verbs','paradigms','Aorist'), tabSection('greek-verbs','paradigms','Perfect'), tabSection('greek-verbs','paradigms','Pluperfect'), tabSection('greek-verbs','paradigms','εἰμί'), tabSection('greek-verbs','paradigms','Contract Verbs'), tabSection('greek-verbs','paradigms','μι Verbs')]),
       categoryTab('nouns','Noun Declensions',[tabSection('greek-nouns','paradigms','Article'), tabSection('greek-nouns','paradigms','First Declension'), tabSection('greek-nouns','paradigms','Second Declension'), tabSection('greek-nouns','paradigms','Third Declension')]),
@@ -1268,7 +1242,8 @@
   function flattenExamples(examples){ return (examples||[]).flatMap(e=>[e.word,e.reference,e.translation,e.note,e.text]); }
   function flattenSections(sections){ return (sections||[]).flatMap(s=>[s.title, ...(s.body||[]), ...(s.recognitionTips||[]), ...(s.searchTerms||[]), ...flattenCharts(s.charts), ...flattenExamples(s.examples)]); }
   function flattenSectionTabs(sectionTabs){ return (sectionTabs||[]).flatMap(tab=>[tab.label, ...(tab.jumpChips||[]).flatMap(chip=>[chip.label, chip.target]), ...flattenSections(tab.sections)]); }
-  function flattenTopic(topic){ return [topic.id, topic.title, topic.category, topic.summary, topic.frequency, ...(topic.searchTerms||[]), ...(topic.body||[]), ...(topic.recognitionTips||[]), ...(topic.principalParts||[]), ...flattenSections(topic.sections), ...flattenSectionTabs(topic.sectionTabs), ...(topic.paradigmTabs||[]).flatMap(tab=>[tab.label,...flattenCharts(tab.charts)]), ...flattenCharts(topic.charts), ...flattenExamples(topic.examples), ...(topic.related||[]).map(topicLabel), ...(topic.featureLinks||[]).flatMap(l=>[l.label,l.type,l.target]), topic.stemRelationships?.root, ...(topic.stemRelationships?.stems||[]), ...(topic.stemRelationships?.explanation||[])].join(' '); }
+  function flattenHandbookArticle(item){ return [item.id,item.title,item.summary,...(item.aliases||[]),...(item.searchTerms||[]),...(item.overview||[]),...(item.recognitionCues||[]),...(item.commonFunctions||[]),...(item.commonPitfalls||[]),...flattenExamples(item.examples)].join(' '); }
+  function flattenTopic(topic){ const handbookText=(topic.handbookSections||[]).flatMap(section=>[section.title,section.summary,...(handbookLibrary?.articlesForSection(section.id)||[]).map(flattenHandbookArticle)]); return [topic.id, topic.title, topic.category, topic.summary, topic.frequency, ...(topic.searchTerms||[]), ...(topic.body||[]), ...(topic.recognitionTips||[]), ...(topic.principalParts||[]), ...flattenSections(topic.sections), ...flattenSectionTabs(topic.sectionTabs), ...handbookText, ...(topic.paradigmTabs||[]).flatMap(tab=>[tab.label,...flattenCharts(tab.charts)]), ...flattenCharts(topic.charts), ...flattenExamples(topic.examples), ...(topic.related||[]).map(topicLabel), ...(topic.featureLinks||[]).flatMap(l=>[l.label,l.type,l.target]), topic.stemRelationships?.root, ...(topic.stemRelationships?.stems||[]), ...(topic.stemRelationships?.explanation||[])].join(' '); }
   function referenceSectionSlug(section, index=0){ return section.id || String(section.title || `section-${index}`).toLowerCase().replace(/[^a-z0-9\u0370-\u03ff\u0590-\u05ff]+/g,'-').replace(/^-|-$/g,''); }
   function searchReferenceTopics(query='', language='all'){
     const q = normalizeSearchText(String(query).trim());
@@ -1295,8 +1270,17 @@
         paradigmTabs: (topic.paradigmTabs || []).map(tab => ({ id: tab.id, label: tab.label }))
       }));
   }
+  function findReferenceChart(chartId){
+    const orderedTopics=['greek-paradigm-charts','hebrew-paradigm-charts',...visibleTopics.map(topic=>topic.id)];
+    for(const topicId of [...new Set(orderedTopics)]){
+      const topic=getReferenceTopic(topicId);
+      for(const tab of topic?.sectionTabs||[]) for(const section of tab.sections||[]){ const chart=(section.charts||[]).find(item=>item.id===chartId); if(chart) return { chartId, chartLabel:chart.label, topicId, sectionTabId:tab.id }; }
+      const chart=(topic?.charts||[]).find(item=>item.id===chartId); if(chart) return { chartId, chartLabel:chart.label, topicId, sectionTabId:'' };
+    }
+    return null;
+  }
   function decodeParsing(input){ const key=String(input||'').trim().toUpperCase().replace(/\s+/g,' '); return decoderEntries[key] || null; }
-  const api = { referenceTopics: visibleTopics, futureGrammarHooks, greekCoreIndicativeCharts, greekAdditionalParadigmCharts, hebrewStrongVerbCharts, hebrewWeakVerbCharts, hebrewNominalMorphologyCharts, hebrewNominalSuffixCharts, hebrewPrepositionalSuffixCharts, hebrewVerbalObjectSuffixCharts, hebrewNominalPatternCharts, hebrewNominalAndSuffixCharts, hebrewWeakClassLabels:HEBREW_WEAK_CLASS_LABELS, hebrewNominalClassroomLabels:HEBREW_NOMINAL_CLASSROOM_LABELS, filterHebrewWeakVerbCharts, filterHebrewNominalCharts, hebrewStrongVerbSource:GESENIUS_1910, searchReferenceTopics, getReferenceTopic, topicLabel, referenceColors: COLORS, decodeParsing, decoderEntries, oldTopicAliases, canonicalTopicId, referenceParadigmGroups, referenceLandingSections };
+  const api = { referenceTopics: visibleTopics, futureGrammarHooks, greekCoreIndicativeCharts, greekAdditionalParadigmCharts, hebrewStrongVerbCharts, hebrewWeakVerbCharts, hebrewNominalMorphologyCharts, hebrewNominalSuffixCharts, hebrewPrepositionalSuffixCharts, hebrewVerbalObjectSuffixCharts, hebrewNominalPatternCharts, hebrewNominalAndSuffixCharts, hebrewWeakClassLabels:HEBREW_WEAK_CLASS_LABELS, hebrewNominalClassroomLabels:HEBREW_NOMINAL_CLASSROOM_LABELS, filterHebrewWeakVerbCharts, filterHebrewNominalCharts, hebrewStrongVerbSource:GESENIUS_1910, handbookSources:handbookLibrary?.sources||{}, handbookSections:handbookLibrary?.sections||[], handbookArticles:handbookLibrary?.articles||[], getHandbookArticle:handbookLibrary?.getArticle||(()=>null), searchHandbookArticles:handbookLibrary?.searchArticles||(()=>[]), handbookArticlesForChart:handbookLibrary?.articlesForChart||(()=>[]), searchReferenceTopics, getReferenceTopic, topicLabel, findReferenceChart, referenceColors: COLORS, decodeParsing, decoderEntries, oldTopicAliases, canonicalTopicId, referenceParadigmGroups, referenceLandingSections };
   if(typeof module !== 'undefined' && module.exports) module.exports = api;
   root.PuritanReferenceLibrary = api;
 })(typeof window !== 'undefined' ? window : globalThis);

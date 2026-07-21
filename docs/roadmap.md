@@ -93,8 +93,9 @@ The v1.4.2 Reader milestone adds an opt-in continuous mode alongside the existin
 - Complete in v1.3.6a: source-backed Hebrew weak-verb recognition charts for the major weak classes, with exact Gesenius page/section metadata and focused filters.
 - Complete in PR #63 refinement: adopt Pratico–Van Pelt positional terminology for visible weak-class labels while preserving Gesenius as the form source and retaining stable internal IDs.
 - Implemented for v1.3.6b review: source-backed Hebrew Construct State, pronominal suffixes on nouns and prepositions, limited object suffixes on verbs, Segolate Nouns, reducible-vowel, and selected Irregular Noun charts with exact Gesenius page-image metadata, Pratico–Van Pelt-guided display terminology, and focused filters.
+- Implemented for v1.3.7 review: lean Grammar Handbook registries with 12 Greek and 13 Hebrew articles in six stable sections per language, Merkle-guided Greek organization, Pratico–Van Pelt-guided Hebrew organization and terminology, article-level source roles, direct article links, focused search/filtering, reading workflows, and stable-ID chart cross-links.
 - Deferred: a separately sourced III-Aleph paradigm; the label is recognized but no v1.3.6a chart is inferred.
-- Deferred to v1.3.7 or later: Handbook explanations, automatic drills for v1.3.6b forms, exhaustive suffix systems and irregular nouns, deeper syntax, fuller supplemental resources, exhaustive doubly weak coverage, and weak-verb Handbook explanation.
+- Deferred beyond v1.3.7: automatic drills for v1.3.6b forms, exhaustive suffix systems and irregular nouns, advanced syntax taxonomies, fuller supplemental resources, exhaustive doubly weak coverage, discourse analysis, and rare constructions with little reading value.
 
 ### v5.6: Progress Redesign
 

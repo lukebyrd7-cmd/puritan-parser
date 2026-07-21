@@ -38,6 +38,7 @@ const PURITAN_PARSER_SCRIPTS = [
   'src/core/book-progress.js',
   'src/core/progress-service.js',
   'src/core/router.js',
+  'src/features/grammar/handbook-data.js',
   'src/features/grammar/reference-data.js',
   'src/features/grammar/index.js',
   'src/features/reader/index.js',
