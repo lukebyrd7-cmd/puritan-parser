@@ -95,6 +95,10 @@ test('v1.3.7 source metadata distinguishes organization, content, and app-author
       assert.ok(entry.scope);
     }
   }
+  const hebrewLocations=articleId=>handbook.getArticle(articleId).sources.find(source=>source.sourceId==='gesenius-1910').locations;
+  assert.deepEqual(hebrewLocations('hebrew-construct-forms'),['§89a–e; printed p. 247']);
+  assert.deepEqual(hebrewLocations('hebrew-qal-volitives-nonfinite'),['§§45–46; printed pp. 122–125','§48; printed pp. 129–131','§50; printed p. 136','Paradigm B, printed p. 510']);
+  assert.deepEqual(hebrewLocations('hebrew-clause-markers'),['§152; printed p. 478','§155; printed p. 485']);
 });
 
 test('v1.3.7 article chart and related-article links resolve through stable ids',()=>{
