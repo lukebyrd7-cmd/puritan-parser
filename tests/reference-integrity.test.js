@@ -124,8 +124,9 @@ test('v1.3.1 Reference charts have consistent rows, supported labels, and langua
 
 test('v1.3.1 app shell and service worker keep Reference assets reachable without stale versioning', () => {
   const sw = fs.readFileSync('sw.js', 'utf8');
-  assert.match(sw, /puritan-parser-v56-v1\.4\.2-continuous-reader/, 'service-worker cache version is bumped for Reader changes');
-  assert.match(fs.readFileSync('index.html', 'utf8'), /src\/main\.js\?v=v1\.4\.2-continuous-reader/, 'startup query string is bumped with the cache');
+  assert.match(sw, /puritan-parser-v57-v1\.3\.7-grammar-handbook/, 'service-worker cache version is bumped for Handbook changes');
+  assert.match(fs.readFileSync('index.html', 'utf8'), /src\/main\.js\?v=v1\.3\.7-grammar-handbook/, 'startup query string is bumped with the cache');
+  assert.match(sw, /\.\/src\/features\/grammar\/handbook-data\.js/);
   assert.match(sw, /\.\/src\/features\/grammar\/reference-data\.js/);
   assert.match(sw, /\.\/src\/features\/grammar\/index\.js/);
   assert.doesNotMatch(sw, /reference-audit\.md|reference-sources\.md/, 'docs are not app-shell assets');
@@ -354,12 +355,11 @@ test('v1.3.4 About & Sources covers new metadata while chart flow stays citation
   assert.doesNotMatch(ui, /New Testament Greek for Beginners|The Macmillan Company, 1923/);
 });
 
-test('v1.3.4 does not change Hebrew data or expand the Grammar Handbook prose', () => {
+test('v1.3.4 remains isolated from Hebrew data and v1.3.7 keeps unsupported future-perfect content omitted', () => {
   const additional = library.greekAdditionalParadigmCharts;
   assert.equal(additional.some(chart => chart.rows.flat().some(value => HEBREW.test(cellText(value)))), false);
-  const handbook = library.getReferenceTopic('greek-grammar-handbook');
-  assert.equal(handbook.sectionTabs.some(tab => (tab.sections || []).some(section => /Optative|Future Perfect/.test(section.title))), false);
-  assert.doesNotMatch((handbook.body || []).join(' '), /v1\.3\.4|source map|page-image/i);
+  assert.equal(library.handbookArticles.some(article => /Future Perfect/.test(article.title)), false);
+  assert.doesNotMatch(library.handbookArticles.flatMap(article=>article.overview||[]).join(' '), /v1\.3\.4|source map|page-image/i);
 });
 
 test('v1.3.5 registers the seven source-backed Hebrew strong stems with stable ids', () => {
@@ -546,13 +546,13 @@ test('v1.3.6a weak navigation, RTL cells, filters, and source links remain acces
   assert.equal(new Set(ids).size,ids.length,'static app shell has no duplicate DOM ids');
 });
 
-test('v1.3.6a About & Sources covers weak verbs without expanding deferred areas', () => {
+test('v1.3.6a About & Sources preserves weak-verb limits after the Handbook expansion', () => {
   const html=settings.renderHebrewWeakVerbSources(library);
   for(const label of Object.values(library.hebrewWeakClassLabels)) assert.match(html,new RegExp(label.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')));
   assert.match(html,/printed paradigms D–P/i);
   assert.match(html,/limited examples/i);
   assert.match(html,/weak-verb registry does not generate noun or suffix forms/i);
-  assert.match(html,/Grammar Handbook remains deferred/i);
+  assert.match(html,/explains weak-root recognition selectively/i);
   assert.equal(topicCharts(library.getReferenceTopic('hebrew-grammar-handbook')).some(chart=>chart.milestone==='v1.3.6a'),false);
   assert.equal(library.greekCoreIndicativeCharts.length,20);
   assert.equal(library.greekAdditionalParadigmCharts.length,73);

@@ -384,7 +384,7 @@ test('Reference local language selection is independent of global app language',
 
 
 
-test('v1.3 Grammar Handbook and Paradigm Charts expose compact internal navigation', () => {
+test('v1.3.7 Grammar Handbook and Paradigm Charts expose compact internal navigation', () => {
   const vm = require('node:vm');
   const ui = fs.readFileSync(path.join(__dirname, '../src/features/grammar/index.js'), 'utf8');
   const page = { innerHTML: '', classList: { toggle(){} }, addEventListener(){} };
@@ -399,9 +399,10 @@ test('v1.3 Grammar Handbook and Paradigm Charts expose compact internal navigati
   };
   vm.createContext(context);
   vm.runInContext(`${ui}; renderReferenceTopic(PuritanReferenceLibrary.getReferenceTopic('greek-grammar-handbook'));`, context);
-  assert.match(page.innerHTML, /reference-section-tabs/);
-  assert.match(page.innerHTML, /reference-jump-chip/);
-  assert.match(page.innerHTML, /href="#nouns-and-cases"/);
+  assert.match(page.innerHTML, /id="handbookSectionFilter"/);
+  assert.match(page.innerHTML, /id="handbookArticleSearch"/);
+  assert.match(page.innerHTML, /aria-label="Grammar Handbook articles"/);
+  assert.match(page.innerHTML, /data-handbook-article-id="greek-cases-agreement"/);
   vm.runInContext(`renderReferenceTopic(PuritanReferenceLibrary.getReferenceTopic('greek-paradigm-charts'));`, context);
   assert.match(page.innerHTML, /aria-label="Topic sections"/);
   assert.match(page.innerHTML, /href="#present"/);
@@ -457,11 +458,12 @@ test('Reference Search results render immediately under the search controls with
 test('service worker cache version and app shell cache bust are bumped', () => {
   const sw = fs.readFileSync('sw.js', 'utf8');
   const html = fs.readFileSync('index.html', 'utf8');
-  assert.match(sw, /const CACHE = 'puritan-parser-v56-v1\.4\.2-continuous-reader'/);
+  assert.match(sw, /const CACHE = 'puritan-parser-v57-v1\.3\.7-grammar-handbook'/);
   assert.doesNotMatch(sw, /puritan-parser-v39-v1\.4\.1/);
   assert.doesNotMatch(sw, /puritan-parser-v13-reader-startup/);
   assert.match(sw, /'\.\/src\/features\/reader\/index\.js'/);
+  assert.match(sw, /'\.\/src\/features\/grammar\/handbook-data\.js'/);
   assert.match(sw, /caches\.delete\(k\)/);
   assert.match(sw, /self\.clients\.claim\(\)/);
-  assert.match(html, /src="src\/main\.js\?v=v1\.4\.2-continuous-reader"/);
+  assert.match(html, /src="src\/main\.js\?v=v1\.3\.7-grammar-handbook"/);
 });

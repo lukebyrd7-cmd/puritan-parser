@@ -1611,6 +1611,28 @@ button:focus-visible, input:focus-visible, select:focus-visible {
 .reference-related { display: flex; gap: 8px; flex-wrap: wrap; }
 .reference-link { border: 1px solid var(--border); background: var(--surface-2); color: var(--text); border-radius: 999px; padding: 6px 10px; cursor: pointer; }
 .reference-link:hover { border-color: var(--accent); color: var(--accent); }
+.reference-link:focus-visible, .handbook-article-link:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.reference-chart-handbook-link { margin: 10px 0 0; }
+.reference-chart-handbook-link .reference-link { font-size: 12px; }
+.handbook-controls { display: grid; grid-template-columns: minmax(180px, .7fr) minmax(220px, 1.3fr); gap: 10px; margin: 18px 0 14px; }
+.handbook-controls label { display: grid; gap: 5px; min-width: 0; color: var(--muted); font-size: 12px; font-weight: 800; }
+.handbook-controls .input { min-width: 0; width: 100%; font: inherit; }
+.handbook-layout { display: grid; grid-template-columns: minmax(190px, 260px) minmax(0, 1fr); gap: 18px; align-items: start; }
+.handbook-article-nav { display: grid; gap: 7px; max-height: min(68vh, 760px); overflow: auto; padding: 2px 4px 2px 2px; }
+.handbook-article-link { display: grid; gap: 3px; width: 100%; min-height: 44px; padding: 9px 10px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--surface); color: var(--text); text-align: left; cursor: pointer; font: inherit; }
+.handbook-article-link:hover, .handbook-article-link.active { border-color: var(--accent); background: var(--surface-2); }
+.handbook-article-link span { font-weight: 800; }
+.handbook-article-link small { color: var(--muted); line-height: 1.35; }
+.handbook-article-panel { min-width: 0; }
+.handbook-article { max-width: 76ch; }
+.handbook-article h3 { margin: 4px 0 8px; color: var(--text); font-family: var(--font-serif); font-size: 26px; line-height: 1.15; }
+.handbook-article p { line-height: 1.65; }
+.handbook-article-section { margin-top: 18px; }
+.handbook-article-section h4 { margin: 0 0 7px; color: var(--text); font-size: 14px; }
+.handbook-article-section ul { display: grid; gap: 6px; margin: 0; padding-left: 20px; line-height: 1.55; }
+.handbook-article .reference-examples { padding-left: 20px; }
+.handbook-article .reference-example-text.greek-text { direction: ltr; unicode-bidi: isolate; }
+.handbook-article .reference-example-text.hebrew-text { display: block; width: fit-content; max-width: 100%; text-align: right; }
 @media (min-width: 900px) { .reference-shell { grid-template-columns: 320px 1fr; } }
 @media (max-width: 600px) { .reference-topic-list { max-height: 260px; } .reference-article h2 { font-size: 24px; } }
 .reference-chart { border-left: 4px solid var(--accent); padding-left: 10px; }
@@ -1663,6 +1685,11 @@ button:focus-visible, input:focus-visible, select:focus-visible {
 @media (max-width: 700px) {
   .reference-chart-filters { grid-template-columns: 1fr; position: static; }
   .reference-filter-count { justify-self: start; }
+  .handbook-controls, .handbook-layout { grid-template-columns: 1fr; }
+  .handbook-article-nav { max-height: 230px; }
+  .handbook-article h3 { font-size: 23px; }
+  .handbook-article-section .reference-related { gap: 10px; }
+  .handbook-article-section .reference-link { min-height: 44px; }
 }
 
 /* ---------- Global Search ---------- */

@@ -73,6 +73,55 @@ Primary comparison anchors: Wallace and Mounce for Greek categories and regular 
 - Replaced the undocumented weak snapshots in focused Paradigm Charts with the 37-chart source-backed v1.3.6a registry while keeping full explanatory prose out of Paradigm Charts and the Grammar Handbook.
 - Replaced the focused noun/suffix placeholders with 16 source-backed v1.3.6b charts and separate noun, nominal-suffix, prepositional-suffix, and verbal-object-suffix navigation while leaving legacy explanation and Learn behavior intact.
 
+## v1.3.7 Grammar Handbook audit and decisions
+
+The pre-v1.3.7 Handbook was not an article registry. It assembled 23 visible sections from legacy topic fragments: thirteen Greek items and ten Hebrew items. Several were empty shells; several carried complete or near-complete charts that duplicated Paradigm Charts; most were too short to justify independent navigation. The rebuild keeps the stable top-level topic IDs `greek-grammar-handbook` and `hebrew-grammar-handbook` while replacing those fragments with 25 normalized articles in twelve stable sections.
+
+### Original Greek inventory
+
+| Old visible item | Decision | Destination and reason |
+|---|---|---|
+| Nouns and Cases | Substantially rewrite and merge | `greek-cases-agreement`; one case-system article is more useful than isolated definitions or five thin articles. |
+| Article | Substantially rewrite and merge | `greek-article-adjectives`; article placement and adjective agreement belong together while reading. |
+| Adjectives | Merge | `greek-article-adjectives`; the old ending chart remains in Paradigm Charts. |
+| Pronouns | Substantially rewrite and merge | `greek-pronouns-prepositions`; full pronoun forms remain in Paradigm Charts. |
+| What morphology describes | Remove as a separate item | Its useful form/function distinction is incorporated across articles; `Morphology Guide` remains an alias. |
+| Parsing Abbreviations | Remove as a separate item | Parser-code lookup is not a substantial Handbook article; `Parsing Abbreviations`, `N-NSM`, and `V-AAI-3S` remain searchable aliases. |
+| Prepositions and Particles | Substantially rewrite and split by reading purpose | Prepositions move to `greek-pronouns-prepositions`; clause particles move to `greek-clause-markers`. |
+| Understanding Ambiguous Forms | Merge | Ambiguity checks now appear in each article's Common pitfalls and in `greek-reading-workflow`. |
+| Voice | Substantially rewrite | `greek-voice`; adds middle/passive overlap and a cautious treatment of “deponent.” |
+| Aspect | Substantially rewrite and merge | `greek-indicative-system`; the debate is summarized cautiously rather than isolated. |
+| Mood | Substantially rewrite | `greek-moods`; visible markers and contextual function are treated together. |
+| Participles | Move forms and rewrite explanation | Full declensions remain in Paradigm Charts; `greek-participles` explains agreement and high-value uses. |
+| Infinitives | Move forms and rewrite explanation | Full form indexes remain in Paradigm Charts; `greek-infinitives` explains reading functions. |
+
+New Greek articles add `greek-indicative-system`, `greek-principal-parts`, `greek-reading-workflow`, and `greek-selected-syntax` so that tense stems, lexical-form recovery, sentence reading, and a deliberately small set of recurring constructions have coherent destinations. Final Greek sections are Nouns, the Article, and Agreement; The Indicative Verb System; Voice and Mood; Infinitives and Participles; Pronouns, Prepositions, and Clause Markers; and Reading Greek Sentences. Final count: 12 articles.
+
+### Original Hebrew inventory
+
+| Old visible item | Decision | Destination and reason |
+|---|---|---|
+| Nouns and Adjectives | Substantially rewrite | `hebrew-nouns-adjectives`; full patterns remain in Paradigm Charts. |
+| Construct Chain | Substantially rewrite | `hebrew-construct-forms`; adds definiteness and a repeatable chain-reading procedure. |
+| Pronominal Suffixes | Substantially rewrite and split | `hebrew-pronominal-suffixes` and `hebrew-prepositions-article`; distinguishes host families and coverage limits. |
+| Particles and Prepositions | Substantially rewrite and split | Attached prepositions/article behavior and clause markers now have separate reading purposes. |
+| What morphology describes | Remove as a separate item | Useful morphology language is integrated; `Morphology Guide` remains searchable. |
+| Person, Gender, Number | Merge | PGN is explained in noun, suffix, Qal, and workflow articles rather than duplicated. |
+| Qal | Substantially rewrite and split | `hebrew-qal-finite` and `hebrew-qal-volitives-nonfinite`; forms remain in strong-verb charts. |
+| Stem Meanings | Substantially rewrite | `hebrew-derived-stem-recognition`; simplified stem glosses are explicitly limited. |
+| Weak Verbs | Substantially rewrite and split | `hebrew-weak-overview` and `hebrew-weak-classes`; preserves every visible v1.3.6a class label and ID. |
+| Waw Consecutive | Substantially rewrite | `hebrew-sequential-forms`; distinguishes wayyiqtol from waw with other verbal forms. |
+
+New Hebrew reading articles are `hebrew-clause-structure`, `hebrew-clause-markers`, and `hebrew-reading-workflow`. Final Hebrew sections are Nouns, Adjectives, and Construct Forms; Pronouns, Suffixes, and Prepositions; The Qal Stem and Hebrew Conjugations; Derived Stems; Weak Verbs; and Reading Hebrew Clauses. Final count: 13 articles.
+
+### Architecture and scope result
+
+- `src/features/grammar/handbook-data.js` is the immutable normalized registry. Article data stores stable IDs, section IDs, structured explanatory fields, aliases, search terms, source roles, related chart IDs, and related article IDs.
+- One shared renderer provides section filtering, debounced article search, direct `?article=` navigation, related-article navigation, active-state semantics, and source-note links. Only the active article body is rendered.
+- Articles link to existing chart IDs; charts acquire one small reverse Handbook link when a mapped article exists. No chart rows, chart IDs, recognition eligibility, or persisted data changed.
+- Merkle and his coauthors guide Greek organization and forms-to-reading emphasis. Pratico and Van Pelt guide Hebrew terminology, strong-before-weak sequence, and noun/suffix/stem grouping. Machen and Gesenius remain the foundational content/form sources recorded at exact locations. App-authored workflows are labeled as editorial synthesis.
+- Deliberate omissions remain exhaustive case taxonomies, comprehensive conditional or participial systems, discourse analysis, historical phonology, exhaustive object-suffix syntax, separate articles for every conjunction/stem/weak class, and unsupported rare paradigms.
+
 ## Future Improvements
 
 - Before building paradigm drills, split representative reference forms from drill-validated forms so the app does not treat recognition summaries as complete paradigms.

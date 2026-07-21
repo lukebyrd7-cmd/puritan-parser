@@ -44,6 +44,23 @@ function escapeAboutSourcesHtml(value){
 function renderAboutSourcesText(value){
   return String(value ?? '').split(/([\u0590-\u05ff]+)/g).map(part=>/[\u0590-\u05ff]/.test(part)?`<span class="hebrew-text" lang="he" dir="rtl">${escapeAboutSourcesHtml(part)}</span>`:escapeAboutSourcesHtml(part)).join('');
 }
+function renderGrammarHandbookSources(referenceLibrary){
+  const sources=referenceLibrary?.handbookSources||{};
+  const articles=referenceLibrary?.handbookArticles||[];
+  if(!articles.length) return '<p>Grammar Handbook source notes are unavailable in this installation.</p>';
+  const sourceOrder=['merkle-beginning-2020','merkle-going-2016','merkle-gems-2019','machen-1923','pratico-van-pelt-2019','gesenius-1910','puritan-parser-editorial'];
+  const bibliography=sourceOrder.map(id=>sources[id]?`<li data-handbook-source-id="${escapeAboutSourcesHtml(id)}"><cite>${escapeAboutSourcesHtml(sources[id].authors)}, <em>${escapeAboutSourcesHtml(sources[id].title)}</em> (${escapeAboutSourcesHtml(sources[id].publication)}).</cite><br><span>${escapeAboutSourcesHtml(sources[id].edition)}. ${escapeAboutSourcesHtml(sources[id].note)}</span>${sources[id].scan?`<br><span>${escapeAboutSourcesHtml(sources[id].scan)}</span>`:''}</li>`:'').join('');
+  const articleMap=language=>articles.filter(article=>article.language===language).map(article=>{
+    const entries=(article.sources||[]).map(entry=>{ const source=sources[entry.sourceId]; return `<li><strong>${escapeAboutSourcesHtml(source?.kind||entry.support)}</strong> · ${escapeAboutSourcesHtml(source?.authors||entry.sourceId)}<br><span>${escapeAboutSourcesHtml((entry.locations||[]).join('; '))}</span><br><span>Scope: ${escapeAboutSourcesHtml(entry.scope)}. Support: ${escapeAboutSourcesHtml(entry.support)}.</span></li>`; }).join('');
+    const charts=(article.relatedChartIds||[]).join(', ')||'No direct chart mapping';
+    return `<details class="about-sources-article-map" data-handbook-article-source="${escapeAboutSourcesHtml(article.id)}"><summary>${escapeAboutSourcesHtml(article.title)}</summary><p><code>${escapeAboutSourcesHtml(article.id)}</code> · Related charts: ${escapeAboutSourcesHtml(charts)}</p><ul>${entries}</ul></details>`;
+  }).join('');
+  return `<p>The Handbook is selective and reading-oriented. Greek organization and visible terminology broadly follow Merkle and his coauthors; Hebrew organization and visible terminology broadly follow Pratico and Van Pelt. Those organization sources are not presented as the row source for forms or as the source of every sentence.</p>
+    <p>Machen supports foundational Greek morphology and explanations. Gesenius remains the row-level source for the existing Hebrew forms and supports the cited Hebrew descriptions. App-authored workflows and recognition cues are editorial syntheses rather than quotations from one textbook. Debated topics are summarized cautiously, and exhaustive syntax taxonomies are deliberately omitted.</p>
+    <h3>Bibliography and source roles</h3><ul class="about-sources-coverage">${bibliography}</ul>
+    <h3>Greek article source map</h3>${articleMap('greek')}
+    <h3>Hebrew article source map</h3>${articleMap('hebrew')}`;
+}
 function greekSourceCoverage(referenceLibrary){
   const groups = new Map();
   const charts = [...(referenceLibrary?.greekCoreIndicativeCharts || []), ...(referenceLibrary?.greekAdditionalParadigmCharts || [])];
@@ -157,7 +174,7 @@ function renderHebrewWeakVerbSources(referenceLibrary){
       <li>Biconsonantal Middle Yod, Doubly Weak, and Irregular coverage is limited to directly printed examples. It is not presented as a complete productive paradigm.</li>
       <li>III-Aleph is a recognized positional class but has no source-backed v1.3.6a paradigm and is not presented as implemented coverage.</li>
       <li>The weak-verb registry does not generate noun or suffix forms. The separate v1.3.6b noun-and-suffix registry below remains independently sourced.</li>
-      <li>Full weak-verb explanation in the Grammar Handbook remains deferred.</li>
+      <li>The Grammar Handbook explains weak-root recognition selectively; the charts remain the source for displayed forms.</li>
     </ul>`;
 }
 function hebrewNominalSourceCoverage(referenceLibrary){
@@ -194,7 +211,7 @@ function renderHebrewNominalSuffixSources(referenceLibrary){
       <li>No complete <span class="hebrew-text" lang="he" dir="rtl">בְּ</span>, <span class="hebrew-text" lang="he" dir="rtl">כְּ</span>, or <span class="hebrew-text" lang="he" dir="rtl">לִפְנֵי</span> suffix system is inferred from neighboring patterns.</li>
       <li>Verbal object suffixes are limited to five directly printed perfect examples. They do not alter or generate the strong- or weak-verb registries.</li>
       <li>Segolate and peculiar-noun labels are recognition descriptions, not claims of an exhaustive historical or lexical classification.</li>
-      <li>Grammar Handbook explanation and Learn drill behavior remain deferred.</li>
+      <li>The Grammar Handbook now explains these patterns selectively. Learn drill behavior remains unchanged.</li>
     </ul>`;
 }
 function renderAboutSources(){
@@ -204,6 +221,7 @@ function renderAboutSources(){
   shell.innerHTML = `<article class="about-sources-page">
     <div class="about-sources-header"><div><div class="panel-title">About &amp; Sources</div><div class="panel-sub">Project purpose, sources, and scholarly limits</div></div><button class="btn btn-ghost btn-sm" id="aboutSourcesBackBtn" type="button">← Settings</button></div>
     <section id="about-the-puritan-parser"><h2>About The Puritan Parser</h2><p>The Puritan Parser is a local-first reading and learning tool designed to help students become increasingly independent readers of biblical Greek and Hebrew.</p></section>
+    <section id="grammar-handbook-sources"><h2>Grammar Handbook Sources</h2>${renderGrammarHandbookSources(referenceLibrary)}</section>
     <section id="greek-reference-sources"><h2>Greek Reference Sources</h2>${renderGreekReferenceSources(referenceLibrary)}</section>
     <section id="hebrew-reference-sources"><h2>Hebrew Reference Sources</h2><h3>Strong verbs</h3>${renderHebrewReferenceSources(referenceLibrary)}<h3>Weak verbs</h3>${renderHebrewWeakVerbSources(referenceLibrary)}<div id="hebrew-nominal-suffix-sources"><h3>Nouns and suffixes</h3>${renderHebrewNominalSuffixSources(referenceLibrary)}</div></section>
     <section id="text-translation-sources"><h2>Text and Translation Sources</h2><p>Greek Reader data is generated from MorphGNT’s SBLGNT Edition. Hebrew Reader data comes from Open Scriptures Hebrew Bible morphology and the Westminster Leningrad Codex text. Built-in English translations are the Open English Bible and the World English Bible.</p></section>
@@ -224,4 +242,4 @@ function openAboutSources(anchor=''){
   showView('aboutSourcesView', { skipHistory: true });
 }
 if(typeof window !== 'undefined') Object.assign(window, { SRS_PRESETS, inferSrsPreset, applySrsPreset, renderAboutSources, openAboutSources });
-if(typeof module !== 'undefined') module.exports = { SRS_PRESETS, inferSrsPreset, applySrsPreset, greekSourceCoverage, renderGreekReferenceSources, hebrewSourceCoverage, renderHebrewReferenceSources, hebrewWeakSourceCoverage, renderHebrewWeakVerbSources, hebrewNominalSourceCoverage, renderHebrewNominalSuffixSources };
+if(typeof module !== 'undefined') module.exports = { SRS_PRESETS, inferSrsPreset, applySrsPreset, renderGrammarHandbookSources, greekSourceCoverage, renderGreekReferenceSources, hebrewSourceCoverage, renderHebrewReferenceSources, hebrewWeakSourceCoverage, renderHebrewWeakVerbSources, hebrewNominalSourceCoverage, renderHebrewNominalSuffixSources };
