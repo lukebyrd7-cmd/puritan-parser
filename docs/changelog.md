@@ -4,6 +4,17 @@ This changelog is a human-readable project history, not a Git log. Future entrie
 
 ## Unreleased
 
+### v1.5 Stabilization, Performance, and Full-App QA
+
+- Fixed continuous Reader original/English toggles losing the visible chapter because rerendered controls moved focus to the top of the page.
+- Added visible original and English verse anchoring, stale-request guards, shared in-flight request promises, adjacent idle prefetch, and safe failed-prefetch retry behavior while retaining the five-chapter window.
+- Replaced the mobile bottom Reader toolbar with a restrained fixed top toolbar using safe-area-aware positioning and `aria-pressed` buttons driven by the primary settings state.
+- Split Progress loading into an immediate core summary and deferred whole-Bible readiness phase; core storage/history inputs are parsed once and derived book caches invalidate on learning changes.
+- Deferred inactive Reference DOM rendering until Reference is opened without breaking direct Handbook routes.
+- Fixed nested-route hard refreshes by resolving shell assets, sequential modules, and service-worker registration from the application root.
+- Bumped the offline cache to `puritan-parser-v58-v1.5-stabilization`; large chapter and search datasets remain runtime cached rather than install precached.
+- Preserved storage keys, SRS formulas, import/export structures, and all Greek/Hebrew linguistic datasets.
+
 ### v5.8 Study Sets + Practice Improvements
 
 - Added simple local-first Study Sets under `pp_study_sets`, with compact creation, list, detail, browse, delete, practice, and vocabulary-only Mark All Known actions.

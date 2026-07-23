@@ -4,13 +4,21 @@ Historical note: this file records the v3.6 Reader architecture snapshot. Curren
 
 ## v1.4.2 reading modes and place restoration
 
+### v1.5 stabilization
+
+Visibility changes now capture only a genuinely visible original or English verse, restore it synchronously before focus moves, refine the position after layout, and focus controls with `preventScroll`. A request generation guard prevents stale location or translation work from overwriting newer choices. English companion spans carry non-ID verse metadata so a logical anchor is available while the user is reading the English half of a combined passage; DOM IDs remain unique.
+
+Chapter and translation loaders retain in-flight promises as well as completed data. Continuous mode schedules an idle prefetch for at most the immediately previous and next chapters outside the rendered window. Failed prefetches are removed from the in-flight cache so a later boundary load can retry. The rendered window remains limited to five chapters and does not cross books automatically.
+
+At phone widths, the secondary visibility toolbar is fixed below the compact app header (`top`, not `bottom`), uses top/left/right safe-area insets, and appears only after the primary controls leave the viewport. It reserves no large bottom toolbar area and focus restoration cannot pull the primary controls back into view.
+
 The shared Greek/Hebrew Reader supports two explicit modes. Chapter mode preserves the established single-chapter behavior and remains the backward-compatible default. Continuous mode renders the selected chapter with nearby chapters from the same book, then incrementally loads another adjacent chapter near a scroll boundary. The rendered window is bounded to five chapters, uses the existing `language/book/chapter` memory cache, preserves canonical order, and rejects duplicates. It does not load a whole book or cross a book boundary automatically; restrained beginning/end labels make the boundary clear and the existing book selector remains the transition control.
 
 Continuous mode observes the small set of rendered chapter sections relative to the active scroll viewport. The chapter nearest the reading anchor becomes current, updating the chapter selector and status labels without pushing or replacing browser history. Observer callbacks do not rerender merely to change the current indicator. Scroll persistence remains debounced.
 
 `pp_reader_location` remains the sole Reader location key. Its older `language`, `book`, `chapter`, and `scrollY` records remain readable. New records also store `mode`, a stable verse anchor, the verse's viewport-relative offset, and the Scripture pane's scroll offset. Restoration waits for chapter content to render and is cancelled when newer user scrolling wins. Mode changes, original/English visibility changes, translation changes, and other Reader rerenders capture and restore the same logical anchor rather than returning to the top. No migration or storage-key rename is required.
 
-Original and English visibility share one settings state and can show original only, English only, or both. When both are visible, English is visually secondary and follows its corresponding source paragraph. The same state drives the primary controls and the mobile toolbar, so the controls cannot drift apart. At widths up to 640px the primary controls participate in document scrolling; once they leave the viewport, an IntersectionObserver reveals a compact, safe-area-aware toolbar with the current chapter and the two visibility buttons. The toolbar is absent on desktop and reserves bottom passage space on mobile.
+Original and English visibility share one settings state and can show original only, English only, or both. When both are visible, English is visually secondary and follows its corresponding source paragraph. The same state drives the primary controls and the mobile toolbar, so the controls cannot drift apart. At widths up to 640px the primary controls participate in document scrolling; once they leave the viewport, an IntersectionObserver reveals a compact, safe-area-aware top toolbar with the current chapter and the two visibility buttons. The toolbar is absent on desktop.
 
 Continuous reading deliberately omits automatic book transitions, unbounded DOM retention, interlinear realignment work, annotations, bookmarks, and reading-history analytics. Chapter JSON and translation JSON remain runtime-loaded and runtime-cached; none are added to the startup precache.
 

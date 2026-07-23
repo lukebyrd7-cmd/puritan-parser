@@ -60,7 +60,7 @@ const PURITAN_PARSER_SCRIPTS = [
 function loadScriptSequentially(src) {
   return new Promise((resolve, reject) => {
     const script = document.createElement('script');
-    script.src = src;
+    script.src = src.startsWith('/') ? src : `/${src}`;
     script.onload = resolve;
     script.onerror = () => reject(new Error(`Unable to load ${src}`));
     document.head.appendChild(script);

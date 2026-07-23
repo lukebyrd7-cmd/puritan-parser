@@ -45,6 +45,7 @@ function showView(viewId, options = {}){
   if(viewId==='progressView' && typeof renderProgress === 'function') renderProgress();
   if(viewId==='globalSearchView' && typeof renderGlobalSearch === 'function') renderGlobalSearch();
   if(viewId==='aboutSourcesView' && typeof renderAboutSources === 'function') renderAboutSources();
+  if(viewId==='grammarView' && typeof initReferenceLibrary === 'function') initReferenceLibrary();
   if(viewId==='listView') renderList();
   if(viewId==='parsingView') { updateParsingModeUI(); renderLemmaPicker(); }
   if(viewId==='readerView' && typeof initReader === 'function') initReader();

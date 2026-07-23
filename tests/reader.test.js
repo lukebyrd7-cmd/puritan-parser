@@ -358,6 +358,40 @@ test('Reader can show original and English together without duplicate anchors', 
   assert.equal((html.match(/data-reader-verse="1"/g) || []).length, 1);
   const ids = [...html.matchAll(/\sid="([^"]+)"/g)].map(match => match[1]);
   assert.equal(new Set(ids).size, ids.length);
+  assert.match(html, /data-reader-english-verse="1"/);
+});
+
+test('Reader restores a logical anchor from an English-only verse', () => {
+  const previousDocument = global.document;
+  const previousWindow = global.window;
+  const previousDollar = global.$;
+  let scrollTop = 400;
+  const currentBook = reader.readerState().book;
+  const englishVerse = {
+    dataset: { readerBook: currentBook, readerChapter: '1', readerEnglishVerse: '8' },
+    getBoundingClientRect: () => ({ top: 210, bottom: 248 })
+  };
+  const pane = {
+    clientHeight: 700,
+    get scrollTop(){ return scrollTop; },
+    set scrollTop(value){ scrollTop = value; },
+    getBoundingClientRect: () => ({ top: 50, bottom: 750, height: 700 })
+  };
+  global.document = {
+    documentElement: { style: {} },
+    querySelector: selector => selector === '.reader-text' ? pane : null,
+    querySelectorAll: selector => selector.includes('data-reader-english-verse') ? [englishVerse] : []
+  };
+  global.window = { matchMedia: () => ({ matches: false }), scrollY: 0 };
+  global.$ = selector => selector === '.reader-text' ? pane : null;
+
+  const restored = reader.restoreReaderPlace({ chapter: 1, verse: '8', anchorOffset: 80 }, { scheduledAt: Date.now() });
+
+  global.document = previousDocument;
+  global.window = previousWindow;
+  global.$ = previousDollar;
+  assert.equal(restored, true);
+  assert.equal(scrollTop, 480);
 });
 
 test('Reader render hides the translation toggle when Translation is Off', async () => {
@@ -1601,8 +1635,48 @@ test('primary and sticky text controls expose shared pressed state and mobile sa
   assert.match(sticky, /data-reader-visibility="original"[^>]*aria-pressed="true"/);
   assert.match(sticky, /data-reader-visibility="english"[^>]*aria-pressed="true"/);
   const css = fs.readFileSync(path.join(process.cwd(), 'styles.css'), 'utf8');
-  assert.match(css, /@media \(max-width: 640px\)[\s\S]*\.reader-sticky-toolbar[\s\S]*env\(safe-area-inset-bottom\)/);
+  const mobileToolbar = css.match(/@media \(max-width: 640px\)[\s\S]*?\.reader-sticky-toolbar \{([\s\S]*?)\n  \}/)?.[1] || '';
+  assert.match(mobileToolbar, /top: calc\(58px \+ env\(safe-area-inset-top\)\)/);
+  assert.doesNotMatch(mobileToolbar, /bottom:/);
   assert.match(css, /\.reader-sticky-toolbar\s*\{\s*display: none/);
+});
+
+test('continuous visibility toggles use the nearest measured verse instead of stale restored state', async () => {
+  storageHarness();
+  await reader.setReaderLocation({ language: 'greek', book: 'john', chapter: 2, mode: 'continuous', verse: '15', anchorOffset: 70 });
+  const previousDocument = global.document;
+  const previousWindow = global.window;
+  const previousDollar = global.$;
+  const visibleVerse = {
+    dataset: { readerBook: 'john', readerChapter: '2', readerVerse: '16' },
+    getBoundingClientRect: () => ({ top: 152, bottom: 190 })
+  };
+  const pane = {
+    scrollTop: 900,
+    clientHeight: 844,
+    querySelectorAll: selector => selector.includes('[data-reader-verse]') ? [visibleVerse] : [],
+    getBoundingClientRect: () => ({ top: 0, bottom: 844, height: 844 })
+  };
+  global.document = {
+    activeElement: { closest: () => null },
+    querySelector: selector => selector === '.reader-text' ? pane : null
+  };
+  global.window = {
+    innerHeight: 844,
+    scrollY: 900,
+    matchMedia: () => ({ matches: true }),
+    requestAnimationFrame: () => 1
+  };
+  global.$ = () => null;
+
+  reader.toggleReaderTextVisibility('english');
+  assert.equal(reader.readerState().anchorVerse, '16');
+  assert.equal(reader.readerState().chapter, 2);
+  assert.equal(reader.loadReaderSettings('greek').showEnglish, true);
+
+  global.document = previousDocument;
+  global.window = previousWindow;
+  global.$ = previousDollar;
 });
 
 test('search supports lemma, surface text, and verse references', async () => {
@@ -1672,6 +1746,35 @@ test('chapter data lazy loads only requested chapters and uses cache', async () 
   assert.equal(reader.readerLoadCounts['greek/matthew/28'] || 0, 0);
   assert.equal(reader.readerLoadCounts['greek/luke/24'] || 0, 0);
   assert.equal(reader.readerLoadCounts['greek/john/21'] || 0, 0);
+});
+
+test('concurrent chapter requests share one in-flight fetch', async () => {
+  const previousFetch = global.fetch;
+  let requests = 0;
+  reader.readerChapterCache.clear();
+  global.fetch = async filePath => {
+    if(String(filePath).endsWith('/john/7.json')) requests += 1;
+    await new Promise(resolve => setTimeout(resolve, 10));
+    return previousFetch(filePath);
+  };
+  const [first, second] = await Promise.all([
+    reader.loadReaderChapter('greek', 'john', 7),
+    reader.loadReaderChapter('greek', 'john', 7)
+  ]);
+  global.fetch = previousFetch;
+  assert.equal(requests, 1);
+  assert.equal(first.chapter, 7);
+  assert.equal(second.chapter, 7);
+});
+
+test('continuous prefetch targets only the next chapters outside the rendered window', async () => {
+  await reader.loadReaderManifest('greek');
+  assert.deepEqual(reader.readerContinuousPrefetchChapters('greek', 'john', [
+    { chapter: 4 }, { chapter: 5 }, { chapter: 6 }
+  ]), [3, 7]);
+  assert.deepEqual(reader.readerContinuousPrefetchChapters('greek', 'john', [
+    { chapter: 1 }, { chapter: 2 }
+  ]), [3]);
 });
 
 const vm = require('node:vm');

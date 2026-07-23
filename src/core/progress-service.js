@@ -353,18 +353,34 @@
     if(!recommendations.length) recommendations.push({ text: 'Open the closest Reading Readiness book or choose a high-frequency vocabulary path to decide what to study next.', action: 'Open Reading Readiness', view: 'learn', learnPage: 'reading-readiness' });
     return recommendations.slice(0, 5);
   }
-  async function overview(options = {}){
+  function overviewCore(options = {}){
     const dateISO = options.dateISO || todayISO();
-    const vocabulary = vocabularyProgress(options.entriesByLanguage, options.store, dateISO);
-    const readiness = options.readiness || await readingReadiness(options.readinessOptions || {});
-    const recognition = recognitionProgress(options.recognitionHistory);
-    const grammar = grammarGrowth(options.recognitionHistory);
+    const entriesByLanguage = options.entriesByLanguage || { greek: stateEntries('greek'), hebrew: stateEntries('hebrew') };
+    const store = options.store || loadVocabularyStore();
+    const recognitionHistory = options.recognitionHistory || loadRecognitionHistory();
+    const vocabulary = vocabularyProgress(entriesByLanguage, store, dateISO);
+    const recognition = recognitionProgress(recognitionHistory);
+    const grammar = grammarGrowth(recognitionHistory);
     return {
       dateISO,
       vocabulary,
-      readiness,
       recognition,
       grammar,
+      statistics: statistics({ store, recognitionHistory }),
+      readiness: null,
+      recommendations: recommendationCandidates({ vocabulary, readiness: {}, recognition }, dateISO)
+    };
+  }
+  async function overview(options = {}){
+    const core = options.core || overviewCore(options);
+    const dateISO = core.dateISO;
+    const vocabulary = core.vocabulary;
+    const readiness = options.readiness || await readingReadiness(options.readinessOptions || {});
+    const recognition = core.recognition;
+    const grammar = core.grammar;
+    return {
+      ...core,
+      readiness,
       recommendations: recommendationCandidates({ vocabulary, readiness, recognition }, dateISO)
     };
   }
@@ -391,6 +407,7 @@
   function invalidateProgressCache(){
     statisticsCache = null;
     statisticsCacheStore = null;
+    BookProgressModel?.cache?.clear?.();
     root.invalidateProgressViewCache?.();
   }
 
@@ -411,6 +428,7 @@
     readinessPercent,
     grammarGrowth,
     recommendationCandidates,
+    overviewCore,
     overview,
     statistics,
     invalidateProgressCache,

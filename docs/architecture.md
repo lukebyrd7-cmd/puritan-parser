@@ -66,6 +66,8 @@ Older study surfaces such as the vocabulary list, flashcards, parsing drills, da
 
 The root route (`/`) opens Learn. Legacy deep links such as `/list`, `/flashcards`, and `/parsing` remain available so existing tests, bookmarks, and internal workflows continue to function.
 
+Static shell URLs and the sequential module loader use application-root paths. This is required because nested routes such as `/settings/sources` are served by the same `index.html`; document-relative startup URLs would otherwise resolve below the nested route and return the app shell in place of JavaScript. Service-worker registration likewise uses `/sw.js`.
+
 The application chrome should not include a global Greek/Hebrew toggle. Reader owns its reading-language flow, Reference owns its local language selector, and Learn presents language choices only inside study workflows where the choice is part of the task.
 
 The header should also avoid progress counters, streak indicators, or other motivational widgets. Progress information belongs in the Progress section.

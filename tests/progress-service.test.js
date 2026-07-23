@@ -25,6 +25,7 @@ global.state = {
 
 const VocabularyLearning = require('../src/models/vocabulary-learning');
 global.VocabularyLearning = VocabularyLearning;
+const BookProgress = require('../src/core/book-progress');
 const ProgressService = require('../src/core/progress-service');
 global.ProgressService = ProgressService;
 const ProgressView = require('../src/features/progress/index');
@@ -147,6 +148,49 @@ test('Progress view cache invalidates after relevant learning data changes', () 
   ProgressView.invalidateProgressViewCache();
   assert.equal(ProgressView.progressState.overview, null);
   assert.equal(ProgressView.progressState.error, '');
+});
+
+test('Progress core summary reuses one store and recognition-history read', () => {
+  resetStorage();
+  const reads = new Map();
+  const originalGet = global.activeStorageAdapter.get;
+  global.activeStorageAdapter.get = key => {
+    reads.set(key, (reads.get(key) || 0) + 1);
+    return originalGet(key);
+  };
+  const core = ProgressService.overviewCore({ dateISO: '2026-06-29' });
+  global.activeStorageAdapter.get = originalGet;
+
+  assert.equal(reads.get(VocabularyLearning.STORAGE_KEY), 1);
+  assert.equal(reads.get(ProgressService.RECOGNITION_STORAGE_KEY), 1);
+  assert.equal(core.vocabulary.byLanguage.greek.totalAvailable, 2);
+  assert.ok(core.statistics);
+  assert.equal(core.readiness, null);
+});
+
+test('Progress renders core metrics before readiness work completes', () => {
+  ProgressView.progressState.loading = true;
+  ProgressView.progressState.coreReady = true;
+  const html = ProgressView.renderProgressOverview({
+    vocabulary: { byLanguage: { greek: {}, hebrew: {} } },
+    readiness: null,
+    recognition: { greek: {}, hebrew: {} },
+    grammar: {},
+    statistics: {},
+    recommendations: []
+  });
+  ProgressView.progressState.loading = false;
+  ProgressView.progressState.coreReady = false;
+
+  assert.match(html, /Reader Growth Summary/);
+  assert.match(html, /Calculating book and chapter readiness/);
+  assert.doesNotMatch(html, /Detailed Analytics/);
+});
+
+test('Progress invalidation clears derived book-readiness caches', () => {
+  BookProgress.cache.set('book:greek:matthew', { stale: true });
+  ProgressService.invalidateProgressCache();
+  assert.equal(BookProgress.cache.size, 0);
 });
 
 test('Progress readiness cards render safe actions back to Learn and Reader', () => {

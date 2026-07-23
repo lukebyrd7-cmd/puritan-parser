@@ -31,9 +31,25 @@ Puritan Parser is a local-first Biblical Greek and Hebrew reading and study app.
 
 ## Current Focus
 
-The v5.7 Onboarding foundation is complete. Current v5 work can move toward Study Sets and practice improvements while preserving the distinction: Onboarding helps users begin, Learn trains, Reader applies, Progress measures, Reference explains, and Settings controls behavior.
+v1.5 stabilization is implemented for review. It fixes continuous-Reader text-toggle position loss, replaces the bottom mobile controls with a restrained top toolbar, deduplicates and prefetches adjacent chapter requests, phases Progress so core metrics paint before whole-Bible readiness work, defers inactive Reference rendering, and repairs nested-route startup asset resolution. Release validation remains the current focus; no feature expansion is included.
 
 The v1.4.2 Reader milestone adds an opt-in continuous mode alongside the existing chapter mode. It incrementally renders nearby chapters within the selected book, tracks the chapter in view, restores a verse-relative reading anchor, and exposes compact mobile text-visibility controls after the primary controls scroll away. Crossing books remains an explicit selection rather than an automatic continuous-reading transition.
+
+### v1.5 Stabilization and release QA
+
+- Preserve the nearest visible original or English verse through repeated visibility changes, including continuous-mode boundaries.
+- Keep mobile secondary Reader controls fixed near the top, safe-area aware, and synchronized with primary controls.
+- Reuse in-flight Reader requests, prefetch only the next adjacent chapters, and retain the five-chapter DOM bound.
+- Paint Progress core metrics before readiness scans and invalidate readiness caches on learning changes.
+- Defer inactive Reference rendering and keep direct Reference routes functional.
+- Resolve all shell assets and service-worker registration from the application root so nested hard refreshes work.
+- Keep persisted schemas, SRS behavior, and Greek/Hebrew language data unchanged.
+
+#### Validation notes
+
+Measurements used the local static development server and the Codex in-app browser at 390×844. They include roughly 1.2 seconds of browser-automation overhead and are directional local-development measurements, not production benchmarks. Before stabilization, Progress painted its shell at approximately 3.37 seconds and did not show the complete/core summary until 6.07 seconds. After phasing, its shell painted at approximately 3.12 seconds, core values at 3.24 seconds, and full readiness at 5.26 seconds: useful values appeared about 2.83 seconds sooner. A continuous Reader text toggle measured approximately 2.40 seconds before and 1.97 seconds after under the same automation, while the material correction was removal of the chapter/top jump. Adjacent-load improvement is evidenced primarily by one shared in-flight request per chapter and idle loading of only the immediate chapters outside the five-chapter window; the browser harness did not provide a reliable isolated boundary-render timing.
+
+Browser review covered the in-app browser at 320px, 390×844, 768px, and 1440px. Tested normal Reader, Progress, direct Handbook, and About & Sources flows had no current-origin console errors, duplicate IDs, or page-level horizontal overflow. Safari/WebKit and Firefox were not available. Returning-offline launch was attempted after service-worker installation, but the browser environment blocked the post-shutdown inspection; exact cache-busted startup assets are now precached and automated cache assertions pass, but a real installed/offline launch remains an important manual follow-up. The existing Hebrew gloss audit still reports incomplete source gloss coverage; v1.5 does not change or synthesize that linguistic data.
 
 ## v5 Roadmap
 

@@ -51,6 +51,12 @@ test('smoke: Progress shell and primary navigation are present', () => {
   assert.match(html, /id="progressShell"/);
 });
 
+test('smoke: Reference rendering is deferred until the Reference route opens', () => {
+  const views = fs.readFileSync('src/features/vocab/index.js', 'utf8');
+  assert.doesNotMatch(bootstrap, /initReferenceLibrary\s*\(/);
+  assert.match(views, /viewId==='grammarView'[\s\S]*initReferenceLibrary\(\)/);
+});
+
 test('smoke: service worker precaches every startup module from src/main.js', () => {
   const main = fs.readFileSync('src/main.js', 'utf8');
   const sw = fs.readFileSync('sw.js', 'utf8');
@@ -74,4 +80,16 @@ test('smoke: Vercel rewrites deep links to the app shell', () => {
 test('smoke: local dev server uses app-shell fallback for routes', () => {
   const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8'));
   assert.equal(pkg.scripts.dev, 'serve -s .');
+});
+
+test('smoke: nested hard refreshes resolve startup assets from the app root', () => {
+  const main = fs.readFileSync('src/main.js', 'utf8');
+  const events = fs.readFileSync('src/features/settings/events.js', 'utf8');
+  const sw = fs.readFileSync('sw.js', 'utf8');
+  assert.match(html, /href="\/styles\.css\?v=v1\.5-stabilization"/);
+  assert.match(html, /src="\/src\/main\.js\?v=v1\.5-stabilization"/);
+  assert.match(main, /script\.src = src\.startsWith\('\/'\) \? src : `\/\$\{src\}`/);
+  assert.match(events, /serviceWorker\.register\('\/sw\.js'\)/);
+  assert.match(sw, /'\.\/styles\.css\?v=v1\.5-stabilization'/);
+  assert.match(sw, /'\.\/src\/main\.js\?v=v1\.5-stabilization'/);
 });

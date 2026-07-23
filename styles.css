@@ -2289,7 +2289,8 @@ button:focus-visible, input:focus-visible, select:focus-visible {
   .reader-text {
     min-height: calc(100dvh - 150px);
     overflow: visible;
-    padding: 2px 4px calc(84px + env(safe-area-inset-bottom));
+    padding: 2px 4px calc(36px + env(safe-area-inset-bottom));
+    scroll-padding-top: calc(112px + env(safe-area-inset-top));
     font-size: 23px;
     line-height: 1.76;
   }
@@ -2308,14 +2309,14 @@ button:focus-visible, input:focus-visible, select:focus-visible {
   .reader-sticky-toolbar {
     position: fixed;
     right: max(10px, env(safe-area-inset-right));
-    bottom: max(10px, env(safe-area-inset-bottom));
+    top: calc(58px + env(safe-area-inset-top));
     left: max(10px, env(safe-area-inset-left));
     z-index: 190;
     display: flex;
     gap: 5px;
     align-items: center;
     justify-content: flex-end;
-    min-height: 52px;
+    min-height: 46px;
     padding: 6px 7px;
     border: 1px solid var(--border-strong);
     border-radius: 10px;
@@ -2331,7 +2332,7 @@ button:focus-visible, input:focus-visible, select:focus-visible {
     font: 750 11px/1.2 var(--font-sans);
   }
   .reader-sticky-toolbar button {
-    min-height: 40px;
+    min-height: 36px;
     border: 1px solid var(--border);
     border-radius: 7px;
     padding: 5px 9px;

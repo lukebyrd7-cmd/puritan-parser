@@ -1,11 +1,13 @@
 // Service worker for the static Puritan Parser app.
-// Keep this file next to index.html so navigator.serviceWorker.register('./sw.js') works.
-const CACHE = 'puritan-parser-v57-v1.3.7-grammar-handbook';
+// Keep this file next to index.html so root-scoped registration covers every route.
+const CACHE = 'puritan-parser-v58-v1.5-stabilization';
 const FILES = [
   './',
   './index.html',
   './styles.css',
+  './styles.css?v=v1.5-stabilization',
   './src/main.js',
+  './src/main.js?v=v1.5-stabilization',
   './src/core/parser-core.js',
   './src/core/migrations/migrations.js',
   './src/core/migrations/migration-runner.js',

@@ -10,7 +10,6 @@ async function init(){
   wireEvents();
   syncSettingsUI();
   if(typeof initOnboarding === 'function') initOnboarding();
-  if(typeof initReferenceLibrary === 'function') initReferenceLibrary();
   setLang(state.lang);
   if(typeof initRouter === 'function') initRouter(); else showView('listView');
   updateDueBadge();

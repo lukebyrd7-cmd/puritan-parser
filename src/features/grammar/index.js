@@ -4,6 +4,7 @@ function renderMixedReferenceText(value){ return String(value ?? '').split(/([\u
 function isPureHebrewReferenceText(value){ const text=String(value ?? ''); return /[\u0590-\u05ff]/.test(text) && !/[A-Za-z\u0370-\u03ff]/.test(text); }
 function referenceApi(){ return (typeof PuritanReferenceLibrary !== 'undefined') ? PuritanReferenceLibrary : null; }
 const referenceState = { language: appGrammarLanguage(), handbookArticleIds:{}, handbookQueries:{}, handbookSections:{} };
+let referenceInitialized = false;
 function selectedReferenceLanguage(){ return referenceState.language === 'hebrew' ? 'hebrew' : 'greek'; }
 function appGrammarLanguage(){ return (typeof state !== 'undefined' && (state.lang === 'hebrew' || state.lang === 'greek')) ? state.lang : 'greek'; }
 function defaultReferenceTopicId(lang=selectedReferenceLanguage()){ return lang === 'hebrew' ? 'hebrew-paradigm-charts' : 'greek-paradigm-charts'; }
@@ -139,7 +140,9 @@ function attachReferenceJumpHandlers(root){ $$('.reference-jump-chip',root).forE
 function renderParsingGuide(){ renderReferenceLibrary(`${selectedReferenceLanguage()}-morphology-guide`); }
 function renderReferenceRoute(){ const api=referenceApi(); const requested=api?.getHandbookArticle?.(handbookRouteArticle()); if(requested){ setReferenceLanguage(requested.language,{render:false}); referenceState.handbookArticleIds[requested.language]=requested.id; referenceState.handbookSections[requested.language]=requested.sectionId; renderReferenceLibrary(`${requested.language}-grammar-handbook`); return; } renderReferenceLibrary(selectedReferenceTopicId()); }
 function initReferenceLibrary(){
+  if(referenceInitialized) { renderReferenceRoute(); return true; }
   if(!$('#referenceTopicList')) return;
+  referenceInitialized = true;
   $('#referenceLanguageSelect')?.addEventListener('change', event => { if(typeof window!=='undefined'&&window.location.pathname==='/grammar'&&window.location.search){ history.replaceState({},'', '/grammar'); } setReferenceLanguage(event.target.value); });
   $('#referencePage')?.addEventListener('click', event => {
     const source=event.target.closest?.('[data-source-notes-target]'); if(source){ event.preventDefault(); if(typeof openAboutSources==='function') openAboutSources(source.dataset.sourceNotesTarget); return; }
@@ -150,4 +153,5 @@ function initReferenceLibrary(){
   $('#referenceSearchInput')?.addEventListener('input',debounce(()=>renderReferenceLibrary(selectedReferenceTopicId()),100));
   if(typeof window!=='undefined') window.addEventListener('popstate',()=>{ if(window.location.pathname==='/grammar') renderReferenceRoute(); });
   renderReferenceRoute();
+  return true;
 }
