@@ -24,7 +24,7 @@
 <link rel="apple-touch-icon" href="/logo.png">
 <link rel="icon" href="/logo.png">
 <link rel="manifest" href="/manifest.json">
-<link rel="stylesheet" href="/styles.css?v=v1.6-hebrew-search-1">
+<link rel="stylesheet" href="/styles.css?v=v1.7-hebrew-interlinear-5">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="Puritan Parser">
@@ -483,6 +483,12 @@
                 <label><input id="readerReadingModeChapter" type="radio" name="readerReadingMode" value="chapter" /> <span>One chapter at a time</span></label>
               </fieldset>
               <p class="small muted">Continuous reading is the default for new readers. Your saved choice is kept on this device.</p>
+              <fieldset class="settings-reader-mode">
+                <legend class="settings-label">Hebrew display</legend>
+                <label><input id="readerHebrewDisplayStandard" type="radio" name="readerHebrewDisplay" value="standard" /> <span>Standard</span></label>
+                <label><input id="readerHebrewDisplayInterlinear" type="radio" name="readerHebrewDisplay" value="interlinear" /> <span>Interlinear</span></label>
+              </fieldset>
+              <p class="small muted">Interlinear adds concise source glosses beneath Hebrew words in Original mode. Greek and English reading are unchanged.</p>
               <button class="btn btn-ghost btn-sm" id="readerSettingsReturn" type="button">← Return to Reader</button>
             </div>
           </section>
@@ -581,6 +587,6 @@
 
 </div><!-- /app -->
 
-  <script src="/src/main.js?v=v1.6-hebrew-search-1"></script>
+  <script src="/src/main.js?v=v1.7-hebrew-interlinear-5"></script>
 </body>
 </html>

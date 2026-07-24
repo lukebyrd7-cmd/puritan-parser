@@ -16,6 +16,7 @@ const ReaderSavedVocabularyModel = (typeof PuritanSavedVocabulary !== 'undefined
   : (typeof require === 'function' ? require('../../models/saved-vocabulary') : null);
 const ReaderDefaultSettings = {
   display: 'original',
+  hebrewDisplay: 'standard',
   translation: 'on',
   translationProvider: 'web',
   textMode: 'original',
@@ -31,7 +32,7 @@ const ReaderDefaultSettings = {
   wordDetailsDisplay: 'auto'
 };
 const ReaderSharedSettingKeys = ['display', 'translation', 'translationProvider', 'textMode', 'showOriginal', 'showEnglish', 'hideKnown', 'indicator', 'floatingControls', 'floatingTranslationToggle', 'showTranslationToggle', 'wordDetailsDisplay'];
-const HebrewInterlinearUnavailableMessage = 'Hebrew interlinear is not available yet because token-level gloss data is still being prepared.';
+const HebrewInterlinearUnavailableMessage = 'Interlinear glosses are unavailable for this chapter. Standard Hebrew remains available.';
 const ReaderConfig = {
   hebrew: {
     label: 'Hebrew Bible',
@@ -39,6 +40,7 @@ const ReaderConfig = {
     htmlLang: 'he',
     dir: 'rtl',
     dataRoot: 'data/hebrew',
+    interlinearRoot: 'data/hebrew-interlinear',
     manifestPath: 'data/hebrew/manifest.json',
     glossPath: 'data/glosses/hebrew-glosses.json',
     searchIndexPath: 'data/hebrew/search-index.json',
@@ -102,6 +104,7 @@ let readerState = {
   continuousChapters: [],
   translationData: null,
   translationStatus: null,
+  interlinearStatus: null,
   loading: false,
   error: '',
   focusVerse: '',
@@ -112,6 +115,9 @@ let readerState = {
 };
 const readerChapterCache = new Map();
 const readerChapterPromises = new Map();
+const readerInterlinearChapterCache = new Map();
+const readerInterlinearPromises = new Map();
+const readerInterlinearLoadCounts = {};
 const readerTranslationLoadCounts = {};
 const readerTranslationPromises = new Map();
 const readerTranslationChapterCache = new Map();
@@ -285,7 +291,8 @@ function sanitizeReaderSettings(settings = {}, language = readerState.language){
   const supplied = settings && typeof settings === 'object' ? settings : {};
   const next = { ...ReaderDefaultSettings, ...(settings || {}) };
   next.display = next.display === 'interlinear' ? 'interlinear' : 'original';
-  if(language === 'hebrew' && !readerLanguageCanUseInterlinear(language)) next.display = 'original';
+  next.hebrewDisplay = next.hebrewDisplay === 'interlinear' ? 'interlinear' : 'standard';
+  if(language === 'hebrew') next.display = next.hebrewDisplay === 'interlinear' ? 'interlinear' : 'original';
   next.translation = next.translation === 'on' ? 'on' : 'off';
   next.translationProvider = ReaderTranslationOptions.some(option => option.id === next.translationProvider) ? next.translationProvider : ReaderDefaultSettings.translationProvider;
   const preferredMode = supplied.textMode === 'english' ? 'english' : 'original';
@@ -340,7 +347,10 @@ function loadReaderSettings(language = readerState.language){
   const all = loadAllReaderSettings();
   const legacyLanguage = all[language] && typeof all[language] === 'object' ? all[language] : {};
   const shared = deriveSharedReaderSettings(all, language);
-  return sanitizeReaderSettings({ ...shared, assistance: legacyLanguage.assistance, customThreshold: legacyLanguage.customThreshold }, language);
+  const hebrewDisplay = language === 'hebrew'
+    ? (ReaderPreferenceApi?.readHebrewDisplay?.() || legacyLanguage.hebrewDisplay || 'standard')
+    : 'standard';
+  return sanitizeReaderSettings({ ...shared, hebrewDisplay, assistance: legacyLanguage.assistance, customThreshold: legacyLanguage.customThreshold }, language);
 }
 function saveReaderSettings(settings = loadReaderSettings(), language = readerState.language){
   const all = loadAllReaderSettings();
@@ -348,15 +358,17 @@ function saveReaderSettings(settings = loadReaderSettings(), language = readerSt
   const existingLanguage = all[language] && typeof all[language] === 'object' ? all[language] : {};
   all.shared = { ...(all.shared || {}) };
   ReaderSharedSettingKeys.forEach(key => {
-    if(key === 'display' && language === 'hebrew' && !readerLanguageCanUseInterlinear(language) && all.shared.display) return;
+    if(key === 'display' && language === 'hebrew') return;
     all.shared[key] = clean[key];
   });
   all[language] = {
     assistance: clean.assistance,
     customThreshold: clean.customThreshold,
+    ...(language === 'hebrew' ? { hebrewDisplay: clean.display === 'interlinear' ? 'interlinear' : 'standard' } : {}),
     ...(Object.prototype.hasOwnProperty.call(existingLanguage, 'legacy') ? { legacy: existingLanguage.legacy } : {})
   };
   saveAllReaderSettings(all);
+  if(language === 'hebrew') ReaderPreferenceApi?.writeHebrewDisplay?.(clean.display === 'interlinear' ? 'interlinear' : 'standard');
   return clean;
 }
 function getActiveReaderSettings(){ return loadReaderSettings(readerState.language); }
@@ -488,10 +500,10 @@ function readerChapterTokens(data = {}){
 function readerChapterHasReliableInterlinearGlossData(data = {}, language = readerState.language){
   if(language !== 'hebrew') return true;
   const tokens = readerChapterTokens(data);
-  return tokens.length > 0 && tokens.every(token => readerTokenEnglishGlossFields(token).some(isReaderEnglishGloss));
+  return tokens.length > 0 && tokens.every(token => cleanReaderTokenValue(token.tokenId) && ['source', 'missing'].includes(token.glossStatus));
 }
 function readerLanguageCanUseInterlinear(language = readerState.language, data = null){
-  return language !== 'hebrew' || (data ? readerChapterHasReliableInterlinearGlossData(data, language) : false);
+  return language !== 'hebrew' || !data || readerChapterHasReliableInterlinearGlossData(data, language);
 }
 function readerInterlinearAvailable(data = readerState.chapterData, language = readerState.language){
   return readerLanguageCanUseInterlinear(language, data);
@@ -515,18 +527,26 @@ function normalizeReaderToken(token = {}, language = readerState.language){
     lexicalForm: cleanReaderTokenValue(token.lexicalForm || token.headword),
     hebrewLemma: cleanReaderTokenValue(token.hebrewLemma),
     root: cleanReaderTokenValue(token.root),
-    stem: cleanReaderTokenValue(token.stem)
+    stem: cleanReaderTokenValue(token.stem),
+    tokenId: cleanReaderTokenValue(token.tokenId || token.id),
+    interlinearGloss: cleanReaderTokenValue(token.interlinearGloss),
+    glossStatus: cleanReaderTokenValue(token.glossStatus),
+    sourceRowIds: Array.isArray(token.sourceRowIds) ? token.sourceRowIds.map(cleanReaderTokenValue).filter(Boolean) : [],
+    qereKetiv: cleanReaderTokenValue(token.qereKetiv),
+    maqqefAfter: Boolean(token.maqqefAfter),
+    punctuationAfter: cleanReaderTokenValue(token.punctuationAfter)
   };
 }
 function readerTokenInterlinearHint(token = {}, language = readerState.language){
   const normalized = normalizeReaderToken(token, language);
+  if(language === 'hebrew') return normalized.glossStatus === 'source' ? normalized.interlinearGloss : '';
   const gloss = readerTokenGloss(normalized, language);
   const lemma = readerTokenLemmaSupport(normalized, language);
   const morphology = readerTokenShortMorphology(normalized, language);
   return gloss || lemma || morphology || '';
 }
 function readerTokenInterlinearDetails(token = {}, language = readerState.language){
-  if(language !== 'hebrew') return '';
+  if(language === 'hebrew') return '';
   const normalized = normalizeReaderToken(token, language);
   const gloss = readerTokenGloss(normalized, language);
   const hint = readerTokenInterlinearHint(normalized, language);
@@ -1204,6 +1224,82 @@ function clampReaderChapter(language, book, chapter){
   if(chapters.includes(requested)) return requested;
   return chapters.reduce((closest, current) => Math.abs(current - requested) < Math.abs(closest - requested) ? current : closest, chapters[0] || 1);
 }
+function getReaderInterlinearChapterPath(book, chapter){
+  return `${ReaderConfig.hebrew.interlinearRoot}/${book}/${chapter}.json`;
+}
+function decodeReaderInterlinearChapter(data = {}){
+  const tokenFields = Array.isArray(data.tokenFields) ? data.tokenFields : [];
+  const segmentFields = Array.isArray(data.segmentFields) ? data.segmentFields : [];
+  if(data.schemaVersion !== 1 || !data.book || !Number(data.chapter) || !tokenFields.length || !segmentFields.length) {
+    throw new Error('Hebrew interlinear chapter has an unsupported schema.');
+  }
+  const decode = (fields, values) => {
+    if(!Array.isArray(values) || values.length !== fields.length) throw new Error('Hebrew interlinear record does not match its field schema.');
+    return Object.fromEntries(fields.map((field, index) => [field, values[index]]));
+  };
+  const verses = (data.verses || []).map(verse => ({
+    verse: Number(verse.verse),
+    tokens: (verse.tokens || []).map(values => {
+      const token = decode(tokenFields, values);
+      token.segments = (token.segments || []).map(segment => decode(segmentFields, segment));
+      return { ...token, book: data.book, chapter: Number(data.chapter), verse: Number(verse.verse) };
+    })
+  }));
+  return { ...data, verses };
+}
+async function loadReaderInterlinearChapter(book = readerState.book, chapter = readerState.chapter){
+  const key = readerCacheKey('hebrew-interlinear', book, chapter);
+  if(readerInterlinearChapterCache.has(key)) return readerInterlinearChapterCache.get(key);
+  if(readerInterlinearPromises.has(key)) return readerInterlinearPromises.get(key);
+  readerInterlinearLoadCounts[key] = (readerInterlinearLoadCounts[key] || 0) + 1;
+  const pending = fetchReaderJson(getReaderInterlinearChapterPath(book, chapter))
+    .then(decodeReaderInterlinearChapter)
+    .then(data => {
+      readerInterlinearChapterCache.set(key, data);
+      return data;
+    })
+    .finally(() => readerInterlinearPromises.delete(key));
+  readerInterlinearPromises.set(key, pending);
+  return pending;
+}
+function attachReaderInterlinearChapter(readerData = {}, interlinearData = {}){
+  if(readerData.book !== interlinearData.book || Number(readerData.chapter) !== Number(interlinearData.chapter)) {
+    throw new Error('Hebrew interlinear chapter identity does not match the Reader chapter.');
+  }
+  const sourceVerses = new Map((interlinearData.verses || []).map(verse => [Number(verse.verse), verse]));
+  const attachVerse = verse => {
+    const sourceVerse = sourceVerses.get(Number(verse.verse || verse.number));
+    const tokens = Array.isArray(verse.tokens) ? verse.tokens : [];
+    if(!sourceVerse || sourceVerse.tokens.length !== tokens.length) {
+      throw new Error(`Hebrew interlinear token count does not match ${readerData.book} ${readerData.chapter}:${verse.verse || verse.number}.`);
+    }
+    return {
+      ...verse,
+      tokens: tokens.map((token, index) => {
+        const record = sourceVerse.tokens[index];
+        const expectedId = `${readerData.book}.${readerData.chapter}.${verse.verse || verse.number}.${index + 1}`;
+        if(record.id !== expectedId || record.surface !== token.surface || Number(record.tokenIndex) !== index + 1) {
+          throw new Error(`Hebrew interlinear token identity mismatch at ${expectedId}.`);
+        }
+        return {
+          ...token,
+          tokenId: record.id,
+          interlinearGloss: record.gloss,
+          glossStatus: record.glossStatus,
+          sourceRowIds: record.sourceRowIds,
+          qereKetiv: record.qereKetiv,
+          variantTokenIds: record.variantTokenIds,
+          maqqefAfter: record.maqqefAfter,
+          punctuationAfter: record.punctuationAfter
+        };
+      })
+    };
+  };
+  if(Array.isArray(readerData.paragraphs)) {
+    return { ...readerData, paragraphs: readerData.paragraphs.map(paragraph => ({ ...paragraph, verses: (paragraph.verses || []).map(attachVerse) })) };
+  }
+  return { ...readerData, verses: (readerData.verses || []).map(attachVerse) };
+}
 async function loadReaderChapter(language = readerState.language, book = readerState.book, chapter = readerState.chapter){
   const key = readerCacheKey(language, book, chapter);
   if(readerChapterCache.has(key)) return readerChapterCache.get(key);
@@ -1274,7 +1370,7 @@ function readerContinuousChapterNumbers(language, book, chapter, radius = 1){
   return chapters.slice(Math.max(0, index - radius), Math.min(chapters.length, index + radius + 1));
 }
 function readerPassageRequestKey(language, book, chapter, settings = getActiveReaderSettings()){
-  return [language, book, Number(chapter), settings.textMode, settings.translationProvider, settings.translation].join('/');
+  return [language, book, Number(chapter), settings.textMode, settings.display, settings.translationProvider, settings.translation].join('/');
 }
 async function loadReaderPassage(language, book, chapter, settings = getActiveReaderSettings()){
   const key = readerPassageRequestKey(language, book, chapter, settings);
@@ -1282,15 +1378,34 @@ async function loadReaderPassage(language, book, chapter, settings = getActiveRe
   const pending = (async () => {
     const dataPromise = loadReaderChapter(language, book, chapter);
     const needsEnglish = settings.translation === 'on' && settings.textMode === 'english';
-    if(!needsEnglish) {
+    const needsInterlinear = language === 'hebrew' && settings.display === 'interlinear' && settings.textMode === 'original';
+    if(!needsEnglish && !needsInterlinear) {
       const data = await dataPromise;
-      return { chapter: Number(chapter), data, translationData: null, translationStatus: null };
+      return { chapter: Number(chapter), data, translationData: null, translationStatus: null, interlinearStatus: null };
     }
-    const [data, translated] = await Promise.all([
-      dataPromise,
-      resolveReaderTranslationChapter(settings, book, chapter)
-    ]);
-    return { chapter: Number(chapter), data, translationData: translated.data, translationStatus: translated.status };
+    if(needsInterlinear) {
+      const data = await dataPromise;
+      try {
+        const interlinear = await loadReaderInterlinearChapter(book, chapter);
+        return {
+          chapter: Number(chapter),
+          data: attachReaderInterlinearChapter(data, interlinear),
+          translationData: null,
+          translationStatus: null,
+          interlinearStatus: { available: true, unavailable: false }
+        };
+      } catch(error) {
+        return {
+          chapter: Number(chapter),
+          data,
+          translationData: null,
+          translationStatus: null,
+          interlinearStatus: { available: false, unavailable: true, message: error.message || HebrewInterlinearUnavailableMessage }
+        };
+      }
+    }
+    const [data, translated] = await Promise.all([dataPromise, resolveReaderTranslationChapter(settings, book, chapter)]);
+    return { chapter: Number(chapter), data, translationData: translated.data, translationStatus: translated.status, interlinearStatus: null };
   })().finally(() => readerPassagePromises.delete(key));
   readerPassagePromises.set(key, pending);
   return pending;
@@ -1346,6 +1461,7 @@ function syncReaderActivePassage(chapter = readerState.chapter){
   readerState.chapterData = passage.data;
   readerState.translationData = passage.translationData;
   readerState.translationStatus = passage.translationStatus;
+  readerState.interlinearStatus = passage.interlinearStatus;
   return passage;
 }
 async function setReaderLocation(location = {}){
@@ -1372,6 +1488,7 @@ async function setReaderLocation(location = {}){
     continuousChapters: [],
     translationData: null,
     translationStatus: null,
+    interlinearStatus: null,
     loading: true,
     error: '',
     focusVerse
@@ -1390,13 +1507,12 @@ async function setReaderLocation(location = {}){
         readerState.anchorOffset = 72;
       }
     } else {
-      readerState.chapterData = await loadReaderChapter(language, book, chapter);
+      const passage = await loadReaderPassage(language, book, chapter, getActiveReaderSettings());
       if(requestId !== readerLocationRequestId) return false;
-      const settings = getActiveReaderSettings();
-      if(settings.translation === 'on' && settings.textMode === 'english'){
-        await ensureReaderTranslationLoaded(settings);
-        if(requestId !== readerLocationRequestId) return false;
-      }
+      readerState.chapterData = passage.data;
+      readerState.translationData = passage.translationData;
+      readerState.translationStatus = passage.translationStatus;
+      readerState.interlinearStatus = passage.interlinearStatus;
     }
     readerState.loading = false;
     saveReaderLocation(readerState);
@@ -1571,16 +1687,16 @@ function handleReaderChapterKeydown(event = {}){
 }
 function renderReaderSettingsPanel(settings = getActiveReaderSettings(), language = readerState.language, data = readerState.chapterData){
   const customInvalid = settings.assistance === 'custom' && settings.customThreshold && !/^[1-9]\d*$/.test(settings.customThreshold);
-  const interlinearAvailable = readerLanguageCanUseInterlinear(language, data);
-  const effectiveSettings = readerEffectiveSettings(settings, language, data);
+  const interlinearAvailable = readerLanguageCanUseInterlinear(language);
+  const effectiveSettings = settings;
+  const standardLabel = language === 'hebrew' ? 'Standard' : 'Original';
   const button = (name, value, label, active, attrs = '') => `<button class="reader-setting-choice${active ? ' active' : ''}" type="button" data-reader-setting="${escReaderAttr(name)}" data-reader-value="${escReaderAttr(value)}" ${attrs}>${escHtml(label)}</button>`;
   return `
         <div class="reader-settings-panel" role="group" aria-label="Adaptive Reader settings">
           <button class="reader-settings-close" id="readerSettingsClose" type="button" aria-label="Close Adaptive Reader settings">✕</button>
           <div class="reader-setting-group">
             <div class="reader-setting-label">Display</div>
-            <div class="reader-setting-row">${button('display', 'original', 'Original', effectiveSettings.display === 'original')}${button('display', 'interlinear', 'Interlinear', effectiveSettings.display === 'interlinear', interlinearAvailable ? '' : 'disabled aria-describedby="readerInterlinearUnavailable"')}</div>
-            ${!interlinearAvailable && language === 'hebrew' ? `<p class="reader-setting-note" id="readerInterlinearUnavailable">${escHtml(HebrewInterlinearUnavailableMessage)}</p>` : ''}
+            <div class="reader-setting-row">${button('display', 'original', standardLabel, effectiveSettings.display === 'original')}${button('display', 'interlinear', 'Interlinear', effectiveSettings.display === 'interlinear', interlinearAvailable ? '' : 'disabled')}</div>
           </div>
           <div class="reader-setting-group">
             <div class="reader-setting-label">Translation</div>
@@ -1664,7 +1780,7 @@ function renderReaderChapter(data, settings = getActiveReaderSettings(), options
     showOriginal: true,
     showEnglish: false
   };
-  const originalContent = `${interlinearUnavailable ? `<div class="empty-state">${escHtml(HebrewInterlinearUnavailableMessage)}</div>` : ''}${paragraphs.map(paragraph => renderReaderParagraph(paragraph, data, originalSettings, { translationData, idPrefix, meta })).join('')}`;
+  const originalContent = `${interlinearUnavailable ? `<div class="empty-state reader-interlinear-unavailable" role="status">${escHtml(HebrewInterlinearUnavailableMessage)} <button class="btn btn-ghost btn-sm" type="button" data-reader-interlinear-retry>Retry glosses</button></div>` : ''}${paragraphs.map(paragraph => renderReaderParagraph(paragraph, data, originalSettings, { translationData, idPrefix, meta })).join('')}`;
   const englishContent = hasEnglish
     ? paragraphs.map(paragraph => `<p class="reader-paragraph reader-paragraph-english" lang="en" dir="ltr">${paragraph.verses.map(verse => renderReaderVerse(verse, data, settings, { translationData, idPrefix, kind: 'english', duplicateAnchor: true })).join(' ')}</p>`).join('')
     : '<div class="empty-state">English unavailable for this passage.</div>';
@@ -1706,7 +1822,17 @@ function renderReaderTokens(tokens, reference = {}, settings = getActiveReaderSe
     if(!assisted) classes.push('reader-token-unassisted');
     if(indicatorClass) classes.push(indicatorClass.trim());
     if(interlinear) classes.push('reader-token-interlinear');
-    return `<button class="${classes.join(' ')}" type="button" lang="${escReaderAttr(meta.htmlLang)}" dir="${escReaderAttr(meta.dir)}" data-reader-assisted="${assisted ? 'true' : 'false'}" data-language="${escReaderAttr(meta.language)}" data-surface="${escReaderAttr(normalized.surface || '')}" data-lemma="${escReaderAttr(normalized.lemma || '')}" data-parse="${escReaderAttr(normalized.parse || '')}" data-source-lemma="${escReaderAttr(normalized.sourceLemma || '')}" data-primary-gloss="${escReaderAttr(normalized.primaryGloss || '')}" data-gloss="${escReaderAttr(normalized.gloss || '')}" data-root="${escReaderAttr(normalized.root || '')}" data-hebrew-lemma="${escReaderAttr(normalized.hebrewLemma || '')}" data-stem="${escReaderAttr(normalized.stem || '')}" data-lexical-form="${escReaderAttr(normalized.lexicalForm || '')}" data-book="${escReaderAttr(reference.book || '')}" data-book-name="${escReaderAttr(reference.bookName || '')}" data-chapter="${escReaderAttr(reference.chapter || '')}" data-verse="${escReaderAttr(reference.verse || '')}" aria-label="${escReaderAttr(assisted ? `Show word info for ${normalized.surface || `token ${index + 1}`}` : `${normalized.surface || `token ${index + 1}`} hidden by Reader settings`)}"><span class="reader-token-surface" lang="${escReaderAttr(meta.htmlLang)}" dir="${escReaderAttr(meta.dir)}">${escHtml(normalized.surface)}</span>${interlinear ? `<span class="reader-token-gloss" lang="en" dir="ltr">${escHtml(gloss || ' ')}</span>${details ? `<span class="reader-token-details" lang="en" dir="ltr">${escHtml(details)}</span>` : ''}` : ''}${assisted && settings.indicator === 'footnote' ? '<sup class="reader-token-marker">•</sup>' : ''}</button>`;
+    const tokenId = normalized.tokenId || `${reference.book}.${reference.chapter}.${reference.verse}.${index + 1}`;
+    const missingGloss = interlinear && language === 'hebrew' && normalized.glossStatus !== 'source';
+    const glossText = missingGloss ? '—' : gloss;
+    const accessibleGloss = missingGloss ? 'Gloss unavailable' : glossText;
+    const accessibleLabel = assisted
+      ? `${normalized.surface || `token ${index + 1}`}${interlinear && accessibleGloss ? `: ${accessibleGloss}` : ''}. Show word details`
+      : `${normalized.surface || `token ${index + 1}`} hidden by Reader settings`;
+    const button = `<button class="${classes.join(' ')}" id="readerToken-${escReaderAttr(tokenId)}" type="button" lang="${escReaderAttr(meta.htmlLang)}" dir="${escReaderAttr(meta.dir)}" data-token-id="${escReaderAttr(tokenId)}" data-reader-assisted="${assisted ? 'true' : 'false'}" data-language="${escReaderAttr(meta.language)}" data-surface="${escReaderAttr(normalized.surface || '')}" data-lemma="${escReaderAttr(normalized.lemma || '')}" data-parse="${escReaderAttr(normalized.parse || '')}" data-source-lemma="${escReaderAttr(normalized.sourceLemma || '')}" data-primary-gloss="${escReaderAttr(normalized.primaryGloss || '')}" data-gloss="${escReaderAttr(normalized.gloss || '')}" data-root="${escReaderAttr(normalized.root || '')}" data-hebrew-lemma="${escReaderAttr(normalized.hebrewLemma || '')}" data-stem="${escReaderAttr(normalized.stem || '')}" data-lexical-form="${escReaderAttr(normalized.lexicalForm || '')}" data-book="${escReaderAttr(reference.book || '')}" data-book-name="${escReaderAttr(reference.bookName || '')}" data-chapter="${escReaderAttr(reference.chapter || '')}" data-verse="${escReaderAttr(reference.verse || '')}" aria-label="${escReaderAttr(accessibleLabel)}"><span class="reader-token-surface" lang="${escReaderAttr(meta.htmlLang)}" dir="${escReaderAttr(meta.dir)}">${escHtml(normalized.surface)}</span>${interlinear ? `<span class="reader-token-gloss${missingGloss ? ' reader-token-gloss-missing' : ''}" lang="en" dir="ltr">${escHtml(glossText || ' ')}</span>${details ? `<span class="reader-token-details" lang="en" dir="ltr">${escHtml(details)}</span>` : ''}` : ''}${assisted && settings.indicator === 'footnote' ? '<sup class="reader-token-marker">•</sup>' : ''}</button>`;
+    if(!interlinear || language !== 'hebrew') return button;
+    const punctuation = `${normalized.maqqefAfter ? '־' : ''}${normalized.punctuationAfter || ''}`;
+    return `<span class="reader-interlinear-unit" dir="rtl">${button}${punctuation ? `<span class="reader-token-punctuation" lang="he" dir="rtl" aria-hidden="true">${escHtml(punctuation)}</span>` : ''}</span>`;
   }).join(' ');
 }
 function readerUsesWindowScroll(){
@@ -1898,7 +2024,7 @@ async function loadReaderContinuousAdjacent(direction){
   try {
     const passage = await loadReaderPassage(language, book, nextChapter, settings);
     if(readerState.mode !== 'continuous' || readerState.language !== language || readerState.book !== book) return false;
-    if(visibilityRequestId !== readerVisibilityRequestId || getActiveReaderSettings().textMode !== settings.textMode) return false;
+    if(visibilityRequestId !== readerVisibilityRequestId || getActiveReaderSettings().textMode !== settings.textMode || getActiveReaderSettings().display !== settings.display) return false;
     const currentPassages = readerState.continuousChapters || [];
     if(currentPassages.some(item => item.chapter === nextChapter)) return false;
     const merged = [...currentPassages, passage].sort((a, b) => a.chapter - b.chapter);
@@ -2058,6 +2184,20 @@ function toggleReaderTextVisibility(kind){
     });
     return saved;
   }
+  const needsInterlinear = selected === 'original'
+    && readerState.language === 'hebrew'
+    && saved.display === 'interlinear'
+    && !readerChapterHasReliableInterlinearGlossData(readerState.chapterData, 'hebrew');
+  if(needsInterlinear){
+    setReaderLanguageLoading(true, 'Loading interlinear glosses…');
+    setReaderLocation({
+      ...getReaderLocation(),
+      chapter: anchor?.chapter || readerState.chapter,
+      verse: anchor?.verse || readerState.anchorVerse,
+      anchorOffset: anchor?.anchorOffset ?? readerState.anchorOffset
+    });
+    return saved;
+  }
   if(applyReaderTextModeToRenderedPassages(saved)){
     if(anchor) scheduleReaderPlaceRestore(anchor, { visibilityRequestId: requestId });
     scheduleReaderVisibilityFocus(selected, focusSource);
@@ -2137,6 +2277,15 @@ async function refreshReaderTranslations(settings = getActiveReaderSettings()){
   syncReaderActivePassage(readerState.chapter);
   return readerState.translationData;
 }
+function retryReaderInterlinear(){
+  const anchor = captureReaderAnchor() || getReaderLocation();
+  return setReaderLocation({
+    ...getReaderLocation(),
+    chapter: anchor.chapter || readerState.chapter,
+    verse: anchor.verse || readerState.anchorVerse,
+    anchorOffset: anchor.anchorOffset ?? readerState.anchorOffset
+  });
+}
 function wireReaderControls(){
   $('#readerLanguageSelect')?.addEventListener('change', e => {
     const language = ReaderConfig[e.target.value] ? e.target.value : 'greek';
@@ -2162,6 +2311,7 @@ function wireReaderControls(){
   $('#readerShowTranslationToggle')?.addEventListener('change', e => updateReaderSetting('showTranslationToggle', e.target.checked));
   $('#readerCustomThreshold')?.addEventListener('change', e => updateReaderSetting('customThreshold', e.target.value));
   $$('[data-reader-visibility]').forEach(btn => btn.addEventListener('click', () => toggleReaderTextVisibility(btn.dataset.readerVisibility)));
+  $$('[data-reader-interlinear-retry]').forEach(btn => btn.addEventListener('click', retryReaderInterlinear));
   $$('.reader-token').forEach(btn => btn.addEventListener('click', () => openReaderTokenPopup(btn)));
   const readerText = $('.reader-text');
   readerText?.removeEventListener?.('scroll', handleReaderScroll);
@@ -2328,6 +2478,7 @@ function updateReaderSetting(key, value){
     next.showEnglish = next.textMode === 'english';
   } else if(key === 'display') {
     next.display = value === 'interlinear' ? 'interlinear' : 'original';
+    if(updateLanguage === 'hebrew') next.hebrewDisplay = next.display === 'interlinear' ? 'interlinear' : 'standard';
   } else if(key === 'indicator') {
     next.indicator = ['none', 'tint', 'underline', 'footnote'].includes(value) ? value : 'none';
   } else if(key === 'wordDetailsDisplay') {
@@ -2335,6 +2486,16 @@ function updateReaderSetting(key, value){
   }
   const saved = saveReaderSettings(next, updateLanguage);
   readerSettingsPanelOpen = wasSettingsPanelOpen;
+  if(key === 'display' && updateLanguage === 'hebrew'){
+    const anchor = preservedAnchor || getReaderLocation();
+    setReaderLocation({
+      ...getReaderLocation(),
+      chapter: anchor.chapter || readerState.chapter,
+      verse: anchor.verse || readerState.anchorVerse,
+      anchorOffset: anchor.anchorOffset ?? readerState.anchorOffset
+    });
+    return saved;
+  }
   if(saved.translation === 'on' && saved.textMode === 'english' && (key === 'translation' || key === 'translationProvider' || key === 'textMode')){
     refreshReaderTranslations(saved).then(() => {
       renderReader();
@@ -2693,12 +2854,19 @@ async function runReaderSearch(query){
 }
 async function initReader(){
   setReaderBrowserScrollRestoration(true);
-  if(readerInitialized && readerState.chapterData){ renderReader(); return; }
+  if(readerInitialized && readerState.chapterData){
+    const settings = getActiveReaderSettings();
+    const hasInterlinear = readerChapterHasReliableInterlinearGlossData(readerState.chapterData, readerState.language);
+    const needsReload = readerState.language === 'hebrew'
+      && settings.textMode === 'original'
+      && ((settings.display === 'interlinear') !== hasInterlinear);
+    if(!needsReload){ renderReader(); return; }
+  }
   const loc = readerInitialized ? getReaderLocation() : loadReaderLocation();
   readerState = { ...readerState, ...loc };
   await setReaderLocation(loc);
 }
-if(typeof window !== 'undefined') Object.assign(window, { ReaderConfig, ReaderTranslationOptions, ReaderDefaultSettings, ReaderWordDetailsLayout, readerState, readerChapterCache, readerTranslationLoadCounts, readerManifestCache, readerLoadCounts, getReaderChapterPath, getReaderLanguageMeta, loadReaderManifest, loadReaderChapter, loadReaderTranslationChapter, ensureReaderTranslationLoaded, setReaderLocation, getAdjacentReaderLocation, navigateReaderAdjacent, handleReaderChapterKeydown, handleReaderTouchStart, handleReaderTouchEnd, renderReader, renderReaderChapter, renderReaderVerse, renderReaderTokens, initReader, runReaderSearch, loadReaderLocation, saveReaderLocation, loadReaderSettings, saveReaderSettings, getActiveReaderSettings, updateReaderSetting, openReaderSettingsPanel, closeReaderSettingsPanel, openReaderSearch, closeReaderSearch, readerTokenQualifiesForAssistance, renderReaderSettingsPanel, renderReaderTranslationToggle, normalizeReaderWordDetailsDisplay, resolveReaderWordDetailsMode, currentReaderWordDetailsMode, syncReaderWordDetailsLayout, resetReaderWordDetailsState, parseReaderReference, openReaderTokenPopup, closeReaderWordPopup, openReaderWordPage, openReaderWordStandalonePage, openReaderWordPageFromInfo, renderReaderWordPage, renderReaderWordPageContent, lookupReaderWordInfo, explainReaderParse, readerDisplayLemma, readerPrimaryHeadword, readerGrammarLinksForInfo, readerPartOfSpeechForInfo, readerMorphologyFields, renderReaderMorphology, renderReaderGrammar, renderReaderWordIdentity, renderReaderWordOccurrence, getReaderLemmaOccurrences, openReaderContextOccurrence, openReaderBookProgress, renderReaderWordLearning, renderReaderWordSaved, renderReaderWordStudySets, readerLearningStatusForInfo, readerLearningDetailsForInfo, introduceReaderWordFromPage, reviewReaderWordFromPage, toggleReaderSavedWord, addReaderWordToStudySet, createReaderStudySetFromWord });
-if(typeof module !== 'undefined') module.exports = { ReaderConfig, ReaderTranslationOptions, ReaderDefaultSettings, readerState: () => readerState, readerChapterCache, readerTranslationChapterCache, readerTranslationLoadCounts, readerManifestCache, readerLoadCounts, getReaderChapterPath, getReaderLanguageMeta, loadReaderManifest, normalizeReaderManifest, getReaderBookChapters, loadReaderChapter, loadReaderTranslationChapter, ensureReaderTranslationLoaded, setReaderLocation, getAdjacentReaderLocation, navigateReaderAdjacent, handleReaderChapterKeydown, handleReaderTouchStart, handleReaderTouchEnd, renderReader, renderReaderChapter, renderReaderVerse, renderReaderTokens, runReaderSearch, loadReaderLocation, saveReaderLocation, loadReaderSettings, saveReaderSettings, getActiveReaderSettings, sanitizeReaderSettings, updateReaderSetting, openReaderSettingsPanel, closeReaderSettingsPanel, openReaderSearch, closeReaderSearch, handleReaderPopupKeydown, handleReaderDocumentClick, readerAssistanceThreshold, readerTokenFrequency, readerTokenQualifiesForAssistance, renderReaderSettingsPanel, renderReaderTranslationToggle, normalizeReaderWordDetailsDisplay, resolveReaderWordDetailsMode, currentReaderWordDetailsMode, syncReaderWordDetailsLayout, resetReaderWordDetailsState, readerChapterHasEnglish, readerTranslationVerseEnglish, parseReaderReference, normalizeReaderText, lookupReaderWordInfo, explainReaderParse, readerDisplayLemma, readerPrimaryHeadword, readerGrammarLinksForInfo, readerParseKind, readerPartOfSpeechForInfo, readerMorphologyFields, renderReaderMorphology, renderReaderGrammar, renderReaderWordIdentity, renderReaderWordOccurrence, openReaderTokenPopup, closeReaderWordPopup, openReaderWordPage, openReaderWordStandalonePage, openReaderWordPageFromInfo, renderReaderWordPage, loadReaderSearchIndex, representativeReaderOccurrences, getReaderLemmaOccurrences, readerOccurrenceSnippet, renderReaderWordPageContext, renderReaderWordPageContextContent, attachReaderWordPageContextHandlers, openReaderContextOccurrence, openReaderBookProgress, renderReaderWordLearning, renderReaderWordSaved, renderReaderWordStudySets, readerLearningStatusForInfo, readerLearningDetailsForInfo, introduceReaderWordFromPage, reviewReaderWordFromPage, toggleReaderSavedWord, addReaderWordToStudySet, createReaderStudySetFromWord };
+if(typeof window !== 'undefined') Object.assign(window, { ReaderConfig, ReaderTranslationOptions, ReaderDefaultSettings, ReaderWordDetailsLayout, readerState, readerChapterCache, readerInterlinearChapterCache, readerTranslationLoadCounts, readerInterlinearLoadCounts, readerManifestCache, readerLoadCounts, getReaderChapterPath, getReaderInterlinearChapterPath, getReaderLanguageMeta, loadReaderManifest, loadReaderChapter, loadReaderInterlinearChapter, loadReaderTranslationChapter, ensureReaderTranslationLoaded, setReaderLocation, getAdjacentReaderLocation, navigateReaderAdjacent, handleReaderChapterKeydown, handleReaderTouchStart, handleReaderTouchEnd, renderReader, renderReaderChapter, renderReaderVerse, renderReaderTokens, initReader, runReaderSearch, loadReaderLocation, saveReaderLocation, loadReaderSettings, saveReaderSettings, getActiveReaderSettings, updateReaderSetting, openReaderSettingsPanel, closeReaderSettingsPanel, openReaderSearch, closeReaderSearch, readerTokenQualifiesForAssistance, renderReaderSettingsPanel, renderReaderTranslationToggle, normalizeReaderWordDetailsDisplay, resolveReaderWordDetailsMode, currentReaderWordDetailsMode, syncReaderWordDetailsLayout, resetReaderWordDetailsState, parseReaderReference, openReaderTokenPopup, closeReaderWordPopup, openReaderWordPage, openReaderWordStandalonePage, openReaderWordPageFromInfo, renderReaderWordPage, renderReaderWordPageContent, lookupReaderWordInfo, explainReaderParse, readerDisplayLemma, readerPrimaryHeadword, readerGrammarLinksForInfo, readerPartOfSpeechForInfo, readerMorphologyFields, renderReaderMorphology, renderReaderGrammar, renderReaderWordIdentity, renderReaderWordOccurrence, getReaderLemmaOccurrences, openReaderContextOccurrence, openReaderBookProgress, renderReaderWordLearning, renderReaderWordSaved, renderReaderWordStudySets, readerLearningStatusForInfo, readerLearningDetailsForInfo, introduceReaderWordFromPage, reviewReaderWordFromPage, toggleReaderSavedWord, addReaderWordToStudySet, createReaderStudySetFromWord });
+if(typeof module !== 'undefined') module.exports = { ReaderConfig, ReaderTranslationOptions, ReaderDefaultSettings, readerState: () => readerState, readerChapterCache, readerInterlinearChapterCache, readerInterlinearLoadCounts, readerTranslationChapterCache, readerTranslationLoadCounts, readerManifestCache, readerLoadCounts, getReaderChapterPath, getReaderInterlinearChapterPath, getReaderLanguageMeta, loadReaderManifest, normalizeReaderManifest, getReaderBookChapters, loadReaderChapter, decodeReaderInterlinearChapter, attachReaderInterlinearChapter, loadReaderInterlinearChapter, loadReaderTranslationChapter, ensureReaderTranslationLoaded, setReaderLocation, getAdjacentReaderLocation, navigateReaderAdjacent, handleReaderChapterKeydown, handleReaderTouchStart, handleReaderTouchEnd, renderReader, renderReaderChapter, renderReaderVerse, renderReaderTokens, runReaderSearch, loadReaderLocation, saveReaderLocation, loadReaderSettings, saveReaderSettings, getActiveReaderSettings, sanitizeReaderSettings, updateReaderSetting, openReaderSettingsPanel, closeReaderSettingsPanel, openReaderSearch, closeReaderSearch, handleReaderPopupKeydown, handleReaderDocumentClick, readerAssistanceThreshold, readerTokenFrequency, readerTokenQualifiesForAssistance, renderReaderSettingsPanel, renderReaderTranslationToggle, normalizeReaderWordDetailsDisplay, resolveReaderWordDetailsMode, currentReaderWordDetailsMode, syncReaderWordDetailsLayout, resetReaderWordDetailsState, readerChapterHasEnglish, readerChapterHasReliableInterlinearGlossData, readerTranslationVerseEnglish, parseReaderReference, normalizeReaderText, lookupReaderWordInfo, explainReaderParse, readerDisplayLemma, readerPrimaryHeadword, readerGrammarLinksForInfo, readerParseKind, readerPartOfSpeechForInfo, readerMorphologyFields, renderReaderMorphology, renderReaderGrammar, renderReaderWordIdentity, renderReaderWordOccurrence, openReaderTokenPopup, closeReaderWordPopup, openReaderWordPage, openReaderWordStandalonePage, openReaderWordPageFromInfo, renderReaderWordPage, loadReaderSearchIndex, representativeReaderOccurrences, getReaderLemmaOccurrences, readerOccurrenceSnippet, renderReaderWordPageContext, renderReaderWordPageContextContent, attachReaderWordPageContextHandlers, openReaderContextOccurrence, openReaderBookProgress, renderReaderWordLearning, renderReaderWordSaved, renderReaderWordStudySets, readerLearningStatusForInfo, readerLearningDetailsForInfo, introduceReaderWordFromPage, reviewReaderWordFromPage, toggleReaderSavedWord, addReaderWordToStudySet, createReaderStudySetFromWord };
 if(typeof window !== 'undefined') Object.assign(window, { setReaderMode, setReaderModePreference, toggleReaderTextVisibility, loadReaderContinuousWindow, loadReaderContinuousAdjacent, captureReaderAnchor, restoreReaderPlace, persistReaderPlaceNow, suspendReader, updateReaderCurrentChapter, syncReaderStickyToolbarVisibility, scheduleReaderContinuousPrefetch });
 if(typeof module !== 'undefined') Object.assign(module.exports, { normalizeReaderMode, readerContinuousChapterNumbers, loadReaderPassage, loadReaderContinuousWindow, loadReaderContinuousAdjacent, readerContinuousPrefetchChapters, scheduleReaderContinuousPrefetch, readerContinuousBoundaryState, setReaderMode, setReaderModePreference, toggleReaderTextVisibility, applyReaderTextModeToRenderedPassages, captureReaderAnchor, restoreReaderPlace, scheduleReaderPlaceRestore, persistReaderPlaceNow, suspendReader, updateReaderCurrentChapter, detectReaderCurrentChapter, syncReaderStickyToolbarVisibility, refreshReaderTranslations, renderReaderPassages, renderReaderStickyToolbar, setReaderBrowserScrollRestoration, prepareReaderPassageHtml, insertReaderContinuousPassage, setReaderBoundaryLoading });

@@ -172,9 +172,8 @@ test('v1.3.7 preserves every existing focused Paradigm Chart id and form',()=>{
   assert.equal(hash(hebrew),'84d8a7b650e0605a8518f909ae374f4100688815a2b46c1fce7e44eb4f9eed59');
 });
 
-test('v1.6 Hebrew search changes remain isolated from Learn, SRS, storage, and migrations',()=>{
+test('v1.7 Hebrew interlinear changes remain isolated from Learn, SRS, storage, and migrations',()=>{
   const expected={
-    'src/features/reader/index.js':'eee62922754df74871ec85639a5b5bc7e988ff0ed531be97ae68cca506eb6389',
     'src/features/learn/index.js':'c4b4c50106d96e8d02848d6b487b204720d160f20a04be77a5e8fada383a2cdf',
     'src/features/learn/recognition-engine.js':'8a3de2d03901a7e6cd6fa2ea32c50c6f11c3676756282af7c6d2d2980ff1e7a2',
     'src/features/progress/index.js':'7c5a23be215503d7a6dc5d2ae2ea843c814eea2698a8481be8a048a4fdb28e37',

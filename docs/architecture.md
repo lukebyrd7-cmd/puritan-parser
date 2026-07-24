@@ -130,11 +130,15 @@ The utility is loaded as small core code, but no derived Hebrew index is constru
 
 Reference Search and Grammar Handbook article search remain general content search. They deliberately do not use the Hebrew lexical transliteration rules.
 
-### Hebrew interlinear source gate
+### Hebrew interlinear data layer
 
-The current generated OSHB/WLC tokens preserve pointed surface form, numeric lemma, morphology, source lemma expression, and verse-array order. They do not provide complete token-level contextual glosses, explicit stable token IDs, or a reliable combined gloss for orthographic tokens with attached morphemes. The lemma-keyed Hebrew gloss file is lexical and incomplete; WEB/OEB data is verse-level translation without token alignment.
+`scripts/generate-hebrew-interlinear-data.js` deterministically aligns the existing OSHB/WLC Reader stream with a pinned MACULA Hebrew TSV source. It verifies the source SHA-256, the exact Reader surface sequence, and every canonical book/chapter/verse/token position before writing chapter-scoped records under `data/hebrew-interlinear/`. The generated manifest, source manifest, alignment audit, attribution, and license travel with the data. MACULA/Cherith supplies occurrence-level word or morpheme glosses; the importer never substitutes lemma glosses or verse-translation order.
 
-Accordingly, Hebrew Interlinear remains unavailable and falls back to Original. The app must not turn numeric IDs, roots, morphology labels, base dictionary glosses, or English verse order into pseudo-alignment. `docs/hebrew-search-interlinear-audit.md` records the field-level audit and the minimum future aligned-data contract.
+Each generated token has the stable identity `<book>.<chapter>.<verse>.<tokenIndex>` and retains the unchanged Reader surface, lemma expression, morphology, OSHB source identity, ordered MACULA segments, qere/ketiv linkage, maqqef, punctuation relationship, and an explicit gloss status. Missing glosses remain missing. The compact chapter encoding uses field maps declared in `source-manifest.json`; `src/features/reader/index.js` expands it only after a requested Hebrew chapter loads.
+
+Hebrew Interlinear is a language-specific display preference stored inside the existing `pp_reader_adaptive_settings` record. Standard is the safe default. Interlinear data is fetched only for Hebrew Original text when the preference is active, shares the Reader's in-flight and completed request behavior, and participates in the same five-chapter continuous window. A failed enrichment request leaves Standard Hebrew readable and offers retry. Chapter JSON remains outside the install precache and enters the service worker's network-first runtime JSON cache only on request.
+
+`docs/hebrew-search-interlinear-audit.md` records source selection, license obligations, transformations, full-corpus counts, and known limitations.
 
 ### Reader preferences and Adaptive Reader
 

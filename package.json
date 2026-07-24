@@ -12,6 +12,7 @@
     "gloss:audit": "node scripts/gloss-audit.js",
     "reader:generate": "node scripts/generate-reader-data.js",
     "hebrew:reader:generate": "node scripts/generate-hebrew-reader-data.js",
+    "hebrew:interlinear:generate": "node scripts/generate-hebrew-interlinear-data.js",
     "translation:oeb:generate": "node scripts/generate-oeb-translation-data.js",
     "translation:web:generate": "node scripts/generate-web-translation-data.js",
     "reader:audit": "node scripts/audit-reader-data.js",

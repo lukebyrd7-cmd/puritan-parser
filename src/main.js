@@ -70,7 +70,7 @@ const PURITAN_PARSER_SCRIPTS = [
   ...Object.values(PURITAN_PARSER_FEATURE_SCRIPTS).flat(),
   'src/bootstrap.js'
 ];
-const PURITAN_PARSER_ASSET_VERSION = 'v1.6-hebrew-search-1';
+const PURITAN_PARSER_ASSET_VERSION = 'v1.7-hebrew-interlinear-5';
 const PURITAN_SCRIPT_LOAD_TIMEOUT_MS = 9000;
 
 const puritanLoadedScripts = new Map();

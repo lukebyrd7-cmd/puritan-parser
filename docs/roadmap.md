@@ -26,12 +26,13 @@ Puritan Parser is a local-first Biblical Greek and Hebrew reading and study app.
 - Chapter and bounded continuous Reader modes with stable place restoration
 - Sticky mobile original-language and English Reader controls
 - Shared Reader infrastructure for Greek and Hebrew
+- Optional full-corpus Hebrew word-gloss interlinear display with audited MACULA/Cherith provenance
 - Generated data pipelines for vocabulary, glosses, and Reader chapter files
 - Local import/export and versioned storage migrations
 
 ## Current Focus
 
-v1.6 Hebrew usability work fixes the small-screen Settings review-target overflow and adds transliteration-aware Hebrew lexical matching to Global Search and Reader Search without displaying transliteration. The current Hebrew interlinear source gate remains closed: OSHB/WLC tokens do not include complete aligned word glosses or the multi-unit/qere-ketiv contract needed for a trustworthy display. The future interlinear data-foundation item remains active rather than being represented as completed UI.
+v1.7 supplies a complete, audited Hebrew interlinear enrichment layer and an optional Reader display. MACULA/Cherith occurrence glosses are deterministically aligned to the existing OSHB/WLC Reader stream while preserving qere/ketiv, segmentation, stable token identity, and explicit missing states. Standard Hebrew remains the default; the enrichment stays lazy, chapter-scoped, offline-capable after use, and outside the startup precache. Future work should review source revisions and individual gloss quality rather than widening the display into parsing, transliteration, or a second Reader engine.
 
 The v1.4.2 Reader milestone added bounded continuous reading alongside one-chapter mode. Continuous is now the default for readers without a valid saved preference; existing valid choices remain unchanged. It incrementally renders nearby chapters within the selected book, tracks the chapter in view, restores a verse-relative reading anchor, and exposes compact mobile text-visibility controls after the primary controls scroll away. Crossing books remains an explicit selection rather than an automatic continuous-reading transition.
 

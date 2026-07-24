@@ -2005,6 +2005,17 @@ button:focus-visible, input:focus-visible, select:focus-visible {
   vertical-align: middle;
 }
 .reader-text-hebrew .reader-token-interlinear { direction: rtl; }
+.reader-interlinear-unit {
+  display: inline-flex;
+  max-width: 100%;
+  align-items: flex-start;
+  vertical-align: middle;
+}
+.reader-text-hebrew .reader-token-interlinear {
+  min-height: 44px;
+  max-width: min(10rem, 42vw);
+  padding: 3px 4px;
+}
 .reader-token-surface {
   display: inline;
   unicode-bidi: isolate;
@@ -2020,6 +2031,25 @@ button:focus-visible, input:focus-visible, select:focus-visible {
   text-overflow: ellipsis;
   white-space: nowrap;
   direction: ltr;
+  unicode-bidi: isolate;
+}
+.reader-text-hebrew .reader-token-gloss {
+  max-width: 100%;
+  overflow: visible;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+  text-align: center;
+  text-overflow: clip;
+  white-space: normal;
+}
+.reader-token-gloss-missing { opacity: .65; }
+.reader-token-punctuation {
+  display: inline-block;
+  margin-inline-start: -.08em;
+  color: var(--text);
+  line-height: 1.2;
   unicode-bidi: isolate;
 }
 .reader-token-details {
@@ -2038,10 +2068,10 @@ button:focus-visible, input:focus-visible, select:focus-visible {
 .reader-token:hover,
 .reader-token:focus-visible {
   background: color-mix(in srgb, var(--accent) 15%, transparent);
-  outline: none;
+  outline: 2px solid color-mix(in srgb, var(--accent) 72%, var(--text));
+  outline-offset: 2px;
 }
-.reader-token-unassisted:hover,
-.reader-token-unassisted:focus-visible { background: transparent; }
+.reader-token-unassisted:hover { background: transparent; }
 .reader-search { align-items: flex-start; padding: 8px 10px; }
 .reader-search .input { flex: 1; min-width: min(280px, 100%); }
 .reader-search-results { flex-basis: 100%; display: grid; gap: 6px; max-height: 220px; overflow: auto; }

@@ -4,7 +4,9 @@
   if(root) root.PuritanReaderPreferences = api;
 })(typeof globalThis !== 'undefined' ? globalThis : this, function(root){
   const storageKey = 'pp_reader_location';
+  const settingsStorageKey = 'pp_reader_adaptive_settings';
   const modes = ['chapter', 'continuous'];
+  const hebrewDisplays = ['standard', 'interlinear'];
 
   function normalizeMode(value){
     return modes.includes(value) ? value : 'continuous';
@@ -38,5 +40,53 @@
     return mode;
   }
 
-  return { storageKey, modes, normalizeMode, readMode, writeMode };
+  function normalizeHebrewDisplay(value){
+    return hebrewDisplays.includes(value) ? value : 'standard';
+  }
+
+  function readSettings(){
+    if(typeof root?.readStorageJson === 'function') return root.readStorageJson(settingsStorageKey, null);
+    try {
+      const raw = root?.localStorage?.getItem?.(settingsStorageKey);
+      return raw ? JSON.parse(raw) : null;
+    } catch(error){
+      return null;
+    }
+  }
+
+  function writeSettings(settings){
+    if(typeof root?.writeStorageJson === 'function') root.writeStorageJson(settingsStorageKey, settings);
+    else root?.localStorage?.setItem?.(settingsStorageKey, JSON.stringify(settings));
+    return settings;
+  }
+
+  function readHebrewDisplay(){
+    const settings = readSettings();
+    return normalizeHebrewDisplay(settings?.hebrew?.hebrewDisplay);
+  }
+
+  function writeHebrewDisplay(value){
+    const hebrewDisplay = normalizeHebrewDisplay(value);
+    const stored = readSettings();
+    const settings = stored && typeof stored === 'object' && !Array.isArray(stored) ? { ...stored } : {};
+    settings.hebrew = {
+      ...(settings.hebrew && typeof settings.hebrew === 'object' && !Array.isArray(settings.hebrew) ? settings.hebrew : {}),
+      hebrewDisplay
+    };
+    writeSettings(settings);
+    return hebrewDisplay;
+  }
+
+  return {
+    storageKey,
+    settingsStorageKey,
+    modes,
+    hebrewDisplays,
+    normalizeMode,
+    normalizeHebrewDisplay,
+    readMode,
+    writeMode,
+    readHebrewDisplay,
+    writeHebrewDisplay
+  };
 });
