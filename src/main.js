@@ -24,6 +24,7 @@ const PURITAN_PARSER_CORE_SCRIPTS = [
   'src/core/storage/vocab-storage.js',
   'src/core/storage/prefs-storage.js',
   'src/core/storage/dashboard-storage.js',
+  'src/core/reader-preferences.js',
   'src/core/srs.js',
   'src/core/sample-data.js',
   'src/core/source-data/vocab-source.js',
@@ -68,7 +69,7 @@ const PURITAN_PARSER_SCRIPTS = [
   ...Object.values(PURITAN_PARSER_FEATURE_SCRIPTS).flat(),
   'src/bootstrap.js'
 ];
-const PURITAN_PARSER_ASSET_VERSION = 'v1.5-interaction-stability-4';
+const PURITAN_PARSER_ASSET_VERSION = 'v1.5-reader-options-6';
 const PURITAN_SCRIPT_LOAD_TIMEOUT_MS = 9000;
 
 const puritanLoadedScripts = new Map();

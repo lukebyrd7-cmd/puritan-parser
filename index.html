@@ -24,7 +24,7 @@
 <link rel="apple-touch-icon" href="/logo.png">
 <link rel="icon" href="/logo.png">
 <link rel="manifest" href="/manifest.json">
-<link rel="stylesheet" href="/styles.css?v=v1.5-interaction-stability-4">
+<link rel="stylesheet" href="/styles.css?v=v1.5-reader-options-6">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="Puritan Parser">
@@ -474,8 +474,18 @@
 
           <hr class="divider">
 
-          <h2 class="settings-group-title">Reader</h2>
-          <div class="settings-section"><p class="small muted">Reader display and assistance preferences are available from the Reader toolbar.</p></div>
+          <section id="reader-settings" class="settings-reader-section" aria-labelledby="readerSettingsHeading">
+            <h2 class="settings-group-title" id="readerSettingsHeading">Reader</h2>
+            <div class="settings-section">
+              <fieldset class="settings-reader-mode">
+                <legend class="settings-label">Reading mode</legend>
+                <label><input id="readerReadingModeContinuous" type="radio" name="readerReadingMode" value="continuous" /> <span>Continuous</span></label>
+                <label><input id="readerReadingModeChapter" type="radio" name="readerReadingMode" value="chapter" /> <span>One chapter at a time</span></label>
+              </fieldset>
+              <p class="small muted">Continuous reading is the default for new readers. Your saved choice is kept on this device.</p>
+              <button class="btn btn-ghost btn-sm" id="readerSettingsReturn" type="button">← Return to Reader</button>
+            </div>
+          </section>
 
           <hr class="divider">
 
@@ -571,6 +581,6 @@
 
 </div><!-- /app -->
 
-  <script src="/src/main.js?v=v1.5-interaction-stability-4"></script>
+  <script src="/src/main.js?v=v1.5-reader-options-6"></script>
 </body>
 </html>

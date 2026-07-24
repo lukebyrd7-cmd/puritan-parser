@@ -122,7 +122,9 @@ The Reader should remain one Reader unless separate implementations become unavo
 
 Reader data is lazy-loaded one chapter at a time. Large JSON content must stay out of startup modules and service-worker install precaches.
 
-### Adaptive Reader
+### Reader preferences and Adaptive Reader
+
+Reading mode is owned by the existing `pp_reader_location.mode` field and normalized by `src/core/reader-preferences.js`. Settings → Reader and the Reader feature use that same helper rather than parallel preference state. `continuous` and `chapter` remain the stored values; missing or invalid values resolve to Continuous, valid values remain unchanged, and updating mode preserves the remaining location and verse-anchor fields. The Reader options action saves the current place before routing to Settings → Reader.
 
 Adaptive Reader settings live inside the Reader rather than global Settings because they shape the immediate reading experience. The settings are local-first user data under `pp_reader_adaptive_settings`, currently keyed by language so Greek and Hebrew can diverge without accounts or sync.
 
@@ -131,7 +133,7 @@ The Reader settings panel should stay open while settings are changed. It closes
 Display, Translation, Assistance, and Indicators interact through one shared render path:
 
 - Display controls the original-language presentation. `Original` renders inline Greek or Hebrew. `Interlinear` keeps each original token primary and adds a small gloss beneath the word when existing gloss or vocabulary data provides one.
-- Translation controls whether the Reader shows an `Original` / `English` text toggle. When enabled, only one text mode renders at a time. English mode uses the selected provider, currently OEB or WEB, and shows an unavailable state only when neither the selected provider nor the WEB fallback can serve the passage.
+- Translation controls whether the Reader shows an `Original` / `English` text toggle. When enabled, only one layer is visible and interactive at a time. English mode keeps the prepared Original layer hidden and inert so a one-click return to Original can reveal it without another chapter request or full continuous-window rerender. English uses the selected provider, currently OEB or WEB, and shows an unavailable state only when neither the selected provider nor the WEB fallback can serve the passage.
 - Assistance determines which tokens may open the Reader popup and Word Page flow. `Everything` allows all tokenized words, numeric presets allow words with frequency at or below the selected threshold, `Custom` uses a validated positive whole-number threshold, and `None` disables word help.
 - Hide Known Words composes with Assistance by consulting the shared `VocabularyLearning` model. A word qualifies only when it passes the frequency rule and is not Known. The Reader must not duplicate learning state.
 - Indicator style is purely visual and applies only to currently assisted words. The default is `None`; tint, dotted underline, and footnote markers are intentionally quiet.

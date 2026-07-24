@@ -83,12 +83,15 @@ const ReaderVocabularyLearningModel = (typeof VocabularyLearning !== 'undefined'
 const ReaderTranslationApi = (typeof getTranslationProvider !== 'undefined')
   ? { getTranslationProvider, translationVerseText }
   : (typeof require === 'function' ? require('../../core/translations/translation-provider') : null);
+const ReaderPreferenceApi = (typeof PuritanReaderPreferences !== 'undefined')
+  ? PuritanReaderPreferences
+  : (typeof require === 'function' ? require('../../core/reader-preferences') : null);
 
 let readerState = {
   language: 'greek',
   book: 'matthew',
   chapter: 1,
-  mode: 'chapter',
+  mode: 'continuous',
   anchorVerse: '',
   anchorOffset: 0,
   scrollTop: 0,
@@ -228,7 +231,7 @@ function parseReaderReference(value, language = readerState.language){
   }
   return null;
 }
-function normalizeReaderMode(value){ return ReaderModes.includes(value) ? value : 'chapter'; }
+function normalizeReaderMode(value){ return ReaderPreferenceApi?.normalizeMode?.(value) || (ReaderModes.includes(value) ? value : 'continuous'); }
 function getReaderLocation(){
   return {
     language: readerState.language,
@@ -260,7 +263,7 @@ function loadReaderLocation(){
   let stored = null;
   if(typeof readStorageJson === 'function') stored = readStorageJson(ReaderStorageKey, null);
   else if(typeof localStorage !== 'undefined') { try { stored = JSON.parse(localStorage.getItem(ReaderStorageKey) || 'null'); } catch(e) { stored = null; } }
-  if(!stored) return getReaderLocation();
+  if(!stored) return { ...getReaderLocation(), mode: ReaderPreferenceApi?.readMode?.() || 'continuous' };
   const language = ReaderConfig[stored.language] ? stored.language : 'greek';
   return {
     language,
@@ -1414,12 +1417,6 @@ function getAdjacentReaderLocation(direction){
   if(!nextBook) return null;
   return { language: readerState.language, book: nextBook.id, chapter: direction > 0 ? nextBook.chapters[0] : nextBook.chapters.at(-1) };
 }
-function renderReaderModeControl(){
-  return `<div class="reader-mode-toggle" role="group" aria-label="Reading mode">
-      <button type="button" data-reader-mode="chapter" aria-pressed="${readerState.mode === 'chapter'}" class="${readerState.mode === 'chapter' ? 'active' : ''}">Chapter</button>
-      <button type="button" data-reader-mode="continuous" aria-pressed="${readerState.mode === 'continuous'}" class="${readerState.mode === 'continuous' ? 'active' : ''}">Continuous</button>
-    </div>`;
-}
 function renderReaderPassages(settings = getActiveReaderSettings()){
   if(readerState.mode !== 'continuous'){
     return readerState.chapterData
@@ -1489,12 +1486,12 @@ function renderReader(options = {}){
       <div class="reader-control-row reader-control-actions">
         <button class="btn btn-ghost btn-sm reader-nav-btn" id="readerPrevBtn" aria-label="Previous chapter" ${getAdjacentReaderLocation(-1)?'':'disabled'}><span class="reader-nav-icon" aria-hidden="true">←</span><span class="reader-nav-label">Previous</span></button>
         <button class="btn btn-ghost btn-sm reader-nav-btn" id="readerNextBtn" aria-label="Next chapter" ${getAdjacentReaderLocation(1)?'':'disabled'}><span class="reader-nav-label">Next</span><span class="reader-nav-icon" aria-hidden="true">→</span></button>
-        ${renderReaderModeControl()}
         ${settings.translation === 'on' && settings.showTranslationToggle ? renderReaderTranslationToggle(settings, data) : ''}
         <details class="reader-settings" id="readerSettingsPanel" ${readerSettingsPanelOpen ? 'open' : ''}>
-          <summary class="btn btn-ghost btn-sm">Settings</summary>
+          <summary class="btn btn-ghost btn-sm">Display</summary>
           ${renderReaderSettingsPanel(settings, readerState.language, data)}
         </details>
+        <button class="reader-options-link" id="readerOptionsBtn" type="button" aria-label="Open Reader settings">Reader options</button>
         <button class="reader-search-toggle" id="readerSearchToggle" type="button" aria-expanded="${readerSearchOpen ? 'true' : 'false'}">Search</button>
         <button class="reader-progress-link" id="readerBookProgressBtn" type="button" aria-label="View Book Progress">Progress</button>
         <div class="reader-reference" id="readerReference"><span>${escHtml(book.name)} ${readerState.chapter}</span><small>${escHtml(renderReaderStatus(effectiveSettings))}</small></div>
@@ -1644,17 +1641,22 @@ function renderReaderChapter(data, settings = getActiveReaderSettings(), options
   const headingId = cleanReaderTokenValue(options.headingId);
   const heading = `<h2${headingId ? ` id="${escReaderAttr(headingId)}"` : ''} class="reader-chapter-heading${readerState.mode === 'chapter' ? ' reader-chapter-heading-quiet' : ''}" dir="ltr">${escHtml(data.bookName)} ${data.chapter}</h2>`;
   const showEnglish = settings.translation === 'on' && settings.textMode === 'english';
-  const showOriginal = !showEnglish;
   const hasEnglish = readerChapterHasEnglish(data, translationData);
-  if(showEnglish && !showOriginal){
-    if(!hasEnglish) return `${heading}<div class="empty-state">English unavailable for this passage.</div>`;
-    return heading + paragraphs.map(paragraph => `<p class="reader-paragraph reader-paragraph-english" lang="en" dir="ltr">${paragraph.verses.map(verse => renderReaderVerse(verse, data, settings, { translationData, idPrefix, kind: 'english' })).join(' ')}</p>`).join('');
-  }
-  if(settings.display === 'interlinear' && !readerInterlinearAvailable(data, meta.language)){
-    const originalSettings = { ...settings, display: 'original' };
-    return `${heading}<div class="empty-state">${escHtml(HebrewInterlinearUnavailableMessage)}</div>` + paragraphs.map(paragraph => renderReaderParagraph(paragraph, data, originalSettings, { translationData, idPrefix, meta, showEnglish: showEnglish && hasEnglish })).join('');
-  }
-  return heading + paragraphs.map(paragraph => renderReaderParagraph(paragraph, data, settings, { translationData, idPrefix, meta, showEnglish: showEnglish && hasEnglish })).join('');
+  const interlinearUnavailable = settings.display === 'interlinear' && !readerInterlinearAvailable(data, meta.language);
+  const originalSettings = {
+    ...settings,
+    display: interlinearUnavailable ? 'original' : settings.display,
+    textMode: 'original',
+    showOriginal: true,
+    showEnglish: false
+  };
+  const originalContent = `${interlinearUnavailable ? `<div class="empty-state">${escHtml(HebrewInterlinearUnavailableMessage)}</div>` : ''}${paragraphs.map(paragraph => renderReaderParagraph(paragraph, data, originalSettings, { translationData, idPrefix, meta })).join('')}`;
+  const englishContent = hasEnglish
+    ? paragraphs.map(paragraph => `<p class="reader-paragraph reader-paragraph-english" lang="en" dir="ltr">${paragraph.verses.map(verse => renderReaderVerse(verse, data, settings, { translationData, idPrefix, kind: 'english', duplicateAnchor: true })).join(' ')}</p>`).join('')
+    : '<div class="empty-state">English unavailable for this passage.</div>';
+  return `${heading}
+    <div class="reader-language-layer" data-reader-language-layer="original" aria-hidden="${showEnglish}"${showEnglish ? ' hidden inert' : ''}>${originalContent}</div>
+    ${(hasEnglish || showEnglish) ? `<div class="reader-language-layer reader-language-layer-english" data-reader-language-layer="english" aria-hidden="${!showEnglish}"${showEnglish ? '' : ' hidden inert'}>${englishContent}</div>` : ''}`;
 }
 function renderReaderParagraph(paragraph, data, settings, options = {}){
   const meta = options.meta || getReaderLanguageMeta(data.language || readerState.language);
@@ -1705,7 +1707,8 @@ function captureReaderAnchor(){
   if(typeof document === 'undefined') return null;
   const pane = document.querySelector?.('.reader-text');
   if(!pane) return null;
-  const verses = Array.from(pane.querySelectorAll?.('[data-reader-verse], [data-reader-english-verse]') || []);
+  const verses = Array.from(pane.querySelectorAll?.('[data-reader-verse], [data-reader-english-verse]') || [])
+    .filter(verse => !verse.closest?.('[data-reader-language-layer][hidden]'));
   const paneRect = pane.getBoundingClientRect?.() || { top: 0, height: Number(pane.clientHeight) || 0 };
   const viewportTop = readerUsesWindowScroll() ? 0 : Number(paneRect.top) || 0;
   const viewportHeight = readerUsesWindowScroll() ? Number(window.innerHeight) || 800 : Number(paneRect.height || pane.clientHeight) || 800;
@@ -1748,7 +1751,8 @@ function captureReaderReflowAnchor(){
 }
 function findReaderAnchorElement(anchor = {}){
   if(typeof document === 'undefined' || !anchor.verse) return null;
-  const verses = Array.from(document.querySelectorAll?.('[data-reader-verse], [data-reader-english-verse]') || []);
+  const verses = Array.from(document.querySelectorAll?.('[data-reader-verse], [data-reader-english-verse]') || [])
+    .filter(verse => !verse.closest?.('[data-reader-language-layer][hidden]'));
   return verses.find(verse =>
     Number(verse.dataset?.readerChapter) === Number(anchor.chapter || readerState.chapter)
     && String(verse.dataset?.readerVerse || verse.dataset?.readerEnglishVerse || '') === String(anchor.verse)
@@ -1758,6 +1762,7 @@ function findReaderAnchorElement(anchor = {}){
 function restoreReaderPlace(anchor = {}, options = {}){
   if(typeof document === 'undefined' || typeof window === 'undefined') return false;
   if(options.restoreRequestId && options.restoreRequestId !== readerRestoreRequestId) return false;
+  if(options.visibilityRequestId && options.visibilityRequestId !== readerVisibilityRequestId) return false;
   const pane = document.querySelector?.('.reader-text');
   if(!pane) return false;
   if(readerUserScrolledAt > Number(options.scheduledAt || 0)) return false;
@@ -1990,6 +1995,29 @@ async function setReaderMode(mode){
   });
   return true;
 }
+function setReaderModePreference(mode){
+  const nextMode = normalizeReaderMode(mode);
+  const readerIsOpen = typeof state !== 'undefined' && state.currentView === 'readerView';
+  if(readerIsOpen) return setReaderMode(nextMode);
+  ReaderPreferenceApi?.writeMode?.(nextMode);
+  readerState.mode = nextMode;
+  readerInitialized = false;
+  return Promise.resolve(true);
+}
+function openReaderOptions(){
+  persistReaderPlaceNow();
+  if(typeof navigateTo === 'function') navigateTo('/settings');
+  else if(typeof showView === 'function') showView('settingsView');
+  if(typeof syncSettingsUI === 'function') syncSettingsUI();
+  if(typeof window !== 'undefined'){
+    window.requestAnimationFrame?.(() => {
+      const target = document.getElementById?.('reader-settings');
+      target?.scrollIntoView?.({ block: 'start' });
+      document.getElementById?.('readerReadingModeContinuous')?.focus?.({ preventScroll: true });
+    });
+  }
+  return true;
+}
 function toggleReaderTextVisibility(kind){
   const settings = getActiveReaderSettings();
   const selected = kind === 'english' && settings.translation === 'on' ? 'english' : 'original';
@@ -2030,6 +2058,11 @@ function toggleReaderTextVisibility(kind){
     });
     return saved;
   }
+  if(applyReaderTextModeToRenderedPassages(saved)){
+    if(anchor) scheduleReaderPlaceRestore(anchor, { visibilityRequestId: requestId });
+    scheduleReaderVisibilityFocus(selected, focusSource);
+    return saved;
+  }
   scheduleReaderLanguageRender({ requestId, selected, focusSource, anchor });
   return saved;
 }
@@ -2061,6 +2094,23 @@ function syncReaderVisibilityControls(settings = getActiveReaderSettings()){
     button.classList?.toggle?.('active', active);
     button.setAttribute?.('aria-checked', String(active));
   });
+  return true;
+}
+function applyReaderTextModeToRenderedPassages(settings = getActiveReaderSettings()){
+  if(typeof document === 'undefined') return false;
+  const selected = settings.textMode === 'english' ? 'english' : 'original';
+  const layers = Array.from(document.querySelectorAll?.('[data-reader-language-layer]') || []);
+  if(!layers.some(layer => layer.dataset?.readerLanguageLayer === selected)) return false;
+  layers.forEach(layer => {
+    const active = layer.dataset?.readerLanguageLayer === selected;
+    layer.hidden = !active;
+    layer.toggleAttribute?.('inert', !active);
+    layer.setAttribute?.('aria-hidden', String(!active));
+  });
+  const pane = document.querySelector?.('.reader-text');
+  if(pane?.dataset) pane.dataset.readerTextMode = selected;
+  const status = document.querySelector?.('#readerReference small');
+  if(status) status.textContent = renderReaderStatus(settings);
   return true;
 }
 function scheduleReaderVisibilityFocus(kind, source = 'primary'){
@@ -2097,7 +2147,7 @@ function wireReaderControls(){
   $('#readerChapterSelect')?.addEventListener('change', e => setReaderLocation({ language: readerState.language, book: readerState.book, chapter: Number(e.target.value) }));
   $('#readerPrevBtn')?.addEventListener('click', () => navigateReaderAdjacent(-1));
   $('#readerNextBtn')?.addEventListener('click', () => navigateReaderAdjacent(1));
-  $$('[data-reader-mode]').forEach(btn => btn.addEventListener('click', () => setReaderMode(btn.dataset.readerMode)));
+  $('#readerOptionsBtn')?.addEventListener('click', openReaderOptions);
   $('#readerBookProgressBtn')?.addEventListener('click', openReaderBookProgress);
   $('#readerSearchToggle')?.addEventListener('click', openReaderSearch);
   $('#readerSearchClose')?.addEventListener('click', closeReaderSearch);
@@ -2150,6 +2200,11 @@ function readerContinuousBoundaryState({ direction = 0, distance = Number.POSITI
 }
 function handleReaderScroll(){
   if(typeof state !== 'undefined' && state.currentView !== 'readerView') return;
+  if(readerUsesWindowScroll() && typeof document !== 'undefined'){
+    const primary = document.getElementById?.('readerPrimaryControls') || $('#readerPrimaryControls');
+    const primaryBottom = Number(primary?.getBoundingClientRect?.().bottom);
+    if(Number.isFinite(primaryBottom)) syncReaderStickyToolbarVisibility(primaryBottom <= 0);
+  }
   if(readerProgrammaticScroll){
     detectReaderCurrentChapter();
     return;
@@ -2638,5 +2693,5 @@ async function initReader(){
 }
 if(typeof window !== 'undefined') Object.assign(window, { ReaderConfig, ReaderTranslationOptions, ReaderDefaultSettings, ReaderWordDetailsLayout, readerState, readerChapterCache, readerTranslationLoadCounts, readerManifestCache, readerLoadCounts, getReaderChapterPath, getReaderLanguageMeta, loadReaderManifest, loadReaderChapter, loadReaderTranslationChapter, ensureReaderTranslationLoaded, setReaderLocation, getAdjacentReaderLocation, navigateReaderAdjacent, handleReaderChapterKeydown, handleReaderTouchStart, handleReaderTouchEnd, renderReader, renderReaderChapter, renderReaderVerse, renderReaderTokens, initReader, runReaderSearch, loadReaderLocation, saveReaderLocation, loadReaderSettings, saveReaderSettings, getActiveReaderSettings, updateReaderSetting, openReaderSettingsPanel, closeReaderSettingsPanel, openReaderSearch, closeReaderSearch, readerTokenQualifiesForAssistance, renderReaderSettingsPanel, renderReaderTranslationToggle, normalizeReaderWordDetailsDisplay, resolveReaderWordDetailsMode, currentReaderWordDetailsMode, syncReaderWordDetailsLayout, resetReaderWordDetailsState, parseReaderReference, openReaderTokenPopup, closeReaderWordPopup, openReaderWordPage, openReaderWordStandalonePage, openReaderWordPageFromInfo, renderReaderWordPage, renderReaderWordPageContent, lookupReaderWordInfo, explainReaderParse, readerDisplayLemma, readerPrimaryHeadword, readerGrammarLinksForInfo, readerPartOfSpeechForInfo, readerMorphologyFields, renderReaderMorphology, renderReaderGrammar, renderReaderWordIdentity, renderReaderWordOccurrence, getReaderLemmaOccurrences, openReaderContextOccurrence, openReaderBookProgress, renderReaderWordLearning, renderReaderWordSaved, renderReaderWordStudySets, readerLearningStatusForInfo, readerLearningDetailsForInfo, introduceReaderWordFromPage, reviewReaderWordFromPage, toggleReaderSavedWord, addReaderWordToStudySet, createReaderStudySetFromWord });
 if(typeof module !== 'undefined') module.exports = { ReaderConfig, ReaderTranslationOptions, ReaderDefaultSettings, readerState: () => readerState, readerChapterCache, readerTranslationChapterCache, readerTranslationLoadCounts, readerManifestCache, readerLoadCounts, getReaderChapterPath, getReaderLanguageMeta, loadReaderManifest, normalizeReaderManifest, getReaderBookChapters, loadReaderChapter, loadReaderTranslationChapter, ensureReaderTranslationLoaded, setReaderLocation, getAdjacentReaderLocation, navigateReaderAdjacent, handleReaderChapterKeydown, handleReaderTouchStart, handleReaderTouchEnd, renderReader, renderReaderChapter, renderReaderVerse, renderReaderTokens, runReaderSearch, loadReaderLocation, saveReaderLocation, loadReaderSettings, saveReaderSettings, getActiveReaderSettings, sanitizeReaderSettings, updateReaderSetting, openReaderSettingsPanel, closeReaderSettingsPanel, openReaderSearch, closeReaderSearch, handleReaderPopupKeydown, handleReaderDocumentClick, readerAssistanceThreshold, readerTokenFrequency, readerTokenQualifiesForAssistance, renderReaderSettingsPanel, renderReaderTranslationToggle, normalizeReaderWordDetailsDisplay, resolveReaderWordDetailsMode, currentReaderWordDetailsMode, syncReaderWordDetailsLayout, resetReaderWordDetailsState, readerChapterHasEnglish, readerTranslationVerseEnglish, parseReaderReference, normalizeReaderText, lookupReaderWordInfo, explainReaderParse, readerDisplayLemma, readerPrimaryHeadword, readerGrammarLinksForInfo, readerParseKind, readerPartOfSpeechForInfo, readerMorphologyFields, renderReaderMorphology, renderReaderGrammar, renderReaderWordIdentity, renderReaderWordOccurrence, openReaderTokenPopup, closeReaderWordPopup, openReaderWordPage, openReaderWordStandalonePage, openReaderWordPageFromInfo, renderReaderWordPage, loadReaderSearchIndex, representativeReaderOccurrences, getReaderLemmaOccurrences, readerOccurrenceSnippet, renderReaderWordPageContext, renderReaderWordPageContextContent, attachReaderWordPageContextHandlers, openReaderContextOccurrence, openReaderBookProgress, renderReaderWordLearning, renderReaderWordSaved, renderReaderWordStudySets, readerLearningStatusForInfo, readerLearningDetailsForInfo, introduceReaderWordFromPage, reviewReaderWordFromPage, toggleReaderSavedWord, addReaderWordToStudySet, createReaderStudySetFromWord };
-if(typeof window !== 'undefined') Object.assign(window, { setReaderMode, toggleReaderTextVisibility, loadReaderContinuousWindow, loadReaderContinuousAdjacent, captureReaderAnchor, restoreReaderPlace, persistReaderPlaceNow, suspendReader, updateReaderCurrentChapter, syncReaderStickyToolbarVisibility, scheduleReaderContinuousPrefetch });
-if(typeof module !== 'undefined') Object.assign(module.exports, { normalizeReaderMode, readerContinuousChapterNumbers, loadReaderPassage, loadReaderContinuousWindow, loadReaderContinuousAdjacent, readerContinuousPrefetchChapters, scheduleReaderContinuousPrefetch, readerContinuousBoundaryState, setReaderMode, toggleReaderTextVisibility, captureReaderAnchor, restoreReaderPlace, scheduleReaderPlaceRestore, persistReaderPlaceNow, suspendReader, updateReaderCurrentChapter, detectReaderCurrentChapter, syncReaderStickyToolbarVisibility, refreshReaderTranslations, renderReaderPassages, renderReaderStickyToolbar, setReaderBrowserScrollRestoration, prepareReaderPassageHtml, insertReaderContinuousPassage, setReaderBoundaryLoading });
+if(typeof window !== 'undefined') Object.assign(window, { setReaderMode, setReaderModePreference, openReaderOptions, toggleReaderTextVisibility, loadReaderContinuousWindow, loadReaderContinuousAdjacent, captureReaderAnchor, restoreReaderPlace, persistReaderPlaceNow, suspendReader, updateReaderCurrentChapter, syncReaderStickyToolbarVisibility, scheduleReaderContinuousPrefetch });
+if(typeof module !== 'undefined') Object.assign(module.exports, { normalizeReaderMode, readerContinuousChapterNumbers, loadReaderPassage, loadReaderContinuousWindow, loadReaderContinuousAdjacent, readerContinuousPrefetchChapters, scheduleReaderContinuousPrefetch, readerContinuousBoundaryState, setReaderMode, setReaderModePreference, openReaderOptions, toggleReaderTextVisibility, applyReaderTextModeToRenderedPassages, captureReaderAnchor, restoreReaderPlace, scheduleReaderPlaceRestore, persistReaderPlaceNow, suspendReader, updateReaderCurrentChapter, detectReaderCurrentChapter, syncReaderStickyToolbarVisibility, refreshReaderTranslations, renderReaderPassages, renderReaderStickyToolbar, setReaderBrowserScrollRestoration, prepareReaderPassageHtml, insertReaderContinuousPassage, setReaderBoundaryLoading });

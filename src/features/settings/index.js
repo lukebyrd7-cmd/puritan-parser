@@ -15,6 +15,9 @@ function syncSettingsUI(){
   sv('#fontSizeSlider', p.cardFontSize||54);
   sc('#showPosHint', !!p.showPosHint);
   sc('#autoNextCard', !!p.autoNextCard);
+  const readerMode = typeof PuritanReaderPreferences !== 'undefined' ? PuritanReaderPreferences.readMode() : 'continuous';
+  sc('#readerReadingModeContinuous', readerMode === 'continuous');
+  sc('#readerReadingModeChapter', readerMode === 'chapter');
   const customAccent = $('#customAccent');
   if(customAccent && /^#[0-9a-f]{6}$/i.test(p.accent || '')) customAccent.value = p.accent;
   $('#fontSizeLabel').textContent = (p.cardFontSize||54)+'px';
