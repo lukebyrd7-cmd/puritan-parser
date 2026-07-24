@@ -55,6 +55,10 @@ test('smoke: Reference rendering is deferred until the Reference route opens', (
   const views = fs.readFileSync('src/features/vocab/index.js', 'utf8');
   assert.doesNotMatch(bootstrap, /initReferenceLibrary\s*\(/);
   assert.match(views, /viewId==='grammarView'[\s\S]*initReferenceLibrary\(\)/);
+  assert.doesNotMatch(views, /target\.innerHTML\s*=\s*'<section class="panel"><p class="progress-empty" role="status">Opening…/);
+  assert.match(views, /loadFeatureView\(viewId, moduleLoader\)/);
+  assert.match(views, /This section could not be opened\./);
+  assert.match(views, /Try again/);
 });
 
 test('smoke: startup loads only the active feature and reveals navigation before vocabulary hydration', () => {
@@ -65,7 +69,8 @@ test('smoke: startup loads only the active feature and reveals navigation before
   assert.match(main, /await ensurePuritanFeature\(featureForPath\(\)\)/);
   assert.match(main, /script\.async = false/);
   assert.doesNotMatch(bootstrap, /await loadData\(\)/);
-  assert.match(bootstrap, /classList\.add\('app-ready'\)[\s\S]*const beginDataLoad/);
+  assert.match(bootstrap, /classList\.add\('app-ready'\)[\s\S]*scheduleNoncriticalAppDataLoad\(\)/);
+  assert.match(bootstrap, /function deferAppDataLoadForInteraction/);
 });
 
 test('smoke: direct routes map to their required lazy feature bundles', () => {
@@ -117,10 +122,15 @@ test('smoke: nested hard refreshes resolve startup assets from the app root', ()
   const main = fs.readFileSync('src/main.js', 'utf8');
   const events = fs.readFileSync('src/features/settings/events.js', 'utf8');
   const sw = fs.readFileSync('sw.js', 'utf8');
-  assert.match(html, /href="\/styles\.css\?v=v1\.5-release-blockers"/);
-  assert.match(html, /src="\/src\/main\.js\?v=v1\.5-release-blockers"/);
-  assert.match(main, /script\.src = src\.startsWith\('\/'\) \? src : `\/\$\{src\}`/);
+  assert.match(html, /href="\/styles\.css\?v=v1\.5-interaction-stability-4"/);
+  assert.match(html, /src="\/src\/main\.js\?v=v1\.5-interaction-stability-4"/);
+  assert.match(main, /const rootPath = src\.startsWith\('\/'\) \? src : `\/\$\{src\}`/);
+  assert.match(main, /script\.src = `\$\{rootPath\}\?v=\$\{PURITAN_PARSER_ASSET_VERSION\}`/);
+  assert.match(main, /PURITAN_PARSER_ASSET_VERSION = 'v1\.5-interaction-stability-4'/);
+  assert.match(main, /PURITAN_SCRIPT_LOAD_TIMEOUT_MS = 9000/);
+  assert.match(main, /puritanLoadedScripts\.delete\(src\)/);
   assert.match(events, /serviceWorker\.register\('\/sw\.js'\)/);
-  assert.match(sw, /'\.\/styles\.css\?v=v1\.5-release-blockers'/);
-  assert.match(sw, /'\.\/src\/main\.js\?v=v1\.5-release-blockers'/);
+  assert.match(sw, /'\.\/styles\.css\?v=v1\.5-interaction-stability-4'/);
+  assert.match(sw, /'\.\/src\/main\.js\?v=v1\.5-interaction-stability-4'/);
+  assert.match(sw, /caches\.match\(evt\.request, \{ ignoreSearch: true \}\)/);
 });

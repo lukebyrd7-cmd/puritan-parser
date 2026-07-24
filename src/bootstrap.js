@@ -1,6 +1,8 @@
 /* ---------- Init ---------- */
 let appDataReady = false;
 let appDataPromise = null;
+let appDataScheduleTimer = null;
+let appDataIdleHandle = null;
 
 function isAppDataReady(){ return appDataReady; }
 function refreshActiveViewAfterData(){
@@ -24,6 +26,34 @@ function startAppDataLoad(){
   });
   return appDataPromise;
 }
+function reportAppDataLoadError(error){
+  console.error('Puritan Parser vocabulary data failed to load.', error);
+}
+function cancelScheduledAppDataLoad(){
+  if(appDataScheduleTimer) clearTimeout(appDataScheduleTimer);
+  appDataScheduleTimer = null;
+  if(appDataIdleHandle && typeof window !== 'undefined' && typeof window.cancelIdleCallback === 'function') window.cancelIdleCallback(appDataIdleHandle);
+  appDataIdleHandle = null;
+}
+function scheduleNoncriticalAppDataLoad(delay = 3000){
+  if(appDataReady || appDataPromise || typeof window === 'undefined') return false;
+  cancelScheduledAppDataLoad();
+  appDataScheduleTimer = setTimeout(() => {
+    appDataScheduleTimer = null;
+    const begin = () => {
+      appDataIdleHandle = null;
+      startAppDataLoad().catch(reportAppDataLoadError);
+    };
+    if(typeof window.requestIdleCallback === 'function') appDataIdleHandle = window.requestIdleCallback(begin, { timeout: 5000 });
+    else if(typeof window.requestAnimationFrame === 'function') window.requestAnimationFrame(() => setTimeout(begin, 0));
+    else setTimeout(begin, 0);
+  }, Math.max(0, Number(delay) || 0));
+  return true;
+}
+function deferAppDataLoadForInteraction(delay = 2500){
+  if(appDataReady || appDataPromise) return false;
+  return scheduleNoncriticalAppDataLoad(delay);
+}
 
 async function init(){
   loadPrefs();
@@ -42,15 +72,12 @@ async function init(){
     $$('.fc-word-display').forEach(el=>el.style.fontSize=state.prefs.cardFontSize+'px');
   }
   document.documentElement.classList.add('app-ready');
-  const beginDataLoad = () => startAppDataLoad().catch(error => {
-    console.error('Puritan Parser vocabulary data failed to load.', error);
-  });
   const dataCriticalViews = ['learnView', 'listView', 'flashView', 'parsingView', 'dashboardView', 'progressView', 'globalSearchView'];
-  if(typeof window !== 'undefined' && !dataCriticalViews.includes(state.currentView) && typeof window.requestIdleCallback === 'function') {
-    window.requestIdleCallback(beginDataLoad, { timeout: 1500 });
+  if(typeof window !== 'undefined' && !dataCriticalViews.includes(state.currentView)) {
+    scheduleNoncriticalAppDataLoad();
   } else if(typeof window !== 'undefined' && typeof window.requestAnimationFrame === 'function') {
-    window.requestAnimationFrame(() => setTimeout(beginDataLoad, 0));
-  } else setTimeout(beginDataLoad, 0);
+    window.requestAnimationFrame(() => setTimeout(() => startAppDataLoad().catch(reportAppDataLoadError), 0));
+  } else setTimeout(() => startAppDataLoad().catch(reportAppDataLoadError), 0);
 }
 
 init().catch(error => {

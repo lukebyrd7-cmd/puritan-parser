@@ -68,6 +68,8 @@ const PURITAN_PARSER_SCRIPTS = [
   ...Object.values(PURITAN_PARSER_FEATURE_SCRIPTS).flat(),
   'src/bootstrap.js'
 ];
+const PURITAN_PARSER_ASSET_VERSION = 'v1.5-interaction-stability-4';
+const PURITAN_SCRIPT_LOAD_TIMEOUT_MS = 9000;
 
 const puritanLoadedScripts = new Map();
 const puritanFeaturePromises = new Map();
@@ -77,11 +79,24 @@ function loadScriptSequentially(src) {
   if(puritanLoadedScripts.has(src)) return puritanLoadedScripts.get(src);
   const pending = new Promise((resolve, reject) => {
     const script = document.createElement('script');
+    let timeoutHandle = null;
+    const finish = callback => {
+      clearTimeout(timeoutHandle);
+      callback();
+    };
     script.async = false;
-    script.src = src.startsWith('/') ? src : `/${src}`;
-    script.onload = resolve;
-    script.onerror = () => reject(new Error(`Unable to load ${src}`));
+    const rootPath = src.startsWith('/') ? src : `/${src}`;
+    script.src = `${rootPath}?v=${PURITAN_PARSER_ASSET_VERSION}`;
+    script.onload = () => finish(resolve);
+    script.onerror = () => finish(() => reject(new Error(`Unable to load ${src}`)));
+    timeoutHandle = setTimeout(() => {
+      script.remove();
+      reject(new Error(`Loading ${src} timed out.`));
+    }, PURITAN_SCRIPT_LOAD_TIMEOUT_MS);
     document.head.appendChild(script);
+  }).catch(error => {
+    puritanLoadedScripts.delete(src);
+    throw error;
   });
   puritanLoadedScripts.set(src, pending);
   return pending;

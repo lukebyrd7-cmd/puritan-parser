@@ -8,7 +8,9 @@
   const DEFAULT_TRANSLATION_ROOT = 'data/translations';
   const providerCache = new Map();
   const manifestCache = new Map();
+  const manifestPromises = new Map();
   const chapterCache = new Map();
+  const chapterPromises = new Map();
 
   function cleanTranslationId(id) {
     return String(id || DEFAULT_TRANSLATION_ID).trim().toLowerCase().replace(/[^a-z0-9_-]/g, '');
@@ -95,20 +97,30 @@
       async manifest(loadOptions = {}) {
         const key = `${translationId}:manifest:${manifestPath}`;
         if (!loadOptions.force && manifestCache.has(key)) return manifestCache.get(key);
-        const manifest = normalizeTranslationManifest(await fetchTranslationJson(manifestPath, { ...options, ...loadOptions }));
-        manifestCache.set(key, manifest);
-        return manifest;
+        if (!loadOptions.force && manifestPromises.has(key)) return manifestPromises.get(key);
+        const pending = (async () => {
+          const manifest = normalizeTranslationManifest(await fetchTranslationJson(manifestPath, { ...options, ...loadOptions }));
+          manifestCache.set(key, manifest);
+          return manifest;
+        })().finally(() => manifestPromises.delete(key));
+        if(!loadOptions.force) manifestPromises.set(key, pending);
+        return pending;
       },
       async loadChapter(book, chapter, loadOptions = {}) {
         const cleanBook = cleanTranslationPart(book);
         const cleanChapter = Number(chapter) || 1;
         const key = `${translationId}:${cleanBook}:${cleanChapter}`;
         if (!loadOptions.force && chapterCache.has(key)) return chapterCache.get(key);
-        const manifest = await this.manifest(loadOptions);
-        const path = `${manifest.dataRoot}/${cleanBook}/${cleanChapter}.json`;
-        const data = normalizeTranslationChapter(await fetchTranslationJson(path, { ...options, ...loadOptions }));
-        chapterCache.set(key, data);
-        return data;
+        if (!loadOptions.force && chapterPromises.has(key)) return chapterPromises.get(key);
+        const pending = (async () => {
+          const manifest = await this.manifest(loadOptions);
+          const path = `${manifest.dataRoot}/${cleanBook}/${cleanChapter}.json`;
+          const data = normalizeTranslationChapter(await fetchTranslationJson(path, { ...options, ...loadOptions }));
+          chapterCache.set(key, data);
+          return data;
+        })().finally(() => chapterPromises.delete(key));
+        if(!loadOptions.force) chapterPromises.set(key, pending);
+        return pending;
       },
       hasChapter(manifest, book, chapter) {
         const cleanBook = cleanTranslationPart(book);
@@ -141,7 +153,9 @@
     translationVerseText,
     translationProviderCache: providerCache,
     translationManifestCache: manifestCache,
-    translationChapterCache: chapterCache
+    translationManifestPromises: manifestPromises,
+    translationChapterCache: chapterCache,
+    translationChapterPromises: chapterPromises
   };
   return api;
 }));

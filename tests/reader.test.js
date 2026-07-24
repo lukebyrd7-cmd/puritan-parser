@@ -1629,6 +1629,20 @@ test('continuous Reader window loads adjacent chapters once in canonical bounded
   assert.equal(passages.length <= 5, true);
 });
 
+test('continuous Reader inserts prepared adjacent chapters and keeps a five-chapter window', async () => {
+  storageHarness();
+  reader.saveReaderSettings({ ...reader.ReaderDefaultSettings, translation: 'off', textMode: 'original' }, 'greek');
+  await reader.setReaderLocation({ language: 'greek', book: 'john', chapter: 5, mode: 'continuous' });
+  assert.deepEqual(reader.readerState().continuousChapters.map(item => item.chapter), [4, 5, 6]);
+  assert.equal(await reader.loadReaderContinuousAdjacent(1), true);
+  assert.deepEqual(reader.readerState().continuousChapters.map(item => item.chapter), [4, 5, 6, 7]);
+  assert.equal(await reader.loadReaderContinuousAdjacent(1), true);
+  assert.deepEqual(reader.readerState().continuousChapters.map(item => item.chapter), [4, 5, 6, 7, 8]);
+  assert.equal(await reader.loadReaderContinuousAdjacent(1), true);
+  assert.deepEqual(reader.readerState().continuousChapters.map(item => item.chapter), [5, 6, 7, 8, 9]);
+  assert.equal(new Set(reader.readerState().continuousChapters.map(item => item.chapter)).size, 5);
+});
+
 test('continuous Reader handles book boundaries without crossing books', async () => {
   await reader.setReaderLocation({ language: 'greek', book: 'john', chapter: 1, mode: 'continuous' });
   assert.equal(reader.getAdjacentReaderLocation(-1), null);
@@ -1726,9 +1740,19 @@ test('continuous visibility toggles use the nearest measured verse instead of st
     querySelectorAll: selector => selector.includes('[data-reader-verse]') ? [visibleVerse] : [],
     getBoundingClientRect: () => ({ top: 0, bottom: 844, height: 844 })
   };
+  const visibilityControls = ['original', 'english'].flatMap(kind => [0, 1].map(() => {
+    const classes = new Set();
+    return {
+      dataset: { readerVisibility: kind },
+      attributes: {},
+      classList: { toggle(name, active){ if(active) classes.add(name); else classes.delete(name); } },
+      setAttribute(name, value){ this.attributes[name] = value; }
+    };
+  }));
   global.document = {
     activeElement: { closest: () => null },
-    querySelector: selector => selector === '.reader-text' ? pane : null
+    querySelector: selector => selector === '.reader-text' ? pane : null,
+    querySelectorAll: selector => selector === '[data-reader-visibility]' ? visibilityControls : []
   };
   global.window = {
     innerHeight: 844,
@@ -1739,12 +1763,14 @@ test('continuous visibility toggles use the nearest measured verse instead of st
   global.$ = () => null;
 
   reader.toggleReaderTextVisibility('english');
+  assert.deepEqual(visibilityControls.map(control => control.attributes['aria-checked']), ['false', 'false', 'true', 'true']);
   assert.equal(reader.readerState().anchorVerse, '16');
   assert.equal(reader.readerState().chapter, 2);
   assert.equal(reader.loadReaderSettings('greek').showEnglish, true);
   assert.equal(reader.loadReaderSettings('greek').showOriginal, false);
 
   reader.toggleReaderTextVisibility('original');
+  assert.deepEqual(visibilityControls.map(control => control.attributes['aria-checked']), ['true', 'true', 'false', 'false']);
   assert.equal(reader.loadReaderSettings('greek').textMode, 'original');
   assert.equal(reader.loadReaderSettings('greek').showOriginal, true);
   assert.equal(reader.loadReaderSettings('greek').showEnglish, false);
@@ -1752,6 +1778,7 @@ test('continuous visibility toggles use the nearest measured verse instead of st
   reader.toggleReaderTextVisibility('english');
   reader.toggleReaderTextVisibility('original');
   reader.toggleReaderTextVisibility('english');
+  assert.deepEqual(visibilityControls.map(control => control.attributes['aria-checked']), ['false', 'false', 'true', 'true']);
   await new Promise(resolve => setTimeout(resolve, 20));
   assert.equal(reader.loadReaderSettings('greek').textMode, 'english');
   assert.equal(reader.loadReaderSettings('greek').showOriginal, false);
@@ -1875,12 +1902,14 @@ test('continuous prefetch targets only the next chapters outside the rendered wi
 });
 
 test('continuous prefetch begins before chapter insertion is required', () => {
-  const approaching = reader.readerContinuousBoundaryState({ direction: 1, distance: 900, viewport: 500 });
+  const approaching = reader.readerContinuousBoundaryState({ direction: 1, distance: 1500, viewport: 500 });
   assert.equal(approaching.prefetch, true);
   assert.equal(approaching.insert, false);
-  const boundary = reader.readerContinuousBoundaryState({ direction: 1, distance: 400, viewport: 500 });
+  const boundary = reader.readerContinuousBoundaryState({ direction: 1, distance: 1000, viewport: 500 });
   assert.equal(boundary.prefetch, true);
   assert.equal(boundary.insert, true);
+  const fastScroll = reader.readerContinuousBoundaryState({ direction: 1, distance: 1400, viewport: 500, velocity: 1 });
+  assert.equal(fastScroll.insert, true);
 });
 
 test('Original display does not request English before first chapter render', async () => {

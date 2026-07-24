@@ -87,6 +87,35 @@ test('translation provider lazy-loads a single WEB chapter', async () => {
   assert.deepEqual(paths, ['data/translations/web/manifest.json', 'data/translations/web/books/john/1.json']);
 });
 
+test('translation provider deduplicates concurrent manifest and chapter requests', async () => {
+  const paths = [];
+  const provider = providerApi.createTranslationProvider('dedup', {
+    fetchJson: async filePath => {
+      paths.push(filePath);
+      await new Promise(resolve => setTimeout(resolve, 5));
+      if(filePath.endsWith('/manifest.json')) {
+        return {
+          id: 'dedup',
+          dataRoot: 'data/translations/dedup/books',
+          books: [{ id: 'john', chapters: [1, 2] }]
+        };
+      }
+      const chapter = Number(filePath.match(/\/(\d+)\.json$/)?.[1]);
+      return { translation: 'dedup', book: 'john', chapter, verses: [{ verse: 1, text: `Chapter ${chapter}` }] };
+    }
+  });
+  const [first, duplicate, second] = await Promise.all([
+    provider.loadChapter('john', 1),
+    provider.loadChapter('john', 1),
+    provider.loadChapter('john', 2)
+  ]);
+  assert.equal(first, duplicate);
+  assert.equal(second.chapter, 2);
+  assert.equal(paths.filter(filePath => filePath.endsWith('/manifest.json')).length, 1);
+  assert.equal(paths.filter(filePath => filePath.endsWith('/john/1.json')).length, 1);
+  assert.equal(paths.filter(filePath => filePath.endsWith('/john/2.json')).length, 1);
+});
+
 test('OEB importer merges repeated verse continuations and strips USFM markup', () => {
   const parsed = oebImport.parseUsfmBook({
     name: '43-John.usfm',
@@ -124,7 +153,7 @@ test('WEB importer parses USFM book codes and strips word-level markup', () => {
 
 test('service worker precaches translation provider manifests while JSON remains runtime cached', () => {
   const sw = fs.readFileSync('sw.js', 'utf8');
-  assert.match(sw, /puritan-parser-v59-v1\.5-release-blockers/);
+  assert.match(sw, /puritan-parser-v63-v1\.5-interaction-stability-4/);
   assert.match(sw, /\.\/src\/core\/translations\/translation-provider\.js/);
   assert.match(sw, /\.\/data\/translations\/oeb\/manifest\.json/);
   assert.match(sw, /\.\/data\/translations\/web\/manifest\.json/);

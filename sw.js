@@ -1,13 +1,13 @@
 // Service worker for the static Puritan Parser app.
 // Keep this file next to index.html so root-scoped registration covers every route.
-const CACHE = 'puritan-parser-v59-v1.5-release-blockers';
+const CACHE = 'puritan-parser-v63-v1.5-interaction-stability-4';
 const FILES = [
   './',
   './index.html',
   './styles.css',
-  './styles.css?v=v1.5-release-blockers',
+  './styles.css?v=v1.5-interaction-stability-4',
   './src/main.js',
-  './src/main.js?v=v1.5-release-blockers',
+  './src/main.js?v=v1.5-interaction-stability-4',
   './src/core/parser-core.js',
   './src/core/migrations/migrations.js',
   './src/core/migrations/migration-runner.js',
@@ -109,7 +109,7 @@ self.addEventListener('fetch', (evt) => {
   }
 
   evt.respondWith(
-    caches.match(evt.request)
+    caches.match(evt.request, { ignoreSearch: true })
       .then(resp => resp || fetch(evt.request).catch(() => caches.match('./')))
   );
 });

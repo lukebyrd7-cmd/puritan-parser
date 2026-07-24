@@ -5,6 +5,52 @@ function displayHeadwordForEntry(entry){
 }
 
 /* ---------- View Controller ---------- */
+const featureViewLoadPromises = new Map();
+const FeatureViewLoadTimeoutMs = 10000;
+
+function featureViewStatus(target){
+  return target?.querySelector?.(':scope > .feature-load-status') || null;
+}
+function clearFeatureViewStatus(target){
+  featureViewStatus(target)?.remove?.();
+  target?.classList?.remove?.('feature-loading');
+}
+function renderFeatureViewStatus(target, message = 'Opening…', options = {}){
+  if(!target || typeof document === 'undefined') return null;
+  clearFeatureViewStatus(target);
+  const status = document.createElement('section');
+  status.className = 'panel feature-load-status';
+  const text = document.createElement('p');
+  text.className = 'progress-empty';
+  text.setAttribute('role', 'status');
+  text.textContent = message;
+  status.appendChild(text);
+  if(typeof options.retry === 'function'){
+    const retry = document.createElement('button');
+    retry.type = 'button';
+    retry.className = 'btn secondary';
+    retry.textContent = 'Try again';
+    retry.addEventListener('click', options.retry);
+    status.appendChild(retry);
+  }
+  target.insertAdjacentElement?.('afterbegin', status);
+  target.classList?.add?.('feature-loading');
+  return status;
+}
+function loadFeatureView(viewId, moduleLoader, timeoutMs = FeatureViewLoadTimeoutMs){
+  if(featureViewLoadPromises.has(viewId)) return featureViewLoadPromises.get(viewId);
+  let timeoutHandle = null;
+  const timeout = new Promise((resolve, reject) => {
+    timeoutHandle = setTimeout(() => reject(new Error(`Opening ${viewId} timed out.`)), timeoutMs);
+  });
+  const pending = Promise.race([moduleLoader.ensureView(viewId), timeout])
+    .finally(() => {
+      clearTimeout(timeoutHandle);
+      featureViewLoadPromises.delete(viewId);
+    });
+  featureViewLoadPromises.set(viewId, pending);
+  return pending;
+}
 function normalizeViewId(viewId){
   if(typeof viewId !== 'string') return 'listView';
   if(document.getElementById(viewId)) return viewId;
@@ -22,16 +68,22 @@ function showView(viewId, options = {}){
     const target = document.getElementById(viewId);
     const views = Object.values(typeof ROUTES !== 'undefined' ? ROUTES : {}).map(route => route.viewId);
     views.forEach(id=>{ const el=document.getElementById(id); if(el) el.classList.toggle('hidden', id!==viewId); });
-    if(target){
-      const shell = target.querySelector?.('[id$="Shell"]') || target;
-      if(shell) shell.innerHTML = '<section class="panel"><p class="progress-empty" role="status">Opening…</p></section>';
-    }
+    renderFeatureViewStatus(target);
     state.currentView = viewId;
-    moduleLoader.ensureView(viewId)
-      .then(() => showView(viewId, { ...options, featureReady: true, skipHistory: true }))
+    if(typeof deferAppDataLoadForInteraction === 'function') deferAppDataLoadForInteraction();
+    loadFeatureView(viewId, moduleLoader)
+      .then(() => {
+        clearFeatureViewStatus(target);
+        if(state.currentView === viewId) showView(viewId, { ...options, featureReady: true, skipHistory: true });
+      })
       .catch(error => {
         console.error('Puritan Parser feature failed to load.', error);
-        if(target) target.innerHTML = '<section class="panel"><p class="progress-empty">This section could not be opened.</p></section>';
+        renderFeatureViewStatus(target, 'This section could not be opened.', {
+          retry: () => {
+            clearFeatureViewStatus(target);
+            showView(viewId, { ...options, skipHistory: true });
+          }
+        });
       });
     return viewId;
   }

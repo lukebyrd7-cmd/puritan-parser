@@ -133,8 +133,10 @@ let readerPrefetchHandle = null;
 let readerUserScrolledAt = 0;
 let readerLastRestoreAt = 0;
 let readerLastScrollPosition = 0;
+let readerLastScrollAt = 0;
 let readerLocationRequestId = 0;
 let readerVisibilityRequestId = 0;
+let readerLanguageRenderFrame = null;
 const ReaderWordDetailsLayout = { panelWidth: 400, minPassageWidth: 600, minSidePanelWidth: 1040 };
 
 function normalizeReaderWordDetailsDisplay(value){
@@ -1870,6 +1872,8 @@ async function loadReaderContinuousAdjacent(direction){
   const language = readerState.language;
   const book = readerState.book;
   const settings = getActiveReaderSettings();
+  const visibilityRequestId = readerVisibilityRequestId;
+  if(typeof deferAppDataLoadForInteraction === 'function') deferAppDataLoadForInteraction();
   const preparedKey = [language, book, nextChapter, settings.textMode, settings.display, settings.translationProvider, settings.hideKnown, settings.indicator, settings.assistance].join('/');
   if(!readerPreparedPassageHtml.has(preparedKey)) setReaderBoundaryLoading(direction, true);
   try {
@@ -2007,26 +2011,48 @@ function toggleReaderTextVisibility(kind){
     showEnglish: selected === 'english'
   };
   const saved = saveReaderSettings(next, readerState.language);
+  syncReaderVisibilityControls(saved);
+  setReaderLanguageLoading(false);
+  if(typeof deferAppDataLoadForInteraction === 'function') deferAppDataLoadForInteraction();
   const passages = readerState.mode === 'continuous' ? readerState.continuousChapters : [{ translationData: readerState.translationData, translationStatus: readerState.translationStatus }];
   const needsTranslation = saved.translation === 'on' && saved.showEnglish && passages.some(passage => !passage.translationData && !passage.translationStatus);
   if(needsTranslation){
-    syncReaderVisibilityControls(saved);
-    setReaderBoundaryLoading(1, true, 'Loading English…');
+    setReaderLanguageLoading(true, 'Loading English…');
     refreshReaderTranslations(saved).then(() => {
       if(requestId !== readerVisibilityRequestId) return;
-      setReaderBoundaryLoading(1, false);
+      setReaderLanguageLoading(false);
       renderReader({ preserveAnchor: anchor });
       scheduleReaderVisibilityFocus(selected, focusSource);
     }).catch(() => {
       if(requestId !== readerVisibilityRequestId) return;
-      setReaderBoundaryLoading(1, false);
+      setReaderLanguageLoading(false);
       renderReader({ preserveAnchor: anchor });
     });
     return saved;
   }
-  renderReader({ preserveAnchor: anchor });
-  scheduleReaderVisibilityFocus(selected, focusSource);
+  scheduleReaderLanguageRender({ requestId, selected, focusSource, anchor });
   return saved;
+}
+function setReaderLanguageLoading(loading, label = 'Loading English…'){
+  if(typeof document === 'undefined') return false;
+  const pane = document.querySelector?.('.reader-text');
+  if(!pane) return false;
+  pane.querySelector?.('.reader-language-loading')?.remove?.();
+  if(!loading) return true;
+  pane.insertAdjacentHTML?.('afterbegin', `<p class="reader-language-loading" role="status">${escHtml(label)}</p>`);
+  return true;
+}
+function scheduleReaderLanguageRender({ requestId, selected, focusSource, anchor }){
+  const render = () => {
+    readerLanguageRenderFrame = null;
+    if(requestId !== readerVisibilityRequestId) return;
+    renderReader({ preserveAnchor: anchor });
+    scheduleReaderVisibilityFocus(selected, focusSource);
+  };
+  if(typeof window !== 'undefined' && typeof window.requestAnimationFrame === 'function'){
+    if(readerLanguageRenderFrame && typeof window.cancelAnimationFrame === 'function') window.cancelAnimationFrame(readerLanguageRenderFrame);
+    readerLanguageRenderFrame = window.requestAnimationFrame(render);
+  } else Promise.resolve().then(render);
 }
 function syncReaderVisibilityControls(settings = getActiveReaderSettings()){
   if(typeof document === 'undefined') return false;
@@ -2113,12 +2139,13 @@ function handleReaderResize(){
   if(next === readerState.wordDetailsEffectiveMode) return;
   renderReaderWordPopup();
 }
-function readerContinuousBoundaryState({ direction = 0, distance = Number.POSITIVE_INFINITY, viewport = 800 } = {}){
+function readerContinuousBoundaryState({ direction = 0, distance = Number.POSITIVE_INFINITY, viewport = 800, velocity = 0 } = {}){
   const size = Math.max(1, Number(viewport) || 800);
   const remaining = Math.max(0, Number(distance) || 0);
+  const speed = Math.min(2, Math.max(0, Number(velocity) || 0));
   return {
-    prefetch: direction !== 0 && remaining < size * 2,
-    insert: direction !== 0 && remaining < Math.max(520, size * .9)
+    prefetch: direction !== 0 && remaining < size * (4 + speed),
+    insert: direction !== 0 && remaining < Math.max(720, size * (2.25 + speed * .75))
   };
 }
 function handleReaderScroll(){
@@ -2134,22 +2161,28 @@ function handleReaderScroll(){
   const pane = document.querySelector?.('.reader-text');
   if(!pane) return;
   const scrollPosition = readerUsesWindowScroll() ? Math.max(0, Number(window.scrollY) || 0) : Math.max(0, Number(pane.scrollTop) || 0);
-  const scrollDirection = Math.sign(scrollPosition - readerLastScrollPosition);
+  const now = Date.now();
+  const scrollDelta = scrollPosition - readerLastScrollPosition;
+  const elapsed = readerLastScrollAt ? Math.max(1, now - readerLastScrollAt) : 16;
+  const scrollDirection = Math.sign(scrollDelta);
+  const scrollVelocity = Math.abs(scrollDelta) / elapsed;
   readerLastScrollPosition = scrollPosition;
+  readerLastScrollAt = now;
+  if(typeof deferAppDataLoadForInteraction === 'function') deferAppDataLoadForInteraction();
   if(readerUsesWindowScroll()){
     const sections = Array.from(pane.querySelectorAll?.('[data-reader-chapter-section]') || []);
     const first = sections[0]?.getBoundingClientRect?.();
     const last = sections.at(-1)?.getBoundingClientRect?.();
     const viewport = Number(window.innerHeight) || 800;
-    if(scrollDirection < 0 && first && first.top > -viewport * 2) scheduleReaderContinuousPrefetch({ direction: -1, immediate: true });
-    else if(scrollDirection > 0 && last && last.bottom < viewport * 3) scheduleReaderContinuousPrefetch({ direction: 1, immediate: true });
-    if(scrollDirection < 0 && first && first.top > -Math.max(360, viewport * .8)) loadReaderContinuousAdjacent(-1);
-    else if(scrollDirection > 0 && last && last.bottom < viewport + Math.max(520, viewport * .9)) loadReaderContinuousAdjacent(1);
+    const distance = scrollDirection < 0 ? Math.max(0, -Number(first?.top)) : Math.max(0, Number(last?.bottom) - viewport);
+    const boundary = readerContinuousBoundaryState({ direction: scrollDirection, distance, viewport, velocity: scrollVelocity });
+    if(boundary.prefetch) scheduleReaderContinuousPrefetch({ direction: scrollDirection, immediate: true });
+    if(boundary.insert) loadReaderContinuousAdjacent(scrollDirection);
   } else {
     const remaining = Number(pane.scrollHeight) - Number(pane.scrollTop) - Number(pane.clientHeight);
     const viewport = Number(pane.clientHeight) || 800;
     const distance = scrollDirection < 0 ? Number(pane.scrollTop) : remaining;
-    const boundary = readerContinuousBoundaryState({ direction: scrollDirection, distance, viewport });
+    const boundary = readerContinuousBoundaryState({ direction: scrollDirection, distance, viewport, velocity: scrollVelocity });
     if(boundary.prefetch) scheduleReaderContinuousPrefetch({ direction: scrollDirection, immediate: true });
     if(boundary.insert) loadReaderContinuousAdjacent(scrollDirection);
   }
@@ -2168,6 +2201,8 @@ function suspendReader(){
     else clearTimeout(readerPrefetchHandle);
   }
   readerPrefetchHandle = null;
+  if(readerLanguageRenderFrame && typeof window !== 'undefined' && typeof window.cancelAnimationFrame === 'function') window.cancelAnimationFrame(readerLanguageRenderFrame);
+  readerLanguageRenderFrame = null;
   if(typeof document !== 'undefined'){
     document.removeEventListener?.('keydown', handleReaderPopupKeydown);
     document.removeEventListener?.('click', handleReaderDocumentClick);

@@ -174,7 +174,7 @@ test('v1.3.7 preserves every existing focused Paradigm Chart id and form',()=>{
 
 test('v1.5 stabilization keeps intended Reader and Progress changes isolated from Learn, SRS, storage, and migrations',()=>{
   const expected={
-    'src/features/reader/index.js':'4e4b48c049af0223dc655a1e3db04c8bce426bbb5f6dd132bbac3c80e21c123c',
+    'src/features/reader/index.js':'57b36809854a5eca66405847667c891832ee04509fa526c2c23b778ad31b3936',
     'src/features/learn/index.js':'c4b4c50106d96e8d02848d6b487b204720d160f20a04be77a5e8fada383a2cdf',
     'src/features/learn/recognition-engine.js':'8a3de2d03901a7e6cd6fa2ea32c50c6f11c3676756282af7c6d2d2980ff1e7a2',
     'src/features/progress/index.js':'7c5a23be215503d7a6dc5d2ae2ea843c814eea2698a8481be8a048a4fdb28e37',

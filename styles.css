@@ -1906,6 +1906,30 @@ button:focus-visible, input:focus-visible, select:focus-visible {
   font-weight: 700;
   text-align: center;
 }
+.reader-language-loading {
+  position: sticky;
+  top: 0;
+  z-index: 3;
+  width: max-content;
+  max-width: calc(100% - 24px);
+  margin: 0 auto -32px;
+  padding: 7px 12px;
+  border: 1px solid color-mix(in srgb, var(--border) 82%, transparent);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--surface) 94%, transparent);
+  color: var(--muted);
+  box-shadow: 0 4px 14px color-mix(in srgb, var(--text) 8%, transparent);
+  font-family: var(--font-sans);
+  font-size: 12px;
+  font-weight: 700;
+  text-align: center;
+}
+.feature-load-status {
+  position: relative;
+  z-index: 2;
+  text-align: center;
+}
+.feature-load-status .btn { margin-top: 10px; }
 .reader-paragraph { margin: 0 0 1.35em; }
 .reader-paragraph-english { font-family: var(--font-sans); font-size: 18px; line-height: 1.8; text-align: left; }
 .reader-parallel-paragraph {
