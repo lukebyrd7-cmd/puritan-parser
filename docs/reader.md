@@ -209,6 +209,16 @@ Search is intentionally simple. Greek search supports:
 
 Search reads `data/greek/search-index.json`, shows concise verse results, and clicking a result jumps to the result's chapter and verse. Advanced morphology-aware search is out of scope for v3.6.1c.
 
+Hebrew Reader Search uses the same verse-result flow and adds shared transliteration-aware lexical matching through `src/core/hebrew-search.js`. Exact Hebrew remains supported and ranks first. Latin input is case-insensitive; ordinary punctuation, spacing, and Latin diacritics are normalized; common conservative aliases such as `ch`/`kh`, `ts`/`tz`, and cautious `q`/`k` variants are accepted. These aliases are a search convenience, not a complete scholarly pronunciation system. Transliteration is not rendered in Reader text or search results.
+
+The Hebrew verse index remains lazy-loaded. Its derived transliteration terms are built only on the first Hebrew lexical search, cached in memory, and never stored as user data or added to startup precache. Direct references and numeric-lemma searches retain their existing paths.
+
+## Hebrew interlinear audit
+
+Hebrew Original mode remains the only supported Hebrew original-language display. The generated token stream has stable array order within a verse and preserves pointed surface forms, numeric lemmas, OSHB morphology, and selected source attributes. It lacks complete contextual token glosses, an explicit stable token ID, and a reliable combined gloss for words containing attached analyzed units. Hebrew lexical glosses are dictionary-style and incomplete; OEB/WEB are verse translations without token alignment.
+
+The Hebrew interlinear gate therefore remains closed. The Reader continues to disable/fall back from Hebrew Interlinear and does not expose transliteration, numeric IDs, roots, or morphology as pseudo-glosses. See `hebrew-search-interlinear-audit.md` for the full audit and future source requirement.
+
 ## Scope boundaries
 
 The Reader remains intentionally narrow. Do not add:

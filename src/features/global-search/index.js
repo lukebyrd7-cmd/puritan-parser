@@ -9,6 +9,8 @@
   const MAX_RESULTS = 100;
   const STATUS_ALL = 'all';
   const SEARCH_STATE = { query: '', language: 'all', status: STATUS_ALL, sort: 'relevance', visible: RESULT_LIMIT };
+  const HebrewSearchApi = root.PuritanHebrewSearch
+    || (typeof require === 'function' ? require('../../core/hebrew-search') : null);
   let cachedSignature = '';
   let cachedEntries = [];
 
@@ -151,7 +153,10 @@
           partOfSpeech: partOfSpeech({ ...entry, lang }),
           learningStatus: details.label || details.status || 'Not Learned',
           searchText: searchTextForEntry({ ...entry, lang }, headword, gloss),
-          transliterationText: lang === 'greek' ? [headword, entry.lemma, entry.lexicalForm, entry.word, entry.normalized].map(transliterateGreek).filter(Boolean).join(' ') : ''
+          transliterationText: lang === 'greek' ? [headword, entry.lemma, entry.lexicalForm, entry.word, entry.normalized].map(transliterateGreek).filter(Boolean).join(' ') : '',
+          hebrewSearchTerms: lang === 'hebrew'
+            ? HebrewSearchApi?.createHebrewSearchTerms?.(headwordCandidates({ ...entry, lang }))
+            : null
         };
       }));
     return cachedEntries;
@@ -162,13 +167,19 @@
     const lemma = normalizeText(item.lemma);
     const gloss = normalizeText(item.gloss);
     const transliteration = normalizeText(item.transliterationText);
-    if(headword === q || lemma === q) return 1000 + item.frequency;
-    if(transliteration.split(/\s+/).includes(q)) return 950 + item.frequency;
-    if(headword.startsWith(q) || lemma.startsWith(q)) return 800 + item.frequency;
-    if(transliteration.includes(q)) return 750 + item.frequency;
-    if(gloss === q) return 700 + item.frequency;
-    if(gloss.startsWith(q)) return 600 + item.frequency;
-    if(item.searchText.includes(q)) return 300 + item.frequency;
+    const frequency = Math.min(999999, Math.max(0, Number(item.frequency) || 0));
+    const ranked = tier => tier * 1000000 + frequency;
+    const hebrewScore = item.language === 'hebrew'
+      ? HebrewSearchApi?.scoreHebrewSearchTerms?.(item.hebrewSearchTerms, query) || 0
+      : 0;
+    if(hebrewScore) return ranked(hebrewScore);
+    if(headword === q || lemma === q) return ranked(1000);
+    if(transliteration.split(/\s+/).includes(q)) return ranked(950);
+    if(headword.startsWith(q) || lemma.startsWith(q)) return ranked(800);
+    if(transliteration.includes(q)) return ranked(750);
+    if(gloss === q) return ranked(700);
+    if(gloss.startsWith(q)) return ranked(600);
+    if(item.searchText.includes(q)) return ranked(300);
     return 0;
   }
   function searchGlobalVocabulary(options = {}){
@@ -318,6 +329,7 @@
     MAX_RESULTS,
     buildGlobalSearchIndex,
     searchGlobalVocabulary,
+    renderGlobalSearchResult,
     renderGlobalSearch,
     renderGlobalSearchResults,
     openGlobalSearchResult,

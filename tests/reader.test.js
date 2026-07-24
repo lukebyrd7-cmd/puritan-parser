@@ -2205,6 +2205,58 @@ test('Hebrew search index returns complete-corpus results from multiple books', 
   assert.match(html, /Exodus/);
 });
 
+test('concurrent Reader search-index requests share one retry-safe load', async () => {
+  const previousFetch = global.fetch;
+  let fetchCount = 0;
+  global.fetch = async filePath => {
+    fetchCount += 1;
+    await new Promise(resolve => setTimeout(resolve, 10));
+    return previousFetch(filePath);
+  };
+  try {
+    const [first, second] = await Promise.all([
+      reader.loadReaderSearchIndex('dedupe-test'),
+      reader.loadReaderSearchIndex('dedupe-test')
+    ]);
+    assert.equal(fetchCount, 1);
+    assert.equal(first, second);
+  } finally {
+    global.fetch = previousFetch;
+  }
+});
+
+test('Hebrew Reader search accepts transliteration through the shared lazy index', async () => {
+  let html = '';
+  const resultBox = { set innerHTML(value){ html = value; }, get innerHTML(){ return html; } };
+  global.$ = selector => selector === '#readerSearchResults' ? resultBox : null;
+  global.$$ = () => [];
+  await reader.setReaderLocation({ language: 'hebrew', book: 'genesis', chapter: 1 });
+
+  const canonical = await reader.runReaderSearch('BÉ-RESHIT');
+  assert.equal(canonical[0].book, 'genesis');
+  assert.equal(canonical[0].chapter, 1);
+  assert.equal(canonical[0].verse, 1);
+  assert.match(html, /בְּרֵאשִׁ֖ית/);
+  assert.doesNotMatch(html, /BÉ-RESHIT/i);
+
+  const alias = await reader.runReaderSearch('melek');
+  assert.ok(alias.length > 0);
+  assert.ok(alias.some(item => item.surface.some(surface => /מֶ.*לֶ.*ךְ/u.test(surface))));
+
+  const exactHebrew = await reader.runReaderSearch('בְּרֵאשִׁ֖ית');
+  assert.equal(exactHebrew[0].book, 'genesis');
+  assert.equal(exactHebrew[0].chapter, 1);
+  assert.equal(exactHebrew[0].verse, 1);
+
+  const [stale, latest] = await Promise.all([
+    reader.runReaderSearch('bereshit'),
+    reader.runReaderSearch('melek')
+  ]);
+  assert.deepEqual(stale, []);
+  assert.ok(latest.length > 0);
+  assert.match(html, /מֶ.*לֶ.*ךְ/u);
+});
+
 test('Hebrew token lookup and popup display Jonah gloss, lemma, frequency, reference, and grammar links', async () => {
   let popupHtml = '';
   const root = {

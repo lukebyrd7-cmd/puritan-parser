@@ -4,6 +4,7 @@
 
 const PURITAN_PARSER_CORE_SCRIPTS = [
   'src/core/parser-core.js',
+  'src/core/hebrew-search.js',
   'src/core/migrations/migrations.js',
   'src/core/migrations/migration-runner.js',
   'src/app-state.js',
@@ -69,7 +70,7 @@ const PURITAN_PARSER_SCRIPTS = [
   ...Object.values(PURITAN_PARSER_FEATURE_SCRIPTS).flat(),
   'src/bootstrap.js'
 ];
-const PURITAN_PARSER_ASSET_VERSION = 'v1.5.1-reader-options-cleanup-1';
+const PURITAN_PARSER_ASSET_VERSION = 'v1.6-hebrew-search-1';
 const PURITAN_SCRIPT_LOAD_TIMEOUT_MS = 9000;
 
 const puritanLoadedScripts = new Map();
