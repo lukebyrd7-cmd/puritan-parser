@@ -4,11 +4,27 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
 <title>The Puritan Parser</title>
-<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
-<link rel="apple-touch-icon" href="logo.png">
-<link rel="icon" href="logo.png">
-<link rel="manifest" href="manifest.json">
-<link rel="stylesheet" href="styles.css">
+<script>
+(() => {
+  try {
+    const stored = JSON.parse(localStorage.getItem('pp_prefs') || 'null');
+    const prefs = stored?.preferences || stored || {};
+    const theme = prefs.theme || 'light';
+    document.documentElement.classList.add(theme === 'system'
+      ? (matchMedia('(prefers-color-scheme:dark)').matches ? 'dark' : 'light')
+      : (theme === 'dark' ? 'dark' : 'light'));
+    const accent = /^#[0-9a-f]{6}$/i.test(prefs.accent || '') ? prefs.accent : '#4e8f6e';
+    document.documentElement.style.setProperty('--accent', accent);
+  } catch(error) {
+    document.documentElement.classList.add('light');
+  }
+})();
+</script>
+<link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png">
+<link rel="apple-touch-icon" href="/logo.png">
+<link rel="icon" href="/logo.png">
+<link rel="manifest" href="/manifest.json">
+<link rel="stylesheet" href="/styles.css?v=v1.5-reader-options-6">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="Puritan Parser">
@@ -52,7 +68,7 @@
   <!-- HEADER -->
   <header class="header">
     <div class="logo-wrap" id="logoWrap">
-      <img id="logoImg" src="./logo.png" alt="Puritan Parser" onerror="this.onerror=null;this.parentNode.innerHTML=svgFallback">
+      <img id="logoImg" src="/logo.png" alt="Puritan Parser">
     </div>
     <div>
       <div class="app-name">The Puritan Parser</div>
@@ -458,8 +474,18 @@
 
           <hr class="divider">
 
-          <h2 class="settings-group-title">Reader</h2>
-          <div class="settings-section"><p class="small muted">Reader display and assistance preferences are available from the Reader toolbar.</p></div>
+          <section id="reader-settings" class="settings-reader-section" aria-labelledby="readerSettingsHeading">
+            <h2 class="settings-group-title" id="readerSettingsHeading">Reader</h2>
+            <div class="settings-section">
+              <fieldset class="settings-reader-mode">
+                <legend class="settings-label">Reading mode</legend>
+                <label><input id="readerReadingModeContinuous" type="radio" name="readerReadingMode" value="continuous" /> <span>Continuous</span></label>
+                <label><input id="readerReadingModeChapter" type="radio" name="readerReadingMode" value="chapter" /> <span>One chapter at a time</span></label>
+              </fieldset>
+              <p class="small muted">Continuous reading is the default for new readers. Your saved choice is kept on this device.</p>
+              <button class="btn btn-ghost btn-sm" id="readerSettingsReturn" type="button">← Return to Reader</button>
+            </div>
+          </section>
 
           <hr class="divider">
 
@@ -555,10 +581,6 @@
 
 </div><!-- /app -->
 
-<script>
-const svgFallback = `<svg xmlns="http://www.w3.org/2000/svg" width="38" height="38" viewBox="0 0 64 64"><rect width="64" height="64" rx="12" fill="#4e8f6e"/><text x="50%" y="54%" font-size="26" text-anchor="middle" fill="#fff" font-family="serif" font-weight="700">PP</text></svg>`;
-</script>
-
-  <script src="src/main.js?v=v1.3.7-grammar-handbook"></script>
+  <script src="/src/main.js?v=v1.5-reader-options-6"></script>
 </body>
 </html>

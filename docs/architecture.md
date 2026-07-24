@@ -66,6 +66,10 @@ Older study surfaces such as the vocabulary list, flashcards, parsing drills, da
 
 The root route (`/`) opens Learn. Legacy deep links such as `/list`, `/flashcards`, and `/parsing` remain available so existing tests, bookmarks, and internal workflows continue to function.
 
+Static shell URLs and the sequential module loader use application-root paths. This is required because nested routes such as `/settings/sources` are served by the same `index.html`; document-relative startup URLs would otherwise resolve below the nested route and return the app shell in place of JavaScript. Service-worker registration likewise uses `/sw.js`.
+
+Startup uses a route-aware module loader. Core scripts download as one ordered group, then only the active feature bundle loads before bootstrap; Reader, Learn, Reference, Progress, Search, and Onboarding bundles load on demand for later navigation. `/settings/sources` intentionally loads the Reference bundle because its bibliography is rendered from that library. Bootstrap reveals the shell and wires navigation before beginning large vocabulary hydration, which is scheduled after the first paint or during idle time when the active route does not require it. An inline pre-style preference read applies the stored theme and accent before the shell paints.
+
 The application chrome should not include a global Greek/Hebrew toggle. Reader owns its reading-language flow, Reference owns its local language selector, and Learn presents language choices only inside study workflows where the choice is part of the task.
 
 The header should also avoid progress counters, streak indicators, or other motivational widgets. Progress information belongs in the Progress section.
@@ -118,7 +122,9 @@ The Reader should remain one Reader unless separate implementations become unavo
 
 Reader data is lazy-loaded one chapter at a time. Large JSON content must stay out of startup modules and service-worker install precaches.
 
-### Adaptive Reader
+### Reader preferences and Adaptive Reader
+
+Reading mode is owned by the existing `pp_reader_location.mode` field and normalized by `src/core/reader-preferences.js`. Settings → Reader and the Reader feature use that same helper rather than parallel preference state. `continuous` and `chapter` remain the stored values; missing or invalid values resolve to Continuous, valid values remain unchanged, and updating mode preserves the remaining location and verse-anchor fields. The Reader options action saves the current place before routing to Settings → Reader.
 
 Adaptive Reader settings live inside the Reader rather than global Settings because they shape the immediate reading experience. The settings are local-first user data under `pp_reader_adaptive_settings`, currently keyed by language so Greek and Hebrew can diverge without accounts or sync.
 
@@ -127,7 +133,7 @@ The Reader settings panel should stay open while settings are changed. It closes
 Display, Translation, Assistance, and Indicators interact through one shared render path:
 
 - Display controls the original-language presentation. `Original` renders inline Greek or Hebrew. `Interlinear` keeps each original token primary and adds a small gloss beneath the word when existing gloss or vocabulary data provides one.
-- Translation controls whether the Reader shows an `Original` / `English` text toggle. When enabled, only one text mode renders at a time. English mode uses the selected provider, currently OEB or WEB, and shows an unavailable state only when neither the selected provider nor the WEB fallback can serve the passage.
+- Translation controls whether the Reader shows an `Original` / `English` text toggle. When enabled, only one layer is visible and interactive at a time. English mode keeps the prepared Original layer hidden and inert so a one-click return to Original can reveal it without another chapter request or full continuous-window rerender. English uses the selected provider, currently OEB or WEB, and shows an unavailable state only when neither the selected provider nor the WEB fallback can serve the passage.
 - Assistance determines which tokens may open the Reader popup and Word Page flow. `Everything` allows all tokenized words, numeric presets allow words with frequency at or below the selected threshold, `Custom` uses a validated positive whole-number threshold, and `None` disables word help.
 - Hide Known Words composes with Assistance by consulting the shared `VocabularyLearning` model. A word qualifies only when it passes the frequency rule and is not Known. The Reader must not duplicate learning state.
 - Indicator style is purely visual and applies only to currently assisted words. The default is `None`; tint, dotted underline, and footnote markers are intentionally quiet.

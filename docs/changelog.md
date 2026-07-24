@@ -4,6 +4,22 @@ This changelog is a human-readable project history, not a Git log. Future entrie
 
 ## Unreleased
 
+### v1.5 Stabilization, Performance, and Full-App QA
+
+- Replaced independent Reader visibility toggles with one exclusive Original/English radio choice. Legacy both-visible or neither-visible preferences resolve to one safe preferred mode, and primary and mobile controls share the same state.
+- Made English-to-Original switching immediate by retaining hidden, inert original-language markup while English is active, revealing it without a network request or continuous-window rerender, and restoring the canonical verse after layout.
+- Made Continuous the default for missing or invalid Reader mode values while preserving existing valid Chapter and Continuous preferences in the unchanged `pp_reader_location` record.
+- Moved Reading mode to accessible radio controls under Settings → Reader, removed the always-visible mode selector from Reader controls, and added a restrained Reader options link with a predictable return action.
+- Fixed continuous Reader language changes losing the visible chapter by restoring a shared chapter-and-verse anchor before focus moves, guarding stale restoration and translation work, and using `preventScroll` for control focus.
+- Added direction- and distance-aware adjacent prefetch, shared in-flight and completed request caches, prepared passage markup, incremental chapter insertion, and safe failed-prefetch retry behavior while retaining the five-chapter window.
+- Made startup route-aware: the shell and navigation become usable before the 18.9 MB vocabulary payload is parsed, only the active feature bundle initializes synchronously, inactive features defer until opened, and stored theme/accent are applied before CSS paints.
+- Replaced the mobile bottom Reader toolbar with a restrained fixed top toolbar using safe-area-aware positioning and `aria-pressed` buttons driven by the primary settings state.
+- Split Progress loading into an immediate core summary and deferred whole-Bible readiness phase; core storage/history inputs are parsed once and derived book caches invalidate on learning changes.
+- Deferred inactive Reference DOM rendering until Reference is opened without breaking direct Handbook routes.
+- Fixed nested-route hard refreshes by resolving shell assets, sequential modules, and service-worker registration from the application root.
+- Bumped the offline cache to `puritan-parser-v65-v1.5-reader-options-6`; large chapter and search datasets remain runtime cached rather than install precached.
+- Preserved storage keys, SRS formulas, import/export structures, and all Greek/Hebrew linguistic datasets.
+
 ### v5.8 Study Sets + Practice Improvements
 
 - Added simple local-first Study Sets under `pp_study_sets`, with compact creation, list, detail, browse, delete, practice, and vocabulary-only Mark All Known actions.

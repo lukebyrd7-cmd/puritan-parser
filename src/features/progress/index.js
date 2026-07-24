@@ -3,11 +3,13 @@ const ProgressModel = (typeof ProgressService !== 'undefined')
   ? ProgressService
   : (typeof require === 'function' ? require('../../core/progress-service') : null);
 
-const progressState = { page: 'overview', overview: null, loading: false, error: '' };
+const progressState = { page: 'overview', overview: null, loading: false, coreReady: false, error: '', requestId: 0 };
 
 function invalidateProgressViewCache(){
   progressState.overview = null;
+  progressState.coreReady = false;
   progressState.error = '';
+  progressState.requestId += 1;
 }
 
 function setProgressPage(page = 'overview'){
@@ -140,7 +142,8 @@ function renderReadinessCard(item = {}){
       </div>
     </article>`;
 }
-function renderReadingReadiness(readiness = {}){
+function renderReadingReadiness(readiness = {}, loading = false){
+  if(loading) return `<section class="progress-section" aria-labelledby="progressReadinessTitle"><h2 id="progressReadinessTitle">Reading Readiness</h2><p class="progress-empty" role="status">Calculating book and chapter readiness…</p></section>`;
   const books = readiness.closestBooks || [];
   return `
     <section class="progress-section" aria-labelledby="progressReadinessTitle">
@@ -226,14 +229,30 @@ function renderDetailedAnalytics(data = {}, stats = ProgressModel?.statistics?.(
 }
 async function loadProgressOverview(){
   if(!ProgressModel || progressState.loading || progressState.overview) return;
+  const requestId = ++progressState.requestId;
   progressState.loading = true;
+  progressState.coreReady = false;
   progressState.error = '';
   renderProgress();
   try {
-    progressState.overview = await ProgressModel.overview();
+    const core = ProgressModel.overviewCore ? ProgressModel.overviewCore() : null;
+    if(core){
+      progressState.overview = core;
+      progressState.coreReady = true;
+      renderProgress();
+      await new Promise(resolve => {
+        if(typeof window !== 'undefined' && typeof window.requestAnimationFrame === 'function') window.requestAnimationFrame(() => resolve());
+        else setTimeout(resolve, 0);
+      });
+    }
+    const complete = await ProgressModel.overview(core ? { core } : {});
+    if(requestId !== progressState.requestId) return;
+    progressState.overview = complete;
   } catch(error) {
+    if(requestId !== progressState.requestId) return;
     progressState.error = error.message || 'Progress is unavailable.';
   } finally {
+    if(requestId !== progressState.requestId) return;
     progressState.loading = false;
     renderProgress();
   }
@@ -253,7 +272,8 @@ function renderProgressOverview(data = progressState.overview){
   const readiness = data.readiness || {};
   const recognition = data.recognition || {};
   const grammar = data.grammar || {};
-  const stats = ProgressModel?.statistics?.();
+  const stats = data.statistics || ProgressModel?.statistics?.();
+  const readinessLoading = progressState.loading && progressState.coreReady && !data.readiness;
   return `
     <section class="panel progress-panel" aria-labelledby="progressTitle">
       <header class="progress-header">
@@ -262,11 +282,11 @@ function renderProgressOverview(data = progressState.overview){
       </header>
       ${renderProgressNav()}
       ${renderReaderGrowthSummary(data)}
-      ${renderReadingReadiness(readiness)}
+      ${renderReadingReadiness(readiness, readinessLoading)}
       ${renderVocabularyGrowth(vocab)}
       ${renderGrammarGrowth(grammar, recognition)}
       ${renderReadingHistory(stats)}
-      ${renderDetailedAnalytics(data, stats)}
+      ${readinessLoading ? '' : renderDetailedAnalytics(data, stats)}
       <section class="progress-section progress-recommendations" aria-labelledby="progressRecommendationsTitle">
         <h2 id="progressRecommendationsTitle">Recommendations</h2>
         ${renderRecommendationList(data.recommendations || [])}

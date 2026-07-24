@@ -54,6 +54,7 @@ function wireEvents(){
   $('#openAboutSourcesBtn')?.addEventListener('click',()=>openAboutSources());
   $('#openGlobalSearch')?.addEventListener('click',()=>showView('globalSearchView'));
   $('#closeSettingsBtn').addEventListener('click',()=>showView('listView'));
+  $('#readerSettingsReturn')?.addEventListener('click',()=>typeof navigateTo === 'function' ? navigateTo('/reader') : showView('readerView'));
   $('#wordPageBackToReader')?.addEventListener('click',()=>showView('readerView'));
   $$('.theme-btn').forEach(b=>b.addEventListener('click',()=>applyTheme(b.dataset.theme)));
   $('#applyAccent').addEventListener('click',()=>{
@@ -90,6 +91,14 @@ function wireEvents(){
     if(typeof setLearnPracticeSrsPreference === 'function') setLearnPracticeSrsPreference(e.target.value);
     if(typeof renderLearn === 'function') renderLearn();
   });
+
+  $$('input[name="readerReadingMode"]').forEach(input => input.addEventListener('change', event => {
+    if(!event.target.checked) return;
+    const mode = event.target.value;
+    if(typeof setReaderModePreference === 'function') setReaderModePreference(mode);
+    else if(typeof PuritanReaderPreferences !== 'undefined') PuritanReaderPreferences.writeMode(mode);
+    syncSettingsUI();
+  }));
 
   $('#restartOnboarding')?.addEventListener('click', () => {
     if(typeof restartOnboardingFromSettings === 'function') restartOnboardingFromSettings();
@@ -167,5 +176,5 @@ function wireEvents(){
   });
 
   window.addEventListener('beforeunload',()=>{ saveVocab('greek'); saveVocab('hebrew'); savePrefs(); });
-  try { if('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js').catch(()=>{}); } catch(e){}
+  try { if('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js').catch(()=>{}); } catch(e){}
 }

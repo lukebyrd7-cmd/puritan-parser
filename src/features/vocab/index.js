@@ -5,6 +5,52 @@ function displayHeadwordForEntry(entry){
 }
 
 /* ---------- View Controller ---------- */
+const featureViewLoadPromises = new Map();
+const FeatureViewLoadTimeoutMs = 10000;
+
+function featureViewStatus(target){
+  return target?.querySelector?.(':scope > .feature-load-status') || null;
+}
+function clearFeatureViewStatus(target){
+  featureViewStatus(target)?.remove?.();
+  target?.classList?.remove?.('feature-loading');
+}
+function renderFeatureViewStatus(target, message = 'Opening…', options = {}){
+  if(!target || typeof document === 'undefined') return null;
+  clearFeatureViewStatus(target);
+  const status = document.createElement('section');
+  status.className = 'panel feature-load-status';
+  const text = document.createElement('p');
+  text.className = 'progress-empty';
+  text.setAttribute('role', 'status');
+  text.textContent = message;
+  status.appendChild(text);
+  if(typeof options.retry === 'function'){
+    const retry = document.createElement('button');
+    retry.type = 'button';
+    retry.className = 'btn secondary';
+    retry.textContent = 'Try again';
+    retry.addEventListener('click', options.retry);
+    status.appendChild(retry);
+  }
+  target.insertAdjacentElement?.('afterbegin', status);
+  target.classList?.add?.('feature-loading');
+  return status;
+}
+function loadFeatureView(viewId, moduleLoader, timeoutMs = FeatureViewLoadTimeoutMs){
+  if(featureViewLoadPromises.has(viewId)) return featureViewLoadPromises.get(viewId);
+  let timeoutHandle = null;
+  const timeout = new Promise((resolve, reject) => {
+    timeoutHandle = setTimeout(() => reject(new Error(`Opening ${viewId} timed out.`)), timeoutMs);
+  });
+  const pending = Promise.race([moduleLoader.ensureView(viewId), timeout])
+    .finally(() => {
+      clearTimeout(timeoutHandle);
+      featureViewLoadPromises.delete(viewId);
+    });
+  featureViewLoadPromises.set(viewId, pending);
+  return pending;
+}
 function normalizeViewId(viewId){
   if(typeof viewId !== 'string') return 'listView';
   if(document.getElementById(viewId)) return viewId;
@@ -17,6 +63,32 @@ function normalizeViewId(viewId){
 }
 function showView(viewId, options = {}){
   viewId = normalizeViewId(viewId);
+  const moduleLoader = typeof window !== 'undefined' ? window.PuritanModuleLoader : null;
+  if(!options.featureReady && moduleLoader && !moduleLoader.isViewReady(viewId)){
+    const target = document.getElementById(viewId);
+    const views = Object.values(typeof ROUTES !== 'undefined' ? ROUTES : {}).map(route => route.viewId);
+    views.forEach(id=>{ const el=document.getElementById(id); if(el) el.classList.toggle('hidden', id!==viewId); });
+    renderFeatureViewStatus(target);
+    state.currentView = viewId;
+    if(typeof deferAppDataLoadForInteraction === 'function') deferAppDataLoadForInteraction();
+    loadFeatureView(viewId, moduleLoader)
+      .then(() => {
+        clearFeatureViewStatus(target);
+        if(state.currentView === viewId) showView(viewId, { ...options, featureReady: true, skipHistory: true });
+      })
+      .catch(error => {
+        console.error('Puritan Parser feature failed to load.', error);
+        renderFeatureViewStatus(target, 'This section could not be opened.', {
+          retry: () => {
+            clearFeatureViewStatus(target);
+            showView(viewId, { ...options, skipHistory: true });
+          }
+        });
+      });
+    return viewId;
+  }
+  if(['learnView','listView','flashView','parsingView','dashboardView','progressView','globalSearchView'].includes(viewId)
+    && typeof isAppDataReady === 'function' && !isAppDataReady() && typeof startAppDataLoad === 'function') startAppDataLoad();
   if(state.currentView === 'readerView' && viewId !== 'readerView'){
     if(typeof suspendReader === 'function') suspendReader();
     else if(typeof persistReaderPlaceNow === 'function') persistReaderPlaceNow();
@@ -45,6 +117,7 @@ function showView(viewId, options = {}){
   if(viewId==='progressView' && typeof renderProgress === 'function') renderProgress();
   if(viewId==='globalSearchView' && typeof renderGlobalSearch === 'function') renderGlobalSearch();
   if(viewId==='aboutSourcesView' && typeof renderAboutSources === 'function') renderAboutSources();
+  if(viewId==='grammarView' && typeof initReferenceLibrary === 'function') initReferenceLibrary();
   if(viewId==='listView') renderList();
   if(viewId==='parsingView') { updateParsingModeUI(); renderLemmaPicker(); }
   if(viewId==='readerView' && typeof initReader === 'function') initReader();
@@ -62,8 +135,8 @@ function setLang(lang){
   state.lang = lang;
   if(previousLang !== lang) { selectedLemma = null; state.parsingFilters = { family: parsingModeFamily() || state.parsingFilters?.family || 'all', details: {} }; }
   $$('[data-lang]').forEach(b=>b.classList.toggle('active', b.dataset.lang===lang));
-  updatePosOptions();
-  updateParsingFilterOptions();
+  if(typeof updatePosOptions === 'function') updatePosOptions();
+  if(typeof updateParsingFilterOptions === 'function') updateParsingFilterOptions();
   renderList(); updateDueBadge();
   if(typeof saveLastLanguage === 'function') saveLastLanguage(lang);
 }

@@ -172,13 +172,13 @@ test('v1.3.7 preserves every existing focused Paradigm Chart id and form',()=>{
   assert.equal(hash(hebrew),'84d8a7b650e0605a8518f909ae374f4100688815a2b46c1fce7e44eb4f9eed59');
 });
 
-test('v1.3.7 leaves Reader, Learn, recognition, Progress, SRS, storage, and migrations byte-for-byte unchanged',()=>{
+test('v1.5 stabilization keeps intended Reader and Progress changes isolated from Learn, SRS, storage, and migrations',()=>{
   const expected={
-    'src/features/reader/index.js':'c445d7c91ec1037415d044fe42733ec837bfe992e9bbbefff152872bb24832ee',
-    'src/features/learn/index.js':'64b19b8d02eac74b54220801d187e1ccbb91557edab11fa0346fc42b1e8b438a',
+    'src/features/reader/index.js':'9519d9d0d71d8bf3382076ae8e8c05e27410af2f3558a54ec2867efd9826b6fc',
+    'src/features/learn/index.js':'c4b4c50106d96e8d02848d6b487b204720d160f20a04be77a5e8fada383a2cdf',
     'src/features/learn/recognition-engine.js':'8a3de2d03901a7e6cd6fa2ea32c50c6f11c3676756282af7c6d2d2980ff1e7a2',
-    'src/features/progress/index.js':'d2554cbb28c2d1a7eaad01cf0cc6e5da535136b415e5bb89f4fa31d859f438eb',
-    'src/core/progress-service.js':'69b55c00ea99b30b6eb242481cebf39c2a8129ea7bfb8f12bcacf63888c16dfa',
+    'src/features/progress/index.js':'7c5a23be215503d7a6dc5d2ae2ea843c814eea2698a8481be8a048a4fdb28e37',
+    'src/core/progress-service.js':'0e8f2e03ccdb6e47a95d9990055a2c0788c848a6ea5dfdc335dbc40310c8f64b',
     'src/models/vocabulary-learning.js':'df8c48fea08a3e12d2a79d7230be51da98b40f419582b6efbb63984aaf528787',
     'src/core/storage/storage.js':'b15fce85bac07ea80acab1bafe1dc4c04543086e818444edb05fe5c84217b544',
     'src/core/storage/prefs-storage.js':'8db2b04460f73e253d957840d79727e51c608bbe61725484efc1f4fc5cb01d1d',

@@ -15,6 +15,9 @@ function syncSettingsUI(){
   sv('#fontSizeSlider', p.cardFontSize||54);
   sc('#showPosHint', !!p.showPosHint);
   sc('#autoNextCard', !!p.autoNextCard);
+  const readerMode = typeof PuritanReaderPreferences !== 'undefined' ? PuritanReaderPreferences.readMode() : 'continuous';
+  sc('#readerReadingModeContinuous', readerMode === 'continuous');
+  sc('#readerReadingModeChapter', readerMode === 'chapter');
   const customAccent = $('#customAccent');
   if(customAccent && /^#[0-9a-f]{6}$/i.test(p.accent || '')) customAccent.value = p.accent;
   $('#fontSizeLabel').textContent = (p.cardFontSize||54)+'px';
@@ -219,7 +222,7 @@ function renderAboutSources(){
   if(!shell) return '';
   const referenceLibrary = typeof PuritanReferenceLibrary !== 'undefined' ? PuritanReferenceLibrary : null;
   shell.innerHTML = `<article class="about-sources-page">
-    <div class="about-sources-header"><div><div class="panel-title">About &amp; Sources</div><div class="panel-sub">Project purpose, sources, and scholarly limits</div></div><button class="btn btn-ghost btn-sm" id="aboutSourcesBackBtn" type="button">← Settings</button></div>
+    <div class="about-sources-header"><div><h1 class="panel-title">About &amp; Sources</h1><div class="panel-sub">Project purpose, sources, and scholarly limits</div></div><button class="btn btn-ghost btn-sm" id="aboutSourcesBackBtn" type="button">← Settings</button></div>
     <section id="about-the-puritan-parser"><h2>About The Puritan Parser</h2><p>The Puritan Parser is a local-first reading and learning tool designed to help students become increasingly independent readers of biblical Greek and Hebrew.</p></section>
     <section id="grammar-handbook-sources"><h2>Grammar Handbook Sources</h2>${renderGrammarHandbookSources(referenceLibrary)}</section>
     <section id="greek-reference-sources"><h2>Greek Reference Sources</h2>${renderGreekReferenceSources(referenceLibrary)}</section>
