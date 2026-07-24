@@ -86,6 +86,9 @@ const ReaderTranslationApi = (typeof getTranslationProvider !== 'undefined')
 const ReaderPreferenceApi = (typeof PuritanReaderPreferences !== 'undefined')
   ? PuritanReaderPreferences
   : (typeof require === 'function' ? require('../../core/reader-preferences') : null);
+const ReaderHebrewSearchApi = (typeof PuritanHebrewSearch !== 'undefined')
+  ? PuritanHebrewSearch
+  : (typeof require === 'function' ? require('../../core/hebrew-search') : null);
 
 let readerState = {
   language: 'greek',
@@ -118,6 +121,7 @@ const readerManifestCache = new Map();
 const readerLoadCounts = {};
 const readerGlossSourceCache = new Map();
 const readerSearchIndexCache = new Map();
+const readerSearchIndexPromises = new Map();
 let readerPopupLastTrigger = null;
 let readerHiddenToastAt = 0;
 let readerSettingsPanelOpen = false;
@@ -126,6 +130,7 @@ let readerTouchStart = null;
 let readerInitialized = false;
 let readerScrollTimer = null;
 let readerWordLookupRequestId = 0;
+let readerSearchRequestId = 0;
 let readerChapterObserver = null;
 let readerControlsObserver = null;
 let readerContinuousLoadPending = false;
@@ -392,9 +397,19 @@ async function loadReaderGlossSource(language = 'greek'){
 async function loadReaderSearchIndex(language = 'greek'){
   const config = getReaderConfig(language);
   if(readerSearchIndexCache.has(language)) return readerSearchIndexCache.get(language);
-  const index = await fetchReaderJson(config.searchIndexPath);
-  readerSearchIndexCache.set(language, index);
-  return index;
+  if(readerSearchIndexPromises.has(language)) return readerSearchIndexPromises.get(language);
+  const pending = fetchReaderJson(config.searchIndexPath)
+    .then(index => {
+      readerSearchIndexCache.set(language, index);
+      readerSearchIndexPromises.delete(language);
+      return index;
+    })
+    .catch(error => {
+      readerSearchIndexPromises.delete(language);
+      throw error;
+    });
+  readerSearchIndexPromises.set(language, pending);
+  return pending;
 }
 function getReaderVocabulary(language = 'greek'){
   if(typeof state !== 'undefined' && Array.isArray(state.data?.[language])) return state.data[language];
@@ -2652,15 +2667,23 @@ function readerPopupMeta(label, value){
 }
 async function runReaderSearch(query){
   const box = $('#readerSearchResults'); if(!box) return [];
+  const requestId = ++readerSearchRequestId;
   const language = readerState.language;
   const meta = getReaderLanguageMeta(language);
   const direct = parseReaderReference(query, language);
   if(direct){ await setReaderLocation(direct); closeReaderSearch(); return [direct]; }
   const q = normalizeReaderText(query);
   if(q.length < 2){ box.innerHTML = '<div class="small muted">Enter at least 2 characters.</div>'; return []; }
+  box.innerHTML = '<div class="small muted" role="status">Searching…</div>';
   let index = [];
   try { index = await loadReaderSearchIndex(language); } catch(e) { box.innerHTML = '<div class="small muted">Search index unavailable.</div>'; return []; }
-  const results = index.filter(item => normalizeReaderText(`${item.text} ${item.lemmas?.join(' ')}`).includes(q)).slice(0, 20);
+  if(requestId !== readerSearchRequestId) return [];
+  const useHebrewLexicalSearch = language === 'hebrew'
+    && (ReaderHebrewSearchApi?.hasHebrew?.(query) || ReaderHebrewSearchApi?.hasLatin?.(query));
+  const results = useHebrewLexicalSearch
+    ? ReaderHebrewSearchApi.searchHebrewRecords(index, query, item => item.surface || [item.text]).slice(0, 20).map(item => item.record)
+    : index.filter(item => normalizeReaderText(`${item.text} ${item.lemmas?.join(' ')}`).includes(q)).slice(0, 20);
+  if(requestId !== readerSearchRequestId) return [];
   box.innerHTML = results.length ? results.map(item => `<button class="reader-result" data-language="${escReaderAttr(language)}" data-book="${escReaderAttr(item.book)}" data-chapter="${escReaderAttr(item.chapter)}" data-verse="${escReaderAttr(item.verse)}"><strong>${escHtml(item.bookName)} ${item.chapter}:${item.verse}</strong> <span lang="${escReaderAttr(meta.htmlLang)}" dir="${escReaderAttr(meta.dir)}">${escHtml(item.text)}</span></button>`).join('') : '<div class="small muted">No verses found.</div>';
   $$('.reader-result', box).forEach(btn => btn.addEventListener('click', async () => {
     await setReaderLocation({ language: btn.dataset.language || language, book: btn.dataset.book, chapter: Number(btn.dataset.chapter), verse: btn.dataset.verse });

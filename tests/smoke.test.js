@@ -33,6 +33,13 @@ test('smoke: flashcards, parsing, dashboard, settings, and import/export control
   });
 });
 
+test('smoke: narrow Settings review targets use a shrink-safe responsive grid', () => {
+  assert.match(html, /class="settings-review-target-grid"/);
+  assert.match(css, /\.settings-review-target-grid\s*\{[\s\S]*grid-template-columns:\s*repeat\(2,\s*minmax\(0,\s*1fr\)\)/);
+  assert.match(css, /@media \(max-width:\s*420px\)\s*\{[\s\S]*\.settings-review-target-grid\s*\{\s*grid-template-columns:\s*1fr/);
+  assert.doesNotMatch(css, /\.settings[^}]*overflow-x:\s*hidden/);
+});
+
 test('smoke: dynamic Word Page shell is present', () => {
   assert.match(html, /id="wordPageShell"/);
   assert.doesNotMatch(html, /<dt>Gloss<\/dt>\s*<dd>word<\/dd>/);
@@ -122,15 +129,15 @@ test('smoke: nested hard refreshes resolve startup assets from the app root', ()
   const main = fs.readFileSync('src/main.js', 'utf8');
   const events = fs.readFileSync('src/features/settings/events.js', 'utf8');
   const sw = fs.readFileSync('sw.js', 'utf8');
-  assert.match(html, /href="\/styles\.css\?v=v1\.5\.1-reader-options-cleanup-1"/);
-  assert.match(html, /src="\/src\/main\.js\?v=v1\.5\.1-reader-options-cleanup-1"/);
+  assert.match(html, /href="\/styles\.css\?v=v1\.6-hebrew-search-1"/);
+  assert.match(html, /src="\/src\/main\.js\?v=v1\.6-hebrew-search-1"/);
   assert.match(main, /const rootPath = src\.startsWith\('\/'\) \? src : `\/\$\{src\}`/);
   assert.match(main, /script\.src = `\$\{rootPath\}\?v=\$\{PURITAN_PARSER_ASSET_VERSION\}`/);
-  assert.match(main, /PURITAN_PARSER_ASSET_VERSION = 'v1\.5\.1-reader-options-cleanup-1'/);
+  assert.match(main, /PURITAN_PARSER_ASSET_VERSION = 'v1\.6-hebrew-search-1'/);
   assert.match(main, /PURITAN_SCRIPT_LOAD_TIMEOUT_MS = 9000/);
   assert.match(main, /puritanLoadedScripts\.delete\(src\)/);
   assert.match(events, /serviceWorker\.register\('\/sw\.js'\)/);
-  assert.match(sw, /'\.\/styles\.css\?v=v1\.5\.1-reader-options-cleanup-1'/);
-  assert.match(sw, /'\.\/src\/main\.js\?v=v1\.5\.1-reader-options-cleanup-1'/);
+  assert.match(sw, /'\.\/styles\.css\?v=v1\.6-hebrew-search-1'/);
+  assert.match(sw, /'\.\/src\/main\.js\?v=v1\.6-hebrew-search-1'/);
   assert.match(sw, /caches\.match\(evt\.request, \{ ignoreSearch: true \}\)/);
 });

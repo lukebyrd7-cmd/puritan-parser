@@ -122,6 +122,20 @@ The Reader should remain one Reader unless separate implementations become unavo
 
 Reader data is lazy-loaded one chapter at a time. Large JSON content must stay out of startup modules and service-worker install precaches.
 
+### Hebrew lexical search
+
+`src/core/hebrew-search.js` is the shared Hebrew lexical-search boundary used by Global Search and Hebrew Reader Search. It derives canonical and simplified Latin search forms from existing Hebrew headwords/surfaces without changing source strings. Exact Hebrew, canonical Latin, simplified aliases, and prefixes have separate deterministic relevance tiers; Global Search frequency is only a tie-breaker within a tier. Cantillation and ordinary user punctuation do not prevent matching.
+
+The utility is loaded as small core code, but no derived Hebrew index is constructed during startup. Global Search derives terms when its existing lazy vocabulary index is first requested. Reader Search derives terms when the Hebrew verse index is first searched lexically and reuses the in-memory result. The 20 MB Reader search JSON remains network/runtime cached and is not added to the install precache. Derived forms are not persisted in localStorage and are never displayed in the Reader.
+
+Reference Search and Grammar Handbook article search remain general content search. They deliberately do not use the Hebrew lexical transliteration rules.
+
+### Hebrew interlinear source gate
+
+The current generated OSHB/WLC tokens preserve pointed surface form, numeric lemma, morphology, source lemma expression, and verse-array order. They do not provide complete token-level contextual glosses, explicit stable token IDs, or a reliable combined gloss for orthographic tokens with attached morphemes. The lemma-keyed Hebrew gloss file is lexical and incomplete; WEB/OEB data is verse-level translation without token alignment.
+
+Accordingly, Hebrew Interlinear remains unavailable and falls back to Original. The app must not turn numeric IDs, roots, morphology labels, base dictionary glosses, or English verse order into pseudo-alignment. `docs/hebrew-search-interlinear-audit.md` records the field-level audit and the minimum future aligned-data contract.
+
 ### Reader preferences and Adaptive Reader
 
 Reading mode is owned by the existing `pp_reader_location.mode` field and normalized by `src/core/reader-preferences.js`. Settings → Reader and the Reader feature use that same helper rather than parallel preference state. `continuous` and `chapter` remain the stored values; missing or invalid values resolve to Continuous, valid values remain unchanged, and updating mode preserves the remaining location and verse-anchor fields. Reading mode is changed through normal navigation to Settings → Reader; the Reader has no dedicated shortcut.

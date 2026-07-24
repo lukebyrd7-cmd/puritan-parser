@@ -4,6 +4,16 @@ This changelog is a human-readable project history, not a Git log. Future entrie
 
 ## Unreleased
 
+### v1.6 Hebrew search and Settings polish
+
+- Fixed the narrow-screen Settings overflow at the Greek/Hebrew Review Target controls by making the two-column grid shrink-safe and stacking it at phone widths; no global overflow masking was added.
+- Added one shared, deterministic Hebrew lexical-search utility for Global Search and Hebrew Reader Search. It accepts pointed or unpointed Hebrew and practical Latin spellings, strips cantillation for matching, normalizes case/punctuation/spacing, and ranks exact Hebrew and canonical forms above simplified aliases and prefixes.
+- Kept transliteration search-only: no Reader transliteration line, display option, or result-field transliteration was added. Reference and Grammar Handbook article search remain general content search and do not use Hebrew transliteration.
+- Kept the derived indexes lazy and memory-only. The full Reader index is prepared on the first Hebrew lexical search and reused; no derived index is stored in localStorage or installed in the app-shell cache.
+- Audited the current OSHB/WLC Reader tokens, Hebrew lexical glosses, and WEB/OEB verse translations for interlinear alignment. The source gate failed because tokens do not carry complete contextual/combined word glosses, stable explicit token IDs, or a qere/ketiv and multi-unit alignment contract.
+- Left Hebrew interlinear disabled rather than applying numeric lemma/root values, base dictionary glosses, or verse translations as pseudo-alignment. See `docs/hebrew-search-interlinear-audit.md`.
+- Bumped the service-worker cache to `puritan-parser-v67-v1.6-hebrew-search-1`; large Hebrew search and chapter JSON remain runtime cached.
+
 ### v1.5.1 Reader options cleanup
 
 - Removed the always-visible Reader options shortcut from desktop and mobile Reader controls without adding a replacement. Reading mode remains available under Settings → Reader through normal app navigation.

@@ -64,6 +64,42 @@ test('Global Search finds Greek lemmas through simple transliteration', () => {
   assert.equal(result.total, 0);
 });
 
+test('Global Search finds Hebrew lemmas through shared transliteration aliases without rendering transliteration', () => {
+  const originalHebrew = global.state.data.hebrew;
+  global.state.data.hebrew = [
+    { id: 'hb-shalom', lang: 'hebrew', lemma: '7965', lexicalForm: 'שָׁלוֹם', primaryGloss: 'peace', freq: 237 },
+    { id: 'hb-melek', lang: 'hebrew', lemma: '4428', lexicalForm: 'מֶלֶךְ', primaryGloss: 'king', freq: 2523 },
+    { id: 'hb-bereshit', lang: 'hebrew', lemma: '7225', lexicalForm: 'בְּרֵאשִׁית', primaryGloss: 'beginning', freq: 51 },
+    { id: 'hb-ben', lang: 'hebrew', lemma: '1121', lexicalForm: 'בֵּן', primaryGloss: 'son', freq: 4932 },
+    { id: 'hb-bayit', lang: 'hebrew', lemma: '1004', lexicalForm: 'בַּיִת', primaryGloss: 'house', freq: 2054 },
+    { id: 'hb-ish', lang: 'hebrew', lemma: '376', lexicalForm: 'אִישׁ', primaryGloss: 'man', freq: 2186 },
+    { id: 'hb-ishah', lang: 'hebrew', lemma: '802', lexicalForm: 'אִשָּׁה', primaryGloss: 'woman', freq: 781 },
+    { id: 'hb-rosh', lang: 'hebrew', lemma: '7218', lexicalForm: 'רֹאשׁ', primaryGloss: 'head', freq: 598 },
+    { id: 'hb-yom', lang: 'hebrew', lemma: '3117', lexicalForm: 'יוֹם', primaryGloss: 'day', freq: 2302 }
+  ];
+
+  for(const [query, expected] of [
+    ['SHALOM', 'שָׁלוֹם'],
+    ['melek', 'מֶלֶךְ'],
+    ['BÉ-RESHIT', 'בְּרֵאשִׁית'],
+    ['ben', 'בֵּן'],
+    ['bayit', 'בַּיִת'],
+    ['ish', 'אִישׁ'],
+    ['isha', 'אִשָּׁה'],
+    ['rosh', 'רֹאשׁ'],
+    ['yom', 'יוֹם']
+  ]){
+    const result = search.searchGlobalVocabulary({ query, language: 'hebrew' });
+    assert.equal(result.results[0]?.headword, expected, `${query} finds ${expected}`);
+    assert.doesNotMatch(search.renderGlobalSearchResult(result.results[0]), new RegExp(`>${query}<`, 'i'));
+  }
+
+  const exact = search.searchGlobalVocabulary({ query: 'בֵּן', language: 'hebrew' });
+  assert.equal(exact.results[0].headword, 'בֵּן');
+  assert.equal(search.searchGlobalVocabulary({ query: 'salom', language: 'hebrew' }).total, 0);
+  global.state.data.hebrew = originalHebrew;
+});
+
 test('Global Search displays learning status and filters by it', () => {
   let store = global.VocabularyLearning.normalizeStore();
   store = global.VocabularyLearning.introduceEntry(store, global.state.data.greek[0], { type: 'test' }, '2026-07-03');
@@ -114,6 +150,7 @@ test('Global Search indexes browser app lexical state and realistic study entrie
   vm.runInContext(fs.readFileSync('src/app-state.js', 'utf8'), context, { filename: 'src/app-state.js' });
   vm.runInContext(fs.readFileSync('src/models/gloss.js', 'utf8'), context, { filename: 'src/models/gloss.js' });
   vm.runInContext(fs.readFileSync('src/core/study-entries.js', 'utf8'), context, { filename: 'src/core/study-entries.js' });
+  vm.runInContext(fs.readFileSync('src/core/hebrew-search.js', 'utf8'), context, { filename: 'src/core/hebrew-search.js' });
   vm.runInContext(fs.readFileSync('src/features/global-search/index.js', 'utf8'), context, { filename: 'src/features/global-search/index.js' });
   vm.runInContext(`
     state.prefs.studyMode = 'lemma';

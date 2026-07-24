@@ -24,7 +24,7 @@
 <link rel="apple-touch-icon" href="/logo.png">
 <link rel="icon" href="/logo.png">
 <link rel="manifest" href="/manifest.json">
-<link rel="stylesheet" href="/styles.css?v=v1.5.1-reader-options-cleanup-1">
+<link rel="stylesheet" href="/styles.css?v=v1.6-hebrew-search-1">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="Puritan Parser">
@@ -418,7 +418,7 @@
 
           <div class="settings-section">
             <div class="settings-label">Learning Preferences</div>
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+            <div class="settings-review-target-grid">
               <label>
                 <span class="small muted">Greek Review Target</span>
                 <select id="greekReviewTargetPreset" class="input">
@@ -440,9 +440,9 @@
                 <input id="hebrewReviewTargetCustom" class="input" type="number" min="1" max="200" step="1" value="30" style="margin-top:6px" />
               </label>
             </div>
-            <label style="margin-top:10px">
+            <label class="settings-full-width-control" style="margin-top:10px">
               <span class="small muted">On-demand practice</span>
-              <select id="practiceSrsPreference" class="input" style="max-width:360px">
+              <select id="practiceSrsPreference" class="input">
                 <option value="ask">Ask whether to count practice toward SRS</option>
                 <option value="practice-only">Always practice only</option>
                 <option value="count-srs">Always count toward SRS</option>
@@ -581,6 +581,6 @@
 
 </div><!-- /app -->
 
-  <script src="/src/main.js?v=v1.5.1-reader-options-cleanup-1"></script>
+  <script src="/src/main.js?v=v1.6-hebrew-search-1"></script>
 </body>
 </html>
