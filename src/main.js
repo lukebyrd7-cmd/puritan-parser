@@ -2,7 +2,7 @@
    THE PURITAN PARSER v3 MODULAR ENTRY POINT
    ============================================================ */
 
-const PURITAN_PARSER_SCRIPTS = [
+const PURITAN_PARSER_CORE_SCRIPTS = [
   'src/core/parser-core.js',
   'src/core/migrations/migrations.js',
   'src/core/migrations/migration-runner.js',
@@ -38,39 +38,113 @@ const PURITAN_PARSER_SCRIPTS = [
   'src/core/book-progress.js',
   'src/core/progress-service.js',
   'src/core/router.js',
-  'src/features/grammar/handbook-data.js',
-  'src/features/grammar/reference-data.js',
-  'src/features/grammar/index.js',
-  'src/features/reader/index.js',
-  'src/features/global-search/index.js',
-  'src/features/onboarding/index.js',
-  'src/features/learn/recognition-engine.js',
-  'src/features/learn/index.js',
   'src/features/vocab/index.js',
   'src/ui/modal.js',
   'src/features/flashcards/index.js',
   'src/features/parsing/index.js',
   'src/features/dashboard/index.js',
-  'src/features/progress/index.js',
   'src/features/settings/index.js',
-  'src/features/settings/events.js',
+  'src/features/settings/events.js'
+];
+
+const PURITAN_PARSER_FEATURE_SCRIPTS = {
+  learn: [
+    'src/features/learn/recognition-engine.js',
+    'src/features/learn/index.js'
+  ],
+  reader: ['src/features/reader/index.js'],
+  grammar: [
+    'src/features/grammar/handbook-data.js',
+    'src/features/grammar/reference-data.js',
+    'src/features/grammar/index.js'
+  ],
+  progress: ['src/features/progress/index.js'],
+  search: ['src/features/global-search/index.js'],
+  onboarding: ['src/features/onboarding/index.js']
+};
+
+const PURITAN_PARSER_SCRIPTS = [
+  ...PURITAN_PARSER_CORE_SCRIPTS,
+  ...Object.values(PURITAN_PARSER_FEATURE_SCRIPTS).flat(),
   'src/bootstrap.js'
 ];
 
+const puritanLoadedScripts = new Map();
+const puritanFeaturePromises = new Map();
+const puritanReadyFeatures = new Set();
+
 function loadScriptSequentially(src) {
-  return new Promise((resolve, reject) => {
+  if(puritanLoadedScripts.has(src)) return puritanLoadedScripts.get(src);
+  const pending = new Promise((resolve, reject) => {
     const script = document.createElement('script');
+    script.async = false;
     script.src = src.startsWith('/') ? src : `/${src}`;
     script.onload = resolve;
     script.onerror = () => reject(new Error(`Unable to load ${src}`));
     document.head.appendChild(script);
   });
+  puritanLoadedScripts.set(src, pending);
+  return pending;
 }
 
-PURITAN_PARSER_SCRIPTS.reduce(
-  (chain, src) => chain.then(() => loadScriptSequentially(src)),
-  Promise.resolve()
-).catch(error => {
+function loadScriptGroup(scripts = []) {
+  return Promise.all(scripts.map(loadScriptSequentially));
+}
+
+function featureForView(viewId = '') {
+  const normalized = String(viewId || '').replace(/View$/, '');
+  if(normalized === 'learn') return 'learn';
+  if(['reader', 'wordPage', 'word'].includes(normalized)) return 'reader';
+  if(['grammar', 'reference', 'aboutSources'].includes(normalized)) return 'grammar';
+  if(normalized === 'progress') return 'progress';
+  if(['globalSearch', 'search'].includes(normalized)) return 'search';
+  if(['onboarding', 'profile'].includes(normalized)) return 'onboarding';
+  return '';
+}
+
+function featureForPath(path = window.location.pathname) {
+  const clean = String(path || '/').split('?')[0];
+  if(clean === '/' || clean === '/learn') return 'learn';
+  if(clean === '/reader' || clean === '/word') return 'reader';
+  if(clean === '/grammar' || clean === '/settings/sources') return 'grammar';
+  if(clean === '/progress') return 'progress';
+  if(clean === '/search') return 'search';
+  if(clean === '/onboarding' || clean === '/profile') return 'onboarding';
+  return '';
+}
+
+function ensurePuritanFeature(feature = '') {
+  if(!feature || !PURITAN_PARSER_FEATURE_SCRIPTS[feature]) return Promise.resolve();
+  if(puritanReadyFeatures.has(feature)) return Promise.resolve();
+  if(puritanFeaturePromises.has(feature)) return puritanFeaturePromises.get(feature);
+  const pending = loadScriptGroup(PURITAN_PARSER_FEATURE_SCRIPTS[feature])
+    .then(() => { puritanReadyFeatures.add(feature); })
+    .catch(error => {
+      puritanFeaturePromises.delete(feature);
+      throw error;
+    });
+  puritanFeaturePromises.set(feature, pending);
+  return pending;
+}
+
+function puritanFeatureReadyForView(viewId = '') {
+  const feature = featureForView(viewId);
+  return !feature || puritanReadyFeatures.has(feature);
+}
+
+window.PuritanModuleLoader = {
+  ensureView(viewId) { return ensurePuritanFeature(featureForView(viewId)); },
+  isViewReady: puritanFeatureReadyForView,
+  featureForPath
+};
+
+async function startPuritanParser() {
+  await loadScriptGroup(PURITAN_PARSER_CORE_SCRIPTS);
+  await ensurePuritanFeature(featureForPath());
+  await loadScriptSequentially('src/bootstrap.js');
+}
+
+startPuritanParser().catch(error => {
   console.error('The Puritan Parser failed to load.', error);
   document.documentElement.classList.add('app-load-failed');
   const status = document.getElementById('appLoadingStatus');

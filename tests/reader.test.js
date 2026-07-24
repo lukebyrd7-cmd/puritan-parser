@@ -341,24 +341,47 @@ test('Adaptive Reader translation mode shows the Original English toggle and dis
   assert.match(unavailable, /English unavailable for this passage/);
 });
 
-test('Reader can show original and English together without duplicate anchors', () => {
+test('Reader visibility is always one exclusive Original or English choice', () => {
   const chapter = {
     language: 'greek', book: 'john', bookName: 'John', chapter: 1,
     verses: [{ verse: 1, text: 'Ἐν ἀρχῇ.', english: 'In the beginning.', tokens: [{ surface: 'Ἐν', lemma: 'ἐν', parse: 'P' }] }]
   };
-  const html = reader.renderReaderChapter(chapter, {
+  const legacyBoth = reader.sanitizeReaderSettings({
     ...reader.ReaderDefaultSettings,
     translation: 'on',
     showOriginal: true,
     showEnglish: true
   });
-  assert.match(html, /reader-parallel-paragraph/);
-  assert.match(html, /Ἐν/);
-  assert.match(html, /In the beginning/);
-  assert.equal((html.match(/data-reader-verse="1"/g) || []).length, 1);
-  const ids = [...html.matchAll(/\sid="([^"]+)"/g)].map(match => match[1]);
-  assert.equal(new Set(ids).size, ids.length);
-  assert.match(html, /data-reader-english-verse="1"/);
+  assert.equal(legacyBoth.textMode, 'original');
+  assert.equal(legacyBoth.showOriginal, true);
+  assert.equal(legacyBoth.showEnglish, false);
+
+  const legacyBothPrefersEnglish = reader.sanitizeReaderSettings({
+    ...reader.ReaderDefaultSettings,
+    translation: 'on',
+    textMode: 'english',
+    showOriginal: true,
+    showEnglish: true
+  });
+  assert.equal(legacyBothPrefersEnglish.textMode, 'english');
+  assert.equal(legacyBothPrefersEnglish.showOriginal, false);
+  assert.equal(legacyBothPrefersEnglish.showEnglish, true);
+
+  const legacyNeither = reader.sanitizeReaderSettings({
+    ...reader.ReaderDefaultSettings,
+    translation: 'on',
+    showOriginal: false,
+    showEnglish: false
+  });
+  assert.equal(legacyNeither.showOriginal, true);
+  assert.equal(legacyNeither.showEnglish, false);
+
+  const originalHtml = reader.renderReaderChapter(chapter, legacyBoth);
+  assert.match(originalHtml, /Ἐν/);
+  assert.doesNotMatch(originalHtml, /In the beginning/);
+  const englishHtml = reader.renderReaderChapter(chapter, legacyBothPrefersEnglish);
+  assert.match(englishHtml, /In the beginning/);
+  assert.doesNotMatch(englishHtml, /Ἐν ἀρχῇ/);
 });
 
 test('Reader restores a logical anchor from an English-only verse', () => {
@@ -392,6 +415,47 @@ test('Reader restores a logical anchor from an English-only verse', () => {
   global.$ = previousDollar;
   assert.equal(restored, true);
   assert.equal(scrollTop, 480);
+});
+
+test('stale scheduled restoration cannot overwrite the latest canonical verse', () => {
+  storageHarness();
+  const previousDocument = global.document;
+  const previousWindow = global.window;
+  const previousDollar = global.$;
+  const frames = [];
+  const pane = {
+    scrollTop: 300,
+    clientHeight: 700,
+    getBoundingClientRect: () => ({ top: 0, bottom: 700, height: 700 })
+  };
+  const verses = ['1', '2'].map((verse, index) => ({
+    dataset: { readerBook: reader.readerState().book, readerChapter: String(reader.readerState().chapter), readerVerse: verse },
+    getBoundingClientRect: () => ({ top: 100 + index * 80, bottom: 130 + index * 80 })
+  }));
+  global.document = {
+    documentElement: { style: {} },
+    querySelector: selector => selector === '.reader-text' ? pane : null,
+    querySelectorAll: () => verses
+  };
+  global.window = {
+    scrollY: 0,
+    matchMedia: () => ({ matches: false }),
+    requestAnimationFrame(callback){ frames.push(callback); return frames.length; },
+    cancelAnimationFrame(){}
+  };
+  global.$ = selector => selector === '.reader-text' ? pane : null;
+  reader.readerState().anchorVerse = 'baseline';
+
+  reader.scheduleReaderPlaceRestore({ chapter: reader.readerState().chapter, verse: '1', anchorOffset: 60 });
+  reader.scheduleReaderPlaceRestore({ chapter: reader.readerState().chapter, verse: '2', anchorOffset: 60 });
+  frames[0]();
+  assert.notEqual(reader.readerState().anchorVerse, '1');
+  frames[1]();
+  assert.equal(reader.readerState().anchorVerse, '2');
+
+  global.document = previousDocument;
+  global.window = previousWindow;
+  global.$ = previousDollar;
 });
 
 test('Reader render hides the translation toggle when Translation is Off', async () => {
@@ -448,6 +512,7 @@ test('Reader uses WEB directly when selected', async () => {
   assert.equal(reader.readerState().translationStatus.active, 'web');
   assert.equal(reader.readerState().translationStatus.fallback, false);
   assert.equal(reader.readerTranslationLoadCounts['web/john/1'], beforeLoads + 1);
+  reader.updateReaderSetting('textMode', 'original');
 });
 
 test('Reader defaults new users to WEB and preserves an existing OEB preference', () => {
@@ -474,6 +539,7 @@ test('Reader falls back to WEB when OEB is selected but unavailable', async () =
   assert.equal(reader.readerState().translationStatus.fallback, true);
   assert.ok(reader.readerTranslationLoadCounts['oeb/exodus/1'] >= 1);
   assert.ok(reader.readerTranslationLoadCounts['web/exodus/1'] >= 1);
+  reader.updateReaderSetting('textMode', 'original');
   await reader.setReaderLocation({ language: 'greek', book: 'john', chapter: 1 });
 });
 
@@ -1625,15 +1691,18 @@ test('invalid Reader location fields fail safely', async () => {
   assert.equal(reader.readerState().mode, 'chapter');
 });
 
-test('primary and sticky text controls expose shared pressed state and mobile safe-area styling', () => {
-  const settings = { ...reader.ReaderDefaultSettings, showOriginal: true, showEnglish: true };
+test('primary and sticky text controls expose synchronized exclusive radio state and mobile safe-area styling', () => {
+  const settings = reader.sanitizeReaderSettings({ ...reader.ReaderDefaultSettings, textMode: 'english', showOriginal: false, showEnglish: true });
   const primary = reader.renderReaderTranslationToggle(settings, reader.readerState().chapterData);
   const sticky = reader.renderReaderStickyToolbar(settings);
-  assert.match(primary, /data-reader-visibility="original"[^>]*aria-pressed="true"/);
-  assert.match(primary, /data-reader-visibility="english"[^>]*aria-pressed="true"/);
-  assert.match(sticky, /role="toolbar"/);
-  assert.match(sticky, /data-reader-visibility="original"[^>]*aria-pressed="true"/);
-  assert.match(sticky, /data-reader-visibility="english"[^>]*aria-pressed="true"/);
+  assert.match(primary, /role="radiogroup" aria-label="Reader language"/);
+  assert.match(primary, /data-reader-visibility="original"[^>]*aria-checked="false"/);
+  assert.match(primary, /data-reader-visibility="english"[^>]*aria-checked="true"/);
+  assert.doesNotMatch(primary, /aria-pressed/);
+  assert.match(sticky, /role="radiogroup"/);
+  assert.match(sticky, /data-reader-visibility="original"[^>]*aria-checked="false"/);
+  assert.match(sticky, /data-reader-visibility="english"[^>]*aria-checked="true"/);
+  assert.doesNotMatch(sticky, /aria-pressed/);
   const css = fs.readFileSync(path.join(process.cwd(), 'styles.css'), 'utf8');
   const mobileToolbar = css.match(/@media \(max-width: 640px\)[\s\S]*?\.reader-sticky-toolbar \{([\s\S]*?)\n  \}/)?.[1] || '';
   assert.match(mobileToolbar, /top: calc\(58px \+ env\(safe-area-inset-top\)\)/);
@@ -1672,6 +1741,20 @@ test('continuous visibility toggles use the nearest measured verse instead of st
   reader.toggleReaderTextVisibility('english');
   assert.equal(reader.readerState().anchorVerse, '16');
   assert.equal(reader.readerState().chapter, 2);
+  assert.equal(reader.loadReaderSettings('greek').showEnglish, true);
+  assert.equal(reader.loadReaderSettings('greek').showOriginal, false);
+
+  reader.toggleReaderTextVisibility('original');
+  assert.equal(reader.loadReaderSettings('greek').textMode, 'original');
+  assert.equal(reader.loadReaderSettings('greek').showOriginal, true);
+  assert.equal(reader.loadReaderSettings('greek').showEnglish, false);
+
+  reader.toggleReaderTextVisibility('english');
+  reader.toggleReaderTextVisibility('original');
+  reader.toggleReaderTextVisibility('english');
+  await new Promise(resolve => setTimeout(resolve, 20));
+  assert.equal(reader.loadReaderSettings('greek').textMode, 'english');
+  assert.equal(reader.loadReaderSettings('greek').showOriginal, false);
   assert.equal(reader.loadReaderSettings('greek').showEnglish, true);
 
   global.document = previousDocument;
@@ -1767,6 +1850,20 @@ test('concurrent chapter requests share one in-flight fetch', async () => {
   assert.equal(second.chapter, 7);
 });
 
+test('concurrent translation requests share one in-flight load and completed result', async () => {
+  reader.readerTranslationChapterCache.clear();
+  const before = reader.readerTranslationLoadCounts['web/john/10'] || 0;
+  const [first, second] = await Promise.all([
+    reader.loadReaderTranslationChapter('john', 10, 'web'),
+    reader.loadReaderTranslationChapter('john', 10, 'web')
+  ]);
+  const third = await reader.loadReaderTranslationChapter('john', 10, 'web');
+  assert.equal(reader.readerTranslationLoadCounts['web/john/10'], before + 1);
+  assert.equal(first.chapter, 10);
+  assert.equal(second, first);
+  assert.equal(third, first);
+});
+
 test('continuous prefetch targets only the next chapters outside the rendered window', async () => {
   await reader.loadReaderManifest('greek');
   assert.deepEqual(reader.readerContinuousPrefetchChapters('greek', 'john', [
@@ -1775,6 +1872,43 @@ test('continuous prefetch targets only the next chapters outside the rendered wi
   assert.deepEqual(reader.readerContinuousPrefetchChapters('greek', 'john', [
     { chapter: 1 }, { chapter: 2 }
   ]), [3]);
+});
+
+test('continuous prefetch begins before chapter insertion is required', () => {
+  const approaching = reader.readerContinuousBoundaryState({ direction: 1, distance: 900, viewport: 500 });
+  assert.equal(approaching.prefetch, true);
+  assert.equal(approaching.insert, false);
+  const boundary = reader.readerContinuousBoundaryState({ direction: 1, distance: 400, viewport: 500 });
+  assert.equal(boundary.prefetch, true);
+  assert.equal(boundary.insert, true);
+});
+
+test('Original display does not request English before first chapter render', async () => {
+  storageHarness();
+  reader.readerTranslationChapterCache.clear();
+  reader.saveReaderSettings({ ...reader.ReaderDefaultSettings, textMode: 'original', showOriginal: true, showEnglish: false }, 'greek');
+  const before = reader.readerTranslationLoadCounts['web/john/9'] || 0;
+  await reader.setReaderLocation({ language: 'greek', book: 'john', chapter: 9, mode: 'chapter' });
+  assert.equal(reader.readerState().chapterData.chapter, 9);
+  assert.equal(reader.readerTranslationLoadCounts['web/john/9'] || 0, before);
+});
+
+test('failed chapter prefetch remains retryable and deduplicated', async () => {
+  const previousFetch = global.fetch;
+  let requests = 0;
+  reader.readerChapterCache.delete('greek/john/8');
+  global.fetch = async filePath => {
+    if(String(filePath).endsWith('/john/8.json')){
+      requests += 1;
+      if(requests === 1) throw new Error('simulated slow-network failure');
+    }
+    return previousFetch(filePath);
+  };
+  await assert.rejects(reader.loadReaderPassage('greek', 'john', 8, { ...reader.ReaderDefaultSettings, translation: 'off' }));
+  const passage = await reader.loadReaderPassage('greek', 'john', 8, { ...reader.ReaderDefaultSettings, translation: 'off' });
+  global.fetch = previousFetch;
+  assert.equal(passage.chapter, 8);
+  assert.equal(requests, 2);
 });
 
 const vm = require('node:vm');

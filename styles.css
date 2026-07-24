@@ -1898,6 +1898,14 @@ button:focus-visible, input:focus-visible, select:focus-visible {
   letter-spacing: .04em;
   text-align: center;
 }
+.reader-loading-boundary {
+  margin: 10px 0 20px;
+  color: var(--muted);
+  font-family: var(--font-sans);
+  font-size: 12px;
+  font-weight: 700;
+  text-align: center;
+}
 .reader-paragraph { margin: 0 0 1.35em; }
 .reader-paragraph-english { font-family: var(--font-sans); font-size: 18px; line-height: 1.8; text-align: left; }
 .reader-parallel-paragraph {

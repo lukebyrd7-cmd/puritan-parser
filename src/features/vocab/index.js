@@ -17,6 +17,26 @@ function normalizeViewId(viewId){
 }
 function showView(viewId, options = {}){
   viewId = normalizeViewId(viewId);
+  const moduleLoader = typeof window !== 'undefined' ? window.PuritanModuleLoader : null;
+  if(!options.featureReady && moduleLoader && !moduleLoader.isViewReady(viewId)){
+    const target = document.getElementById(viewId);
+    const views = Object.values(typeof ROUTES !== 'undefined' ? ROUTES : {}).map(route => route.viewId);
+    views.forEach(id=>{ const el=document.getElementById(id); if(el) el.classList.toggle('hidden', id!==viewId); });
+    if(target){
+      const shell = target.querySelector?.('[id$="Shell"]') || target;
+      if(shell) shell.innerHTML = '<section class="panel"><p class="progress-empty" role="status">Opening…</p></section>';
+    }
+    state.currentView = viewId;
+    moduleLoader.ensureView(viewId)
+      .then(() => showView(viewId, { ...options, featureReady: true, skipHistory: true }))
+      .catch(error => {
+        console.error('Puritan Parser feature failed to load.', error);
+        if(target) target.innerHTML = '<section class="panel"><p class="progress-empty">This section could not be opened.</p></section>';
+      });
+    return viewId;
+  }
+  if(['learnView','listView','flashView','parsingView','dashboardView','progressView','globalSearchView'].includes(viewId)
+    && typeof isAppDataReady === 'function' && !isAppDataReady() && typeof startAppDataLoad === 'function') startAppDataLoad();
   if(state.currentView === 'readerView' && viewId !== 'readerView'){
     if(typeof suspendReader === 'function') suspendReader();
     else if(typeof persistReaderPlaceNow === 'function') persistReaderPlaceNow();
@@ -63,8 +83,8 @@ function setLang(lang){
   state.lang = lang;
   if(previousLang !== lang) { selectedLemma = null; state.parsingFilters = { family: parsingModeFamily() || state.parsingFilters?.family || 'all', details: {} }; }
   $$('[data-lang]').forEach(b=>b.classList.toggle('active', b.dataset.lang===lang));
-  updatePosOptions();
-  updateParsingFilterOptions();
+  if(typeof updatePosOptions === 'function') updatePosOptions();
+  if(typeof updateParsingFilterOptions === 'function') updateParsingFilterOptions();
   renderList(); updateDueBadge();
   if(typeof saveLastLanguage === 'function') saveLastLanguage(lang);
 }

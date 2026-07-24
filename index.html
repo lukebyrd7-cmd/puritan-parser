@@ -4,11 +4,27 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
 <title>The Puritan Parser</title>
+<script>
+(() => {
+  try {
+    const stored = JSON.parse(localStorage.getItem('pp_prefs') || 'null');
+    const prefs = stored?.preferences || stored || {};
+    const theme = prefs.theme || 'light';
+    document.documentElement.classList.add(theme === 'system'
+      ? (matchMedia('(prefers-color-scheme:dark)').matches ? 'dark' : 'light')
+      : (theme === 'dark' ? 'dark' : 'light'));
+    const accent = /^#[0-9a-f]{6}$/i.test(prefs.accent || '') ? prefs.accent : '#4e8f6e';
+    document.documentElement.style.setProperty('--accent', accent);
+  } catch(error) {
+    document.documentElement.classList.add('light');
+  }
+})();
+</script>
 <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png">
 <link rel="apple-touch-icon" href="/logo.png">
 <link rel="icon" href="/logo.png">
 <link rel="manifest" href="/manifest.json">
-<link rel="stylesheet" href="/styles.css?v=v1.5-stabilization">
+<link rel="stylesheet" href="/styles.css?v=v1.5-release-blockers">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="Puritan Parser">
@@ -555,6 +571,6 @@
 
 </div><!-- /app -->
 
-  <script src="/src/main.js?v=v1.5-stabilization"></script>
+  <script src="/src/main.js?v=v1.5-release-blockers"></script>
 </body>
 </html>

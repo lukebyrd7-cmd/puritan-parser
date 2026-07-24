@@ -68,6 +68,8 @@ The root route (`/`) opens Learn. Legacy deep links such as `/list`, `/flashcard
 
 Static shell URLs and the sequential module loader use application-root paths. This is required because nested routes such as `/settings/sources` are served by the same `index.html`; document-relative startup URLs would otherwise resolve below the nested route and return the app shell in place of JavaScript. Service-worker registration likewise uses `/sw.js`.
 
+Startup uses a route-aware module loader. Core scripts download as one ordered group, then only the active feature bundle loads before bootstrap; Reader, Learn, Reference, Progress, Search, and Onboarding bundles load on demand for later navigation. `/settings/sources` intentionally loads the Reference bundle because its bibliography is rendered from that library. Bootstrap reveals the shell and wires navigation before beginning large vocabulary hydration, which is scheduled after the first paint or during idle time when the active route does not require it. An inline pre-style preference read applies the stored theme and accent before the shell paints.
+
 The application chrome should not include a global Greek/Hebrew toggle. Reader owns its reading-language flow, Reference owns its local language selector, and Learn presents language choices only inside study workflows where the choice is part of the task.
 
 The header should also avoid progress counters, streak indicators, or other motivational widgets. Progress information belongs in the Progress section.

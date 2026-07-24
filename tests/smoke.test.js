@@ -57,6 +57,37 @@ test('smoke: Reference rendering is deferred until the Reference route opens', (
   assert.match(views, /viewId==='grammarView'[\s\S]*initReferenceLibrary\(\)/);
 });
 
+test('smoke: startup loads only the active feature and reveals navigation before vocabulary hydration', () => {
+  const main = fs.readFileSync('src/main.js', 'utf8');
+  const coreBlock = main.slice(main.indexOf('const PURITAN_PARSER_CORE_SCRIPTS'), main.indexOf('const PURITAN_PARSER_FEATURE_SCRIPTS'));
+  assert.doesNotMatch(coreBlock, /features\/reader\/index\.js|features\/grammar\/reference-data\.js|features\/learn\/index\.js/);
+  assert.match(main, /await loadScriptGroup\(PURITAN_PARSER_CORE_SCRIPTS\)/);
+  assert.match(main, /await ensurePuritanFeature\(featureForPath\(\)\)/);
+  assert.match(main, /script\.async = false/);
+  assert.doesNotMatch(bootstrap, /await loadData\(\)/);
+  assert.match(bootstrap, /classList\.add\('app-ready'\)[\s\S]*const beginDataLoad/);
+});
+
+test('smoke: direct routes map to their required lazy feature bundles', () => {
+  const main = fs.readFileSync('src/main.js', 'utf8');
+  const appState = fs.readFileSync('src/app-state.js', 'utf8');
+  assert.match(main, /clean === '\/reader' \|\| clean === '\/word'\) return 'reader'/);
+  assert.match(main, /clean === '\/grammar' \|\| clean === '\/settings\/sources'\) return 'grammar'/);
+  assert.match(main, /\['grammar', 'reference', 'aboutSources'\]\.includes\(normalized\)/);
+  assert.match(main, /clean === '\/progress'\) return 'progress'/);
+  assert.match(main, /'src\/features\/settings\/index\.js'/);
+  assert.match(appState, /const FILE_ALL = '\/vocab_all\.json'/);
+  assert.match(appState, /const FILE_GREEK = '\/greek_25plus\.json'/);
+  assert.match(appState, /const FILE_HEBREW = '\/hebrew_60plus\.json'/);
+});
+
+test('smoke: stored theme and accent are applied before the stylesheet and module loader', () => {
+  const earlyTheme = html.indexOf("localStorage.getItem('pp_prefs')");
+  assert.ok(earlyTheme > 0);
+  assert.ok(earlyTheme < html.indexOf('<link rel="stylesheet"'));
+  assert.match(html, /stored\?\.preferences \|\| stored \|\| \{\}/);
+});
+
 test('smoke: service worker precaches every startup module from src/main.js', () => {
   const main = fs.readFileSync('src/main.js', 'utf8');
   const sw = fs.readFileSync('sw.js', 'utf8');
@@ -86,10 +117,10 @@ test('smoke: nested hard refreshes resolve startup assets from the app root', ()
   const main = fs.readFileSync('src/main.js', 'utf8');
   const events = fs.readFileSync('src/features/settings/events.js', 'utf8');
   const sw = fs.readFileSync('sw.js', 'utf8');
-  assert.match(html, /href="\/styles\.css\?v=v1\.5-stabilization"/);
-  assert.match(html, /src="\/src\/main\.js\?v=v1\.5-stabilization"/);
+  assert.match(html, /href="\/styles\.css\?v=v1\.5-release-blockers"/);
+  assert.match(html, /src="\/src\/main\.js\?v=v1\.5-release-blockers"/);
   assert.match(main, /script\.src = src\.startsWith\('\/'\) \? src : `\/\$\{src\}`/);
   assert.match(events, /serviceWorker\.register\('\/sw\.js'\)/);
-  assert.match(sw, /'\.\/styles\.css\?v=v1\.5-stabilization'/);
-  assert.match(sw, /'\.\/src\/main\.js\?v=v1\.5-stabilization'/);
+  assert.match(sw, /'\.\/styles\.css\?v=v1\.5-release-blockers'/);
+  assert.match(sw, /'\.\/src\/main\.js\?v=v1\.5-release-blockers'/);
 });

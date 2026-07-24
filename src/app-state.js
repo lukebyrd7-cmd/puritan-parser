@@ -2,9 +2,9 @@
    THE PURITAN PARSER v3
    ============================================================ */
 
-const FILE_ALL = 'vocab_all.json';
-const FILE_GREEK = 'greek_25plus.json';
-const FILE_HEBREW = 'hebrew_60plus.json';
+const FILE_ALL = '/vocab_all.json';
+const FILE_GREEK = '/greek_25plus.json';
+const FILE_HEBREW = '/hebrew_60plus.json';
 const LS_VOCAB_GREEK = 'pp_vocab_greek';
 const LS_VOCAB_HEBREW = 'pp_vocab_hebrew';
 const LS_PREFS = 'pp_prefs';

@@ -2051,6 +2051,10 @@ function wireLearn(){
 }
 function renderLearn(){
   const root = $('#learnShell'); if(!root) return;
+  if(typeof isAppDataReady === 'function' && !isAppDataReady()){
+    root.innerHTML = '<section class="panel learn-panel"><h1>Learn</h1><p class="progress-empty" role="status">Preparing your learning library…</p></section>';
+    return;
+  }
   root.innerHTML = renderLearnPage();
   wireLearn();
 }
