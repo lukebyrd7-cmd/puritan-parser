@@ -31,7 +31,7 @@ Puritan Parser is a local-first Biblical Greek and Hebrew reading and study app.
 
 ## Current Focus
 
-v1.5 stabilization is implemented for review. It makes Original/English one exclusive choice, keeps prepared Original markup available for immediate English-to-Original switching, defaults new readers to Continuous while preserving valid saved modes, moves Reading mode to Settings → Reader, fixes continuous-Reader position loss, replaces the bottom mobile controls with a restrained top toolbar, prefetches and incrementally inserts adjacent chapters, phases Progress so core metrics paint before whole-Bible readiness work, defers inactive feature bundles and vocabulary hydration, and repairs nested-route startup asset resolution. Release validation remains the current focus; no feature expansion is included.
+v1.5 stabilization is complete. It makes Original/English one exclusive choice, keeps prepared Original markup available for immediate English-to-Original switching, defaults new readers to Continuous while preserving valid saved modes, moves Reading mode to Settings → Reader, fixes continuous-Reader position loss, replaces the bottom mobile controls with a restrained top toolbar, prefetches and incrementally inserts adjacent chapters, phases Progress so core metrics paint before whole-Bible readiness work, defers inactive feature bundles and vocabulary hydration, and repairs nested-route startup asset resolution. Post-v1.5.1 polish removes the always-visible Reader options shortcut without a replacement; Reading mode remains under Settings → Reader, and stored mode and Reader position behavior remain unchanged.
 
 The v1.4.2 Reader milestone added bounded continuous reading alongside one-chapter mode. Continuous is now the default for readers without a valid saved preference; existing valid choices remain unchanged. It incrementally renders nearby chapters within the selected book, tracks the chapter in view, restores a verse-relative reading anchor, and exposes compact mobile text-visibility controls after the primary controls scroll away. Crossing books remains an explicit selection rather than an automatic continuous-reading transition.
 
@@ -39,7 +39,7 @@ The v1.4.2 Reader milestone added bounded continuous reading alongside one-chapt
 
 - Preserve the nearest visible original or English verse through repeated visibility changes, including continuous-mode boundaries.
 - Keep prepared Original markup available while English is active so returning to Original requires no chapter request or full window rerender.
-- Keep Reading mode under Settings → Reader with one canonical `pp_reader_location.mode` value and a restrained Reader options link.
+- Keep Reading mode under Settings → Reader with one canonical `pp_reader_location.mode` value and no Reader shortcut.
 - Keep mobile secondary Reader controls fixed near the top, safe-area aware, and synchronized with primary controls.
 - Reuse in-flight Reader requests, prefetch only the next adjacent chapters, and retain the five-chapter DOM bound.
 - Paint Progress core metrics before readiness scans and invalidate readiness caches on learning changes.

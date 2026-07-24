@@ -96,7 +96,7 @@ test('Adaptive Reader settings render from the Reader and persist locally', () =
   assert.match(html, /Assistance/);
   assert.match(html, /Hide Known Words/);
   assert.match(html, /<summary class="btn btn-ghost btn-sm">Display<\/summary>/);
-  assert.match(html, /id="readerOptionsBtn"[^>]*>Reader options<\/button>/);
+  assert.doesNotMatch(html, /Reader options|readerOptionsBtn|reader-options-link/);
   assert.match(html, /Show Translation Toggle/);
   assert.match(html, /Indicator/);
   assert.match(html, /Interlinear • WEB • 30\+ • Hide Known/);
@@ -178,6 +178,7 @@ test('Mobile Reader compact layout keeps all core controls accessible and quiets
   assert.match(html, /id="readerSettingsPanel"/);
   assert.match(html, /id="readerSearchToggle"/);
   assert.match(html, /id="readerBookProgressBtn"/);
+  assert.doesNotMatch(html, /Reader options|readerOptionsBtn|reader-options-link/);
   assert.match(html, /id="readerReference"[\s\S]*John 1/);
   assert.match(html, /reader-chapter-heading reader-chapter-heading-quiet/);
 
@@ -188,7 +189,8 @@ test('Mobile Reader compact layout keeps all core controls accessible and quiets
   assert.match(mobileReaderCss, /\.reader-nav-btn\s*\{[\s\S]*width: 32px/);
   assert.match(mobileReaderCss, /\.reader-nav-label\s*\{[\s\S]*display: none/);
   assert.match(mobileReaderCss, /\.reader-reference\s*\{[\s\S]*display: none/);
-  assert.match(mobileReaderCss, /\.reader-settings summary,[\s\S]*\.reader-options-link,[\s\S]*\.reader-search-toggle,[\s\S]*\.reader-progress-link\s*\{[\s\S]*min-height: 30px/);
+  assert.match(mobileReaderCss, /\.reader-settings summary,[\s\S]*\.reader-search-toggle,[\s\S]*\.reader-progress-link\s*\{[\s\S]*min-height: 30px/);
+  assert.doesNotMatch(mobileReaderCss, /reader-options-link/);
   assert.match(mobileReaderCss, /\.reader-chapter-heading-quiet\s*\{[\s\S]*position: absolute/);
 });
 
@@ -1667,7 +1669,7 @@ test('continuous Reader handles book boundaries without crossing books', async (
   assert.deepEqual(reader.readerState().continuousChapters.map(item => item.chapter), [20, 21]);
 });
 
-test('Reader omits always-visible mode controls and preserves unique verse ids', async () => {
+test('Reader omits mode shortcuts from primary and sticky controls and preserves unique verse ids', async () => {
   let html = '';
   const shell = { set innerHTML(value){ html = value; }, get innerHTML(){ return html; } };
   global.$ = selector => selector === '#readerShell' ? shell : null;
@@ -1675,7 +1677,11 @@ test('Reader omits always-visible mode controls and preserves unique verse ids',
   await reader.setReaderLocation({ language: 'greek', book: 'john', chapter: 2, mode: 'continuous' });
   assert.doesNotMatch(html, /aria-label="Reading mode"/);
   assert.doesNotMatch(html, /data-reader-mode=/);
-  assert.match(html, /id="readerOptionsBtn"[^>]*>Reader options<\/button>/);
+  assert.doesNotMatch(html, /Reader options|readerOptionsBtn|reader-options-link/);
+  const sticky = reader.renderReaderStickyToolbar();
+  assert.match(sticky, /id="readerStickyToolbar"/);
+  assert.match(sticky, />Original<\/button>[\s\S]*>English<\/button>/);
+  assert.doesNotMatch(sticky, /Reader options|readerOptionsBtn|reader-options-link/);
   const ids = [...html.matchAll(/\sid="([^"]+)"/g)].map(match => match[1]);
   assert.equal(new Set(ids).size, ids.length);
   assert.deepEqual(reader.readerState().continuousChapters.map(item => item.chapter), [1, 2, 3]);
