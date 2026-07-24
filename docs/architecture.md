@@ -124,7 +124,7 @@ Reader data is lazy-loaded one chapter at a time. Large JSON content must stay o
 
 ### Reader preferences and Adaptive Reader
 
-Reading mode is owned by the existing `pp_reader_location.mode` field and normalized by `src/core/reader-preferences.js`. Settings → Reader and the Reader feature use that same helper rather than parallel preference state. `continuous` and `chapter` remain the stored values; missing or invalid values resolve to Continuous, valid values remain unchanged, and updating mode preserves the remaining location and verse-anchor fields. The Reader options action saves the current place before routing to Settings → Reader.
+Reading mode is owned by the existing `pp_reader_location.mode` field and normalized by `src/core/reader-preferences.js`. Settings → Reader and the Reader feature use that same helper rather than parallel preference state. `continuous` and `chapter` remain the stored values; missing or invalid values resolve to Continuous, valid values remain unchanged, and updating mode preserves the remaining location and verse-anchor fields. Reading mode is changed through normal navigation to Settings → Reader; the Reader has no dedicated shortcut.
 
 Adaptive Reader settings live inside the Reader rather than global Settings because they shape the immediate reading experience. The settings are local-first user data under `pp_reader_adaptive_settings`, currently keyed by language so Greek and Hebrew can diverge without accounts or sync.
 

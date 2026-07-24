@@ -4,6 +4,11 @@ This changelog is a human-readable project history, not a Git log. Future entrie
 
 ## Unreleased
 
+### v1.5.1 Reader options cleanup
+
+- Removed the always-visible Reader options shortcut from desktop and mobile Reader controls without adding a replacement. Reading mode remains available under Settings → Reader through normal app navigation.
+- Preserved valid stored Chapter and Continuous choices, the Continuous fallback for missing or invalid values, Reader position restoration, and the existing `pp_reader_location` storage record.
+
 ### v1.5 Stabilization, Performance, and Full-App QA
 
 - Replaced independent Reader visibility toggles with one exclusive Original/English radio choice. Legacy both-visible or neither-visible preferences resolve to one safe preferred mode, and primary and mobile controls share the same state.

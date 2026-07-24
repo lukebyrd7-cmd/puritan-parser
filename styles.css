@@ -1774,10 +1774,8 @@ button:focus-visible, input:focus-visible, select:focus-visible {
 .reader-controls .input { min-width: 0; width: 100%; padding-block: 6px; }
 .reader-control-actions > .btn,
 .reader-settings summary,
-.reader-options-link,
 .reader-search-toggle,
 .reader-progress-link { white-space: nowrap; }
-.reader-options-link,
 .reader-search-toggle,
 .reader-progress-link {
   min-height: 28px;
@@ -1785,15 +1783,6 @@ button:focus-visible, input:focus-visible, select:focus-visible {
   color: var(--text-2);
   font-size: 12px;
   font-weight: 750;
-}
-.reader-options-link {
-  min-height: 28px;
-  border: 0;
-  padding: 4px 3px;
-  background: transparent;
-  color: var(--muted);
-  text-decoration: underline;
-  text-underline-offset: 3px;
 }
 .reader-search-toggle {
   border: 1px solid var(--border-strong);
@@ -1808,8 +1797,6 @@ button:focus-visible, input:focus-visible, select:focus-visible {
   text-underline-offset: 3px;
 }
 .reader-search-toggle:hover { background: var(--surface-2); }
-.reader-options-link:hover,
-.reader-options-link:focus-visible,
 .reader-progress-link:hover { color: var(--text); }
 .reader-reference { margin-left: auto; display: grid; gap: 0; min-width: 130px; text-align: right; font-weight: 700; color: var(--text); letter-spacing: 0; line-height: 1.2; }
 .reader-reference small { color: var(--muted); font-size: 11px; font-weight: 650; }
@@ -2305,7 +2292,6 @@ button:focus-visible, input:focus-visible, select:focus-visible {
   .reader-nav-label { display: none; }
   .reader-nav-icon { font-size: 15px; line-height: 1; }
   .reader-settings,
-  .reader-options-link,
   .reader-search-toggle,
   .reader-progress-link {
     flex: 0 1 auto;
@@ -2313,7 +2299,6 @@ button:focus-visible, input:focus-visible, select:focus-visible {
     width: auto;
   }
   .reader-settings summary,
-  .reader-options-link,
   .reader-search-toggle,
   .reader-progress-link {
     min-height: 30px;

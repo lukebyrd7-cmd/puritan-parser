@@ -44,7 +44,7 @@ test('Reader mode writes reuse pp_reader_location without losing the saved place
   assert.equal(store.size, 1);
 });
 
-test('Settings exposes one canonical accessible Reader mode choice and Reader links to it', () => {
+test('Settings remains the only canonical accessible Reader mode destination', () => {
   const html = fs.readFileSync('index.html', 'utf8');
   const reader = fs.readFileSync('src/features/reader/index.js', 'utf8');
   const settings = fs.readFileSync('src/features/settings/events.js', 'utf8');
@@ -52,7 +52,9 @@ test('Settings exposes one canonical accessible Reader mode choice and Reader li
   assert.match(html, /type="radio" name="readerReadingMode" value="continuous"/);
   assert.match(html, /type="radio" name="readerReadingMode" value="chapter"/);
   assert.match(html, /One chapter at a time/);
-  assert.match(reader, /id="readerOptionsBtn"[^>]*>Reader options<\/button>/);
+  assert.match(html, /id="readerSettingsReturn"[^>]*>← Return to Reader<\/button>/);
+  assert.doesNotMatch(reader, /Reader options|readerOptionsBtn|reader-options-link|openReaderOptions/);
   assert.doesNotMatch(reader, /data-reader-mode=/);
   assert.match(settings, /PuritanReaderPreferences\.writeMode\(mode\)/);
+  assert.doesNotMatch(settings, /readerOptionsBtn|openReaderOptions/);
 });
