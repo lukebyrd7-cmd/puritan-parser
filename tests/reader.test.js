@@ -1708,6 +1708,12 @@ test('continuous Reader leaves ordinary downward scrolling native until insertio
   assert.equal(reader.readerContinuousInsertionNeedsAnchorRestore(0, 5), false);
 });
 
+test('continuous Reader leaves native momentum alone while trimming during active scrolling', () => {
+  assert.equal(reader.readerContinuousInsertionNeedsAnchorRestore(1, 5, { momentumInputAt: 900, now: 1000 }), false);
+  assert.equal(reader.readerContinuousInsertionNeedsAnchorRestore(-1, 2, { momentumInputAt: 900, now: 1000 }), false);
+  assert.equal(reader.readerContinuousInsertionNeedsAnchorRestore(1, 5, { momentumInputAt: 700, now: 1000 }), true);
+});
+
 test('continuous Reader handles book boundaries without crossing books', async () => {
   await reader.setReaderLocation({ language: 'greek', book: 'john', chapter: 1, mode: 'continuous' });
   assert.equal(reader.getAdjacentReaderLocation(-1), null);

@@ -145,6 +145,7 @@ let readerRestoreFrame = null;
 let readerRestoreRequestId = 0;
 let readerPrefetchHandle = null;
 let readerUserScrolledAt = 0;
+let readerMomentumInputAt = 0;
 let readerLastRestoreAt = 0;
 let readerLastScrollPosition = 0;
 let readerLastScrollAt = 0;
@@ -1656,6 +1657,9 @@ function navigateReaderAdjacent(direction){
   if(loc) setReaderLocation(loc);
   return Boolean(loc);
 }
+function handleReaderMomentumInput(){
+  readerMomentumInputAt = Date.now();
+}
 function handleReaderTouchStart(event = {}){
   const touch = event.touches?.[0] || event.changedTouches?.[0];
   if(!touch) return false;
@@ -2061,9 +2065,14 @@ function syncReaderBookBoundaries(pane){
   if(passages[0]?.chapter === chapters[0]) pane.insertAdjacentHTML?.('afterbegin', `<p class="reader-book-boundary" role="note">Beginning of ${escHtml(book.name)}</p>`);
   if(passages.at(-1)?.chapter === chapters.at(-1)) pane.insertAdjacentHTML?.('beforeend', `<p class="reader-book-boundary" role="note">End of ${escHtml(book.name)}</p>`);
 }
-function readerContinuousInsertionNeedsAnchorRestore(direction, sectionCount){
+const ReaderScrollMomentumGuardMs = 240;
+function readerContinuousInsertionNeedsAnchorRestore(direction, sectionCount, options = {}){
   // Appends below the viewport need no correction until trimming removes a chapter above it.
-  return direction < 0 || (direction > 0 && sectionCount >= ReaderContinuousWindowSize);
+  const changesContentAbove = direction < 0 || (direction > 0 && sectionCount >= ReaderContinuousWindowSize);
+  if(!changesContentAbove) return false;
+  const momentumInputAt = Number(options.momentumInputAt ?? readerMomentumInputAt) || 0;
+  const now = Number(options.now ?? Date.now()) || 0;
+  return !momentumInputAt || now - momentumInputAt > ReaderScrollMomentumGuardMs;
 }
 function insertReaderContinuousPassage(passage, direction, settings = getActiveReaderSettings()){
   if(typeof document === 'undefined') { renderReader(); return false; }
@@ -2318,7 +2327,11 @@ function wireReaderControls(){
   $$('.reader-token').forEach(btn => btn.addEventListener('click', () => openReaderTokenPopup(btn)));
   const readerText = $('.reader-text');
   readerText?.removeEventListener?.('scroll', handleReaderScroll);
+  readerText?.removeEventListener?.('wheel', handleReaderMomentumInput);
+  readerText?.removeEventListener?.('touchmove', handleReaderMomentumInput);
   readerText?.addEventListener('scroll', handleReaderScroll, { passive: true });
+  readerText?.addEventListener('wheel', handleReaderMomentumInput, { passive: true });
+  readerText?.addEventListener('touchmove', handleReaderMomentumInput, { passive: true });
   readerText?.addEventListener('keydown', handleReaderChapterKeydown);
   readerText?.addEventListener('touchstart', handleReaderTouchStart, { passive: true });
   readerText?.addEventListener('touchend', handleReaderTouchEnd, { passive: false });
@@ -2413,7 +2426,10 @@ function suspendReader(){
   if(typeof document !== 'undefined'){
     document.removeEventListener?.('keydown', handleReaderPopupKeydown);
     document.removeEventListener?.('click', handleReaderDocumentClick);
-    document.querySelector?.('.reader-text')?.removeEventListener?.('scroll', handleReaderScroll);
+    const readerText = document.querySelector?.('.reader-text');
+    readerText?.removeEventListener?.('scroll', handleReaderScroll);
+    readerText?.removeEventListener?.('wheel', handleReaderMomentumInput);
+    readerText?.removeEventListener?.('touchmove', handleReaderMomentumInput);
   }
   if(typeof window !== 'undefined'){
     window.removeEventListener?.('scroll', handleReaderScroll);
