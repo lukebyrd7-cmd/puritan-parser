@@ -1700,6 +1700,14 @@ test('continuous Reader inserts prepared adjacent chapters and keeps a five-chap
   assert.equal(new Set(reader.readerState().continuousChapters.map(item => item.chapter)).size, 5);
 });
 
+test('continuous Reader leaves ordinary downward scrolling native until insertion changes content above the viewport', () => {
+  assert.equal(reader.readerContinuousInsertionNeedsAnchorRestore(1, 2), false);
+  assert.equal(reader.readerContinuousInsertionNeedsAnchorRestore(1, 4), false);
+  assert.equal(reader.readerContinuousInsertionNeedsAnchorRestore(1, 5), true);
+  assert.equal(reader.readerContinuousInsertionNeedsAnchorRestore(-1, 2), true);
+  assert.equal(reader.readerContinuousInsertionNeedsAnchorRestore(0, 5), false);
+});
+
 test('continuous Reader handles book boundaries without crossing books', async () => {
   await reader.setReaderLocation({ language: 'greek', book: 'john', chapter: 1, mode: 'continuous' });
   assert.equal(reader.getAdjacentReaderLocation(-1), null);
