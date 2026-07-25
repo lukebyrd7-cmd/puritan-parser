@@ -50,7 +50,10 @@ function wireEvents(){
   $('#wordModal')?.addEventListener('click', e=>{ if(e.target===$('#wordModal')) closeWordModal(); });
 
   // Settings
-  $('#openSettings').addEventListener('click',()=>showView('settingsView'));
+  $('#openSettings').addEventListener('click',()=>{
+    syncSettingsUI();
+    showView('settingsView');
+  });
   $('#openAboutSourcesBtn')?.addEventListener('click',()=>openAboutSources());
   $('#openGlobalSearch')?.addEventListener('click',()=>showView('globalSearchView'));
   $('#closeSettingsBtn').addEventListener('click',()=>showView('listView'));
@@ -100,6 +103,12 @@ function wireEvents(){
     syncSettingsUI();
   }));
 
+  $$('input[name="readerHebrewDisplay"]').forEach(input => input.addEventListener('change', event => {
+    if(!event.target.checked) return;
+    if(typeof PuritanReaderPreferences !== 'undefined') PuritanReaderPreferences.writeHebrewDisplay(event.target.value);
+    syncSettingsUI();
+  }));
+
   $('#restartOnboarding')?.addEventListener('click', () => {
     if(typeof restartOnboardingFromSettings === 'function') restartOnboardingFromSettings();
   });
@@ -146,7 +155,7 @@ function wireEvents(){
       if(e.key==='l'||e.key==='L'){ e.preventDefault(); showView('learnView'); }
       else if(e.key==='r'||e.key==='R'){ e.preventDefault(); showView('readerView'); }
       else if(e.key==='p'||e.key==='P'){ e.preventDefault(); showView('progressView'); }
-      else if(e.key==='s'||e.key==='S'){ e.preventDefault(); showView('settingsView'); }
+      else if(e.key==='s'||e.key==='S'){ e.preventDefault(); syncSettingsUI(); showView('settingsView'); }
       if(inFlash&&state.session.queue.length){
         if(e.key===' '){ e.preventDefault(); setCardFlipped(!state.session.flipped); }
         if(state.session.flipped){

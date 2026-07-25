@@ -4,6 +4,18 @@ This changelog is a human-readable project history, not a Git log. Future entrie
 
 ## Unreleased
 
+### v1.7 Hebrew interlinear data integration and Reader display
+
+- Added a deterministic, source-pinned Hebrew interlinear generator that aligns the complete existing OSHB/WLC Reader stream with MACULA Hebrew occurrence data and Cherith word or morpheme glosses.
+- Generated 39 books, 929 chapters, 23,213 verses, and 306,785 stable Reader-token records with 100% token and verse identity coverage, zero unresolved tokens, 1,251 qere/ketiv variant groups, and 10,262 explicitly missing glosses.
+- Preserved pointed Hebrew, Reader lemma expressions and morphology, ordered source segmentation, qere/ketiv distinctions, maqqef, punctuation relationships, and stable `<book>.<chapter>.<verse>.<tokenIndex>` identities without inventing linguistic data.
+- Added optional Standard and Interlinear Hebrew display choices under Settings → Reader. The choice is Hebrew-specific, defaults safely to Standard, remains dormant in English mode, and does not change Greek display preferences.
+- Kept the original Hebrew primary and selectable, placed a restrained English gloss below each unit, retained word-popup behavior, and used an em dash and accessible label when a source gloss is unavailable.
+- Kept chapter and continuous reading on the shared Reader path with the five-chapter bound. Interlinear chapters load only on demand, share in-flight requests, retry after failure, and degrade to readable Standard Hebrew with a recovery action.
+- Recorded the exact upstream commit, source and generated hashes, imported fields, transformations, CC BY 4.0 attribution, and complete alignment audit under `data/hebrew-interlinear/`.
+- Used STEPBible only as secondary schema and source-policy verification; no STEPBible field is imported.
+- Bumped the service-worker cache to `puritan-parser-v72-v1.7-hebrew-interlinear-5`; large interlinear chapters remain outside the startup precache and are runtime-cached as requested JSON.
+
 ### v1.6 Hebrew search and Settings polish
 
 - Fixed the narrow-screen Settings overflow at the Greek/Hebrew Review Target controls by making the two-column grid shrink-safe and stacking it at phone widths; no global overflow masking was added.

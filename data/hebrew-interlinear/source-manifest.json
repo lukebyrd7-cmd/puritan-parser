@@ -1,0 +1,4892 @@
+{
+  "schemaVersion": 1,
+  "sourceRepository": "https://github.com/Clear-Bible/macula-hebrew",
+  "sourceCommit": "47db250bd55d0d8577f2a94fba114ef16c35b23c",
+  "retrievalDate": "2026-07-24",
+  "sourceFiles": [
+    {
+      "path": "WLC/tsv/macula-hebrew.tsv",
+      "sha256": "965cb0599beed2fe31283b615bcc369178141c0e718a66d97518d94309cfc124",
+      "rows": 475911
+    }
+  ],
+  "alignmentSources": [
+    {
+      "path": "data/source/morphhb-wlc/1Chr.xml",
+      "sha256": "8b59992b6607c6ca0fc423813be8cc244f011c1da32bc8485c0c0f581a897ed4"
+    },
+    {
+      "path": "data/source/morphhb-wlc/1Kgs.xml",
+      "sha256": "832ba10f605dce34c4888ee0a795d91edc2b293391d6ae9c36c36c6350761a3e"
+    },
+    {
+      "path": "data/source/morphhb-wlc/1Sam.xml",
+      "sha256": "960432732c22286b82d80b6b25af8d10dc5f2e82a4e5e48b2e3a1b1eea17f3cb"
+    },
+    {
+      "path": "data/source/morphhb-wlc/2Chr.xml",
+      "sha256": "507294e8ca0fcf31ec25fe62fa24a7f2581f53116519bf08cfe96ff85e9c99fb"
+    },
+    {
+      "path": "data/source/morphhb-wlc/2Kgs.xml",
+      "sha256": "056db5393beaef0a1159d9bcaac7dfd865df9bab2eb240ea90e9fa3f0c0e7449"
+    },
+    {
+      "path": "data/source/morphhb-wlc/2Sam.xml",
+      "sha256": "e7793e141ed94eadbd2dfb23936abbb4062e81a7dcd41114a6e36644f50b8333"
+    },
+    {
+      "path": "data/source/morphhb-wlc/Amos.xml",
+      "sha256": "6ad94c6a18076762f1a458720c62156d354e5111ee25719b7792b70792d0084d"
+    },
+    {
+      "path": "data/source/morphhb-wlc/Dan.xml",
+      "sha256": "bc69d0fa9708dacb11ea6d587509250bf1bcc1b4343eac2d6e97f8b41518fc0d"
+    },
+    {
+      "path": "data/source/morphhb-wlc/Deut.xml",
+      "sha256": "04f8087442a1e67a631cd70f2ac4e42fe0a780ae132edb165a3a29f3f290358f"
+    },
+    {
+      "path": "data/source/morphhb-wlc/Eccl.xml",
+      "sha256": "2dfc858d19048f6479eca33b9fe781c2d7e9059e9ae3ab0b37b802d3afec02bb"
+    },
+    {
+      "path": "data/source/morphhb-wlc/Esth.xml",
+      "sha256": "f9b5b8adaf504dcac409bb6a27c9328967f47eeb4e920070cd53ef5301299019"
+    },
+    {
+      "path": "data/source/morphhb-wlc/Exod.xml",
+      "sha256": "04868367cdacb6ccdc61488e923e20f918172042e6437842a0621f63ac5b847f"
+    },
+    {
+      "path": "data/source/morphhb-wlc/Ezek.xml",
+      "sha256": "90bf8adfa66b2f6695c702263fe668755c99c6afc386202c12de4f704f5d4e46"
+    },
+    {
+      "path": "data/source/morphhb-wlc/Ezra.xml",
+      "sha256": "fb28ff697d0ee17eba5b4db47fb7261ee1870cea0d5701bfc77c9e28d4138129"
+    },
+    {
+      "path": "data/source/morphhb-wlc/Gen.xml",
+      "sha256": "0526e5c9a5fb4d907847645f954ed3d1268fa69decbd872056cedd2668d86449"
+    },
+    {
+      "path": "data/source/morphhb-wlc/Hab.xml",
+      "sha256": "2592b212d816775adc8dac46bd0c46263982c308a186dde64dfb8239c57bd2d1"
+    },
+    {
+      "path": "data/source/morphhb-wlc/Hag.xml",
+      "sha256": "26ebbae4fe491cf89ce70e1264cbcbf66a562b497cb214b677e67a9a43ad545c"
+    },
+    {
+      "path": "data/source/morphhb-wlc/Hos.xml",
+      "sha256": "f38ae44a3a97d142768bd5f4d40e77b69265184f9a5aec9e6af1b9b226e8daae"
+    },
+    {
+      "path": "data/source/morphhb-wlc/Isa.xml",
+      "sha256": "0807678de609bdef284bed5400b94ddab570d101b593c7f59ae1939015572fa2"
+    },
+    {
+      "path": "data/source/morphhb-wlc/Jer.xml",
+      "sha256": "1a7ad7bc26a2cae1d3964230e8eb73043bc1f32505cb86cd69a25261dc39f493"
+    },
+    {
+      "path": "data/source/morphhb-wlc/Job.xml",
+      "sha256": "7db3311184122f37a8fd52f3c7c0c4a6d2da7b77ee82f4fdb26bcba9171d297f"
+    },
+    {
+      "path": "data/source/morphhb-wlc/Joel.xml",
+      "sha256": "c0fefc6881afe949b023968106cdccc05a690734b8bb6e9aa48914d77e5369af"
+    },
+    {
+      "path": "data/source/morphhb-wlc/Jonah.xml",
+      "sha256": "1e1afcc3aaba1399d5c884ee106894c6bfca87c8c81fa57783ab75a923eee17d"
+    },
+    {
+      "path": "data/source/morphhb-wlc/Josh.xml",
+      "sha256": "a066200ab2269c0a86a2e9ba119a3d0fce8c5f7ecc44bb53ec134b83dffc6006"
+    },
+    {
+      "path": "data/source/morphhb-wlc/Judg.xml",
+      "sha256": "3b3a909f04041dbd52dc6b7293a96ce75d94db8a90fdeda878943db7b8fac57f"
+    },
+    {
+      "path": "data/source/morphhb-wlc/Lam.xml",
+      "sha256": "be68fc6a913313367280c2596e28733ee8cf877c12a65227237733b40d0248c4"
+    },
+    {
+      "path": "data/source/morphhb-wlc/Lev.xml",
+      "sha256": "e21e70265c9ef500182f8ccb4f4e1186e5a79e1169d24cef23cc479baf07b191"
+    },
+    {
+      "path": "data/source/morphhb-wlc/Mal.xml",
+      "sha256": "1583e6a701406dce7b8c2bf85e3522ec31383756de130685fc7c2eb6df8964b2"
+    },
+    {
+      "path": "data/source/morphhb-wlc/Mic.xml",
+      "sha256": "267e111adc1b941e32444816af07aa136ecde02cb315cd42597f78b393e67a01"
+    },
+    {
+      "path": "data/source/morphhb-wlc/Nah.xml",
+      "sha256": "5993b28bdbee3c922e3e93002d343a655493e8bd45e3472f3b62d77beadcb62c"
+    },
+    {
+      "path": "data/source/morphhb-wlc/Neh.xml",
+      "sha256": "be082e95c206469122455b9849d4dd08da50c817732d8198c1beece90402801a"
+    },
+    {
+      "path": "data/source/morphhb-wlc/Num.xml",
+      "sha256": "02e4febfcc027d10b3e35e4f091eae67a40d26f37b6254faac6b4af053fe4896"
+    },
+    {
+      "path": "data/source/morphhb-wlc/Obad.xml",
+      "sha256": "1e893e552a7ed7e2e6d4048637ff5da8a2853a9e4432f4095cede80b959d850c"
+    },
+    {
+      "path": "data/source/morphhb-wlc/Prov.xml",
+      "sha256": "964f99c00239b53b854c4686c99490c8d1ac7664784a30afdfc23781a3abb161"
+    },
+    {
+      "path": "data/source/morphhb-wlc/Ps.xml",
+      "sha256": "fe55eef316a65fb0f46d833d526ca2fd722e86ff7339f1a39f0c5b7f9062ced2"
+    },
+    {
+      "path": "data/source/morphhb-wlc/Ruth.xml",
+      "sha256": "fb6a2660383c7176941cb87b2be182ef634b66d49d057635869f4d9cb1f0a11e"
+    },
+    {
+      "path": "data/source/morphhb-wlc/Song.xml",
+      "sha256": "5cd6ae36d32c059aaf794af5a5eaed914ac643486db3e412eb0b969760db82ca"
+    },
+    {
+      "path": "data/source/morphhb-wlc/Zech.xml",
+      "sha256": "2e287c8d0e0abd3bf601eb8ef9b4ee6ca3ae12cf36c0ed1612a7dcca54a2e777"
+    },
+    {
+      "path": "data/source/morphhb-wlc/Zeph.xml",
+      "sha256": "eb5bd2a745fba1ffeed31dfafd834ce7c290929c992390be1a2b9451d22dea2e"
+    }
+  ],
+  "licenses": [
+    {
+      "dataset": "MACULA Hebrew Linguistic Datasets",
+      "license": "CC BY 4.0",
+      "attribution": "MACULA Hebrew Linguistic Datasets, available at https://github.com/Clear-Bible/macula-hebrew/"
+    },
+    {
+      "dataset": "Cherith Glosses for the Hebrew Old Testament",
+      "license": "CC BY 4.0",
+      "attribution": "Cherith Glosses for the Hebrew Old Testament, by Andi Wu, Copyright (C) 2022 by Cherith Analytics."
+    }
+  ],
+  "secondaryVerification": {
+    "repository": "https://github.com/STEPBible/STEPBible-Data",
+    "commit": "b86d26cdb1f51729e73b5b4eb7f7ccadc5dfba39",
+    "importedFields": []
+  },
+  "importedFields": [
+    "xml:id",
+    "ref",
+    "class",
+    "text",
+    "after",
+    "english",
+    "morph",
+    "lemma"
+  ],
+  "normalization": [
+    "TSV field whitespace in the English occurrence gloss is collapsed to single spaces.",
+    "MACULA morph rows sharing one ref are retained as ordered segments and joined only for the concise display gloss.",
+    "Unpointed Hebrew is derived by removing Hebrew combining marks from the unchanged Reader surface.",
+    "Reader surface, lemma expression, and morphology are copied without linguistic alteration."
+  ],
+  "chapterEncoding": {
+    "tokenFields": [
+      "tokenIndex",
+      "id",
+      "surface",
+      "unpointed",
+      "lemma",
+      "morphology",
+      "gloss",
+      "glossStatus",
+      "sourceRowIds",
+      "readerSourceId",
+      "alignment",
+      "qereKetiv",
+      "variantGroup",
+      "variantTokenIds",
+      "segmentation",
+      "segments",
+      "maqqefAfter",
+      "punctuationAfter"
+    ],
+    "segmentFields": [
+      "sourceRowId",
+      "surface",
+      "lemma",
+      "morphology",
+      "gloss",
+      "class"
+    ],
+    "note": "Chapter token and segment arrays use these ordered field maps; the chapter and verse containers supply canonical location fields."
+  },
+  "generatedFiles": [
+    {
+      "path": "data/hebrew-interlinear/1chronicles/1.json",
+      "sha256": "bd14112044e404d93499b128a112a1948f035aaf398660a5cb3704db0e339fee",
+      "bytes": 111101
+    },
+    {
+      "path": "data/hebrew-interlinear/1chronicles/10.json",
+      "sha256": "0bbeeaaefb4518dc4e11ffc7984da0a1b8058556d0dfe7d04beed36df950c9bb",
+      "bytes": 55887
+    },
+    {
+      "path": "data/hebrew-interlinear/1chronicles/11.json",
+      "sha256": "0997a571cf601d65c6fe49f140f46cc69ae6ff59529ebee7231230dc25beeefb",
+      "bytes": 141448
+    },
+    {
+      "path": "data/hebrew-interlinear/1chronicles/12.json",
+      "sha256": "61ad718614577dd30d0a7adc37e0d0aabf2118755da7902b7029e43297d49659",
+      "bytes": 138911
+    },
+    {
+      "path": "data/hebrew-interlinear/1chronicles/13.json",
+      "sha256": "6d0838d334ccfabd0154a5df4c2d3e0615b6f7a8c7d0a7b1f779406eb5139b6f",
+      "bytes": 56952
+    },
+    {
+      "path": "data/hebrew-interlinear/1chronicles/14.json",
+      "sha256": "bbaf99d4fd60cd4ddcc0fe24b2d680b8655946557af84c032a6bf6d1e1efd8d2",
+      "bytes": 54930
+    },
+    {
+      "path": "data/hebrew-interlinear/1chronicles/15.json",
+      "sha256": "90d6811f0b72637686578bc24a4ed7dfcc205b79e35af0dfe01ba6cbe11e9668",
+      "bytes": 103050
+    },
+    {
+      "path": "data/hebrew-interlinear/1chronicles/16.json",
+      "sha256": "9bb3119961634ad4a8c13da1964854a05d3d04181ed38a4348e3f7f680f742ce",
+      "bytes": 115937
+    },
+    {
+      "path": "data/hebrew-interlinear/1chronicles/17.json",
+      "sha256": "57f1d3f5c307f77f577f56f6d1b3e83f5ed520efe98963b2f557447651577d70",
+      "bytes": 110645
+    },
+    {
+      "path": "data/hebrew-interlinear/1chronicles/18.json",
+      "sha256": "d03df8c32ff40a41f07bad8679af13a9d165001a7af6d1c468c92a060e571154",
+      "bytes": 65058
+    },
+    {
+      "path": "data/hebrew-interlinear/1chronicles/19.json",
+      "sha256": "f3e90dbd15df104680990c0919412e4588dd9f93a3a18cb8227285d7e19535fe",
+      "bytes": 87233
+    },
+    {
+      "path": "data/hebrew-interlinear/1chronicles/2.json",
+      "sha256": "96a847201610bc0a5c979dc19cc05d619162f2cb5df745b2193f49f5ef1f1b42",
+      "bytes": 136829
+    },
+    {
+      "path": "data/hebrew-interlinear/1chronicles/20.json",
+      "sha256": "bb3f8078bf5c38d0f3447c6069afb33d5b8e525bc985f4aae6aaf7ebc6938cc4",
+      "bytes": 39016
+    },
+    {
+      "path": "data/hebrew-interlinear/1chronicles/21.json",
+      "sha256": "45b06e76b294156911273504858bf5dc58b5563354efb36e903c3297f0cdfd4a",
+      "bytes": 131241
+    },
+    {
+      "path": "data/hebrew-interlinear/1chronicles/22.json",
+      "sha256": "ebc4e9d1a5f89d19504e2c4d456bc04203ee78ed28a5833873e4782f5a2ddaaf",
+      "bytes": 85031
+    },
+    {
+      "path": "data/hebrew-interlinear/1chronicles/23.json",
+      "sha256": "e1ef3f91a97545014dfa526bb3522202f5e860a5db8541d1aa2074218e3f9eba",
+      "bytes": 93655
+    },
+    {
+      "path": "data/hebrew-interlinear/1chronicles/24.json",
+      "sha256": "d151d668ecaee66b373b5dd66a5ab3ba9231ec3904377d3753723036c421312b",
+      "bytes": 77534
+    },
+    {
+      "path": "data/hebrew-interlinear/1chronicles/25.json",
+      "sha256": "bd76e78fe8a249be66b8b21995cad47927dd9acd092e6b574b1ae3cb7375239e",
+      "bytes": 82626
+    },
+    {
+      "path": "data/hebrew-interlinear/1chronicles/26.json",
+      "sha256": "67a1a07f7f73623e56ecaab354841d2f0122d97c7cca6fdb44688a129496e014",
+      "bytes": 103986
+    },
+    {
+      "path": "data/hebrew-interlinear/1chronicles/27.json",
+      "sha256": "ab399fe0a93507a9eab294fb66acba8f57516fa6cab467b417ed72b74f9cc335",
+      "bytes": 116757
+    },
+    {
+      "path": "data/hebrew-interlinear/1chronicles/28.json",
+      "sha256": "9f5028570ee22037f2b9a043fa48725c13e222abdd2307d50f044f24b15feca3",
+      "bytes": 108785
+    },
+    {
+      "path": "data/hebrew-interlinear/1chronicles/29.json",
+      "sha256": "54c87f97ba391d9d4a08a2f0ab91322bbc395f7517dfa231a8cf0656c621b0fb",
+      "bytes": 136241
+    },
+    {
+      "path": "data/hebrew-interlinear/1chronicles/3.json",
+      "sha256": "34f0449847827320e9b729f98491d1490ae76cf2bb7798cef6d1fbedd093928c",
+      "bytes": 54822
+    },
+    {
+      "path": "data/hebrew-interlinear/1chronicles/4.json",
+      "sha256": "8c34c727930291035cbcec65be9a0cadf2d0adb8fd8a18f643ade92bd324b614",
+      "bytes": 127099
+    },
+    {
+      "path": "data/hebrew-interlinear/1chronicles/5.json",
+      "sha256": "bb5414101c403092d407977ba50fc2d42d76c031f46680cdb840e4eea0409e4b",
+      "bytes": 121895
+    },
+    {
+      "path": "data/hebrew-interlinear/1chronicles/6.json",
+      "sha256": "69a20c12d3e8c8e9d0ef7ebd61b5a9c8e15a87b4014983c10c48536c22d9b433",
+      "bytes": 169549
+    },
+    {
+      "path": "data/hebrew-interlinear/1chronicles/7.json",
+      "sha256": "f3c03d28ebb3a5feed8ff7d9306903cb8b12aad777211919987f8f4948f43e6f",
+      "bytes": 119544
+    },
+    {
+      "path": "data/hebrew-interlinear/1chronicles/8.json",
+      "sha256": "da0a53edb22ea04322793f0db7dba3a9d1c5f1a227ea9e62159ef648c580d8ac",
+      "bytes": 81890
+    },
+    {
+      "path": "data/hebrew-interlinear/1chronicles/9.json",
+      "sha256": "33e149179567672c387dde5cb0333153b8c267c059cdb66857361e504ea841de",
+      "bytes": 134371
+    },
+    {
+      "path": "data/hebrew-interlinear/1kings/1.json",
+      "sha256": "eb643218fcf29069dd8eea0bb860f21d6c07604745e9592440661f8aaf713a6a",
+      "bytes": 220521
+    },
+    {
+      "path": "data/hebrew-interlinear/1kings/10.json",
+      "sha256": "a9682b081949126afbd07e18b16260596fcf6644d8cb41f84b9beacefc0dc7ed",
+      "bytes": 123374
+    },
+    {
+      "path": "data/hebrew-interlinear/1kings/11.json",
+      "sha256": "b23a83b4719addae76319838a81222beb650a82f8924a1f599871bb94136f00f",
+      "bytes": 180975
+    },
+    {
+      "path": "data/hebrew-interlinear/1kings/12.json",
+      "sha256": "cd4787099188b44a500788a3a4d799f94d0978d8fb510aadeeda0dd716c27d08",
+      "bytes": 155911
+    },
+    {
+      "path": "data/hebrew-interlinear/1kings/13.json",
+      "sha256": "1a407d10e976889c1275752695ce086db353cad352a85fac5f442fc536d1a0e3",
+      "bytes": 160816
+    },
+    {
+      "path": "data/hebrew-interlinear/1kings/14.json",
+      "sha256": "a678eaa40bd76208fbe23afa2e9c9feaf8f7087647cb9df8ad0e58bd617f56a6",
+      "bytes": 137497
+    },
+    {
+      "path": "data/hebrew-interlinear/1kings/15.json",
+      "sha256": "7535aed48c10bbc4799c72cf685f1122624b22d52a95b5d89ca9f1d1cf8a8a1f",
+      "bytes": 135567
+    },
+    {
+      "path": "data/hebrew-interlinear/1kings/16.json",
+      "sha256": "9639c286483228bfdedbbdcc834f2659aa8f3de39611c128a65e96a04fc8aaa5",
+      "bytes": 143209
+    },
+    {
+      "path": "data/hebrew-interlinear/1kings/17.json",
+      "sha256": "1f312eb8f3648104b6c5b08171a3038357dd1cc1863d11ae333cba2e98eab48d",
+      "bytes": 95517
+    },
+    {
+      "path": "data/hebrew-interlinear/1kings/18.json",
+      "sha256": "0033a7ef840dc891527fb28949f82a648ddaa41aaeffce0049877fe52e59743c",
+      "bytes": 196868
+    },
+    {
+      "path": "data/hebrew-interlinear/1kings/19.json",
+      "sha256": "26ffa8310143a52df605cdc5bff42f04af5fbc8fc0b7aabab6ce4e26a0fee04a",
+      "bytes": 99223
+    },
+    {
+      "path": "data/hebrew-interlinear/1kings/2.json",
+      "sha256": "efa8ca242272251a2dfec41192f094b54d3efc338c2e870bf485fad069c177ce",
+      "bytes": 212888
+    },
+    {
+      "path": "data/hebrew-interlinear/1kings/20.json",
+      "sha256": "bee5c6ac57ee94f690c61666811afc487e43c45c14179bce25ce9c7aaa14eaa3",
+      "bytes": 201349
+    },
+    {
+      "path": "data/hebrew-interlinear/1kings/21.json",
+      "sha256": "15579bb8e4cdbbf0308df5729f8e6c2bf05670f3ae534e29bcd46670be6a85f3",
+      "bytes": 127522
+    },
+    {
+      "path": "data/hebrew-interlinear/1kings/22.json",
+      "sha256": "d6950db8ceb284658ca1eb0e7e82b58a1fa14c0613c572eacea6a19ac1548cd8",
+      "bytes": 210785
+    },
+    {
+      "path": "data/hebrew-interlinear/1kings/3.json",
+      "sha256": "dbec7af5d48b9177014159743b9e2aa08b9925c80b8034631d8e68cb6a300d4b",
+      "bytes": 125792
+    },
+    {
+      "path": "data/hebrew-interlinear/1kings/4.json",
+      "sha256": "11287f4f9914e7399731e02d0247898cd4c8d126474838fa64d28a24aab26857",
+      "bytes": 51275
+    },
+    {
+      "path": "data/hebrew-interlinear/1kings/5.json",
+      "sha256": "d9f2368b7303c461fbc91a14a7e14f6d4c63b102ee4b2185b95e268538b90581",
+      "bytes": 132521
+    },
+    {
+      "path": "data/hebrew-interlinear/1kings/6.json",
+      "sha256": "42aae9c0b180a6d1ba36c4c33203c7cef5490c0d4a99fc81168efaeb23c45fa9",
+      "bytes": 140455
+    },
+    {
+      "path": "data/hebrew-interlinear/1kings/7.json",
+      "sha256": "6dbb105ba91dbfbaf50937d0bdfe6de2dad4bf0cb8cabc04a5f232074bdd6a0e",
+      "bytes": 216304
+    },
+    {
+      "path": "data/hebrew-interlinear/1kings/8.json",
+      "sha256": "e97be3a01b6653173b654c854c79609de9674a3e451804a264ada44f15b0c2bb",
+      "bytes": 305638
+    },
+    {
+      "path": "data/hebrew-interlinear/1kings/9.json",
+      "sha256": "0735092a1685a4c1f640b4c1f4aed3c4ac85203251b2aeabbe931e4afd950beb",
+      "bytes": 125383
+    },
+    {
+      "path": "data/hebrew-interlinear/1samuel/1.json",
+      "sha256": "4435e40bc71e34a397f03011dbebae5b8ae0cfdc3623ebb8aa47d2a74a99aa6a",
+      "bytes": 110677
+    },
+    {
+      "path": "data/hebrew-interlinear/1samuel/10.json",
+      "sha256": "c8317ef8e2b0aa977236507de5932d98347ce860cec987815855e543b044f860",
+      "bytes": 119635
+    },
+    {
+      "path": "data/hebrew-interlinear/1samuel/11.json",
+      "sha256": "54b23cd2c559043f8cbbb13b6d36882cf972cdb6e1a4a2fec4bf9b7befd94189",
+      "bytes": 69248
+    },
+    {
+      "path": "data/hebrew-interlinear/1samuel/12.json",
+      "sha256": "56baadda436c14e41a4ba10516acce0c9083519a72db39f7f8c6414a21b6e6d7",
+      "bytes": 110719
+    },
+    {
+      "path": "data/hebrew-interlinear/1samuel/13.json",
+      "sha256": "7775998930ca9231d526cc3206e003ef6ceafb2b0829ccc2416a4c6a63ccefcf",
+      "bytes": 97049
+    },
+    {
+      "path": "data/hebrew-interlinear/1samuel/14.json",
+      "sha256": "fae263c08493cf4faad1e884f45c34a31685eb68110dcd3eb9d993cb10bbced6",
+      "bytes": 226424
+    },
+    {
+      "path": "data/hebrew-interlinear/1samuel/15.json",
+      "sha256": "4f02f6bf89873920d7cee05b856cf6853ec0cc74c0378501f5fff85617b5f502",
+      "bytes": 138552
+    },
+    {
+      "path": "data/hebrew-interlinear/1samuel/16.json",
+      "sha256": "3e65d92ec3cf3f191c0765ee8bafc6b042e9f80e7ee63f39b53d64c7ddd86ac4",
+      "bytes": 98033
+    },
+    {
+      "path": "data/hebrew-interlinear/1samuel/17.json",
+      "sha256": "17f1fc2490cd1a22dcf3b951c6b3061e9cccc5053bd11d9939ba7463e12d8777",
+      "bytes": 252048
+    },
+    {
+      "path": "data/hebrew-interlinear/1samuel/18.json",
+      "sha256": "d5967c0adef6d4b51bd8ad11649ea37719d47b251604489fd59bcb82781500bd",
+      "bytes": 121024
+    },
+    {
+      "path": "data/hebrew-interlinear/1samuel/19.json",
+      "sha256": "96b9af20f359c1558a0e69b609d449cbb7ea188a43bdd73188d7cae6cdb8dce0",
+      "bytes": 108270
+    },
+    {
+      "path": "data/hebrew-interlinear/1samuel/2.json",
+      "sha256": "0ff76ea2537133fa0e4fe0384639ff508688dec6e0103da3f0586047070e136f",
+      "bytes": 146994
+    },
+    {
+      "path": "data/hebrew-interlinear/1samuel/20.json",
+      "sha256": "7d27cdf9fbef564655ce4d097de953d98ac7db0265ca455d6c4f48aab565aeb5",
+      "bytes": 183273
+    },
+    {
+      "path": "data/hebrew-interlinear/1samuel/21.json",
+      "sha256": "e35b22b98f23504499dd2c9c6da135448a9257b96c3d6de90cd6b2229108bd03",
+      "bytes": 74781
+    },
+    {
+      "path": "data/hebrew-interlinear/1samuel/22.json",
+      "sha256": "6b551461f4d3e42b53be37d5db3caf880236903140219af148c678b1bf376dbe",
+      "bytes": 111583
+    },
+    {
+      "path": "data/hebrew-interlinear/1samuel/23.json",
+      "sha256": "2a46bede258f1b98e1dc31446bb1db37d9e2eadde01f47fbe8e412f36f235823",
+      "bytes": 118478
+    },
+    {
+      "path": "data/hebrew-interlinear/1samuel/24.json",
+      "sha256": "7f48fa4c6d6ae74005f7e09b72fdf2c08b9128049fe8a46caa7d9ac6cbca7273",
+      "bytes": 100857
+    },
+    {
+      "path": "data/hebrew-interlinear/1samuel/25.json",
+      "sha256": "8fafd19f24888e22d2363f57800f4df57913349f63bafc341ca39c53fdd44e94",
+      "bytes": 204357
+    },
+    {
+      "path": "data/hebrew-interlinear/1samuel/26.json",
+      "sha256": "679b6fc861ed70075a0a364d9ef5d2192cb3e49138816769b0f6b8e0e2b3e524",
+      "bytes": 125188
+    },
+    {
+      "path": "data/hebrew-interlinear/1samuel/27.json",
+      "sha256": "dcb5861460dbc328a335e68c0ba2cdf8ea3ff761ae8fa95c708ffecd8ce5b80d",
+      "bytes": 55770
+    },
+    {
+      "path": "data/hebrew-interlinear/1samuel/28.json",
+      "sha256": "cf21c82b47e0d12f6a2cd047d6831c7395911f10330af1b34fa06fd95e5e0003",
+      "bytes": 117789
+    },
+    {
+      "path": "data/hebrew-interlinear/1samuel/29.json",
+      "sha256": "e3dccab25078531a3ff5656d9a9b7f382742ea2915a0ec0e122132adc9b6ed45",
+      "bytes": 59191
+    },
+    {
+      "path": "data/hebrew-interlinear/1samuel/3.json",
+      "sha256": "046ef1c1d338858416272eb7df4ec538e6fdbc7b569c8077da6fe23d5e0f8cd2",
+      "bytes": 77903
+    },
+    {
+      "path": "data/hebrew-interlinear/1samuel/30.json",
+      "sha256": "4d950016c680a46e48b1dbfc5261d8b5f7e59b7d582974d59b673f0f2e021346",
+      "bytes": 133264
+    },
+    {
+      "path": "data/hebrew-interlinear/1samuel/31.json",
+      "sha256": "9c644815816ca2f542d4a7f2c1b1cc94349675fa35ad923dce7d7b759ca78f04",
+      "bytes": 55166
+    },
+    {
+      "path": "data/hebrew-interlinear/1samuel/4.json",
+      "sha256": "e8268380e41f6700bcc3627246ab0e99f2be0f66e96db3e762178f85b3ed3aee",
+      "bytes": 100338
+    },
+    {
+      "path": "data/hebrew-interlinear/1samuel/5.json",
+      "sha256": "309ad120e307281afac9bdf0adf6c01a1a5d5a97c277d5752634170c535a8837",
+      "bytes": 58262
+    },
+    {
+      "path": "data/hebrew-interlinear/1samuel/6.json",
+      "sha256": "d81a788cb7ab9b1b6cb9720ef73b8851cd991ced35dcdf7775b07d4bfde61548",
+      "bytes": 105239
+    },
+    {
+      "path": "data/hebrew-interlinear/1samuel/7.json",
+      "sha256": "d9ee190e8ba364089f2c134acb1e09152b57925554d94850f04d1b3fdb8e8ee8",
+      "bytes": 77494
+    },
+    {
+      "path": "data/hebrew-interlinear/1samuel/8.json",
+      "sha256": "2f338472676da7bcfbaa7139b3cdf5ab91bf7df39534248c16140c1b398673fc",
+      "bytes": 76416
+    },
+    {
+      "path": "data/hebrew-interlinear/1samuel/9.json",
+      "sha256": "b386393114abf1ae6ba95179a05ea1c905f4fe7fec310d5aa489d04babf26164",
+      "bytes": 134086
+    },
+    {
+      "path": "data/hebrew-interlinear/2chronicles/1.json",
+      "sha256": "47bb37ccecfe3cb257733a0946e89f842230cbc25c32426652c955cd86a55146",
+      "bytes": 78355
+    },
+    {
+      "path": "data/hebrew-interlinear/2chronicles/10.json",
+      "sha256": "0fd453bd8ce8c40e37ed020869bb13a151687c28256a362ca96995dc2d548209",
+      "bytes": 85910
+    },
+    {
+      "path": "data/hebrew-interlinear/2chronicles/11.json",
+      "sha256": "c8244338cae6ffdbd7febd6d27b35366b1d3361af0aad38356ae543e2621e06e",
+      "bytes": 79291
+    },
+    {
+      "path": "data/hebrew-interlinear/2chronicles/12.json",
+      "sha256": "94426f1db2e6566ea2b1c2938c03fbc3184e2545dd04c6fb84ca98acc6851cfb",
+      "bytes": 69032
+    },
+    {
+      "path": "data/hebrew-interlinear/2chronicles/13.json",
+      "sha256": "1f708f573f7e513bcdc557a0f0af7ef4dc525d7bd6f02433835ac3293a617551",
+      "bytes": 100354
+    },
+    {
+      "path": "data/hebrew-interlinear/2chronicles/14.json",
+      "sha256": "f20b6b238db49ff37fff469ae9ba1cee368465f25607e6ca156f1da3fc437846",
+      "bytes": 59909
+    },
+    {
+      "path": "data/hebrew-interlinear/2chronicles/15.json",
+      "sha256": "b617fadfdc410c95e6e63f62d93da89ca6d27b5d8a60dce809532e8c3a59c36b",
+      "bytes": 70769
+    },
+    {
+      "path": "data/hebrew-interlinear/2chronicles/16.json",
+      "sha256": "a2330260fd1e626b1a7f0753b1a9980089f325f362ae90adbd19c646d95bb386",
+      "bytes": 70265
+    },
+    {
+      "path": "data/hebrew-interlinear/2chronicles/17.json",
+      "sha256": "c8d57a7a0b3506f995bc941bae13309cf2cdb2a6b9ac9c21715f67d3f8605a4a",
+      "bytes": 67862
+    },
+    {
+      "path": "data/hebrew-interlinear/2chronicles/18.json",
+      "sha256": "277c7b639b7d750c6e99b812525458d9a01443b23d9859446c69de262848a26f",
+      "bytes": 148833
+    },
+    {
+      "path": "data/hebrew-interlinear/2chronicles/19.json",
+      "sha256": "d5f103468d96387e909e6eae291fc26514c63b85fdf8e515b37a774da52b9a84",
+      "bytes": 51226
+    },
+    {
+      "path": "data/hebrew-interlinear/2chronicles/2.json",
+      "sha256": "75a9d9285477a7d43b67b5376d161ac986743d816cdd8232f967751191fba72c",
+      "bytes": 90890
+    },
+    {
+      "path": "data/hebrew-interlinear/2chronicles/20.json",
+      "sha256": "7ca8af3ee2c215d42697acccfb4861870d1ac7fa85bd530f894041fe0d4ec18d",
+      "bytes": 160657
+    },
+    {
+      "path": "data/hebrew-interlinear/2chronicles/21.json",
+      "sha256": "25fe76261a8660038da49f54849480174e04b7ae3f01b51f635eab7e4e8f1e82",
+      "bytes": 88113
+    },
+    {
+      "path": "data/hebrew-interlinear/2chronicles/22.json",
+      "sha256": "14110da7a9e0587338a98c30bc53da448c46d557aaf12ea454ea16135cecc5e2",
+      "bytes": 65156
+    },
+    {
+      "path": "data/hebrew-interlinear/2chronicles/23.json",
+      "sha256": "ca7a28ced2c2af871421b03fd2b98a5049cc013ad48fdeeb370a9c60afdd8c46",
+      "bytes": 108326
+    },
+    {
+      "path": "data/hebrew-interlinear/2chronicles/24.json",
+      "sha256": "04e775a37e5181b9f8656fc6b5a70861fbd7aa23135adc30d2eb762a8a989682",
+      "bytes": 126698
+    },
+    {
+      "path": "data/hebrew-interlinear/2chronicles/25.json",
+      "sha256": "fbcc58e255015eb0c81b9bcc31016a9ddada86f6e16fffaaa27a18ce105483df",
+      "bytes": 135172
+    },
+    {
+      "path": "data/hebrew-interlinear/2chronicles/26.json",
+      "sha256": "dc7ec14770432fb8be0d676375c83b4ea2a205f06b0d17251afa752fc7608e4c",
+      "bytes": 104871
+    },
+    {
+      "path": "data/hebrew-interlinear/2chronicles/27.json",
+      "sha256": "d4c1aaacdfca00fcbd6a3fbab8ae4cd4cefb944ef587f5647eaaeb1c3a9c14c7",
+      "bytes": 35148
+    },
+    {
+      "path": "data/hebrew-interlinear/2chronicles/28.json",
+      "sha256": "aea5d7ee26ffb748cad89af4cfa5f5f0119f67ba3494f919933453d74210f045",
+      "bytes": 124590
+    },
+    {
+      "path": "data/hebrew-interlinear/2chronicles/29.json",
+      "sha256": "fa523ae1dd5b4e6803d2c399792007d5cae4dd929468ee5fd321a7d68a2c3751",
+      "bytes": 154540
+    },
+    {
+      "path": "data/hebrew-interlinear/2chronicles/3.json",
+      "sha256": "37bef5a45322b5402f3b77cbae1124ed4428213101a653d19e12e9502d2c1690",
+      "bytes": 67213
+    },
+    {
+      "path": "data/hebrew-interlinear/2chronicles/30.json",
+      "sha256": "fd6922a446c05202eb41ef91affa994a43689deab908484d6fc4534187379c94",
+      "bytes": 122744
+    },
+    {
+      "path": "data/hebrew-interlinear/2chronicles/31.json",
+      "sha256": "b1618788e5384b02b218a64c56e833697af518ab3088c1cc60cccbe97b2b7b6e",
+      "bytes": 101665
+    },
+    {
+      "path": "data/hebrew-interlinear/2chronicles/32.json",
+      "sha256": "bfb009ec06c9105b860ea1d88ec3004be11a38d96395de9e428870a3bf220587",
+      "bytes": 153797
+    },
+    {
+      "path": "data/hebrew-interlinear/2chronicles/33.json",
+      "sha256": "ab5e23551fe61ab42bcb397debfc164260143d943d9f55914e696642dd60502e",
+      "bytes": 106925
+    },
+    {
+      "path": "data/hebrew-interlinear/2chronicles/34.json",
+      "sha256": "5064df48b25dfa97c157ce01a405252857e4de48cac3c290fb25b4bed497fbfe",
+      "bytes": 171838
+    },
+    {
+      "path": "data/hebrew-interlinear/2chronicles/35.json",
+      "sha256": "65ceecd5a00e616c193586bf5dcccc9a0b1441faa16e0ef12b0dc5f834e86b3a",
+      "bytes": 126620
+    },
+    {
+      "path": "data/hebrew-interlinear/2chronicles/36.json",
+      "sha256": "c9ce6aba137df0559c15aa5428be660151cc7ecf6824af78da85aa67fc26edd4",
+      "bytes": 102122
+    },
+    {
+      "path": "data/hebrew-interlinear/2chronicles/4.json",
+      "sha256": "0bc2b08e285f7110e52612525373e5aaef5c54785ed9f1d8f1849ad8d6b9f737",
+      "bytes": 88329
+    },
+    {
+      "path": "data/hebrew-interlinear/2chronicles/5.json",
+      "sha256": "28b9e9fba24ad028c455f83faad7e3056b24a3e26dd543e382d293fda7cb4d50",
+      "bytes": 68694
+    },
+    {
+      "path": "data/hebrew-interlinear/2chronicles/6.json",
+      "sha256": "52b6b8d72dfcdbe6072926ec1595e5e85db6d7390735398b20b01be5b531d49b",
+      "bytes": 204095
+    },
+    {
+      "path": "data/hebrew-interlinear/2chronicles/7.json",
+      "sha256": "f1805270b253d53935097c349e04a88fd1c1489e9e507dc13a63d1b4b975182d",
+      "bytes": 109823
+    },
+    {
+      "path": "data/hebrew-interlinear/2chronicles/8.json",
+      "sha256": "06b37f22c617e38726b14721663d1cdff5eb2dc77d670fb3867fb58868535e08",
+      "bytes": 79733
+    },
+    {
+      "path": "data/hebrew-interlinear/2chronicles/9.json",
+      "sha256": "0e0d3a8236fce1058556cadb0239008a7292bc1e93705df1f562e78b6606ebdd",
+      "bytes": 133486
+    },
+    {
+      "path": "data/hebrew-interlinear/2kings/1.json",
+      "sha256": "95685a70d5689532c8dc24815189e8d31be242123e09b2368c351ac6f0fa9064",
+      "bytes": 94020
+    },
+    {
+      "path": "data/hebrew-interlinear/2kings/10.json",
+      "sha256": "eef3dc5d18e3ff9ff450ee457a1471778c4f5b498c1fd946f7dde9c7fa99a518",
+      "bytes": 165751
+    },
+    {
+      "path": "data/hebrew-interlinear/2kings/11.json",
+      "sha256": "25f1f1db90cdfc3cd0f36c28f2acb4f501d84e850caa3bc4e8f9b7e7b8bd2cc3",
+      "bytes": 100229
+    },
+    {
+      "path": "data/hebrew-interlinear/2kings/12.json",
+      "sha256": "e0bede2be6eb9cd4b9ae51f8466d790ce212b8fc8a3e406c56fa9efca40e4c27",
+      "bytes": 96414
+    },
+    {
+      "path": "data/hebrew-interlinear/2kings/13.json",
+      "sha256": "b65d526048a1fd46cdbfde6536500fd20aaa89b47df4bc2b814f103dedb3240f",
+      "bytes": 107263
+    },
+    {
+      "path": "data/hebrew-interlinear/2kings/14.json",
+      "sha256": "7e55e4287f9929c491cf9f59b4b1add1ae2b293d9d1d3acbe65295e3f996fd49",
+      "bytes": 124383
+    },
+    {
+      "path": "data/hebrew-interlinear/2kings/15.json",
+      "sha256": "552641d253c308481d1072b22892c9eb3d878d6b008069ba9c5430dbc79d9e46",
+      "bytes": 150590
+    },
+    {
+      "path": "data/hebrew-interlinear/2kings/16.json",
+      "sha256": "7124bd32551d841be77de8edc6c9232105c6ee3da28293ee7d44593888969297",
+      "bytes": 97769
+    },
+    {
+      "path": "data/hebrew-interlinear/2kings/17.json",
+      "sha256": "d8b798b0c7699eec4df8459a3808b08159144d3d80e6ccd14d99899e932f66c8",
+      "bytes": 183753
+    },
+    {
+      "path": "data/hebrew-interlinear/2kings/18.json",
+      "sha256": "6f476f9d0b3a11461bf23af6b1c741c6c75a7d2c9d608e61a9d9ddcf63d2a528",
+      "bytes": 173305
+    },
+    {
+      "path": "data/hebrew-interlinear/2kings/19.json",
+      "sha256": "de88ae73b5975c1130dd7346cc423fa905bf1dbf0c5dc7a55cbaaf290b709c34",
+      "bytes": 151536
+    },
+    {
+      "path": "data/hebrew-interlinear/2kings/2.json",
+      "sha256": "58dba60e18030349723e8ebfe44fdb1fecc48c02dd7f8c41d4adb9e0eb4dee32",
+      "bytes": 112848
+    },
+    {
+      "path": "data/hebrew-interlinear/2kings/20.json",
+      "sha256": "233882b5f3725e473f41c788112b1449869345df16bb23b68f4a036c6cbe4569",
+      "bytes": 94965
+    },
+    {
+      "path": "data/hebrew-interlinear/2kings/21.json",
+      "sha256": "289a6211c7267845c4d5a8699f7669de28213a164bcc40347dbab9d441267680",
+      "bytes": 105272
+    },
+    {
+      "path": "data/hebrew-interlinear/2kings/22.json",
+      "sha256": "1305b636f81253b2aef96429ad8ea9fb73aa52ccd8e2fc3eb7ceee5810662640",
+      "bytes": 99108
+    },
+    {
+      "path": "data/hebrew-interlinear/2kings/23.json",
+      "sha256": "e70b77b67dd19d3f36262e8c4a74da0b12e0aff684fe843ff9a8be62d9cbf4d5",
+      "bytes": 205203
+    },
+    {
+      "path": "data/hebrew-interlinear/2kings/24.json",
+      "sha256": "6191d4acca16b863a590b0bb8c86905522ea38202efc0776143e88ca106a469c",
+      "bytes": 83114
+    },
+    {
+      "path": "data/hebrew-interlinear/2kings/25.json",
+      "sha256": "d936904ebf6621e8cd14fa5a2cdb58d0f696d069e67980ad5f283621719c5efb",
+      "bytes": 136850
+    },
+    {
+      "path": "data/hebrew-interlinear/2kings/3.json",
+      "sha256": "f7632917b21d888d686d0de0487b4a575df1ae8165376aa1b8149ffda1388f97",
+      "bytes": 114296
+    },
+    {
+      "path": "data/hebrew-interlinear/2kings/4.json",
+      "sha256": "6eab56804997594ee294d7d086fb1d1f4711d3c4f486ec748e3c37ed5adc3739",
+      "bytes": 184272
+    },
+    {
+      "path": "data/hebrew-interlinear/2kings/5.json",
+      "sha256": "f10f0de361b222a133466d912ff9640353fb4ec96f4835bbd6be138f3a7c62f4",
+      "bytes": 132623
+    },
+    {
+      "path": "data/hebrew-interlinear/2kings/6.json",
+      "sha256": "fd815833a3b70d8d7576aeeeef8d5d742cca726a559165b4cb6d20aa2576ab07",
+      "bytes": 141691
+    },
+    {
+      "path": "data/hebrew-interlinear/2kings/7.json",
+      "sha256": "12a7ca57e95a923c1b6a9f3b2bcc98add14c79a9a8a4f738df7f629183b6d484",
+      "bytes": 108827
+    },
+    {
+      "path": "data/hebrew-interlinear/2kings/8.json",
+      "sha256": "78c567a3f74e1fbcaac3995bb935a14dbdea3a26738f75aabe5f060edc2b88cc",
+      "bytes": 135121
+    },
+    {
+      "path": "data/hebrew-interlinear/2kings/9.json",
+      "sha256": "d15f81c3cc5a8acc5862bf6932bfb3549b489ae4183a417d606d665381e2de1d",
+      "bytes": 164067
+    },
+    {
+      "path": "data/hebrew-interlinear/2samuel/1.json",
+      "sha256": "509f762fc7358b1d3e983ded05074032241c499c459aff826a1ee55f02de6447",
+      "bytes": 97046
+    },
+    {
+      "path": "data/hebrew-interlinear/2samuel/10.json",
+      "sha256": "c0125f0978a7deb1555a459661f965c991c158af9314ffa49c5533d85df550bc",
+      "bytes": 83949
+    },
+    {
+      "path": "data/hebrew-interlinear/2samuel/11.json",
+      "sha256": "6fd43c6bba74c28cc64d18fdfc46684e8df02a5e0ad6fb8bd2c06e5c567c7525",
+      "bytes": 119807
+    },
+    {
+      "path": "data/hebrew-interlinear/2samuel/12.json",
+      "sha256": "2dee132c80bff52911fecccd326494d7135bede851906b2c5773f9ed9040e70c",
+      "bytes": 141926
+    },
+    {
+      "path": "data/hebrew-interlinear/2samuel/13.json",
+      "sha256": "320943a3f2f48469ae198945cb6a30c8dabd334fd6591f10b3846ac8712f5996",
+      "bytes": 173594
+    },
+    {
+      "path": "data/hebrew-interlinear/2samuel/14.json",
+      "sha256": "5c9b15a0d5210ec6cf3d8e276bb52d8dedac890e0a4897f64e108ddad4e95c9e",
+      "bytes": 161775
+    },
+    {
+      "path": "data/hebrew-interlinear/2samuel/15.json",
+      "sha256": "d38a618e88db25a2595672e3bd80401aeb9cc4d741025c603ffc62f44270511a",
+      "bytes": 162326
+    },
+    {
+      "path": "data/hebrew-interlinear/2samuel/16.json",
+      "sha256": "60f0e789253294b35bf15df701c8dd520e85d324a95d3ab6b23a77948f9c10a5",
+      "bytes": 104399
+    },
+    {
+      "path": "data/hebrew-interlinear/2samuel/17.json",
+      "sha256": "7e25352068068fed271b9e2bd8d831b1a04e669c7651526a10e1d86d833084ca",
+      "bytes": 138121
+    },
+    {
+      "path": "data/hebrew-interlinear/2samuel/18.json",
+      "sha256": "f0cf8e96f358b4a94896b9cfea72e94ace26871e117f51b444dd59aa06a5a22c",
+      "bytes": 159277
+    },
+    {
+      "path": "data/hebrew-interlinear/2samuel/19.json",
+      "sha256": "927422a90d1e57b1424fde73b7c0cd834ead014aef6911078a642f2fe4de7c14",
+      "bytes": 219374
+    },
+    {
+      "path": "data/hebrew-interlinear/2samuel/2.json",
+      "sha256": "635d68008ec9c96e1b2094eaf46870ab1a3cf1ebdc59faacdb90faebd0756c2d",
+      "bytes": 136138
+    },
+    {
+      "path": "data/hebrew-interlinear/2samuel/20.json",
+      "sha256": "40ae488fb2b04238eb44d1ba8206d304477d94a1de87d3c3723aba6040ecb0e2",
+      "bytes": 118477
+    },
+    {
+      "path": "data/hebrew-interlinear/2samuel/21.json",
+      "sha256": "9ed1d872cdad733387f001689ee09823a5bdb3cd43c0c0c72cf0c3b90aa752a8",
+      "bytes": 112519
+    },
+    {
+      "path": "data/hebrew-interlinear/2samuel/22.json",
+      "sha256": "66a24c0cd719811d8bdbb184d43a274b7290c1672ab76644ec45807000b6d0ef",
+      "bytes": 109365
+    },
+    {
+      "path": "data/hebrew-interlinear/2samuel/23.json",
+      "sha256": "d9a057fa4498fdd8d3605f99a81820deeeedbc23bb86b2fedf240fe89ff23cf7",
+      "bytes": 119931
+    },
+    {
+      "path": "data/hebrew-interlinear/2samuel/24.json",
+      "sha256": "a7cf425d45c9df732e9bb612032ef1623d2a8d4487c63a4264319488d523f4fc",
+      "bytes": 121206
+    },
+    {
+      "path": "data/hebrew-interlinear/2samuel/3.json",
+      "sha256": "1ff7ce403b8329fa84c1a364a8fd27dec7bdb36b72378d85fa172fbec5c66209",
+      "bytes": 171794
+    },
+    {
+      "path": "data/hebrew-interlinear/2samuel/4.json",
+      "sha256": "f467daaf27ba57b779260deecabae01a5207c992e1c933aa7100c9797ef07d3f",
+      "bytes": 63246
+    },
+    {
+      "path": "data/hebrew-interlinear/2samuel/5.json",
+      "sha256": "81aa302be7a2aae8e60eb98748484854099dafb1abf7f66a0b573297b18986cd",
+      "bytes": 93877
+    },
+    {
+      "path": "data/hebrew-interlinear/2samuel/6.json",
+      "sha256": "8e18ea9fc79d5af478b90d634c26234ef80b297111bac8328ea2d3e60b5b1917",
+      "bytes": 98309
+    },
+    {
+      "path": "data/hebrew-interlinear/2samuel/7.json",
+      "sha256": "3e11bc00e7208c32702f279906cad62136f82bb036d1b42b45faf543e46fe244",
+      "bytes": 123358
+    },
+    {
+      "path": "data/hebrew-interlinear/2samuel/8.json",
+      "sha256": "cbbe6fc68160bfe1884c6d12340d66c3968ef4ae12341f9948d7c471fa60bf9c",
+      "bytes": 68728
+    },
+    {
+      "path": "data/hebrew-interlinear/2samuel/9.json",
+      "sha256": "7a1a2e5339c2f5d95fd5d04212015ad95971c5fa3afe7622e8a08f11529988e5",
+      "bytes": 58412
+    },
+    {
+      "path": "data/hebrew-interlinear/alignment-audit.json",
+      "sha256": "b03af9fd0d903b20cca9799251bcde69cf61c39fc6c919dabda169ed129a8af1",
+      "bytes": 18570
+    },
+    {
+      "path": "data/hebrew-interlinear/amos/1.json",
+      "sha256": "a98753c6c550986175128e428bd7e30b73055b9de7edb9e571172d43f71ecf74",
+      "bytes": 55114
+    },
+    {
+      "path": "data/hebrew-interlinear/amos/2.json",
+      "sha256": "728acdb20e8a6153de3012ac80aa93daabf2784be2a90d60176b37a477a66f44",
+      "bytes": 56712
+    },
+    {
+      "path": "data/hebrew-interlinear/amos/3.json",
+      "sha256": "c0fffa2162617a61368a5a14ee22dd6a3da97ac2b5d165db4c1dd5e716f4a094",
+      "bytes": 52801
+    },
+    {
+      "path": "data/hebrew-interlinear/amos/4.json",
+      "sha256": "341d1cb32813d50df856198eb75f89a09913f214164835d17b10df9edb1c7181",
+      "bytes": 56739
+    },
+    {
+      "path": "data/hebrew-interlinear/amos/5.json",
+      "sha256": "8f084e5d8335d4a3db12f3623ea339c2ea6236fc7e2597d2deca406e7cef18ee",
+      "bytes": 82144
+    },
+    {
+      "path": "data/hebrew-interlinear/amos/6.json",
+      "sha256": "df236cf0da77ef4bf6ae57e8a4ecea58ef14dcf8ebf5f4a57ce44e1c83bfba69",
+      "bytes": 47283
+    },
+    {
+      "path": "data/hebrew-interlinear/amos/7.json",
+      "sha256": "1f5ad2ae8d882552d5a88a250ac8d644d38a39e3985e8d4e9c11ce3740d8a38e",
+      "bytes": 62877
+    },
+    {
+      "path": "data/hebrew-interlinear/amos/8.json",
+      "sha256": "baa7fbf2c87aefc278a8c34526de6d1bdf522e6274114ac5b75a9b80c4534234",
+      "bytes": 51207
+    },
+    {
+      "path": "data/hebrew-interlinear/amos/9.json",
+      "sha256": "47be6985cf16aad280b6f64c8d7d4a242ab8a8c7c71c6c704499324424d9dca6",
+      "bytes": 68271
+    },
+    {
+      "path": "data/hebrew-interlinear/daniel/1.json",
+      "sha256": "b6d78af24a21187f8066ef43d9678d8691f781bc0426e5c02fd550cbefc73e83",
+      "bytes": 85337
+    },
+    {
+      "path": "data/hebrew-interlinear/daniel/10.json",
+      "sha256": "c965c1bf7eaaac0793f2351d1910b62a1c06874968b95f8306acb8569530c102",
+      "bytes": 92543
+    },
+    {
+      "path": "data/hebrew-interlinear/daniel/11.json",
+      "sha256": "fef8e6ab1898c2a77f63c84e753fb377d816a4b13439ae0fcaf9e50cbc8619a8",
+      "bytes": 173941
+    },
+    {
+      "path": "data/hebrew-interlinear/daniel/12.json",
+      "sha256": "b4ab4b869634576a361e71598f457fbba80c016612661697e1cba0226edd3aaf",
+      "bytes": 48686
+    },
+    {
+      "path": "data/hebrew-interlinear/daniel/2.json",
+      "sha256": "10c37f2ac6e0b2e82e052716c6b9f95e12916919329d4a29c415db4def8abe61",
+      "bytes": 228541
+    },
+    {
+      "path": "data/hebrew-interlinear/daniel/3.json",
+      "sha256": "b5ffd1680de17793389b9440a53701301a049d1f8c303124921dc343947bbb27",
+      "bytes": 173479
+    },
+    {
+      "path": "data/hebrew-interlinear/daniel/4.json",
+      "sha256": "3a648554767cf197bf439333fc3f0675a7b2c8579a1458be0df7a322d18904b2",
+      "bytes": 170215
+    },
+    {
+      "path": "data/hebrew-interlinear/daniel/5.json",
+      "sha256": "f2acd600dfeb7b9f579c919f29ab135a85360379fd8af14b35f0d15f05ecc82d",
+      "bytes": 151395
+    },
+    {
+      "path": "data/hebrew-interlinear/daniel/6.json",
+      "sha256": "afc0db2fa2117e694b5550d64865b49f16f7a69642c7041231671cdb12845b56",
+      "bytes": 148464
+    },
+    {
+      "path": "data/hebrew-interlinear/daniel/7.json",
+      "sha256": "4e4c183036b1330e84f6795635a8e978fa361d3e38094022eb125b68b484f256",
+      "bytes": 134065
+    },
+    {
+      "path": "data/hebrew-interlinear/daniel/8.json",
+      "sha256": "8309d1823ad797fcd5e3a10c94c122c3fec507a690098f3abc0f2a6ce16ccd5f",
+      "bytes": 107398
+    },
+    {
+      "path": "data/hebrew-interlinear/daniel/9.json",
+      "sha256": "ffd4b0ca8c7b9aa21c82796fb14f761c18939e7194ef3be1071df5af64503223",
+      "bytes": 131016
+    },
+    {
+      "path": "data/hebrew-interlinear/deuteronomy/1.json",
+      "sha256": "b892ae5864202904669168cf9a73260827b2bcd9d3171effabc2d751e6d8335d",
+      "bytes": 182241
+    },
+    {
+      "path": "data/hebrew-interlinear/deuteronomy/10.json",
+      "sha256": "ea820a335632cafb8a6d745c4cf7efd821dcb13a08ea9bca6ced53f66907237f",
+      "bytes": 90012
+    },
+    {
+      "path": "data/hebrew-interlinear/deuteronomy/11.json",
+      "sha256": "8c1aacb71a08f9207f87dffba7759b3ac0849ed8bfe152763658ee7998f8bbe8",
+      "bytes": 140235
+    },
+    {
+      "path": "data/hebrew-interlinear/deuteronomy/12.json",
+      "sha256": "0441ebc626f0c41145eda616c55a823b39c60e5c7c4a4d9b0537c4c1b46ae34c",
+      "bytes": 145548
+    },
+    {
+      "path": "data/hebrew-interlinear/deuteronomy/13.json",
+      "sha256": "d0c40d688333722e40bc9283af1928eef4ccb7a73a1b8d62ce04a82debec28b2",
+      "bytes": 90860
+    },
+    {
+      "path": "data/hebrew-interlinear/deuteronomy/14.json",
+      "sha256": "6f79668e32dab1776668ca66f706d4ea8a275903d6cf9243296b82263e017d7c",
+      "bytes": 97609
+    },
+    {
+      "path": "data/hebrew-interlinear/deuteronomy/15.json",
+      "sha256": "d01e0be59d436f45511b195c1be64764fdf4005668d8721dac4dc15d4d022dfb",
+      "bytes": 97726
+    },
+    {
+      "path": "data/hebrew-interlinear/deuteronomy/16.json",
+      "sha256": "e187766936d7da0b1733f0db1512532d6c5b792624ae7068ca4857c89e5842e2",
+      "bytes": 92682
+    },
+    {
+      "path": "data/hebrew-interlinear/deuteronomy/17.json",
+      "sha256": "ce9ebc1363eb4a3a8b8e16889280e7014182ea8e01542a1cac83981d4c3ebc90",
+      "bytes": 98859
+    },
+    {
+      "path": "data/hebrew-interlinear/deuteronomy/18.json",
+      "sha256": "9eecc4b58c024020e91d26a8d96793a4cb902ec7e050155c2a0c5df1eb95ac5c",
+      "bytes": 82256
+    },
+    {
+      "path": "data/hebrew-interlinear/deuteronomy/19.json",
+      "sha256": "a6ac51d63714980ed6a01b8598c934dccee82ec42e130ad696706e14a4b92252",
+      "bytes": 90764
+    },
+    {
+      "path": "data/hebrew-interlinear/deuteronomy/2.json",
+      "sha256": "776efbcc73e00b6f1293bf5bbe274441bc8b0c9ae1c566892a5a355a89ba9c06",
+      "bytes": 143761
+    },
+    {
+      "path": "data/hebrew-interlinear/deuteronomy/20.json",
+      "sha256": "a94e962507b9be95e651a93c3312c2a3293a30f169d2a4d545aa96f8281a7b2d",
+      "bytes": 87198
+    },
+    {
+      "path": "data/hebrew-interlinear/deuteronomy/21.json",
+      "sha256": "fe5be9c19d5f77ca8959b292b7314bff566f5135917dd3ac39d1847fbde2c03e",
+      "bytes": 97581
+    },
+    {
+      "path": "data/hebrew-interlinear/deuteronomy/22.json",
+      "sha256": "ce67865f5a790b754f4f1c31a58377004039486433added778ccee7e4af465a1",
+      "bytes": 121988
+    },
+    {
+      "path": "data/hebrew-interlinear/deuteronomy/23.json",
+      "sha256": "7521172b5f08d75a88232992117eea8592f81ae207ce512459d553190da7f38c",
+      "bytes": 90615
+    },
+    {
+      "path": "data/hebrew-interlinear/deuteronomy/24.json",
+      "sha256": "6606f8071e2f1804fc336b822e12f80644264b9bb0c570be17466e8044dfb164",
+      "bytes": 90327
+    },
+    {
+      "path": "data/hebrew-interlinear/deuteronomy/25.json",
+      "sha256": "3af9856012fa52ffcfe5a47d42b0dbbfd3e81a1469a3d347f7bcb0353861c4b8",
+      "bytes": 72423
+    },
+    {
+      "path": "data/hebrew-interlinear/deuteronomy/26.json",
+      "sha256": "181d468a4d1903947a418a043ede3954e93268d97173ac444d5ff6527b983893",
+      "bytes": 92632
+    },
+    {
+      "path": "data/hebrew-interlinear/deuteronomy/27.json",
+      "sha256": "eceae782b81d12e7d814dbbc03764fb027ba463ff51b8364c61807ef232c27ca",
+      "bytes": 85961
+    },
+    {
+      "path": "data/hebrew-interlinear/deuteronomy/28.json",
+      "sha256": "f2e90d79dd0ba8718628998a854b58e724111cc24790bea7b3df623f5c741850",
+      "bytes": 280179
+    },
+    {
+      "path": "data/hebrew-interlinear/deuteronomy/29.json",
+      "sha256": "704e81dbe6855281d8ce1922decedee4acb4cd6222de8639b3cd483b9977b03a",
+      "bytes": 122262
+    },
+    {
+      "path": "data/hebrew-interlinear/deuteronomy/3.json",
+      "sha256": "50cf419e445e8f0bbc9e4b00d7cf82b2f7795963eaed6a1e4e2db8e80957a61b",
+      "bytes": 125510
+    },
+    {
+      "path": "data/hebrew-interlinear/deuteronomy/30.json",
+      "sha256": "ef171d552a205bc5831ec9d38ae4d8efb661b1b5d405f66355c2cb575fc7e1e1",
+      "bytes": 95019
+    },
+    {
+      "path": "data/hebrew-interlinear/deuteronomy/31.json",
+      "sha256": "888efcae86d75fc95c1f401811717c9eb08efbc010b6f723333c201ac64c4aec",
+      "bytes": 150174
+    },
+    {
+      "path": "data/hebrew-interlinear/deuteronomy/32.json",
+      "sha256": "fc2bd76eee96d36bf84d14951334f6b38e753ff4c330067fcd0970f80fb3667a",
+      "bytes": 163709
+    },
+    {
+      "path": "data/hebrew-interlinear/deuteronomy/33.json",
+      "sha256": "ff729f49213591d65b79622708e0d747c2d031cd78f46edfb9cb7bd137053055",
+      "bytes": 93235
+    },
+    {
+      "path": "data/hebrew-interlinear/deuteronomy/34.json",
+      "sha256": "06c9c189f6bca696cf3b2436b28aaaac45bfe6f8b9bb3012b78807fada43a889",
+      "bytes": 46569
+    },
+    {
+      "path": "data/hebrew-interlinear/deuteronomy/4.json",
+      "sha256": "5698b1d3d85e00ff99798186033ed75d0555093799281f816dcb34728885f411",
+      "bytes": 222569
+    },
+    {
+      "path": "data/hebrew-interlinear/deuteronomy/5.json",
+      "sha256": "2b8c14458a6086d0cb7c205d922a20d5169d82092a9fa179933dc4bf83fafeb8",
+      "bytes": 129202
+    },
+    {
+      "path": "data/hebrew-interlinear/deuteronomy/6.json",
+      "sha256": "6239fcb67ffc7643a29a906c513b1f13ac9677e99cb3b5248da1740b43e346bc",
+      "bytes": 89888
+    },
+    {
+      "path": "data/hebrew-interlinear/deuteronomy/7.json",
+      "sha256": "f8ca925a21ae6de512f7f9461ccd70edc9d4973034cb0e16fad6995fc019b1e6",
+      "bytes": 117038
+    },
+    {
+      "path": "data/hebrew-interlinear/deuteronomy/8.json",
+      "sha256": "2eec76a51ff798e70b12aad250de1f39b53805a04e8f9723d6e36a3cb15a6ba9",
+      "bytes": 81366
+    },
+    {
+      "path": "data/hebrew-interlinear/deuteronomy/9.json",
+      "sha256": "4b913e05ef6644bdbfa709de2d418bb400e2020ee715380704c7faff5f28621e",
+      "bytes": 138052
+    },
+    {
+      "path": "data/hebrew-interlinear/ecclesiastes/1.json",
+      "sha256": "a0bfa6c64bec5ab20f329e197fd640d369d608f3c1a1dc646da2d738ba0ab60c",
+      "bytes": 56627
+    },
+    {
+      "path": "data/hebrew-interlinear/ecclesiastes/10.json",
+      "sha256": "1034c3a0cde292f76b3b29978105d1def2a964394607f8e134ec6ee6c503a291",
+      "bytes": 54330
+    },
+    {
+      "path": "data/hebrew-interlinear/ecclesiastes/11.json",
+      "sha256": "c56e92ec8748532d1d71f3c03e04f47387a7590b1944b72fac8a77d396cb03fc",
+      "bytes": 38855
+    },
+    {
+      "path": "data/hebrew-interlinear/ecclesiastes/12.json",
+      "sha256": "dd709308bfd1317ab0bca38b05e9028ad613457dd66defa320b9be5b14a6e127",
+      "bytes": 50992
+    },
+    {
+      "path": "data/hebrew-interlinear/ecclesiastes/2.json",
+      "sha256": "ae3c0eed4ce8107eaeaf4d75780d8027e6d82880de888a590235a4cdd38df0ba",
+      "bytes": 104974
+    },
+    {
+      "path": "data/hebrew-interlinear/ecclesiastes/3.json",
+      "sha256": "0cbae6eb7e952cf010de6ed355e9b8c933ab861156c6596b7a55c3bfd2e7dfef",
+      "bytes": 73491
+    },
+    {
+      "path": "data/hebrew-interlinear/ecclesiastes/4.json",
+      "sha256": "73c22e4a68d2c2ac795abcb420bc03c96e975c9cbca15fcbf048c569128f1a67",
+      "bytes": 62149
+    },
+    {
+      "path": "data/hebrew-interlinear/ecclesiastes/5.json",
+      "sha256": "c34a9be01d5d685fd0062327036ea3b37f91f32d59cca75b82153657ba367dab",
+      "bytes": 71787
+    },
+    {
+      "path": "data/hebrew-interlinear/ecclesiastes/6.json",
+      "sha256": "63ac3f7ab62dacad6e1ccc7f1e251fcf74a1fc3cc5cbf07d7d5008b8939a0b99",
+      "bytes": 44768
+    },
+    {
+      "path": "data/hebrew-interlinear/ecclesiastes/7.json",
+      "sha256": "de039682853a563bd4d12c6e8148e052029ba89597d338513acd400a08d54619",
+      "bytes": 85393
+    },
+    {
+      "path": "data/hebrew-interlinear/ecclesiastes/8.json",
+      "sha256": "8075875730243d8c3877f276429e84e72ed8a9f11db56304bee690ab71884dbc",
+      "bytes": 73250
+    },
+    {
+      "path": "data/hebrew-interlinear/ecclesiastes/9.json",
+      "sha256": "591c56433c49800d94b00c13d2203731716dd191eb9b5538db6e8cb1aa845e7d",
+      "bytes": 83729
+    },
+    {
+      "path": "data/hebrew-interlinear/esther/1.json",
+      "sha256": "e1a9eb03d9a1bb57d147ef1bcc9fa0e105e92c39ad671c52689ffde5805c09ad",
+      "bytes": 101820
+    },
+    {
+      "path": "data/hebrew-interlinear/esther/10.json",
+      "sha256": "93025f83ce07c529dfd81166bcc9a858564174f2a4fa5620594db1d0fe2c506d",
+      "bytes": 13388
+    },
+    {
+      "path": "data/hebrew-interlinear/esther/2.json",
+      "sha256": "8ea98182a5e3f8e21c9239e773c91e88d070962b50d8e964a445b6d87ad3b1b0",
+      "bytes": 116918
+    },
+    {
+      "path": "data/hebrew-interlinear/esther/3.json",
+      "sha256": "14610d092d556ec20571e4ea29d51a51d30c3518358f794e5b390571f2551d2a",
+      "bytes": 82547
+    },
+    {
+      "path": "data/hebrew-interlinear/esther/4.json",
+      "sha256": "9bce1569da448f8b214c1d16a7254f4d59d9c7b2ad979edb03d20a179f99e3c6",
+      "bytes": 76415
+    },
+    {
+      "path": "data/hebrew-interlinear/esther/5.json",
+      "sha256": "3ec7f99ad70248393d92e4ddcd641743b6ace30a57ea65e354c56e72a013f9cf",
+      "bytes": 70903
+    },
+    {
+      "path": "data/hebrew-interlinear/esther/6.json",
+      "sha256": "e7bc77f286415055cb25d3382171ba23c6a4eb91c538d5b62b9e4fac977aa069",
+      "bytes": 71595
+    },
+    {
+      "path": "data/hebrew-interlinear/esther/7.json",
+      "sha256": "3a08568d26ef91abaf791e31229f32b6cfddfbac21036713aa97dd24380a289f",
+      "bytes": 51150
+    },
+    {
+      "path": "data/hebrew-interlinear/esther/8.json",
+      "sha256": "afb56cd097399948cbfe6a48f6537d47fed09d5c2b5040e3e53e2c3b95dabdbc",
+      "bytes": 97119
+    },
+    {
+      "path": "data/hebrew-interlinear/esther/9.json",
+      "sha256": "ed6336048a757dd4d5d632fb792bf63eb34c713301cd444caa00137aa1207903",
+      "bytes": 149512
+    },
+    {
+      "path": "data/hebrew-interlinear/exodus/1.json",
+      "sha256": "c47dccecf0b2a8979332bc08946c81bbf56e2d9ff8c0d4e1ff8e4b7782418f6c",
+      "bytes": 64418
+    },
+    {
+      "path": "data/hebrew-interlinear/exodus/10.json",
+      "sha256": "71bda3649d3996095595956964e343717189f2a2179412374710acb179176adc",
+      "bytes": 127454
+    },
+    {
+      "path": "data/hebrew-interlinear/exodus/11.json",
+      "sha256": "12c8bd2824c19896f94b5da269fa180c5aaa30a54f02372fa8db28f989738d08",
+      "bytes": 44704
+    },
+    {
+      "path": "data/hebrew-interlinear/exodus/12.json",
+      "sha256": "eba9a2371b3be1d5482cf8988d8bc36c2c3af595dab677b2f5ac93bd787bc5ed",
+      "bytes": 198730
+    },
+    {
+      "path": "data/hebrew-interlinear/exodus/13.json",
+      "sha256": "7c0e2a6b260c2b759a04bf1c444217eb1442d79f68c65371a1d065de079c76a8",
+      "bytes": 87177
+    },
+    {
+      "path": "data/hebrew-interlinear/exodus/14.json",
+      "sha256": "60857b4d03c3f7f3c56be5e9d887c48f9e35ead81c05861a24290b4ac7ccdfdf",
+      "bytes": 127292
+    },
+    {
+      "path": "data/hebrew-interlinear/exodus/15.json",
+      "sha256": "2cebb24fc495a84326471ea0a9962e2c0e5772d673047b8b8e11f1f85144a104",
+      "bytes": 86202
+    },
+    {
+      "path": "data/hebrew-interlinear/exodus/16.json",
+      "sha256": "c228f613fef8a2a940ba2d4bbf51c878fe3ba131c02be0532ee9b8587f73043c",
+      "bytes": 144252
+    },
+    {
+      "path": "data/hebrew-interlinear/exodus/17.json",
+      "sha256": "3a3d4341498353f03f9385dc48be7dd20fd9377be12861ec0dbaf0301f81ad1b",
+      "bytes": 65366
+    },
+    {
+      "path": "data/hebrew-interlinear/exodus/18.json",
+      "sha256": "4c3e1efc9acfa0b9b8409c574633bcd5fefa08663abbbdbab6f4fdd3bb5feef5",
+      "bytes": 108646
+    },
+    {
+      "path": "data/hebrew-interlinear/exodus/19.json",
+      "sha256": "2d0bb7a19491e903e352be6787315034a275ccfbae2d2bdcbbe673e8ff2ba42c",
+      "bytes": 97966
+    },
+    {
+      "path": "data/hebrew-interlinear/exodus/2.json",
+      "sha256": "a5fcd71448078f5ffd38db47975b6aaebb567b0c55edc3e6e9b86a246a87ca3d",
+      "bytes": 92346
+    },
+    {
+      "path": "data/hebrew-interlinear/exodus/20.json",
+      "sha256": "ddd9f581b63eb74ecc197ec36eef0d01d2c416e832f7c655e6a9ff586de228d7",
+      "bytes": 82272
+    },
+    {
+      "path": "data/hebrew-interlinear/exodus/21.json",
+      "sha256": "00640b4ec80b95ecc7ee590259f0859ae3465a33052bc113842b783726a560f9",
+      "bytes": 117594
+    },
+    {
+      "path": "data/hebrew-interlinear/exodus/22.json",
+      "sha256": "369092b6454245330089d30356f3dd5a4d96b772df8b00b1f4b0726167ddfc80",
+      "bytes": 92789
+    },
+    {
+      "path": "data/hebrew-interlinear/exodus/23.json",
+      "sha256": "372085cbd2b9b17234f61eb0d666384ece3d69aba5cbf46ce10391fda006cd46",
+      "bytes": 107283
+    },
+    {
+      "path": "data/hebrew-interlinear/exodus/24.json",
+      "sha256": "c5c858a3d5e2a465c92a99d554f489445a95391ed5178fdfde5a28797d8f49da",
+      "bytes": 66701
+    },
+    {
+      "path": "data/hebrew-interlinear/exodus/25.json",
+      "sha256": "d11c600ef205ebdbd9ad200cf19261320abfe379a51e77de35f3439430d1d20d",
+      "bytes": 120579
+    },
+    {
+      "path": "data/hebrew-interlinear/exodus/26.json",
+      "sha256": "77bf08bf7450b52d51b4b05bee041e53d5452532d48c3e5b0cb762ed8bf4c0d7",
+      "bytes": 132101
+    },
+    {
+      "path": "data/hebrew-interlinear/exodus/27.json",
+      "sha256": "7a881d69114591b523678f39d9b6f4717d42667ab4e00287a1e4a983ddfd3f53",
+      "bytes": 73009
+    },
+    {
+      "path": "data/hebrew-interlinear/exodus/28.json",
+      "sha256": "9980b6bdeace6a030569de1321d92d3c0549f0a74ababc75135ea7df8013622a",
+      "bytes": 157768
+    },
+    {
+      "path": "data/hebrew-interlinear/exodus/29.json",
+      "sha256": "df3b54c7ae3d51c0c654eee591793bf3f43ccd6f5e8024c99d3aac35d1b37ca5",
+      "bytes": 176873
+    },
+    {
+      "path": "data/hebrew-interlinear/exodus/3.json",
+      "sha256": "7470e4154f6b3b0fc9961fd53786e6e1d1b075714f87e791a23decff91f29ce4",
+      "bytes": 103365
+    },
+    {
+      "path": "data/hebrew-interlinear/exodus/30.json",
+      "sha256": "9a7cdf0ff6a755f3b7cb9b7fbf1f7392b52ba37dc4948467c0fe4892d9181549",
+      "bytes": 124652
+    },
+    {
+      "path": "data/hebrew-interlinear/exodus/31.json",
+      "sha256": "1cebcfffd49b453335401c94fb7ea2f7f87e0d4f8ad8586b768306267002768c",
+      "bytes": 61632
+    },
+    {
+      "path": "data/hebrew-interlinear/exodus/32.json",
+      "sha256": "d7c3a2c0a555c07e32fc2ef4c8c058c8f49dd9cdce21baac41b14da67d9755f9",
+      "bytes": 144797
+    },
+    {
+      "path": "data/hebrew-interlinear/exodus/33.json",
+      "sha256": "bb5ddc4e1a0ccdd8bfc75030778e0a69d0ddd6212769073668f1c6661e798735",
+      "bytes": 93413
+    },
+    {
+      "path": "data/hebrew-interlinear/exodus/34.json",
+      "sha256": "264bb68c76dc7a445c72f9c0273055939b055d9d709c78cfe1829b728b55a8c4",
+      "bytes": 140809
+    },
+    {
+      "path": "data/hebrew-interlinear/exodus/35.json",
+      "sha256": "e66ef54d1911ffeff849738f92adba1d82a7556188c07555de379670c2d40d1b",
+      "bytes": 118404
+    },
+    {
+      "path": "data/hebrew-interlinear/exodus/36.json",
+      "sha256": "e062b341054c928c211e6256da71bf89662f22631d1a1e9de6e115473146ff70",
+      "bytes": 138904
+    },
+    {
+      "path": "data/hebrew-interlinear/exodus/37.json",
+      "sha256": "27488053a34b8e4d5f5943065aac13f33e264b2607b61567d7033d654039c5d3",
+      "bytes": 99629
+    },
+    {
+      "path": "data/hebrew-interlinear/exodus/38.json",
+      "sha256": "84148462fa1da1b438fcaeb639e89f089d0406ef24c4859c8f05545663bc7031",
+      "bytes": 113549
+    },
+    {
+      "path": "data/hebrew-interlinear/exodus/39.json",
+      "sha256": "e3a38877f9235c3a4662ebdc2c2249a60ec64caf1ea324dba90688d8aa1d6780",
+      "bytes": 149618
+    },
+    {
+      "path": "data/hebrew-interlinear/exodus/4.json",
+      "sha256": "523af28ec94cd569bc51a33a84a82e16dcb217a01f1b72ca2ba6122b0b64e2e0",
+      "bytes": 120901
+    },
+    {
+      "path": "data/hebrew-interlinear/exodus/40.json",
+      "sha256": "826faeacd225b24ecd84ed8a34664c396fc7be7ce8ef7d9fb90fb79bd21a6241",
+      "bytes": 116793
+    },
+    {
+      "path": "data/hebrew-interlinear/exodus/5.json",
+      "sha256": "3ebdfe498f69e5f9cb887e2f589c4f3e791255a6edf861b7c9adc4ca80ece863",
+      "bytes": 84235
+    },
+    {
+      "path": "data/hebrew-interlinear/exodus/6.json",
+      "sha256": "d65727e2f5cd81f45666245b66f12d9c270ae226a0c1a39f0a7d865ede9abad8",
+      "bytes": 103521
+    },
+    {
+      "path": "data/hebrew-interlinear/exodus/7.json",
+      "sha256": "3de38b2149a125125ad259345349325707bde447c5aa86bbe3b5851790908297",
+      "bytes": 111393
+    },
+    {
+      "path": "data/hebrew-interlinear/exodus/8.json",
+      "sha256": "e16aa0f370cd0d86d83efe76ef1bdf1798c2507aa9e0e75f7a1e20f5b61f166e",
+      "bytes": 114494
+    },
+    {
+      "path": "data/hebrew-interlinear/exodus/9.json",
+      "sha256": "0369be1a67c963f7527abf208a7f8df1a13a293f253082115324fef996ce63ac",
+      "bytes": 137729
+    },
+    {
+      "path": "data/hebrew-interlinear/ezekiel/1.json",
+      "sha256": "945fa1dae12fb1e9ef41595723201e8928b6b694acfcde5586b2cea5fb103139",
+      "bytes": 108792
+    },
+    {
+      "path": "data/hebrew-interlinear/ezekiel/10.json",
+      "sha256": "ad44375ede413301352ea3762290a9fd042d5a5e835504e34b17318907666c44",
+      "bytes": 86891
+    },
+    {
+      "path": "data/hebrew-interlinear/ezekiel/11.json",
+      "sha256": "91a2debac1b23387c135464ba8c5345b2bab568e7c8764ee61e5a453b3dadad0",
+      "bytes": 95032
+    },
+    {
+      "path": "data/hebrew-interlinear/ezekiel/12.json",
+      "sha256": "61325fdfaea0ac289396a807c29c76dba519031f179b814df30366bb7218eba3",
+      "bytes": 106073
+    },
+    {
+      "path": "data/hebrew-interlinear/ezekiel/13.json",
+      "sha256": "910cf551c2762f1246d334710e3167b6a62a34c6b311b629bef471bb252816a9",
+      "bytes": 95569
+    },
+    {
+      "path": "data/hebrew-interlinear/ezekiel/14.json",
+      "sha256": "c30bbdb4cbc4887b72634eabf5991bad2f369ea307ffb99c958f694472658d4c",
+      "bytes": 105685
+    },
+    {
+      "path": "data/hebrew-interlinear/ezekiel/15.json",
+      "sha256": "30a5c9c6ebf50149a073ee3b6af6069a70f526c1512ebef19c514a283c6bf493",
+      "bytes": 27467
+    },
+    {
+      "path": "data/hebrew-interlinear/ezekiel/16.json",
+      "sha256": "00dd79a47b7fd0335adbe4388d200fa48cf1b1c0162e98f13d370ddc2a4a939e",
+      "bytes": 240389
+    },
+    {
+      "path": "data/hebrew-interlinear/ezekiel/17.json",
+      "sha256": "564bcf5d534b7f150a2d57bf3691e63da121d44d9c8fd38e216dad45259d2eea",
+      "bytes": 102082
+    },
+    {
+      "path": "data/hebrew-interlinear/ezekiel/18.json",
+      "sha256": "90d568d4ad46b86adbf9e3ef4918e8d0052ef6653c77be9e8b6b049f331a8402",
+      "bytes": 123544
+    },
+    {
+      "path": "data/hebrew-interlinear/ezekiel/19.json",
+      "sha256": "4067adf54fc3611000cac4460bbcf0419289bfa47f48ea38345d1c6f7c9a23c7",
+      "bytes": 43891
+    },
+    {
+      "path": "data/hebrew-interlinear/ezekiel/2.json",
+      "sha256": "bceed9b383547fa7217cde3e935f1403c09d4b9a0c366a69271cdd3c0656380a",
+      "bytes": 40123
+    },
+    {
+      "path": "data/hebrew-interlinear/ezekiel/20.json",
+      "sha256": "83fc758f2e57e2f8994dd7678588427a23eb42c591dedf6b50f6a8672aa05ac7",
+      "bytes": 200149
+    },
+    {
+      "path": "data/hebrew-interlinear/ezekiel/21.json",
+      "sha256": "130510f1ca1cdc4b75ed170578d0af7d998feb03ef2b421b5f5d2a663c4ee719",
+      "bytes": 135805
+    },
+    {
+      "path": "data/hebrew-interlinear/ezekiel/22.json",
+      "sha256": "e55df61dc4bea9101ff65f311ba9fe33d6f459cdc986f87c3df52f7b57b7eece",
+      "bytes": 106538
+    },
+    {
+      "path": "data/hebrew-interlinear/ezekiel/23.json",
+      "sha256": "33df5e1643125d96122e4ecd20670a3b63e0ccf75187bb7c65961b5686494011",
+      "bytes": 174671
+    },
+    {
+      "path": "data/hebrew-interlinear/ezekiel/24.json",
+      "sha256": "140557c4101460d5b5f2ccb07caf0e3f8929a1acb6eb67a49ad3cc806965492c",
+      "bytes": 101046
+    },
+    {
+      "path": "data/hebrew-interlinear/ezekiel/25.json",
+      "sha256": "9d5d2c44c1f490e69132ae6a41c7a03ceba73e1db92e825b6d167453513c3f74",
+      "bytes": 69606
+    },
+    {
+      "path": "data/hebrew-interlinear/ezekiel/26.json",
+      "sha256": "eeb74d2ed6ab0f6e5c448dcd4fb8d4b11715226e843c56d91555557f6e3b189d",
+      "bytes": 85149
+    },
+    {
+      "path": "data/hebrew-interlinear/ezekiel/27.json",
+      "sha256": "c72cb7dadf0967a25d2b550646e80520d6bbb30038e5e05ee8683cf4c50ee228",
+      "bytes": 113309
+    },
+    {
+      "path": "data/hebrew-interlinear/ezekiel/28.json",
+      "sha256": "38dea97fb29d206e062d71e9ba0aa86bee074464f7a04c559db0630dc3a9b1aa",
+      "bytes": 96143
+    },
+    {
+      "path": "data/hebrew-interlinear/ezekiel/29.json",
+      "sha256": "d767e75a074ab882f2790e9dde738f7ce4c3474594e4e49fb05a40305c46a0f2",
+      "bytes": 92141
+    },
+    {
+      "path": "data/hebrew-interlinear/ezekiel/3.json",
+      "sha256": "22ac14de19cc6d2e8c5e70c37a5bc42088e8e82bcb3b8f6ac8fc70819b6a754c",
+      "bytes": 108777
+    },
+    {
+      "path": "data/hebrew-interlinear/ezekiel/30.json",
+      "sha256": "5f07d7e86c58f403e1a110852a341fc9f2e20f0d5d55323972b9515d2ad0f743",
+      "bytes": 91873
+    },
+    {
+      "path": "data/hebrew-interlinear/ezekiel/31.json",
+      "sha256": "dc02d85551ddc1753263bcf1ed85009e42ab0451ff34fbb45a7f66ecc974bdf6",
+      "bytes": 82594
+    },
+    {
+      "path": "data/hebrew-interlinear/ezekiel/32.json",
+      "sha256": "b1ea9e2f890dc2244a5c98a911fb721b50e92d683aef9719c5fa7e3839820ea2",
+      "bytes": 129489
+    },
+    {
+      "path": "data/hebrew-interlinear/ezekiel/33.json",
+      "sha256": "ca089988aedb0707575d4cb935f0e26b8350081e1a0d942f0ec47356032da58d",
+      "bytes": 140843
+    },
+    {
+      "path": "data/hebrew-interlinear/ezekiel/34.json",
+      "sha256": "c2eacb40109d9a2ecd432369d4a21b46a99f76e344e9ddd106e9ad0d4fc3d94c",
+      "bytes": 124563
+    },
+    {
+      "path": "data/hebrew-interlinear/ezekiel/35.json",
+      "sha256": "94b19ed7e1ae91f5a060d644d9abf27ed38caafe952ea1d0aaa096e44abd5468",
+      "bytes": 51699
+    },
+    {
+      "path": "data/hebrew-interlinear/ezekiel/36.json",
+      "sha256": "6356aa029c922a25afa9f7da2ce8f49d4de1238115df69c5bb397918ef0d316e",
+      "bytes": 156978
+    },
+    {
+      "path": "data/hebrew-interlinear/ezekiel/37.json",
+      "sha256": "df27ad21e122ac504cbf34a948c852940cb10bcc0b425d12c18f56fb7633c792",
+      "bytes": 122928
+    },
+    {
+      "path": "data/hebrew-interlinear/ezekiel/38.json",
+      "sha256": "39053a14273e2d98e0dabaa474f3b67f401ec297230a7914e30a570cddb9998f",
+      "bytes": 100582
+    },
+    {
+      "path": "data/hebrew-interlinear/ezekiel/39.json",
+      "sha256": "f5442e94580faba89b84d8520b9e817e1bd18c41f1e1d741846c2b5df2ddaf9c",
+      "bytes": 116087
+    },
+    {
+      "path": "data/hebrew-interlinear/ezekiel/4.json",
+      "sha256": "9091db89621a82f6639880004c68d3f83fa759d6745d12ce51f9a7da2e76b5f2",
+      "bytes": 71678
+    },
+    {
+      "path": "data/hebrew-interlinear/ezekiel/40.json",
+      "sha256": "931d48c8d74dace84eac5a819599c9a11bf356ce034186d143dc8d5309fe965c",
+      "bytes": 212996
+    },
+    {
+      "path": "data/hebrew-interlinear/ezekiel/41.json",
+      "sha256": "58748a4e8708f360dcb37564eb0ed1ada1506b9b138c0178a9526a2f3c85060f",
+      "bytes": 103843
+    },
+    {
+      "path": "data/hebrew-interlinear/ezekiel/42.json",
+      "sha256": "b72d00f62e23ecf66097292a24cc3b4ecd59cc09fdafd991b1bec79be4a8651d",
+      "bytes": 80956
+    },
+    {
+      "path": "data/hebrew-interlinear/ezekiel/43.json",
+      "sha256": "6bcf119b9f922077fb03d7371cb2162394685d516148827169e83216f65dd613",
+      "bytes": 116320
+    },
+    {
+      "path": "data/hebrew-interlinear/ezekiel/44.json",
+      "sha256": "fa4e2546329a25072fc324286850cbe962112083d22664552c63335cf62c9284",
+      "bytes": 137149
+    },
+    {
+      "path": "data/hebrew-interlinear/ezekiel/45.json",
+      "sha256": "622d9bb8907450372780d5b6abc27ab22ecc1686bddca24ee470a8569786959e",
+      "bytes": 110955
+    },
+    {
+      "path": "data/hebrew-interlinear/ezekiel/46.json",
+      "sha256": "7ffd8969583ec8806b4aa6e87fca8b5b5586c818b111e7db6a0b6a9b5e3762a3",
+      "bytes": 108133
+    },
+    {
+      "path": "data/hebrew-interlinear/ezekiel/47.json",
+      "sha256": "ac168392e40e953364f167f25ad50becfd6c5137d488f653a9faeda262e37b9c",
+      "bytes": 99961
+    },
+    {
+      "path": "data/hebrew-interlinear/ezekiel/48.json",
+      "sha256": "c31a6bf3029e6ab0d06acd0ea2331ba5744e48fa7ce4ccc48ddcb045d15765b6",
+      "bytes": 144924
+    },
+    {
+      "path": "data/hebrew-interlinear/ezekiel/5.json",
+      "sha256": "ea909d64d8055ddb49a406cdbecb8af77073e923602d35b6ba16191b7b49684e",
+      "bytes": 79855
+    },
+    {
+      "path": "data/hebrew-interlinear/ezekiel/6.json",
+      "sha256": "8e88ef30ef64b899f2fcdf136c1e64ef4581f77111bbfe1a31401355b82c6a44",
+      "bytes": 60019
+    },
+    {
+      "path": "data/hebrew-interlinear/ezekiel/7.json",
+      "sha256": "0f7e349ca17f694ab5e13fc33969d2d0078c0bca2ead6356983f6149d792f7cb",
+      "bytes": 94828
+    },
+    {
+      "path": "data/hebrew-interlinear/ezekiel/8.json",
+      "sha256": "d8ea9a0aa2d1825048d0e8625245687f3c10a7beee01af7bd4923379032f3cec",
+      "bytes": 85922
+    },
+    {
+      "path": "data/hebrew-interlinear/ezekiel/9.json",
+      "sha256": "8b2e1f689482d88aec6a41b7a4e1cd15a3064bd459cd340a5e09cc232c3dc884",
+      "bytes": 55809
+    },
+    {
+      "path": "data/hebrew-interlinear/ezra/1.json",
+      "sha256": "6462e17d14744a9747e645768ade3d0cd81e85d5d6f73b2f30f5d6db32c07e8a",
+      "bytes": 50479
+    },
+    {
+      "path": "data/hebrew-interlinear/ezra/10.json",
+      "sha256": "1c0c88a9ed3ba98b067059d4d44c434c6732e9f984f8dba084f17bf32080af9a",
+      "bytes": 129050
+    },
+    {
+      "path": "data/hebrew-interlinear/ezra/2.json",
+      "sha256": "b5ed07f9fde3151a9c6b1760f6828cf76d1b939e49175589b825227fb276efc4",
+      "bytes": 137947
+    },
+    {
+      "path": "data/hebrew-interlinear/ezra/3.json",
+      "sha256": "0dedfd40d827a54bcc5b32cf6a93024112add1dfb09d32596cdf80f367cde17f",
+      "bytes": 70638
+    },
+    {
+      "path": "data/hebrew-interlinear/ezra/4.json",
+      "sha256": "bbdc5e82dfbb0d4dbd087263ec1aacb3ec7f0821dda5c41f2cc86991324a4068",
+      "bytes": 108669
+    },
+    {
+      "path": "data/hebrew-interlinear/ezra/5.json",
+      "sha256": "5ded50699bd25e9d5b5cc9877616ab43d73168bba9a3477dd67746c20cdbd4e7",
+      "bytes": 87421
+    },
+    {
+      "path": "data/hebrew-interlinear/ezra/6.json",
+      "sha256": "46473aa2ff91f63499f8a896b457b99f1e975a49787704fe30c433d69f80f21b",
+      "bytes": 104511
+    },
+    {
+      "path": "data/hebrew-interlinear/ezra/7.json",
+      "sha256": "e8a53aa67ecdf8a9ca406ef5cd702fecb82c36078ef2cbe8d3e9ca77b8edc334",
+      "bytes": 115760
+    },
+    {
+      "path": "data/hebrew-interlinear/ezra/8.json",
+      "sha256": "f369874787260588cd5f24c7b328d3d37618672bb6bf1f4010aab7c60ae4154c",
+      "bytes": 132265
+    },
+    {
+      "path": "data/hebrew-interlinear/ezra/9.json",
+      "sha256": "6fa6268274804479218029d8c52c5206f8d72bfc469176dcb7e490c9a818ec8d",
+      "bytes": 82859
+    },
+    {
+      "path": "data/hebrew-interlinear/genesis/1.json",
+      "sha256": "b6603f5c952c6383dfdbb8ef9049a035349c596b0a052192d262c3e2dfcc8714",
+      "bytes": 117206
+    },
+    {
+      "path": "data/hebrew-interlinear/genesis/10.json",
+      "sha256": "0519c99bf5672d3f240f2dd79b98744fcc176f44d967b321336dede7e53e5be1",
+      "bytes": 77171
+    },
+    {
+      "path": "data/hebrew-interlinear/genesis/11.json",
+      "sha256": "ef3a7f1560bf143a74fe8eeea0d48f27943198244b9c5d3241d1df3dd369c64a",
+      "bytes": 99519
+    },
+    {
+      "path": "data/hebrew-interlinear/genesis/12.json",
+      "sha256": "62a39cf208d8775ad458d4d6a232ecb7287acbd2c3cbcdd90270113747c7a998",
+      "bytes": 72927
+    },
+    {
+      "path": "data/hebrew-interlinear/genesis/13.json",
+      "sha256": "2cd01dcbdf95aab0a409c203c937dcd7171141eb9587148ec24dc967f797da9a",
+      "bytes": 64280
+    },
+    {
+      "path": "data/hebrew-interlinear/genesis/14.json",
+      "sha256": "d3b4bcf7b7e9c038480e25620c35ce57cd66e5ad38452ce64a23a2b5e27a7825",
+      "bytes": 88525
+    },
+    {
+      "path": "data/hebrew-interlinear/genesis/15.json",
+      "sha256": "95936761f28283519c4c66cbcc490fec8d330187c18153d489997e4323c22db9",
+      "bytes": 68527
+    },
+    {
+      "path": "data/hebrew-interlinear/genesis/16.json",
+      "sha256": "8f1fa2fd2c5d2eafe0336164c2f946a9981b448b3b1588e2f173e9a6d820b4fd",
+      "bytes": 58449
+    },
+    {
+      "path": "data/hebrew-interlinear/genesis/17.json",
+      "sha256": "d7015229b0f958bf5c4369f3d542b4ac388bb40689a68cbb3dbf0e098db3580a",
+      "bytes": 96647
+    },
+    {
+      "path": "data/hebrew-interlinear/genesis/18.json",
+      "sha256": "b56a480547ea0af522e483a239fb126b4d952abb1eddb29a24eba0eff693df92",
+      "bytes": 116419
+    },
+    {
+      "path": "data/hebrew-interlinear/genesis/19.json",
+      "sha256": "005598ac9c04c291d63616a3dc2f9b5bcbce4fb41865a2cf5cdfc8624db4fc46",
+      "bytes": 152721
+    },
+    {
+      "path": "data/hebrew-interlinear/genesis/2.json",
+      "sha256": "820cf1ee68d616633bf1cfffae31825e3255123e04a888e60537bfc521d91f20",
+      "bytes": 87774
+    },
+    {
+      "path": "data/hebrew-interlinear/genesis/20.json",
+      "sha256": "3f67dbc573edbf2536eef58bcff82f9269c5ba8ee23a13589c08d2bcdb20af73",
+      "bytes": 73981
+    },
+    {
+      "path": "data/hebrew-interlinear/genesis/21.json",
+      "sha256": "67a58b82282f152693858883a5358652e6c4f36b0fe7bbd6ff436e490891b24f",
+      "bytes": 113531
+    },
+    {
+      "path": "data/hebrew-interlinear/genesis/22.json",
+      "sha256": "675589b812b8b27b2a2242de9bbed7295ea7dbd9ee658dc765d4c4b34de5168b",
+      "bytes": 96851
+    },
+    {
+      "path": "data/hebrew-interlinear/genesis/23.json",
+      "sha256": "361d5af6662415d937cce757849f301a877e263e820939fa6d59b7970048691e",
+      "bytes": 73048
+    },
+    {
+      "path": "data/hebrew-interlinear/genesis/24.json",
+      "sha256": "a26490e796024ccdc057e3f6bfd06a46fa83a61841f1798c73c9a7814e918467",
+      "bytes": 250347
+    },
+    {
+      "path": "data/hebrew-interlinear/genesis/25.json",
+      "sha256": "2fada767e2ea53304b068e2fe62ce67d71961428379453bcd58ba8cd72f5bfb9",
+      "bytes": 106639
+    },
+    {
+      "path": "data/hebrew-interlinear/genesis/26.json",
+      "sha256": "55bf110cd6bf3479600a1f8f92f28fb09c1210d42230a65780819159cd1cc710",
+      "bytes": 126362
+    },
+    {
+      "path": "data/hebrew-interlinear/genesis/27.json",
+      "sha256": "39a3b31a625c095e672e78c79abdeaa66b622b9e202f5dba50e49ccbc7168d22",
+      "bytes": 173801
+    },
+    {
+      "path": "data/hebrew-interlinear/genesis/28.json",
+      "sha256": "b6be267bc7d22dde85e79bd1099355dcddc4b4d650c2df2236f64cc2afffb043",
+      "bytes": 86809
+    },
+    {
+      "path": "data/hebrew-interlinear/genesis/29.json",
+      "sha256": "d580558a1533a3b2c67a0ef5d4d8aa71985ead544bf9cb406150f1b0462d41d6",
+      "bytes": 123283
+    },
+    {
+      "path": "data/hebrew-interlinear/genesis/3.json",
+      "sha256": "9a83c5b28ee9e355c4f2ac6ea23059e16789469a7ec66810dac1158f2a9d8124",
+      "bytes": 92615
+    },
+    {
+      "path": "data/hebrew-interlinear/genesis/30.json",
+      "sha256": "ec17f66d7ff0ddd0eada6a94f10a8a1379c0ae4f480603ec8abb542c77a388fd",
+      "bytes": 150768
+    },
+    {
+      "path": "data/hebrew-interlinear/genesis/31.json",
+      "sha256": "41f87c5aaab1ad851193d3af52c7ab4e2c4f934b4433327be6528d28da908ec9",
+      "bytes": 203615
+    },
+    {
+      "path": "data/hebrew-interlinear/genesis/32.json",
+      "sha256": "4fab54eef3231f4729eb84a6630a68ad6e683af1ea77d7344fe3dc35841d34c3",
+      "bytes": 122560
+    },
+    {
+      "path": "data/hebrew-interlinear/genesis/33.json",
+      "sha256": "e1687ad452f65f24bf179eb1eef1244c2f3f1de101e92404d45482ef9d5c1df3",
+      "bytes": 72178
+    },
+    {
+      "path": "data/hebrew-interlinear/genesis/34.json",
+      "sha256": "301c804d91764960891142c4a9374625df21eceffe3c1cbdf00766bc7d939cc3",
+      "bytes": 113781
+    },
+    {
+      "path": "data/hebrew-interlinear/genesis/35.json",
+      "sha256": "e74ea015306d28c4350a942b8a069ff8f61f98776b4b54c8f51875a504c82d54",
+      "bytes": 99488
+    },
+    {
+      "path": "data/hebrew-interlinear/genesis/36.json",
+      "sha256": "e7fa5f3deb5c6334585dac60f0e738ec660cf04981e8672eac516cfcbd314c66",
+      "bytes": 122927
+    },
+    {
+      "path": "data/hebrew-interlinear/genesis/37.json",
+      "sha256": "5c251c2080c2e5d30b971acc23c577193fb67628f9d60b2ef35ba251b79cd4f6",
+      "bytes": 134526
+    },
+    {
+      "path": "data/hebrew-interlinear/genesis/38.json",
+      "sha256": "61a26c3f91e006b374b3f20e8df55e54d6ce5105297f752577bc3b0b20e6feb7",
+      "bytes": 109692
+    },
+    {
+      "path": "data/hebrew-interlinear/genesis/39.json",
+      "sha256": "0753967d013b44736c3e8147b2f29bda97f4fb0b0fa8672d033f005901730f7c",
+      "bytes": 95589
+    },
+    {
+      "path": "data/hebrew-interlinear/genesis/4.json",
+      "sha256": "5484ceaa6aca8d20413859d91105fdb6340c173bd9b009ce5b806c228a0a2ff4",
+      "bytes": 87362
+    },
+    {
+      "path": "data/hebrew-interlinear/genesis/40.json",
+      "sha256": "3c451773c46c29891ddcef4b669dc7901c341b916d2bd1ee24e27317cce223f4",
+      "bytes": 84024
+    },
+    {
+      "path": "data/hebrew-interlinear/genesis/41.json",
+      "sha256": "61d734718ff0b016227843d7384814d261b7eb25c28848b1a3c65938d2914fe1",
+      "bytes": 203012
+    },
+    {
+      "path": "data/hebrew-interlinear/genesis/42.json",
+      "sha256": "c4785668cca2322bd74131e13982bab480936a759c6105067299631f8a51b221",
+      "bytes": 140696
+    },
+    {
+      "path": "data/hebrew-interlinear/genesis/43.json",
+      "sha256": "01a4b60c532bfd7af8011f100f1c074fcc9a674f4b43198eb918e2ccac5af183",
+      "bytes": 135210
+    },
+    {
+      "path": "data/hebrew-interlinear/genesis/44.json",
+      "sha256": "29bb8db70de211b3d8ab4f4156cce52cac4ea36e8e92871891c260d45f859b41",
+      "bytes": 123530
+    },
+    {
+      "path": "data/hebrew-interlinear/genesis/45.json",
+      "sha256": "0cf24305558c44fbc904de10b7982a6a531734fc3cbcf6e50864b5ededd1fc67",
+      "bytes": 106049
+    },
+    {
+      "path": "data/hebrew-interlinear/genesis/46.json",
+      "sha256": "a56d5538357e953673c08575072e7b4b286c6c134bf06532c053ed1572ef4f3f",
+      "bytes": 109750
+    },
+    {
+      "path": "data/hebrew-interlinear/genesis/47.json",
+      "sha256": "7e00a0eb1b4019a2033981c6f3631ae6c74abf735193fe059b172a29883d17a2",
+      "bytes": 139343
+    },
+    {
+      "path": "data/hebrew-interlinear/genesis/48.json",
+      "sha256": "64225140029c8b764bc90c30eb109af42b6cd37bf228a6d34540f9a6f8097529",
+      "bytes": 94926
+    },
+    {
+      "path": "data/hebrew-interlinear/genesis/49.json",
+      "sha256": "017a6a2e6ed5b847d04ded7b915139b5f47b10410c2d9ac2fc5cf5a13373980c",
+      "bytes": 98254
+    },
+    {
+      "path": "data/hebrew-interlinear/genesis/5.json",
+      "sha256": "b5dd1a0216f5dac843fbc679553a3b0fd3cb077d252fa740bfd512f6be0e58e9",
+      "bytes": 92557
+    },
+    {
+      "path": "data/hebrew-interlinear/genesis/50.json",
+      "sha256": "1573b750c47c981aeba8964d6f3785018d42284f993fd6499e940007fc903b35",
+      "bytes": 99238
+    },
+    {
+      "path": "data/hebrew-interlinear/genesis/6.json",
+      "sha256": "fc22b3309426196747854fff70298d37a214b81a909b20df168608da226f04db",
+      "bytes": 80704
+    },
+    {
+      "path": "data/hebrew-interlinear/genesis/7.json",
+      "sha256": "50d40edd8408db82d61c8a683b3a28a5466148861b0d87b525e5e2bed03e9785",
+      "bytes": 88738
+    },
+    {
+      "path": "data/hebrew-interlinear/genesis/8.json",
+      "sha256": "6e97eeee08a54a2feaf857716d69bc20b4730cba53e6f93ecbe48e5700fc28ce",
+      "bytes": 84477
+    },
+    {
+      "path": "data/hebrew-interlinear/genesis/9.json",
+      "sha256": "276f9c7cda505baa436239e2adc53943fe2028da9f440ca239e1d050aced498a",
+      "bytes": 93453
+    },
+    {
+      "path": "data/hebrew-interlinear/habakkuk/1.json",
+      "sha256": "b4cd9b8843091e2659b66f6cfbcc7f8fc3c3fb5e2e0b7f8c264bc7ab1b0af987",
+      "bytes": 53862
+    },
+    {
+      "path": "data/hebrew-interlinear/habakkuk/2.json",
+      "sha256": "8d6a7e13d10bdb944a239450c051c1cae86d8ad5b1647246ecf698bc50668ddc",
+      "bytes": 68666
+    },
+    {
+      "path": "data/hebrew-interlinear/habakkuk/3.json",
+      "sha256": "62759a9c377722f275e2e66553fad59235b9d56ebffc175a65b4b188841fdece",
+      "bytes": 57541
+    },
+    {
+      "path": "data/hebrew-interlinear/haggai/1.json",
+      "sha256": "af3d6fce03ea8ba741341c7ef9b8a999c17ecb693000760640708f9098925790",
+      "bytes": 63052
+    },
+    {
+      "path": "data/hebrew-interlinear/haggai/2.json",
+      "sha256": "b1ea93546575d81c5fcebba90ee52280b049db0d084e2b6b4ac4cf1576234310",
+      "bytes": 95559
+    },
+    {
+      "path": "data/hebrew-interlinear/hosea/1.json",
+      "sha256": "a3874897c6f984c772aa781515f750ebd27e4b980ae32831ca506d47d607ddac",
+      "bytes": 34507
+    },
+    {
+      "path": "data/hebrew-interlinear/hosea/10.json",
+      "sha256": "d0c41b9e556028eecb031377d2ec5f6d6280ec03e56fb3cb70007179368cc24d",
+      "bytes": 53131
+    },
+    {
+      "path": "data/hebrew-interlinear/hosea/11.json",
+      "sha256": "620b30b94085873ff98c3b93ceda45a2d493866b9062a686c11a9e7f0cad28c5",
+      "bytes": 33842
+    },
+    {
+      "path": "data/hebrew-interlinear/hosea/12.json",
+      "sha256": "3cdeabf8eeda80ff17591eb7e1a8be4b47f7d430a3da1beef6190bf703abd7f5",
+      "bytes": 42757
+    },
+    {
+      "path": "data/hebrew-interlinear/hosea/13.json",
+      "sha256": "b919aeed16572773b4270222dc5e31e76f6fa1f944548e6f6cc320cda8a6bfe5",
+      "bytes": 44409
+    },
+    {
+      "path": "data/hebrew-interlinear/hosea/14.json",
+      "sha256": "f77a6a71a055bd2d2a0d1506f19f64325b230de646e6a394ade93c374a58e72d",
+      "bytes": 31794
+    },
+    {
+      "path": "data/hebrew-interlinear/hosea/2.json",
+      "sha256": "997e63b9c354b61c4b57c793d77c1aedf03ab1001718d6d50285320f7aa92cfe",
+      "bytes": 94827
+    },
+    {
+      "path": "data/hebrew-interlinear/hosea/3.json",
+      "sha256": "a52419642e7c8af2f715606dbc43fe3d4dae9ed4a9337ea92f01b445e7e03b9b",
+      "bytes": 20614
+    },
+    {
+      "path": "data/hebrew-interlinear/hosea/4.json",
+      "sha256": "e4186ad5dd6d156074d4375a9da76248ba3e4db87bb4f9acca1e8e688eb49cbc",
+      "bytes": 58845
+    },
+    {
+      "path": "data/hebrew-interlinear/hosea/5.json",
+      "sha256": "a0da37cf327cd212b4ad3b7bc1214caaa2b502a6d622388731d4096a773e6bdc",
+      "bytes": 47130
+    },
+    {
+      "path": "data/hebrew-interlinear/hosea/6.json",
+      "sha256": "1e5472c839031eb56b1b074980fcadbe1540217f0ab12f686c20adc90b871563",
+      "bytes": 28186
+    },
+    {
+      "path": "data/hebrew-interlinear/hosea/7.json",
+      "sha256": "42852b6dd814d22eedd36b2d54d98caf3b33f119fa5c85f50d1aa4cb542b28ae",
+      "bytes": 50078
+    },
+    {
+      "path": "data/hebrew-interlinear/hosea/8.json",
+      "sha256": "f2d4b20eedca5176100a3e71a51b2c24477d19a4b7fff051673395dae40792de",
+      "bytes": 39833
+    },
+    {
+      "path": "data/hebrew-interlinear/hosea/9.json",
+      "sha256": "5be631e7d2b34d38179954bacfd243d837c4897be3fdbafbf8594502c72a293e",
+      "bytes": 56597
+    },
+    {
+      "path": "data/hebrew-interlinear/isaiah/1.json",
+      "sha256": "a3332ef6e7823e8acf27acc271e400c65279d96389ef60cf6fdd0894b8175de0",
+      "bytes": 93652
+    },
+    {
+      "path": "data/hebrew-interlinear/isaiah/10.json",
+      "sha256": "7c5103f6748322174e0080fad216e989cf32dba63bf4315e0fd13a8605b3e031",
+      "bytes": 109737
+    },
+    {
+      "path": "data/hebrew-interlinear/isaiah/11.json",
+      "sha256": "aa4859dd6ab608f9bb7a7b2ba882672029653616210c358a0174d06d059d774b",
+      "bytes": 59696
+    },
+    {
+      "path": "data/hebrew-interlinear/isaiah/12.json",
+      "sha256": "03496e1af0faead1d0da3f3699f0d66478de0da03f86f80ab8a4fa0275b9f954",
+      "bytes": 17477
+    },
+    {
+      "path": "data/hebrew-interlinear/isaiah/13.json",
+      "sha256": "a8a6a4f4e58cd8321e67cc85678c95746ea291c19081a5fa6b5e4615a0a1e1b9",
+      "bytes": 66309
+    },
+    {
+      "path": "data/hebrew-interlinear/isaiah/14.json",
+      "sha256": "3593c97bb7904d25fe20e2571740611411682ea2a57148d2ec512d2f20d8ffec",
+      "bytes": 99682
+    },
+    {
+      "path": "data/hebrew-interlinear/isaiah/15.json",
+      "sha256": "95c4a153ff0dca9519173caf6f7d989421f022fc6931de3ad0d43cb44806f326",
+      "bytes": 31377
+    },
+    {
+      "path": "data/hebrew-interlinear/isaiah/16.json",
+      "sha256": "97ec52d83e50c229ef42c04bdb1c57e9376033a1bed8e4ddfe4a0d8d6451668a",
+      "bytes": 49482
+    },
+    {
+      "path": "data/hebrew-interlinear/isaiah/17.json",
+      "sha256": "326f2f741d64a6995c551f209e9ba58a2eeffd1992f25d5b86c72d0163dd6751",
+      "bytes": 48675
+    },
+    {
+      "path": "data/hebrew-interlinear/isaiah/18.json",
+      "sha256": "f17a51b1dcd7672c2241d25871158c8862a8936b3a8ff7d7af83803eb762bcdb",
+      "bytes": 31857
+    },
+    {
+      "path": "data/hebrew-interlinear/isaiah/19.json",
+      "sha256": "d8568e04551305943321024ccca90fcf7e052d6cf0c5ddd18e3f4408ba06764b",
+      "bytes": 86647
+    },
+    {
+      "path": "data/hebrew-interlinear/isaiah/2.json",
+      "sha256": "b2a0707f97cfb612b33b89dec4ea8bf0bbffacc8b853d1aaa14861b786f86448",
+      "bytes": 69455
+    },
+    {
+      "path": "data/hebrew-interlinear/isaiah/20.json",
+      "sha256": "11c2c4b558e380d6002fbc56975668df8dc413f9b0926eed8d430c51c6278769",
+      "bytes": 25778
+    },
+    {
+      "path": "data/hebrew-interlinear/isaiah/21.json",
+      "sha256": "8140188a81bca6a55b592117a6126dc6e787559bb727cc67ed4980331fd60dd2",
+      "bytes": 51466
+    },
+    {
+      "path": "data/hebrew-interlinear/isaiah/22.json",
+      "sha256": "81c00c29fab14fbad39fd4ff6feadf10f71e25162fa3de84e5dfbd4e57cd6a1f",
+      "bytes": 82592
+    },
+    {
+      "path": "data/hebrew-interlinear/isaiah/23.json",
+      "sha256": "1437f28542dbe1b8e315351d78e457bab00d63527aa2131caccf2a55a400bcfa",
+      "bytes": 56113
+    },
+    {
+      "path": "data/hebrew-interlinear/isaiah/24.json",
+      "sha256": "0b4059adc9dfb061953912235e9a8ee847de38722e69649c6f6562041d41df39",
+      "bytes": 68374
+    },
+    {
+      "path": "data/hebrew-interlinear/isaiah/25.json",
+      "sha256": "4225695ad448c804ea0db6eb15fe23c694dbaa394d1ac96928d1a8203ae7585b",
+      "bytes": 43230
+    },
+    {
+      "path": "data/hebrew-interlinear/isaiah/26.json",
+      "sha256": "d78704fb60a671daa9f8c06fb82473d5f3b05f42908e6c57dcc3043d6208a2a5",
+      "bytes": 60795
+    },
+    {
+      "path": "data/hebrew-interlinear/isaiah/27.json",
+      "sha256": "603a5011498904086715721848167415e5f0e633d6441a6538353f348a63f04d",
+      "bytes": 47420
+    },
+    {
+      "path": "data/hebrew-interlinear/isaiah/28.json",
+      "sha256": "46252d7fd1d68783b8e220c33d2a88706ecc6737cb717a17ecb7e1b1d2a0f7ed",
+      "bytes": 100348
+    },
+    {
+      "path": "data/hebrew-interlinear/isaiah/29.json",
+      "sha256": "3c58f4109b23c721e2a553b729f2090c02c70f30ceebcf140430ade9c6a70dee",
+      "bytes": 88177
+    },
+    {
+      "path": "data/hebrew-interlinear/isaiah/3.json",
+      "sha256": "ff589b1aac4c469de25ee8b17604a97579e307598272f42ee95108618ebed795",
+      "bytes": 70560
+    },
+    {
+      "path": "data/hebrew-interlinear/isaiah/30.json",
+      "sha256": "e896e868508af02ac5da2e7fae367a026b1b7fb4f23f0e9a4a7dbff06852a83a",
+      "bytes": 129002
+    },
+    {
+      "path": "data/hebrew-interlinear/isaiah/31.json",
+      "sha256": "a72a7afebc7a54c7a8e346347ba5c2b97bdccef7733db8be5f9a849e2310932b",
+      "bytes": 40291
+    },
+    {
+      "path": "data/hebrew-interlinear/isaiah/32.json",
+      "sha256": "503196e74b97e4b9bb5dbd4fcde7f724c9b1471ba28b15a31223cb31b2fc8277",
+      "bytes": 53230
+    },
+    {
+      "path": "data/hebrew-interlinear/isaiah/33.json",
+      "sha256": "33427c106a4adb10c7299e003ce8ab41eee22f264a8e9d567a35de7f89dabb1c",
+      "bytes": 69583
+    },
+    {
+      "path": "data/hebrew-interlinear/isaiah/34.json",
+      "sha256": "cd1a9696b06388ffc611b8bda60ef0841a2f0950f2c5d4238c78f6426b2a9931",
+      "bytes": 60099
+    },
+    {
+      "path": "data/hebrew-interlinear/isaiah/35.json",
+      "sha256": "96bf63708fc668796c0fb6af76c86728f5b1895bfc03ef5db6352a5a8b2fc0dd",
+      "bytes": 33366
+    },
+    {
+      "path": "data/hebrew-interlinear/isaiah/36.json",
+      "sha256": "a9fa5ddcec70a64180484fac5bbf8602c3c65bc7e368248d55e1d851d392c854",
+      "bytes": 101017
+    },
+    {
+      "path": "data/hebrew-interlinear/isaiah/37.json",
+      "sha256": "f6144a6760ba584dff3ace251ca32db94da92070d2961441f55b00622d0a12b7",
+      "bytes": 149734
+    },
+    {
+      "path": "data/hebrew-interlinear/isaiah/38.json",
+      "sha256": "5ba8c4f17f29cf256f5cf6623c9dcbdc4b6facd1d304561c6b554c06df342e5a",
+      "bytes": 73567
+    },
+    {
+      "path": "data/hebrew-interlinear/isaiah/39.json",
+      "sha256": "758651d0867ce4a76bf8aa04f6d8715e4c1dc2cb19613ecffd97b65a900ec366",
+      "bytes": 38684
+    },
+    {
+      "path": "data/hebrew-interlinear/isaiah/4.json",
+      "sha256": "77d05ceedfca1e0c6577d3d558f7ab773287972ced72a270a15d1d7aea609941",
+      "bytes": 24705
+    },
+    {
+      "path": "data/hebrew-interlinear/isaiah/40.json",
+      "sha256": "ff1a8329438efc01902ed0b0102fedcbcc97640e32220700cb64d8515aadf8ee",
+      "bytes": 95191
+    },
+    {
+      "path": "data/hebrew-interlinear/isaiah/41.json",
+      "sha256": "16e85e294646c91f6e8bf61e915631b172df1e8b9253a6da3c20dac09f57500c",
+      "bytes": 94190
+    },
+    {
+      "path": "data/hebrew-interlinear/isaiah/42.json",
+      "sha256": "c0571f5bc7086762fdc83a267ad68ef7ffd254cd55687845817531685cef23f9",
+      "bytes": 79206
+    },
+    {
+      "path": "data/hebrew-interlinear/isaiah/43.json",
+      "sha256": "3805e863935518f49ecff67f8f51bab6fe0bcae9b9eb988c17e6bf46ee508247",
+      "bytes": 85541
+    },
+    {
+      "path": "data/hebrew-interlinear/isaiah/44.json",
+      "sha256": "8b4d1d1e1147cdb0b61109c8f5bb6dfa79a46e6fcdbae48f70d7fdc6651464d4",
+      "bytes": 105017
+    },
+    {
+      "path": "data/hebrew-interlinear/isaiah/45.json",
+      "sha256": "8b620f26556cbdcb7cd360251f53acbbfe062d1f3142e27592b81309e2675b04",
+      "bytes": 93046
+    },
+    {
+      "path": "data/hebrew-interlinear/isaiah/46.json",
+      "sha256": "6076ec48898b4ee36ab404f8a4d6f6d7c99ae44740fad44f95de9bcde359d337",
+      "bytes": 40390
+    },
+    {
+      "path": "data/hebrew-interlinear/isaiah/47.json",
+      "sha256": "c6cacbc7264db77b7bf6559729229dce392bdfa93a04a88e09d46f9510dff497",
+      "bytes": 56571
+    },
+    {
+      "path": "data/hebrew-interlinear/isaiah/48.json",
+      "sha256": "2c1b9b732ef2160ca7c56045f524363e4da4e70f3c8e1fcda2bdcca0d3ce9221",
+      "bytes": 72124
+    },
+    {
+      "path": "data/hebrew-interlinear/isaiah/49.json",
+      "sha256": "2c27a54512b9a99d3147af745632e853284ea8c3d672553a074a7fb59ddd7f5e",
+      "bytes": 99321
+    },
+    {
+      "path": "data/hebrew-interlinear/isaiah/5.json",
+      "sha256": "83c634a018587021df31d7823ec0ae306d3e8acfa3e53c3d1fc6de397ba9a414",
+      "bytes": 104755
+    },
+    {
+      "path": "data/hebrew-interlinear/isaiah/50.json",
+      "sha256": "06684e9cb55494ff42d6754e1579c48230920502aa85a89435612860aeb1f850",
+      "bytes": 46340
+    },
+    {
+      "path": "data/hebrew-interlinear/isaiah/51.json",
+      "sha256": "6701d95d8e7060cf1f41fd71d4d2cc83450f95ad4a411ba15c2c3895c47dac72",
+      "bytes": 90382
+    },
+    {
+      "path": "data/hebrew-interlinear/isaiah/52.json",
+      "sha256": "ba99c69dc80973f9bd880d094ae77fefa6f1276d8ccd050e90455c5b024100df",
+      "bytes": 52006
+    },
+    {
+      "path": "data/hebrew-interlinear/isaiah/53.json",
+      "sha256": "cbfec4971ec88d894f3544ba83e853b633c0f1ce696c022232aeb78a86a883b0",
+      "bytes": 46379
+    },
+    {
+      "path": "data/hebrew-interlinear/isaiah/54.json",
+      "sha256": "cf11f53d1e63da9afe1ee1fc43d9fcc381dfa960bee41a3d9f9fc740c2a993be",
+      "bytes": 58561
+    },
+    {
+      "path": "data/hebrew-interlinear/isaiah/55.json",
+      "sha256": "7cafb9442cef0c223997ecaa01f7f7155c5c64c68dad54f462913bb34d871f4e",
+      "bytes": 50369
+    },
+    {
+      "path": "data/hebrew-interlinear/isaiah/56.json",
+      "sha256": "db7b9daf963c6798def390b21f3e8c0a6b820e63768f5baf785d82a9be391871",
+      "bytes": 48109
+    },
+    {
+      "path": "data/hebrew-interlinear/isaiah/57.json",
+      "sha256": "27269dcc4376f10c324e7c99ee7f8e114dd0d2c20e3f3b50320adcde0760d9c8",
+      "bytes": 69416
+    },
+    {
+      "path": "data/hebrew-interlinear/isaiah/58.json",
+      "sha256": "c9ed9814a943c05fdd0afac1e5aa102083a4bd56fbd59bb352fbccf05ae46fd4",
+      "bytes": 61347
+    },
+    {
+      "path": "data/hebrew-interlinear/isaiah/59.json",
+      "sha256": "9f27e1bebb3df44c56aef8bd78c942d6444a8585b601733a1dfe90d6975abc94",
+      "bytes": 79238
+    },
+    {
+      "path": "data/hebrew-interlinear/isaiah/6.json",
+      "sha256": "3e7528b80a5aadd964e409ae73124074a5412950541046dd872b5556869a1ae1",
+      "bytes": 50152
+    },
+    {
+      "path": "data/hebrew-interlinear/isaiah/60.json",
+      "sha256": "59a9f03aa2fc86291f6b9039fe9650e68f247e1df1d665c3d54c8e733d167ce6",
+      "bytes": 81205
+    },
+    {
+      "path": "data/hebrew-interlinear/isaiah/61.json",
+      "sha256": "3efe281f861f855acf15175d788b76fcefae311776c790de885f2bdf414e23b3",
+      "bytes": 44710
+    },
+    {
+      "path": "data/hebrew-interlinear/isaiah/62.json",
+      "sha256": "e9523c6947a90c2b65ae3bddd0c76cfcd411f35d5f15f7b11b83c09d59b25c08",
+      "bytes": 46964
+    },
+    {
+      "path": "data/hebrew-interlinear/isaiah/63.json",
+      "sha256": "f79222d08a8105807607eb8b7d112b6b483f5a417f02d29409a454c33c562be8",
+      "bytes": 68214
+    },
+    {
+      "path": "data/hebrew-interlinear/isaiah/64.json",
+      "sha256": "78c1ef43d6e7b4aabd47559486ab40e6610ae2f97a40bafbf4f6609210f2035c",
+      "bytes": 35253
+    },
+    {
+      "path": "data/hebrew-interlinear/isaiah/65.json",
+      "sha256": "807337ef03d9b2f2dbfb5789fcdadd109fbbb7170a6d65cef115c901ee3dea7d",
+      "bytes": 97534
+    },
+    {
+      "path": "data/hebrew-interlinear/isaiah/66.json",
+      "sha256": "6ca0f6eed00243ac2a9b23f230e9fbc2b54460c282c41749f7e9265922072844",
+      "bytes": 103967
+    },
+    {
+      "path": "data/hebrew-interlinear/isaiah/7.json",
+      "sha256": "232be341996284a6bd5ed0b344180054b5018c73c9dc6178c7bebff364687794",
+      "bytes": 90243
+    },
+    {
+      "path": "data/hebrew-interlinear/isaiah/8.json",
+      "sha256": "151519f56a5850f46bcd55164a592be3fe7a4aad5d028e1e35f666988e6e5251",
+      "bytes": 79656
+    },
+    {
+      "path": "data/hebrew-interlinear/isaiah/9.json",
+      "sha256": "b5e62f9a7dcc9f8ded482919090399324825570cec2705a272b888e965327a34",
+      "bytes": 70192
+    },
+    {
+      "path": "data/hebrew-interlinear/jeremiah/1.json",
+      "sha256": "21c6856504793c1ac3d7749e38c07a8183626d575ec80cb7f00fd7d95fc0f43c",
+      "bytes": 71130
+    },
+    {
+      "path": "data/hebrew-interlinear/jeremiah/10.json",
+      "sha256": "c0eb1aff87069f6449dc6716f37f066da45047d066a95430440ecc9d3a18398b",
+      "bytes": 84891
+    },
+    {
+      "path": "data/hebrew-interlinear/jeremiah/11.json",
+      "sha256": "0e2a6b1fa0726c56a72b269bdf9f962427286282f137add1e6d644da01d2575c",
+      "bytes": 102836
+    },
+    {
+      "path": "data/hebrew-interlinear/jeremiah/12.json",
+      "sha256": "dc93072de3282232ff4a958097ab3aea5b2a4e9d94bb0deb0cee7dfec4026347",
+      "bytes": 69227
+    },
+    {
+      "path": "data/hebrew-interlinear/jeremiah/13.json",
+      "sha256": "c5d249a99e6aafe23dff8ead016d7fa738d8e087df714884fec88c5751bd0893",
+      "bytes": 102223
+    },
+    {
+      "path": "data/hebrew-interlinear/jeremiah/14.json",
+      "sha256": "571a595ffc35b0eca782da14ef7a330e1b63e24aa195f79c742c2ed7929cdeba",
+      "bytes": 95425
+    },
+    {
+      "path": "data/hebrew-interlinear/jeremiah/15.json",
+      "sha256": "4fdb924895f83d980bb670cd01fb89b3a9f619046764a43e9d261802a3334bda",
+      "bytes": 87540
+    },
+    {
+      "path": "data/hebrew-interlinear/jeremiah/16.json",
+      "sha256": "1cb81bb706134937affea3d7df8b9bae938ab6606096f646a659925625a151b6",
+      "bytes": 98943
+    },
+    {
+      "path": "data/hebrew-interlinear/jeremiah/17.json",
+      "sha256": "e60aeb794934288702002447b3090642b206d2d67e8bcca24568f4c586abebf9",
+      "bytes": 110135
+    },
+    {
+      "path": "data/hebrew-interlinear/jeremiah/18.json",
+      "sha256": "49659b248ee3863de3283625e1830f235eb43068bf1c868340d74f30293782ce",
+      "bytes": 88110
+    },
+    {
+      "path": "data/hebrew-interlinear/jeremiah/19.json",
+      "sha256": "f9aae6a80083c002c5c51a1415876a9c655c7fa9123bc3aeed33e768a59c4e1d",
+      "bytes": 76372
+    },
+    {
+      "path": "data/hebrew-interlinear/jeremiah/2.json",
+      "sha256": "1081a124af471f95cfa65bf89f2f75c88ac70a0f6b89f32af4845e946d035d6b",
+      "bytes": 136541
+    },
+    {
+      "path": "data/hebrew-interlinear/jeremiah/20.json",
+      "sha256": "74d916d56a6a55a774fe6cec2f9e75de80d9755efcd03e46efdbf9ef291dcbbe",
+      "bytes": 78500
+    },
+    {
+      "path": "data/hebrew-interlinear/jeremiah/21.json",
+      "sha256": "adfe5b62d8ae0a202258e3a3bc594a2b7f99d03bf408ba2c218cae3c87ab05bd",
+      "bytes": 68282
+    },
+    {
+      "path": "data/hebrew-interlinear/jeremiah/22.json",
+      "sha256": "2d9b99e4bf1756b039e965571d451dda53f53bd0e8125e1c2d21996ffd880ad1",
+      "bytes": 122448
+    },
+    {
+      "path": "data/hebrew-interlinear/jeremiah/23.json",
+      "sha256": "c6930e508c4bcc20c46a74b1b2c1e436ffef6ce612c7f01c363224386b5e831a",
+      "bytes": 160327
+    },
+    {
+      "path": "data/hebrew-interlinear/jeremiah/24.json",
+      "sha256": "cebe31cd09a2b79646bd2cbd1dd6fc8ba724ee59b25a2bc4df7cf3a8554decb3",
+      "bytes": 49990
+    },
+    {
+      "path": "data/hebrew-interlinear/jeremiah/25.json",
+      "sha256": "82ebdcfd1f2d2c73647ae3fa27a7fffc47c398ff64fd3495ce836d7a3f7dd91f",
+      "bytes": 161625
+    },
+    {
+      "path": "data/hebrew-interlinear/jeremiah/26.json",
+      "sha256": "0dd8759cbe11667ba9303758d56d7fbcd738bee2e405067d293376d57c2cb434",
+      "bytes": 116366
+    },
+    {
+      "path": "data/hebrew-interlinear/jeremiah/27.json",
+      "sha256": "b7b3db7cd10c836cf32e6fb6acf65cea6ac551b7351bc169b1c9b01aae97921d",
+      "bytes": 110498
+    },
+    {
+      "path": "data/hebrew-interlinear/jeremiah/28.json",
+      "sha256": "8b57fc32b219591e46d71dff28467883d311974a274252297d8816ab69120b7c",
+      "bytes": 79260
+    },
+    {
+      "path": "data/hebrew-interlinear/jeremiah/29.json",
+      "sha256": "9404a9d011aeb5bc94c3605e5bcefad9c4ee8bb288232b232454af9609276ed9",
+      "bytes": 143172
+    },
+    {
+      "path": "data/hebrew-interlinear/jeremiah/3.json",
+      "sha256": "8ce0fe7a2eebe766a51f585c03c6baa05cec3e25fe53c8850a9b1f983d68a0a7",
+      "bytes": 109225
+    },
+    {
+      "path": "data/hebrew-interlinear/jeremiah/30.json",
+      "sha256": "42f7a2691b63028b8b130d5ca8c168205554f684fd126a86a4ab868c718c418d",
+      "bytes": 89975
+    },
+    {
+      "path": "data/hebrew-interlinear/jeremiah/31.json",
+      "sha256": "532f480a064669fe31f2eeb9b2d222960d85186265080abc031c453547d3280d",
+      "bytes": 163775
+    },
+    {
+      "path": "data/hebrew-interlinear/jeremiah/32.json",
+      "sha256": "f674fd2e845cad8e2ae91b69ad35094551f811df67e7499e1b292be6e38ddb99",
+      "bytes": 204731
+    },
+    {
+      "path": "data/hebrew-interlinear/jeremiah/33.json",
+      "sha256": "a757e7c389fe5a7ad1583a6893fbc054e3a1dc9826a3e72679c7070adcc502f2",
+      "bytes": 111211
+    },
+    {
+      "path": "data/hebrew-interlinear/jeremiah/34.json",
+      "sha256": "c28e1f4d40043f09d6446dd2a4d4470433f4a7264e5a5e6816cab090c2e94ab6",
+      "bytes": 114930
+    },
+    {
+      "path": "data/hebrew-interlinear/jeremiah/35.json",
+      "sha256": "6719baa487645f7bbcebc6d9fb4e60e50e15b9e3391669d2efcc75ab812aacae",
+      "bytes": 94786
+    },
+    {
+      "path": "data/hebrew-interlinear/jeremiah/36.json",
+      "sha256": "723f34dfb870155c50c1c224732f87a08ac1d30fe6327354d7e59db2c3ce49fe",
+      "bytes": 164400
+    },
+    {
+      "path": "data/hebrew-interlinear/jeremiah/37.json",
+      "sha256": "8a1f88bbe6daee7cf020955b48c833491f5cfcfbbeac58fd865f7b2041c87ecf",
+      "bytes": 89984
+    },
+    {
+      "path": "data/hebrew-interlinear/jeremiah/38.json",
+      "sha256": "07640b3e0e5ea41bc9795933e1380158799fb5fbb46253f6e8e6d95b3a6876ef",
+      "bytes": 152955
+    },
+    {
+      "path": "data/hebrew-interlinear/jeremiah/39.json",
+      "sha256": "2efc76bb9f7e6edd3797a588b45822aaad532d9f32fa901481db680b04058e81",
+      "bytes": 82778
+    },
+    {
+      "path": "data/hebrew-interlinear/jeremiah/4.json",
+      "sha256": "0e2c0e0707ef20ff08e53c8dfc028d83559d3b4af68dd41f784a84f87f1234d8",
+      "bytes": 111650
+    },
+    {
+      "path": "data/hebrew-interlinear/jeremiah/40.json",
+      "sha256": "a27832c8f503834c722a5cf19a228c5b300987ad1251f4e275bb56ff5c19988c",
+      "bytes": 98131
+    },
+    {
+      "path": "data/hebrew-interlinear/jeremiah/41.json",
+      "sha256": "57dcd5e27cae855381f807676a75e05c40dcb3ce7fe4909cda65d145be1ef896",
+      "bytes": 94207
+    },
+    {
+      "path": "data/hebrew-interlinear/jeremiah/42.json",
+      "sha256": "e0be43afafedd80408c12bc881c12234af7065eb9a745a99b2d7cafcbf7172c2",
+      "bytes": 107926
+    },
+    {
+      "path": "data/hebrew-interlinear/jeremiah/43.json",
+      "sha256": "5f4e4b399473cd5b7abb6d8a464864a48a8cdd65ad6a4ca7ae8e14307aa62b9f",
+      "bytes": 63123
+    },
+    {
+      "path": "data/hebrew-interlinear/jeremiah/44.json",
+      "sha256": "1948f204e6eaa41fe702f5f7a2f72158cb4568bca3734251cdd3abb9b70adf43",
+      "bytes": 169770
+    },
+    {
+      "path": "data/hebrew-interlinear/jeremiah/45.json",
+      "sha256": "a99ac38dea1418067714f418dee43bc30958b4d2fac99037ede51e4935af5b56",
+      "bytes": 23157
+    },
+    {
+      "path": "data/hebrew-interlinear/jeremiah/46.json",
+      "sha256": "80ac670152eff7d76778fa0aafca5393acf99e18f00992966a06d7d76dd3f7b1",
+      "bytes": 106364
+    },
+    {
+      "path": "data/hebrew-interlinear/jeremiah/47.json",
+      "sha256": "52a163ccaa4db4e4af6f06b1d00bafd0aec10cfecb99523f5fb9cfce765e1a71",
+      "bytes": 27265
+    },
+    {
+      "path": "data/hebrew-interlinear/jeremiah/48.json",
+      "sha256": "01727d680181a7e1be48ef2d3c0109bde74176357424c093f72c0010d6afc47c",
+      "bytes": 152022
+    },
+    {
+      "path": "data/hebrew-interlinear/jeremiah/49.json",
+      "sha256": "2b8458abe2a2f3ccf2b951190f64d1065d1d1ed44ef580a5635ae23ef0b4d377",
+      "bytes": 154155
+    },
+    {
+      "path": "data/hebrew-interlinear/jeremiah/5.json",
+      "sha256": "25bccf84f4ec29e1095df54628f3405a893f54a37de81d3ca52d5c02472ec45c",
+      "bytes": 113229
+    },
+    {
+      "path": "data/hebrew-interlinear/jeremiah/50.json",
+      "sha256": "7996b2fdb4c8be03fe2c053743fcbd9d43aca53db58ae5bcb57120544c1e80d1",
+      "bytes": 181428
+    },
+    {
+      "path": "data/hebrew-interlinear/jeremiah/51.json",
+      "sha256": "81e9689001617c282e382ddf8c3d9957777ac9240866b3c7bcc067816ba97365",
+      "bytes": 239485
+    },
+    {
+      "path": "data/hebrew-interlinear/jeremiah/52.json",
+      "sha256": "a87d2887ddb9349fd5bd6bf9ae423834138c6e9b0923b9c0a8383890af510422",
+      "bytes": 153949
+    },
+    {
+      "path": "data/hebrew-interlinear/jeremiah/6.json",
+      "sha256": "2156f306e8b35f36ba8dcc50b2793ac9cdf0dc5e3fbfc77c9cce3cace77e80ed",
+      "bytes": 108500
+    },
+    {
+      "path": "data/hebrew-interlinear/jeremiah/7.json",
+      "sha256": "6e661c760cced9e647f14b54e04294f053daf028b8c838d9ddbfbda8160c51af",
+      "bytes": 143369
+    },
+    {
+      "path": "data/hebrew-interlinear/jeremiah/8.json",
+      "sha256": "73f5076feaab34ced134b87ea6e2ff951978c1b448036ff6c731f9d36c8e61be",
+      "bytes": 92382
+    },
+    {
+      "path": "data/hebrew-interlinear/jeremiah/9.json",
+      "sha256": "cba878d6282140de3f60d238da0848b393ba419b8d2c271a570ab9e243559251",
+      "bytes": 98253
+    },
+    {
+      "path": "data/hebrew-interlinear/job/1.json",
+      "sha256": "8ec9391f240b3bff01843409ed8d2afbc6c51d0e9ed820c9df19100e0b1e8b88",
+      "bytes": 92556
+    },
+    {
+      "path": "data/hebrew-interlinear/job/10.json",
+      "sha256": "1171f5ed1048360ab7a5e3ceff8d1b0ea26a173fad85ad7de7b8260d3af4fc16",
+      "bytes": 47137
+    },
+    {
+      "path": "data/hebrew-interlinear/job/11.json",
+      "sha256": "78e9b63bc86ac707d99984506d766e86761e8f2326025f01568a85bc2569a95e",
+      "bytes": 38922
+    },
+    {
+      "path": "data/hebrew-interlinear/job/12.json",
+      "sha256": "4b57e9b75f2db8b1ab609a4025ffa61822f8a62b4e5fe0f6c6d063a7693dae11",
+      "bytes": 48223
+    },
+    {
+      "path": "data/hebrew-interlinear/job/13.json",
+      "sha256": "515d8f7650d4eeb2ccdd734de08ed2c98adac5f68efd58af9edb3130c7359022",
+      "bytes": 54286
+    },
+    {
+      "path": "data/hebrew-interlinear/job/14.json",
+      "sha256": "1f2d9da404c9152028587c70fb9ea6ed9b3e21315afdc41010dc68b7b762a6b5",
+      "bytes": 46880
+    },
+    {
+      "path": "data/hebrew-interlinear/job/15.json",
+      "sha256": "368e4437e483aea0704dd914f7776e80c7ccdacf5ef25240dbfecc78ac4f4b9e",
+      "bytes": 69028
+    },
+    {
+      "path": "data/hebrew-interlinear/job/16.json",
+      "sha256": "213e36e3cfa181ee790059f5e02c2b170f20c5948202d8d492c4674ebfd7974b",
+      "bytes": 47111
+    },
+    {
+      "path": "data/hebrew-interlinear/job/17.json",
+      "sha256": "5f3fe486d72e914acf89286b7de960ca7a5077f0fd50f3d1097c107142c9e431",
+      "bytes": 29982
+    },
+    {
+      "path": "data/hebrew-interlinear/job/18.json",
+      "sha256": "32010a595b9dee9b5f9960083d3f3e1eebbf0eafcbf4d9eb63f4205f230062e4",
+      "bytes": 39153
+    },
+    {
+      "path": "data/hebrew-interlinear/job/19.json",
+      "sha256": "3be4fb490fc2be1d5546e1b0dac041591be68275f259d9d1fe6f911b5d2d7eec",
+      "bytes": 59023
+    },
+    {
+      "path": "data/hebrew-interlinear/job/2.json",
+      "sha256": "e77096f6851c6057df316d23d6024015aa586d0d2e28a355a828cf2a5aaa9671",
+      "bytes": 56398
+    },
+    {
+      "path": "data/hebrew-interlinear/job/20.json",
+      "sha256": "8c2e21133ddf4f50a6214f7aac89f4de2ffd69d32877a6c10eeda36a2cfda92d",
+      "bytes": 56861
+    },
+    {
+      "path": "data/hebrew-interlinear/job/21.json",
+      "sha256": "353764021454a0106f0b0a0fc5b0e95f8a8d8850e7d9f90ff6c339a696e052f4",
+      "bytes": 65047
+    },
+    {
+      "path": "data/hebrew-interlinear/job/22.json",
+      "sha256": "1ffc1e9dc9c2dc244f1ebddb4c00f163c45466c60567c8ed5807d670348704df",
+      "bytes": 54846
+    },
+    {
+      "path": "data/hebrew-interlinear/job/23.json",
+      "sha256": "03e5f130e5de4e28afcf6f087dc90839237303093ed2fc7d8f3b66e3324c2b92",
+      "bytes": 32079
+    },
+    {
+      "path": "data/hebrew-interlinear/job/24.json",
+      "sha256": "5d3a8daaadf17203fc0f065ec73396127904001d8d645fafcf49bd49923fb630",
+      "bytes": 53444
+    },
+    {
+      "path": "data/hebrew-interlinear/job/25.json",
+      "sha256": "7b3ad3bccfd95fc9e55f0e6ceeb9277a7d825d23f1c1ee2f8e20396c6649598d",
+      "bytes": 11205
+    },
+    {
+      "path": "data/hebrew-interlinear/job/26.json",
+      "sha256": "4e15c8d66ccb133e7a3be0889237d88741dcbbd00f092d007a796194e62001c9",
+      "bytes": 26251
+    },
+    {
+      "path": "data/hebrew-interlinear/job/27.json",
+      "sha256": "bb82df1d8001ca2e756b2905df552dc52a4e130c40da0cecf6da3f12cbdc8e04",
+      "bytes": 45103
+    },
+    {
+      "path": "data/hebrew-interlinear/job/28.json",
+      "sha256": "063a50d2164827e322b049c44d18245114bd7fbb6facdb1d9ca565f7424e3d89",
+      "bytes": 54403
+    },
+    {
+      "path": "data/hebrew-interlinear/job/29.json",
+      "sha256": "8de235312a408f3611af10529974027f5acb53c5c7195fe3418d202c5273f9bf",
+      "bytes": 47414
+    },
+    {
+      "path": "data/hebrew-interlinear/job/3.json",
+      "sha256": "ba68046c7399cb14a3d940dda8820a8286f65fe8d4539e955edab61a8416f4d0",
+      "bytes": 52255
+    },
+    {
+      "path": "data/hebrew-interlinear/job/30.json",
+      "sha256": "cd69b734c45c1d09a3759533446cead54336355dcac5e0f5ec5d05afdc2d4cba",
+      "bytes": 61637
+    },
+    {
+      "path": "data/hebrew-interlinear/job/31.json",
+      "sha256": "078faa0356ed0daad59e49243d6c6b52fe39710f76d7c2fb467e4b0f06c13b53",
+      "bytes": 82522
+    },
+    {
+      "path": "data/hebrew-interlinear/job/32.json",
+      "sha256": "72f04cab81e2fdd83477ea3dc1eeefd0f364ace35ba300e0be37e5ee140b2d6b",
+      "bytes": 50061
+    },
+    {
+      "path": "data/hebrew-interlinear/job/33.json",
+      "sha256": "e16c75b7b5a89857f0421384a760a2188bfa48a76e0773dc464c86f950a42395",
+      "bytes": 66285
+    },
+    {
+      "path": "data/hebrew-interlinear/job/34.json",
+      "sha256": "11b6bdad465c0c83449a967477e89c22ff8129752a7a73d726fbea9cea8ad5ba",
+      "bytes": 74428
+    },
+    {
+      "path": "data/hebrew-interlinear/job/35.json",
+      "sha256": "9fc2fb1531ce07ff0a00a7e3b397a9c6a51480db3e483e5cb828019059f664f5",
+      "bytes": 30434
+    },
+    {
+      "path": "data/hebrew-interlinear/job/36.json",
+      "sha256": "48f03e1c599588ed0ee666a5d65523d02847f2efbef07dfe45e251cfd0edef18",
+      "bytes": 62448
+    },
+    {
+      "path": "data/hebrew-interlinear/job/37.json",
+      "sha256": "d7ba305976f3b06de00ff86a5b54f1a2e096ae753241177e7edfdffb03839b1d",
+      "bytes": 49030
+    },
+    {
+      "path": "data/hebrew-interlinear/job/38.json",
+      "sha256": "abc1f7f0b2db7cdb779764cd61dcef87dee606394f80bd52d105436935bbba6e",
+      "bytes": 78933
+    },
+    {
+      "path": "data/hebrew-interlinear/job/39.json",
+      "sha256": "9707e4ff31c446300dc7ac8c5c9adb2bd55f2047eaf0925f8decf5083cc8c9f7",
+      "bytes": 57531
+    },
+    {
+      "path": "data/hebrew-interlinear/job/4.json",
+      "sha256": "6d8fae779922698f15edcd9aca1db1684e6ec8dd58bb2b6a9f180dc2cf91dc9a",
+      "bytes": 40022
+    },
+    {
+      "path": "data/hebrew-interlinear/job/40.json",
+      "sha256": "f105ae04234db3d57da3b2a87e3e2e0a61c97b6e14934b32c783cced58b119b1",
+      "bytes": 58401
+    },
+    {
+      "path": "data/hebrew-interlinear/job/41.json",
+      "sha256": "c0a5c31bece3c74eabf740fda0c735295202e64c86768427f3045098b1493d1b",
+      "bytes": 46194
+    },
+    {
+      "path": "data/hebrew-interlinear/job/42.json",
+      "sha256": "646e4abd7a54739475cb1f19189e416bc6039bb9b1cd98a7ada68a6aba3c2e3d",
+      "bytes": 63249
+    },
+    {
+      "path": "data/hebrew-interlinear/job/5.json",
+      "sha256": "0609a6a815b1466111aa6c969776ada36cf32550413d468bf95dcb9650d58802",
+      "bytes": 54129
+    },
+    {
+      "path": "data/hebrew-interlinear/job/6.json",
+      "sha256": "7801a7a740b64576b5421e55e405eecd80c68f026d167866e0ec78779af4f86d",
+      "bytes": 57571
+    },
+    {
+      "path": "data/hebrew-interlinear/job/7.json",
+      "sha256": "b8afa08498fcf395138baf3456162c88d22800cc0a2fdfe1a8513728dc990594",
+      "bytes": 45904
+    },
+    {
+      "path": "data/hebrew-interlinear/job/8.json",
+      "sha256": "6485c55fee6820f3499e31d02dd1ae718343efe7f666780223e0b2c5d38fb240",
+      "bytes": 42158
+    },
+    {
+      "path": "data/hebrew-interlinear/job/9.json",
+      "sha256": "bfa24f4429d0cf173ab697886a7f4385a438adebea17d9c8cd9ac11c44a84587",
+      "bytes": 65575
+    },
+    {
+      "path": "data/hebrew-interlinear/joel/1.json",
+      "sha256": "54f770d4c19af51d4336fe5cf5d455fbc2fa514cf12c6e2709b0ea9f9ad1b089",
+      "bytes": 59778
+    },
+    {
+      "path": "data/hebrew-interlinear/joel/2.json",
+      "sha256": "7b74054649b3b662bae5341e34792bb05d17e69197b94de831e4723db3ae2bb6",
+      "bytes": 102960
+    },
+    {
+      "path": "data/hebrew-interlinear/joel/3.json",
+      "sha256": "feea6c2b34242176e6d7574317a56a715a772e059f427d45b608afa9420820a3",
+      "bytes": 18594
+    },
+    {
+      "path": "data/hebrew-interlinear/joel/4.json",
+      "sha256": "5fc2fce6b897ede51af73f1ede9342fb0d245e3754f5a690e588c5eb88efc917",
+      "bytes": 72780
+    },
+    {
+      "path": "data/hebrew-interlinear/jonah/1.json",
+      "sha256": "42332a205ef67817f532ab7214154d334a3a0cc1eaf760612cd8b2c5062980f0",
+      "bytes": 67952
+    },
+    {
+      "path": "data/hebrew-interlinear/jonah/2.json",
+      "sha256": "3365a918857058335e81a1d8d2739eab015f9186732695656c62d9ee8bd03ad7",
+      "bytes": 30339
+    },
+    {
+      "path": "data/hebrew-interlinear/jonah/3.json",
+      "sha256": "36c7c46a760457688cace35690d9bcc23280c4eccd003095b9c12b97931c08ec",
+      "bytes": 37892
+    },
+    {
+      "path": "data/hebrew-interlinear/jonah/4.json",
+      "sha256": "96cd39282315e142dac4ed2646d6df1e51ec49f25e1dfcfe56816bca8aba7ace",
+      "bytes": 47456
+    },
+    {
+      "path": "data/hebrew-interlinear/joshua/1.json",
+      "sha256": "02de7d08a9e19e6c981bb62700691628a173469d8a961a90409eb9543f8ca0f2",
+      "bytes": 82857
+    },
+    {
+      "path": "data/hebrew-interlinear/joshua/10.json",
+      "sha256": "8f933d89402ceb1b55a8b4b4c4d6bb9d7c7770b8c52317ab13b875f6b586bf85",
+      "bytes": 204342
+    },
+    {
+      "path": "data/hebrew-interlinear/joshua/11.json",
+      "sha256": "6cbc8647719da8e7c5c1d5a5cb2114fdc3a7b5eb89a52c275bc7370cd283052e",
+      "bytes": 107347
+    },
+    {
+      "path": "data/hebrew-interlinear/joshua/12.json",
+      "sha256": "f98714e5965b15206698a2094f2d17e035a6233455d9467d2e6a485ecc7844b6",
+      "bytes": 65192
+    },
+    {
+      "path": "data/hebrew-interlinear/joshua/13.json",
+      "sha256": "46a51ab47db4f44f92bbbe61ec96fa4667c7b31994714887d95af048233d061a",
+      "bytes": 118006
+    },
+    {
+      "path": "data/hebrew-interlinear/joshua/14.json",
+      "sha256": "5f0e0866312f0bcfab49ab397d5fc23d3fedfab7505b952a987b830569a60e18",
+      "bytes": 73233
+    },
+    {
+      "path": "data/hebrew-interlinear/joshua/15.json",
+      "sha256": "6250a2295cdf96fdcdd92f03660f4561c45cc0e44c72b57637baf7bdc714383c",
+      "bytes": 151790
+    },
+    {
+      "path": "data/hebrew-interlinear/joshua/16.json",
+      "sha256": "82636056685c5c0d78f2752cde47127773681d48f41ce918ecdc7b7259d6892a",
+      "bytes": 34943
+    },
+    {
+      "path": "data/hebrew-interlinear/joshua/17.json",
+      "sha256": "826a1616aa3baf5d71d9b3c0f2081ebbd2d25e48459ab6a74315dfcfe3ea09af",
+      "bytes": 91090
+    },
+    {
+      "path": "data/hebrew-interlinear/joshua/18.json",
+      "sha256": "2b158da9e631fdf0f71b9c6b19e855ec9d2a1776017a0a05606c2ad65cbd3fee",
+      "bytes": 110068
+    },
+    {
+      "path": "data/hebrew-interlinear/joshua/19.json",
+      "sha256": "5c6b09a55b98eb74d72dd04dcdbd90213a403933bb382bc3106719f1a0da8b16",
+      "bytes": 137049
+    },
+    {
+      "path": "data/hebrew-interlinear/joshua/2.json",
+      "sha256": "7ee4bcea62b71159c8fa9c4c2925eb066053f22c4a0f5add0fe219650c9d88d2",
+      "bytes": 109452
+    },
+    {
+      "path": "data/hebrew-interlinear/joshua/20.json",
+      "sha256": "395dc5e1204e1a9b2c1eb5b8e3bb7adf56b4526cd3b4ffeb9da6658655050d72",
+      "bytes": 46731
+    },
+    {
+      "path": "data/hebrew-interlinear/joshua/21.json",
+      "sha256": "6c5eb8fa8c688362a48bac5d18f795b0143fec4996f2c804bcd9642f9ff43abb",
+      "bytes": 157793
+    },
+    {
+      "path": "data/hebrew-interlinear/joshua/22.json",
+      "sha256": "66c88817aeeb36eafdb856f971bea3727de40bd10d38e021f3b0215bc0fd21d3",
+      "bytes": 181565
+    },
+    {
+      "path": "data/hebrew-interlinear/joshua/23.json",
+      "sha256": "76d895165b02e8647201bbf81f579b50e89200a279a347123f2f65d76a9bf165",
+      "bytes": 82918
+    },
+    {
+      "path": "data/hebrew-interlinear/joshua/24.json",
+      "sha256": "e6bd7bdeb18b2cb7b5c39edc36466bb825bd72762f1148b4b8f26e78f8427a0c",
+      "bytes": 154130
+    },
+    {
+      "path": "data/hebrew-interlinear/joshua/3.json",
+      "sha256": "829e1573d7fd4acf76ed604e2ca7aa12d8ba123ee9c64dafe08ee19cb9d01a8c",
+      "bytes": 79887
+    },
+    {
+      "path": "data/hebrew-interlinear/joshua/4.json",
+      "sha256": "fa9ce41634b99a843902c5b4a62f94691970dfcf75c08d9952d1716ee880ab83",
+      "bytes": 102484
+    },
+    {
+      "path": "data/hebrew-interlinear/joshua/5.json",
+      "sha256": "b29888c9adbcb50e0f0aedece0b83808137f90968bf83cfdc4ae868190d27724",
+      "bytes": 76773
+    },
+    {
+      "path": "data/hebrew-interlinear/joshua/6.json",
+      "sha256": "7cd74cbba9c39d0f50ed44e5f656b9edb12f4208edb6381f833fee2241b0e3dd",
+      "bytes": 128880
+    },
+    {
+      "path": "data/hebrew-interlinear/joshua/7.json",
+      "sha256": "d50cbd912a86fd37f60932a7f96561f0fa6d1f6fae7d2338510d50d9d4a6b8a0",
+      "bytes": 132485
+    },
+    {
+      "path": "data/hebrew-interlinear/joshua/8.json",
+      "sha256": "e3a22a6213f853fad93ccecd7262b10bf521de75098500fcc12f02b58d5b2b2d",
+      "bytes": 167610
+    },
+    {
+      "path": "data/hebrew-interlinear/joshua/9.json",
+      "sha256": "10ebdae647ff561ce497044edbd0ffc249ba64771107cd94fa9a669c08663f75",
+      "bytes": 114062
+    },
+    {
+      "path": "data/hebrew-interlinear/judges/1.json",
+      "sha256": "2ba5f3fda7d1aded76a0d29ff965e475b68b9f9c258ab18a6bfd9c2692d90e2b",
+      "bytes": 141311
+    },
+    {
+      "path": "data/hebrew-interlinear/judges/10.json",
+      "sha256": "dd1dfb9fcfad48cd838a20fb37356c30c0f6e14934c49c56a83086f5c9ab6fc6",
+      "bytes": 69377
+    },
+    {
+      "path": "data/hebrew-interlinear/judges/11.json",
+      "sha256": "44ad9ab61251aa1218de33a085d12cec652391f46675c5f602b78b85455aa950",
+      "bytes": 174694
+    },
+    {
+      "path": "data/hebrew-interlinear/judges/12.json",
+      "sha256": "a37429d2e4c1794b74f30d4f3fe88dd042186e4726112e8a5983bda650800292",
+      "bytes": 60027
+    },
+    {
+      "path": "data/hebrew-interlinear/judges/13.json",
+      "sha256": "92f795c0be4a1b4bb753b15f6f5d8cf53ae117304af1f4765bf971151bff862f",
+      "bytes": 103481
+    },
+    {
+      "path": "data/hebrew-interlinear/judges/14.json",
+      "sha256": "cd72fed4abc77f2edb395f2163ef30a790298f74e946ef6440d09a90029d3761",
+      "bytes": 94677
+    },
+    {
+      "path": "data/hebrew-interlinear/judges/15.json",
+      "sha256": "e3260c39093911fe86d05e0d9eab64a4f2bb17d0623af9479cb26831b5033e0b",
+      "bytes": 87987
+    },
+    {
+      "path": "data/hebrew-interlinear/judges/16.json",
+      "sha256": "955e216c79c4bcc6dd08fae86d97a218f159360974a78df1f7651ab5dd742f7c",
+      "bytes": 155084
+    },
+    {
+      "path": "data/hebrew-interlinear/judges/17.json",
+      "sha256": "a30e0212faae0f43c257d3992d091c00010345da66a9e134b0ee7e34caa5e6e4",
+      "bytes": 53694
+    },
+    {
+      "path": "data/hebrew-interlinear/judges/18.json",
+      "sha256": "6a415555c4a452be121aaddb4a4c09fd868089989203873f99b48595119d4eac",
+      "bytes": 145343
+    },
+    {
+      "path": "data/hebrew-interlinear/judges/19.json",
+      "sha256": "4567d0f2c5bb3c83c67d2efd17e2564fca76da9bca312ff6ca1445cc9e01a8f0",
+      "bytes": 147568
+    },
+    {
+      "path": "data/hebrew-interlinear/judges/2.json",
+      "sha256": "9ad71a7a5dc49b8109461e970671f49495f986429c73618bc4daad0838ca054b",
+      "bytes": 96598
+    },
+    {
+      "path": "data/hebrew-interlinear/judges/20.json",
+      "sha256": "aefbc68f06449b871c276ae8903fd3294ff5d5285e4a8b8a7455f1afaa29d2a6",
+      "bytes": 201366
+    },
+    {
+      "path": "data/hebrew-interlinear/judges/21.json",
+      "sha256": "2e92744b29634f9392aecf30613b18893e58bcdfaf4bc139db6d451a22d4a99d",
+      "bytes": 101014
+    },
+    {
+      "path": "data/hebrew-interlinear/judges/3.json",
+      "sha256": "03c366c2394e4f69887738fdb5a30e7e0e69fa5731de85dc13ee53c850302a12",
+      "bytes": 126842
+    },
+    {
+      "path": "data/hebrew-interlinear/judges/4.json",
+      "sha256": "12178e9871059dee08a4e91a783677a5fdf84369012ec6ea03f3d6324e7dc617",
+      "bytes": 108656
+    },
+    {
+      "path": "data/hebrew-interlinear/judges/5.json",
+      "sha256": "2f501dc5472c819dca201f2fdc8ee97c75df97915f310bf50d6083e51cf76c10",
+      "bytes": 93716
+    },
+    {
+      "path": "data/hebrew-interlinear/judges/6.json",
+      "sha256": "30b9d0213cfb6bca5e2860107b7e940069dbeb89032b54d27e5d319248b74ace",
+      "bytes": 180277
+    },
+    {
+      "path": "data/hebrew-interlinear/judges/7.json",
+      "sha256": "4a204a87ac235fe6f4ed5a7037d945bb4ebd28e1acaafd125ead53f4d838dad2",
+      "bytes": 134927
+    },
+    {
+      "path": "data/hebrew-interlinear/judges/8.json",
+      "sha256": "008634f2bb8e6bda5e1b05d08f4ad826ac892c686df8ff1385f7021347a65715",
+      "bytes": 139392
+    },
+    {
+      "path": "data/hebrew-interlinear/judges/9.json",
+      "sha256": "05621a97ab12a778bc076b7fe359e115259eef4e858fac0d801250d7b6916b92",
+      "bytes": 231579
+    },
+    {
+      "path": "data/hebrew-interlinear/lamentations/1.json",
+      "sha256": "5a644722f53ba049fdfa02ea226e7238cf8d07dc585b15bff4478c72007126a1",
+      "bytes": 101413
+    },
+    {
+      "path": "data/hebrew-interlinear/lamentations/2.json",
+      "sha256": "d74faecbf6a3a2f0afaba8046396f97ce130808cd0ff1abb4953cf9d8fd17afa",
+      "bytes": 104012
+    },
+    {
+      "path": "data/hebrew-interlinear/lamentations/3.json",
+      "sha256": "abbdb2e7ad7c5728ecffcc8387fd3c07003108343148692c76b13568bc2acd07",
+      "bytes": 106745
+    },
+    {
+      "path": "data/hebrew-interlinear/lamentations/4.json",
+      "sha256": "c60efd6f94297378014f84e5b7faaa6ff36e60ea3cc1f1b224fe850b5fb4261b",
+      "bytes": 71201
+    },
+    {
+      "path": "data/hebrew-interlinear/lamentations/5.json",
+      "sha256": "4561d91525e712016e2e39979c2a19cc90f2daeaec2e645630a0e7203ca1e886",
+      "bytes": 41357
+    },
+    {
+      "path": "data/hebrew-interlinear/leviticus/1.json",
+      "sha256": "e1ca3742882f453f38401f94272c82c580b7641ade56f6ce7bcef967145988d8",
+      "bytes": 67932
+    },
+    {
+      "path": "data/hebrew-interlinear/leviticus/10.json",
+      "sha256": "db28b8a3d3927df3580bf0a7a02cdc728035621f1e3e7e9e5f90656f93eddbc3",
+      "bytes": 87362
+    },
+    {
+      "path": "data/hebrew-interlinear/leviticus/11.json",
+      "sha256": "e1b04a3941cf061ab696c93657a5c16fe21eae7182bb7710344f6317b83aff84",
+      "bytes": 159726
+    },
+    {
+      "path": "data/hebrew-interlinear/leviticus/12.json",
+      "sha256": "8dcaa9fcc2236b6d3729c1704d86ec055dfbed9c3298c8fdde9efde0a68d255d",
+      "bytes": 31249
+    },
+    {
+      "path": "data/hebrew-interlinear/leviticus/13.json",
+      "sha256": "d8bf34b5e703c5b6c46d592bb611d5824d024b97c19e1a45efd9626d657851f5",
+      "bytes": 241620
+    },
+    {
+      "path": "data/hebrew-interlinear/leviticus/14.json",
+      "sha256": "c42632dff6ae44f90d315743bfc86c63e9e757c562d89df19b1f9dba2eb83ae8",
+      "bytes": 224706
+    },
+    {
+      "path": "data/hebrew-interlinear/leviticus/15.json",
+      "sha256": "f8fe309f5e411656e4f79649618ea128c435b278274fe0eac692f10f29ff2239",
+      "bytes": 125732
+    },
+    {
+      "path": "data/hebrew-interlinear/leviticus/16.json",
+      "sha256": "36815a5e733703f8f1c7f4281694db25ce582c1c0d4e31f10b1e83d39dc6f7b8",
+      "bytes": 151727
+    },
+    {
+      "path": "data/hebrew-interlinear/leviticus/17.json",
+      "sha256": "f359b4c44196cb723ba5b106c736c9b316b8a9af858ae46624ab4e87d1c950b6",
+      "bytes": 72430
+    },
+    {
+      "path": "data/hebrew-interlinear/leviticus/18.json",
+      "sha256": "a368688460d57c7e24be2170f8aa6c66117f8a24ef430f54378a9a0e158346b2",
+      "bytes": 91097
+    },
+    {
+      "path": "data/hebrew-interlinear/leviticus/19.json",
+      "sha256": "326b204b7fd96e73057c3287ffacf5add822a8095e362ff155a3c59d29dae88d",
+      "bytes": 115698
+    },
+    {
+      "path": "data/hebrew-interlinear/leviticus/2.json",
+      "sha256": "b87a346f1f33b980b8f771857891fc7c70366660d0a2ef6565f1eca38e9978b8",
+      "bytes": 55286
+    },
+    {
+      "path": "data/hebrew-interlinear/leviticus/20.json",
+      "sha256": "5ad66500e5bd48792c52ba5adec669b30d55a01ea2b81c73d4d5a52a5e683b16",
+      "bytes": 115121
+    },
+    {
+      "path": "data/hebrew-interlinear/leviticus/21.json",
+      "sha256": "492a35dcae321ef4afee6dc3e3bdfbee51af78cf732cc4fab6fde26e400c1e3d",
+      "bytes": 79153
+    },
+    {
+      "path": "data/hebrew-interlinear/leviticus/22.json",
+      "sha256": "96a24e542f9562ceecd8c95bf055707030e2b9021ac4973db02147459fd53661",
+      "bytes": 114480
+    },
+    {
+      "path": "data/hebrew-interlinear/leviticus/23.json",
+      "sha256": "394d582ea821e63aa329d8e4c7aeb0387e8e877343b0963f3f8b4595ccce9b0e",
+      "bytes": 159891
+    },
+    {
+      "path": "data/hebrew-interlinear/leviticus/24.json",
+      "sha256": "abeb301b4b9213fb3d4298567ff3c377fed305eae82c79a91ee4675a6f623f5e",
+      "bytes": 73629
+    },
+    {
+      "path": "data/hebrew-interlinear/leviticus/25.json",
+      "sha256": "652893a0f352ebe88bfbc7c226e0deff7c0cd7cfe22dcf7200658ef7ca831468",
+      "bytes": 195618
+    },
+    {
+      "path": "data/hebrew-interlinear/leviticus/26.json",
+      "sha256": "1d03dc979ade2770bd20fee0144c2d884f77e7355ab2d7696924579595fcdf00",
+      "bytes": 164480
+    },
+    {
+      "path": "data/hebrew-interlinear/leviticus/27.json",
+      "sha256": "c01710a62b9f8be38c5edef374f0dace1ad8a5c73d743470faa5f9514da22f14",
+      "bytes": 122945
+    },
+    {
+      "path": "data/hebrew-interlinear/leviticus/3.json",
+      "sha256": "9994a70da91ae3cd15267f9dc842f98a6052b83b7f90b1abf095dea5be3e5a18",
+      "bytes": 66399
+    },
+    {
+      "path": "data/hebrew-interlinear/leviticus/4.json",
+      "sha256": "1fa60987e832b00ab61b3edf7d7899cfe2075805bd710458aa60946ae299f03d",
+      "bytes": 144029
+    },
+    {
+      "path": "data/hebrew-interlinear/leviticus/5.json",
+      "sha256": "e02a77abdabe8f834b5afd3d72f8fbf9519d9b47737812104d9273d6dae11c2d",
+      "bytes": 114239
+    },
+    {
+      "path": "data/hebrew-interlinear/leviticus/6.json",
+      "sha256": "d9af0ad413d9951782ecd75401119e4a41c0a5be1f3e68c70bc6d9481c4d78b2",
+      "bytes": 81849
+    },
+    {
+      "path": "data/hebrew-interlinear/leviticus/7.json",
+      "sha256": "cedf10ff4de43d766fb6c83b7c0bc6b06faef8d0ce29d13e13d4a2c1d0fa8ed7",
+      "bytes": 131476
+    },
+    {
+      "path": "data/hebrew-interlinear/leviticus/8.json",
+      "sha256": "9a2a589c5ad3eb822552985316284b6566ffd5c9a7091bf07f7704840db078c6",
+      "bytes": 152065
+    },
+    {
+      "path": "data/hebrew-interlinear/leviticus/9.json",
+      "sha256": "8cd32734321f7853aad7b8857bd44146ca6969a6ae6db9cd8d051f5b0f5a8866",
+      "bytes": 88624
+    },
+    {
+      "path": "data/hebrew-interlinear/malachi/1.json",
+      "sha256": "be6777de33a073bf56fcb536e3186f460714038c1aadc51548e99da694da5022",
+      "bytes": 62685
+    },
+    {
+      "path": "data/hebrew-interlinear/malachi/2.json",
+      "sha256": "a5799dc87925eda37074e3f45882a525d2ae0d86f9ae661963e06e653885b437",
+      "bytes": 71370
+    },
+    {
+      "path": "data/hebrew-interlinear/malachi/3.json",
+      "sha256": "f5b717aa64e0234d8415d6b359e326b157a5d4ddd67b553297f3f41ee57cc271",
+      "bytes": 96838
+    },
+    {
+      "path": "data/hebrew-interlinear/manifest.json",
+      "sha256": "068b26f6d089f20794f0afde8010f6771ad88618be775398e6bed7be875b5505",
+      "bytes": 14562
+    },
+    {
+      "path": "data/hebrew-interlinear/micah/1.json",
+      "sha256": "663266f8e21c6df5db296e13d34ee82d1c37783ddaf7d4c10ecada2400110ed5",
+      "bytes": 55312
+    },
+    {
+      "path": "data/hebrew-interlinear/micah/2.json",
+      "sha256": "a3907121af34f88074cf3c2066ae7bf7347aaaf1b46e95bf9286a90d18a72acc",
+      "bytes": 46902
+    },
+    {
+      "path": "data/hebrew-interlinear/micah/3.json",
+      "sha256": "354598438f4a6c7dc3bd13f46d58eaa2a30e02a47eb771101c071113b56e5419",
+      "bytes": 45813
+    },
+    {
+      "path": "data/hebrew-interlinear/micah/4.json",
+      "sha256": "f542021faa017d21b5a563230824838ed8a03203bffd80c072d6c4244ba232bc",
+      "bytes": 58915
+    },
+    {
+      "path": "data/hebrew-interlinear/micah/5.json",
+      "sha256": "d8c027ffca4ad51703a5c16c3377d357bdeb52f7d8ad278c41eee0cdc87bd557",
+      "bytes": 47214
+    },
+    {
+      "path": "data/hebrew-interlinear/micah/6.json",
+      "sha256": "cc254d5e713660ac66d0f9db69fdd0d74e477eee6f3ad04cfda52893108e155a",
+      "bytes": 53188
+    },
+    {
+      "path": "data/hebrew-interlinear/micah/7.json",
+      "sha256": "8f241a7b0a8ff107609059dae2dd48795a4c760c9ab96b093581d323bafc890b",
+      "bytes": 65566
+    },
+    {
+      "path": "data/hebrew-interlinear/nahum/1.json",
+      "sha256": "0301e74ba85a1e6e36e8564fad0f27cc936d4d72eb9880f8d33af3ffcfc1e35e",
+      "bytes": 41242
+    },
+    {
+      "path": "data/hebrew-interlinear/nahum/2.json",
+      "sha256": "8db881914f83105ec38f2142178bf40451cc3cddc1a189e72c99f06f05294318",
+      "bytes": 47189
+    },
+    {
+      "path": "data/hebrew-interlinear/nahum/3.json",
+      "sha256": "555b6823f702d13ee9ee335e0a886f87b557dfb87f8ea43a57ea85e94ba930da",
+      "bytes": 62719
+    },
+    {
+      "path": "data/hebrew-interlinear/nehemiah/1.json",
+      "sha256": "6fbe3e32fdab1a400193585e0c6d8b63deba0fa8a7e38dfe01447df30671bbf4",
+      "bytes": 56869
+    },
+    {
+      "path": "data/hebrew-interlinear/nehemiah/10.json",
+      "sha256": "27c81fde07c50fb443c7b56f1ea49ed6b3dfef7e48d7cb70bb4cb64fe579561e",
+      "bytes": 96292
+    },
+    {
+      "path": "data/hebrew-interlinear/nehemiah/11.json",
+      "sha256": "a3b842e5f645c6737f15f825c3c5e85206b8cec4f9ab91a8935e5dbaee2e5f5f",
+      "bytes": 103241
+    },
+    {
+      "path": "data/hebrew-interlinear/nehemiah/12.json",
+      "sha256": "46c11a2a1ee3f639d1af738875063cc8b7d5f3e78170c0f71b55c0744c686ff3",
+      "bytes": 135127
+    },
+    {
+      "path": "data/hebrew-interlinear/nehemiah/13.json",
+      "sha256": "5fce17d15207d77212b38fac74f8207778787397f28a4b9bc2d5e00af673b9b9",
+      "bytes": 136190
+    },
+    {
+      "path": "data/hebrew-interlinear/nehemiah/2.json",
+      "sha256": "43f3f2a73728b474b1e96352261bc5ede34f449db2400e926a261252c1812699",
+      "bytes": 101375
+    },
+    {
+      "path": "data/hebrew-interlinear/nehemiah/3.json",
+      "sha256": "475155372ab68f083471fc901a332a1912751da4c180a239c2ff18b6154d1e71",
+      "bytes": 149756
+    },
+    {
+      "path": "data/hebrew-interlinear/nehemiah/4.json",
+      "sha256": "d54c66bd134895e5a615d64c9e698a018e809535c8ef2d781f0626d7021b738e",
+      "bytes": 73044
+    },
+    {
+      "path": "data/hebrew-interlinear/nehemiah/5.json",
+      "sha256": "c07f945cb4e3020608b22e23e00c4439613faaf7c309ed27869bc373b69c4c26",
+      "bytes": 91455
+    },
+    {
+      "path": "data/hebrew-interlinear/nehemiah/6.json",
+      "sha256": "2b3a124d1b0de1135a110fc756878c52784f0653374b5228ee5f89aa9aa6b7d9",
+      "bytes": 84543
+    },
+    {
+      "path": "data/hebrew-interlinear/nehemiah/7.json",
+      "sha256": "a6c6f8a885b23c56a75c316914c7a6082821dd8958eac9d11935d886df867f32",
+      "bytes": 163445
+    },
+    {
+      "path": "data/hebrew-interlinear/nehemiah/8.json",
+      "sha256": "08c8a078a16efdeb83ea3a0b4c6a4300966a34692208b0668595a4108ff4ca58",
+      "bytes": 98375
+    },
+    {
+      "path": "data/hebrew-interlinear/nehemiah/9.json",
+      "sha256": "0878ac4b8065c8b8e231397c3c8ba27e62c941502e58a5d3d548e7c8ed0a3308",
+      "bytes": 188172
+    },
+    {
+      "path": "data/hebrew-interlinear/numbers/1.json",
+      "sha256": "80fd647e85223062c735506d3d017c07a53b699430f508cd63cfd3b8bc7af02a",
+      "bytes": 160558
+    },
+    {
+      "path": "data/hebrew-interlinear/numbers/10.json",
+      "sha256": "3119f5a7764147896bd8cfe81ccf113273c850f20aa4802e6b426108d860950f",
+      "bytes": 103450
+    },
+    {
+      "path": "data/hebrew-interlinear/numbers/11.json",
+      "sha256": "f1205337637b1976c954c4468ac528cfd9650069cb56ea6fc5eaf77ece05616e",
+      "bytes": 146644
+    },
+    {
+      "path": "data/hebrew-interlinear/numbers/12.json",
+      "sha256": "d93fdf86ceb861583d0aff2cdffee1a64c0f177174e5d5728539f2b172dd09fb",
+      "bytes": 51558
+    },
+    {
+      "path": "data/hebrew-interlinear/numbers/13.json",
+      "sha256": "29b6ed757a4b5452bd01f9d9fa5cf2aa699866ff81bda0c1abc217c77e5c2dce",
+      "bytes": 102015
+    },
+    {
+      "path": "data/hebrew-interlinear/numbers/14.json",
+      "sha256": "0efb64dd1f1e510fd13823fceb81b6d39e9ee0e8e1555f8a7aabaa086d2f53e9",
+      "bytes": 168850
+    },
+    {
+      "path": "data/hebrew-interlinear/numbers/15.json",
+      "sha256": "d8263b1adaf15ff7d8fe0cd43ad369a28b080bbc85d2df365eb7098abb1ac437",
+      "bytes": 137890
+    },
+    {
+      "path": "data/hebrew-interlinear/numbers/16.json",
+      "sha256": "d20a9008c66cce5b077e014c62f563296c45cc9f285303219e6ddfc9223f2058",
+      "bytes": 129799
+    },
+    {
+      "path": "data/hebrew-interlinear/numbers/17.json",
+      "sha256": "f05f5ef0d52372d1ee212c91e2cc82f60714a96ccc9b5738519a213755b80f88",
+      "bytes": 103244
+    },
+    {
+      "path": "data/hebrew-interlinear/numbers/18.json",
+      "sha256": "fd2bcd61dcc678bae06ad3dfe069f04662a9a9b1474c7519ede6dd6bbe91d01c",
+      "bytes": 139223
+    },
+    {
+      "path": "data/hebrew-interlinear/numbers/19.json",
+      "sha256": "c4af5311f5ff2196924854bf8b6f82a5dab505d53d60ad34bd21747327155f30",
+      "bytes": 93670
+    },
+    {
+      "path": "data/hebrew-interlinear/numbers/2.json",
+      "sha256": "4d133a1cd1a57dae9fd9160ce94465538c5492f7f766804612cd833868451856",
+      "bytes": 93952
+    },
+    {
+      "path": "data/hebrew-interlinear/numbers/20.json",
+      "sha256": "155c7de91ad130fb041d6bb0b84b8e86fabbba8f97c529c41e4a8a3d4bf0e367",
+      "bytes": 110150
+    },
+    {
+      "path": "data/hebrew-interlinear/numbers/21.json",
+      "sha256": "f6fc2f8caea67989bee0e63d6c2c90a3c5e821b241390164c43b600f82f497f7",
+      "bytes": 126215
+    },
+    {
+      "path": "data/hebrew-interlinear/numbers/22.json",
+      "sha256": "9b4f0f74cec08407d00e1b44c14b187f13b0b9fdd49dc473485ce6154aea9fd7",
+      "bytes": 167898
+    },
+    {
+      "path": "data/hebrew-interlinear/numbers/23.json",
+      "sha256": "228a7b908fa83ca3726759b489c0af9cb394289771eb44a547ee24b900dfc4e9",
+      "bytes": 101565
+    },
+    {
+      "path": "data/hebrew-interlinear/numbers/24.json",
+      "sha256": "c8dfe646c527382e5e6199ae8ceaf2d8f7bff7b0cef1a8728e22e507445ac088",
+      "bytes": 81448
+    },
+    {
+      "path": "data/hebrew-interlinear/numbers/25.json",
+      "sha256": "4f2aea38ab210daf2896f0d7df86040d97f717e4f3fe210dd588e2512aaa141e",
+      "bytes": 61260
+    },
+    {
+      "path": "data/hebrew-interlinear/numbers/26.json",
+      "sha256": "8987b9f514c280d49190330eb9bc479ac0882b57921f6c5125c6bb6ca7cc99c9",
+      "bytes": 184394
+    },
+    {
+      "path": "data/hebrew-interlinear/numbers/27.json",
+      "sha256": "42f5eed5b2921b24caf056584433c92b77252282590248ed5a37e174d9b6e05d",
+      "bytes": 84912
+    },
+    {
+      "path": "data/hebrew-interlinear/numbers/28.json",
+      "sha256": "7c3dc79e3b6b2f6c68320fc0c076e7d3f5178f6a683914d6cf0fc4b1618c152c",
+      "bytes": 96749
+    },
+    {
+      "path": "data/hebrew-interlinear/numbers/29.json",
+      "sha256": "0c25550dea518edf613f2435223abf9c306258398ed9ee678bb8c73571c911f3",
+      "bytes": 124328
+    },
+    {
+      "path": "data/hebrew-interlinear/numbers/3.json",
+      "sha256": "584f257a769a27b5890f40c8422aeab8691abd837a20d5eb4ee1942c683de544",
+      "bytes": 161327
+    },
+    {
+      "path": "data/hebrew-interlinear/numbers/30.json",
+      "sha256": "deb0d3d8754bfb43079aa56a6f728947990ccd25d5fc752f886683cf66fdb0b3",
+      "bytes": 69205
+    },
+    {
+      "path": "data/hebrew-interlinear/numbers/31.json",
+      "sha256": "57aa20f7792a8b5cbfa69887c422be887b29e14088defd390ee5482d5978c0c5",
+      "bytes": 179926
+    },
+    {
+      "path": "data/hebrew-interlinear/numbers/32.json",
+      "sha256": "2aab700ed5b79766f9794eac514fa20fba831fb605914c09c2aea4260726df00",
+      "bytes": 147652
+    },
+    {
+      "path": "data/hebrew-interlinear/numbers/33.json",
+      "sha256": "bd3ef994612755a12ee0508867924eee92c320df3bad26277f758e479d6555ca",
+      "bytes": 132000
+    },
+    {
+      "path": "data/hebrew-interlinear/numbers/34.json",
+      "sha256": "c4b1c2e70148bcc72a8a60516c08633d807697b0cbaadf61904c93441aafb646",
+      "bytes": 80414
+    },
+    {
+      "path": "data/hebrew-interlinear/numbers/35.json",
+      "sha256": "d7851af7253a98895ff73e4f65fb5db45cedc10a22af19562ad33fe12d8639a8",
+      "bytes": 128957
+    },
+    {
+      "path": "data/hebrew-interlinear/numbers/36.json",
+      "sha256": "1e407d8c1ee1825f72018e5a985498e6e6d41c82adc24a180c364356c513077e",
+      "bytes": 56349
+    },
+    {
+      "path": "data/hebrew-interlinear/numbers/4.json",
+      "sha256": "01aa0d8c53e9ae7f8039cca0afb2a4d61a0fd2a961c62eb09cf4d0a38c52d727",
+      "bytes": 179340
+    },
+    {
+      "path": "data/hebrew-interlinear/numbers/5.json",
+      "sha256": "ecc2075b95f026912018aebb56cb12a31e5a392eff38db83fb9998af0140244f",
+      "bytes": 123800
+    },
+    {
+      "path": "data/hebrew-interlinear/numbers/6.json",
+      "sha256": "c25324c9874a50ba7f903c9f5ba3492da7ef6ae11d3dc78e26ba3277febc01f6",
+      "bytes": 94621
+    },
+    {
+      "path": "data/hebrew-interlinear/numbers/7.json",
+      "sha256": "763dd186a95929c35eeaf44cbbc7e0f29f3ae404bc1aac3ac96839dfec6e5557",
+      "bytes": 273157
+    },
+    {
+      "path": "data/hebrew-interlinear/numbers/8.json",
+      "sha256": "7666611d4ea8dafbef4d4f5ce790efafe6311ea67f4c3e241ff105163007e061",
+      "bytes": 94508
+    },
+    {
+      "path": "data/hebrew-interlinear/numbers/9.json",
+      "sha256": "7042a417a81a42f9d73c98cf4719a3d74971bc364a9a6e4bb04039ce0932b1d9",
+      "bytes": 93540
+    },
+    {
+      "path": "data/hebrew-interlinear/obadiah/1.json",
+      "sha256": "4e82a44d8b4a473c2e8acd83c7c175e8893b911503e2a3a32b060f6066aeb8e6",
+      "bytes": 77236
+    },
+    {
+      "path": "data/hebrew-interlinear/proverbs/1.json",
+      "sha256": "62375184baeb8afec8f004e34b8a26e2c1421776dc2a41f01710265f5aadd239",
+      "bytes": 64764
+    },
+    {
+      "path": "data/hebrew-interlinear/proverbs/10.json",
+      "sha256": "5e579e858a94f807c7843b6ce7f1d9313c427c6dea4a5bee83beff10f4e2dd6d",
+      "bytes": 60408
+    },
+    {
+      "path": "data/hebrew-interlinear/proverbs/11.json",
+      "sha256": "d8b6e1e50413ef45045af4955d31b6adff17463b0c103339b62876a8d9bf7d9b",
+      "bytes": 58508
+    },
+    {
+      "path": "data/hebrew-interlinear/proverbs/12.json",
+      "sha256": "0041549e4095a7b2bf36402a929ab63d95e9efef2aac98fab74af0ec0b4fffbf",
+      "bytes": 52831
+    },
+    {
+      "path": "data/hebrew-interlinear/proverbs/13.json",
+      "sha256": "9ed5c3a9428870749fcdb38b9ef25cb075cdc0a0a5cbd6e08d792efea78c12ec",
+      "bytes": 47150
+    },
+    {
+      "path": "data/hebrew-interlinear/proverbs/14.json",
+      "sha256": "a280bbc0851b766d4fa41f40d8ec1cbd8519d77215fbd7eb9325ade6678777b8",
+      "bytes": 65315
+    },
+    {
+      "path": "data/hebrew-interlinear/proverbs/15.json",
+      "sha256": "2de991167cc864aacaea52fb2f3bcb63ae89b8c748e1f1ea44f385d9be2552ef",
+      "bytes": 63166
+    },
+    {
+      "path": "data/hebrew-interlinear/proverbs/16.json",
+      "sha256": "37cbdd2d49fbfcd6c4e79dfbcb9e112dd17770ee0089644dd07e1b48ff38a2a9",
+      "bytes": 65817
+    },
+    {
+      "path": "data/hebrew-interlinear/proverbs/17.json",
+      "sha256": "65f6495ab5b544948300299cb8623cb8e8994f71bea3b1dfe918ac773f407d30",
+      "bytes": 58061
+    },
+    {
+      "path": "data/hebrew-interlinear/proverbs/18.json",
+      "sha256": "9a0510350dab227f2b9e647f505ebf25610e7f7d37cc9e7d3ea0d3dfcd815674",
+      "bytes": 46660
+    },
+    {
+      "path": "data/hebrew-interlinear/proverbs/19.json",
+      "sha256": "4961c2dd16bed56f54c9f44e34d6e6e62cc70657184a431ef52407bfd1b35dd8",
+      "bytes": 59510
+    },
+    {
+      "path": "data/hebrew-interlinear/proverbs/2.json",
+      "sha256": "ec48f83f89fbf3ea2b90521a6a296a9813b770069043ab88d9703cd644476a18",
+      "bytes": 40526
+    },
+    {
+      "path": "data/hebrew-interlinear/proverbs/20.json",
+      "sha256": "8d0d218513d649aecd536a636646b7a59f3d3e77886ded5e25bfb97682d02eb4",
+      "bytes": 59831
+    },
+    {
+      "path": "data/hebrew-interlinear/proverbs/21.json",
+      "sha256": "cb3031cc521ae4ad64a133d1043513950bc607458fee24a295ee168964fe916c",
+      "bytes": 61080
+    },
+    {
+      "path": "data/hebrew-interlinear/proverbs/22.json",
+      "sha256": "f10c657d70db78a85be8208b78ffe339a7c9c9b5c5655dd30069c6ea9dd2d9fe",
+      "bytes": 59794
+    },
+    {
+      "path": "data/hebrew-interlinear/proverbs/23.json",
+      "sha256": "53ab9ac616323c1b6cad1ddfee34315c776c5fee7fe1d2f35efbc8a59100a8f4",
+      "bytes": 75711
+    },
+    {
+      "path": "data/hebrew-interlinear/proverbs/24.json",
+      "sha256": "a133602cd74632e293d12f7e6e8f5a6edfa0d04998bd261213c6654d7a7c6b77",
+      "bytes": 71802
+    },
+    {
+      "path": "data/hebrew-interlinear/proverbs/25.json",
+      "sha256": "70875ba4d4a93d437a3424a8a4d7cdb1775dcf1465efe878c73aa9d79167fbfa",
+      "bytes": 61445
+    },
+    {
+      "path": "data/hebrew-interlinear/proverbs/26.json",
+      "sha256": "4bed6ec5d4b064060ede1c9eba480299114f87be9847ddd91f7a4cf49770bd7d",
+      "bytes": 57009
+    },
+    {
+      "path": "data/hebrew-interlinear/proverbs/27.json",
+      "sha256": "71de4bdcb19614c55dc7be0fa7281e897a582a661f623c9ccceb167ca59b2b79",
+      "bytes": 58109
+    },
+    {
+      "path": "data/hebrew-interlinear/proverbs/28.json",
+      "sha256": "f2468ada27e0f39c012fdc8b6450cb2720842c68e5878bfbd9a2e33ef932e31d",
+      "bytes": 59306
+    },
+    {
+      "path": "data/hebrew-interlinear/proverbs/29.json",
+      "sha256": "d6e6600d780677849141e3ffaf73ceabbf49be4bf56ffb873316a303feb9df0a",
+      "bytes": 52889
+    },
+    {
+      "path": "data/hebrew-interlinear/proverbs/3.json",
+      "sha256": "15f33f01de4741b799db07e4ad60ab101df3e28556b3f3fe5761412d1a5314dd",
+      "bytes": 70362
+    },
+    {
+      "path": "data/hebrew-interlinear/proverbs/30.json",
+      "sha256": "2f2e0f0e85a82c0f5752c24bd84cf09c43242e2bbc75f89a61a99269ecb1663b",
+      "bytes": 77745
+    },
+    {
+      "path": "data/hebrew-interlinear/proverbs/31.json",
+      "sha256": "f770259b82e4923cb602e9b21f6767d24189187564f491ca16991042347f615c",
+      "bytes": 61163
+    },
+    {
+      "path": "data/hebrew-interlinear/proverbs/4.json",
+      "sha256": "55fbc085bffb4c7b78d30b3fda61bc45d2ba41aeac13e24495319b13d05c5add",
+      "bytes": 54281
+    },
+    {
+      "path": "data/hebrew-interlinear/proverbs/5.json",
+      "sha256": "acae94dd01292d8ed43bcd279fe580243febedc399abaaf1c67feed8866f56e4",
+      "bytes": 45293
+    },
+    {
+      "path": "data/hebrew-interlinear/proverbs/6.json",
+      "sha256": "2d5b07447f2a8b0559d5436f1e348e2372a75e09ddbfb4376226ee017479a6bc",
+      "bytes": 71599
+    },
+    {
+      "path": "data/hebrew-interlinear/proverbs/7.json",
+      "sha256": "b98307690ac654d2f0c9bf67fc1d93ab4724f3ba1f6e6f3881b6c742b3d978d4",
+      "bytes": 53476
+    },
+    {
+      "path": "data/hebrew-interlinear/proverbs/8.json",
+      "sha256": "08bea58d922f267e8bebf4d6ffea528dd77afed65f1e7f57dcb443e70973ae6c",
+      "bytes": 69327
+    },
+    {
+      "path": "data/hebrew-interlinear/proverbs/9.json",
+      "sha256": "858b946adcda5b50beea5750d3fdc4c32fc4ce77af044f2ded663052de03e15e",
+      "bytes": 33091
+    },
+    {
+      "path": "data/hebrew-interlinear/psalms/1.json",
+      "sha256": "680baf8eb4c245ef5dac70a6fa594fafd89f3a216d6aa7f51a9b86b4f5221b17",
+      "bytes": 17385
+    },
+    {
+      "path": "data/hebrew-interlinear/psalms/10.json",
+      "sha256": "f3838f5223bfc5cbcf3ef694dbb83a09d702a1231da25bfcd9e8f420ff010b69",
+      "bytes": 43489
+    },
+    {
+      "path": "data/hebrew-interlinear/psalms/100.json",
+      "sha256": "254d77afd286ddbafd93a04480ca21cb9d5ae10a114945aaf9af4520dee0ed96",
+      "bytes": 12243
+    },
+    {
+      "path": "data/hebrew-interlinear/psalms/101.json",
+      "sha256": "cf2c304ad72b9dd3612f9148085410668a16f3f8db40a643426a02b33cd31984",
+      "bytes": 21848
+    },
+    {
+      "path": "data/hebrew-interlinear/psalms/102.json",
+      "sha256": "7bf5d46217db0b80d3a63d961fa2f6e95983d995afb04937738cd4c12c43bea3",
+      "bytes": 59046
+    },
+    {
+      "path": "data/hebrew-interlinear/psalms/103.json",
+      "sha256": "2fc15b4e1bf0bc3cadc3a81e7bddec5525d164e9c20fadebd478edcc3ff6fa4d",
+      "bytes": 46372
+    },
+    {
+      "path": "data/hebrew-interlinear/psalms/104.json",
+      "sha256": "f6235e919da9fb143fe81f76f4c2841a97fb59630e86742a9ce2019115d173a6",
+      "bytes": 73366
+    },
+    {
+      "path": "data/hebrew-interlinear/psalms/105.json",
+      "sha256": "c12bd930e4e73564f6c3fe529cf58727cd802855be0b344def99a42ccf02d746",
+      "bytes": 82022
+    },
+    {
+      "path": "data/hebrew-interlinear/psalms/106.json",
+      "sha256": "358067f42647e7b37aab63d41f1e30983cd9e37e0867935dab4691e89cafd727",
+      "bytes": 96165
+    },
+    {
+      "path": "data/hebrew-interlinear/psalms/107.json",
+      "sha256": "1590ba889b7f045d2ef90d103d375267f7c64774839f54d57a743ba967c778a6",
+      "bytes": 78937
+    },
+    {
+      "path": "data/hebrew-interlinear/psalms/108.json",
+      "sha256": "98c1ba970df4c3a4186f3588d7893b4281840e810fc22fb9d5efaa43182bfda9",
+      "bytes": 26840
+    },
+    {
+      "path": "data/hebrew-interlinear/psalms/109.json",
+      "sha256": "92f6c85c4cf50a3123c085fef8a250a126f6dbe2b79949ae783b20ac54d8cd0a",
+      "bytes": 63750
+    },
+    {
+      "path": "data/hebrew-interlinear/psalms/11.json",
+      "sha256": "bb9252b33ec0759131a3eed58248f7de5f9b259e1730de3c97a409c06a135913",
+      "bytes": 18125
+    },
+    {
+      "path": "data/hebrew-interlinear/psalms/110.json",
+      "sha256": "fa82d6a8efeb399e360ddf5259b1e181f40cfac56b0707fe8ef74b527341a27a",
+      "bytes": 17393
+    },
+    {
+      "path": "data/hebrew-interlinear/psalms/111.json",
+      "sha256": "fdb076c8edfef703a13245a32fce9091b43fb3a5c14a71906c97d645c88c8113",
+      "bytes": 20589
+    },
+    {
+      "path": "data/hebrew-interlinear/psalms/112.json",
+      "sha256": "2ad87244f2fe8ac365ae21a396b0f68b44b5795664a8f0551b088db4c2497695",
+      "bytes": 21280
+    },
+    {
+      "path": "data/hebrew-interlinear/psalms/113.json",
+      "sha256": "8d743cd62fa102c421369d3bba068dc44d1489609319cc137ba3151ef401b65d",
+      "bytes": 15700
+    },
+    {
+      "path": "data/hebrew-interlinear/psalms/114.json",
+      "sha256": "e86c8dd2758047b7a235dd6b31dd5c08cebf87b135da9d635d2cb3571e04053f",
+      "bytes": 14561
+    },
+    {
+      "path": "data/hebrew-interlinear/psalms/115.json",
+      "sha256": "d9f34a821001ddbbd78558c3cefd3e924e638acc2aee2679c0c3559b55711020",
+      "bytes": 35591
+    },
+    {
+      "path": "data/hebrew-interlinear/psalms/116.json",
+      "sha256": "52fa6878c3cf9fc7c23fba71b25119231d614ca8b3236ea49473c51beea8f8c2",
+      "bytes": 35089
+    },
+    {
+      "path": "data/hebrew-interlinear/psalms/117.json",
+      "sha256": "f9c367aad352da75cee520b7aa51ff4721f2fb23a7c0f691e7514e5cdfa1191d",
+      "bytes": 4687
+    },
+    {
+      "path": "data/hebrew-interlinear/psalms/118.json",
+      "sha256": "5f626cffdb260b1f03db65f67453c739b4fe5d0be671b2ea5bbd9d74f67316df",
+      "bytes": 52246
+    },
+    {
+      "path": "data/hebrew-interlinear/psalms/119.json",
+      "sha256": "22a3fd63164c78541e2b0b41f2ba60e31bb30b12e1f7bf54b84477de3033d929",
+      "bytes": 304965
+    },
+    {
+      "path": "data/hebrew-interlinear/psalms/12.json",
+      "sha256": "6f9e60f087c3428665deef32bbaa7a32b9d4ba5e3e1df723a7a1678687280781",
+      "bytes": 20599
+    },
+    {
+      "path": "data/hebrew-interlinear/psalms/120.json",
+      "sha256": "76ea6342696fd99040858247e572ee3a05657fd2f3b8ad4595655246fa398043",
+      "bytes": 13369
+    },
+    {
+      "path": "data/hebrew-interlinear/psalms/121.json",
+      "sha256": "edacd4713b05c8b69806c262c6c0cf2a63626fc5f47fe9c0d7221980fbef76a9",
+      "bytes": 15173
+    },
+    {
+      "path": "data/hebrew-interlinear/psalms/122.json",
+      "sha256": "a1888fb0801acf0400e5040780321f8c4db871b839b03d8412494402158f0bd5",
+      "bytes": 17056
+    },
+    {
+      "path": "data/hebrew-interlinear/psalms/123.json",
+      "sha256": "a822c3c0e0c007797b5768ef5de990263503eff6337140a0a24a5134a307e5a0",
+      "bytes": 11448
+    },
+    {
+      "path": "data/hebrew-interlinear/psalms/124.json",
+      "sha256": "74b28c97f16fe07c302702367222ae75dcd550872001761b2c8f81d9732ee75c",
+      "bytes": 15782
+    },
+    {
+      "path": "data/hebrew-interlinear/psalms/125.json",
+      "sha256": "85e92a3e22391f0b47b75a76d60a1b62ab8bba9e7a43b6ee5f71ec2283625a93",
+      "bytes": 13845
+    },
+    {
+      "path": "data/hebrew-interlinear/psalms/126.json",
+      "sha256": "848410cd197349f7fc276c0665e8cc6abe0d1bed64a5b59fc62f7c1d5a26c49b",
+      "bytes": 13915
+    },
+    {
+      "path": "data/hebrew-interlinear/psalms/127.json",
+      "sha256": "5e863bb1681481a1241e3498226289e5f8fe52b27ef52d21766ded4fca2bf4b2",
+      "bytes": 15097
+    },
+    {
+      "path": "data/hebrew-interlinear/psalms/128.json",
+      "sha256": "135172455e28bf0e53d0d0b40dafe607159e91ba052a5a86d2d5c94f3c17fdf0",
+      "bytes": 13059
+    },
+    {
+      "path": "data/hebrew-interlinear/psalms/129.json",
+      "sha256": "89f42f4249a1b227b4312466f14bf1e9177b9e850507bbdfba412625af5b77cb",
+      "bytes": 14875
+    },
+    {
+      "path": "data/hebrew-interlinear/psalms/13.json",
+      "sha256": "86634c7fef7ce9e21eed92e8c1e3647985a8578a00c79bbbb7a6573b2bbb1429",
+      "bytes": 14892
+    },
+    {
+      "path": "data/hebrew-interlinear/psalms/130.json",
+      "sha256": "49e8b7642f22d5a9f738457bb73454684597b674bbed5320f38395bef3e90008",
+      "bytes": 15207
+    },
+    {
+      "path": "data/hebrew-interlinear/psalms/131.json",
+      "sha256": "f6eb8565a68bc5dcd886cf27b120ed9c25f73ebc1abbd155d238dadd8d50284c",
+      "bytes": 9326
+    },
+    {
+      "path": "data/hebrew-interlinear/psalms/132.json",
+      "sha256": "5e72e4932cc75e7cbd7d0962ba05e03ee990442dbf77999104246dabcef1b5fb",
+      "bytes": 35579
+    },
+    {
+      "path": "data/hebrew-interlinear/psalms/133.json",
+      "sha256": "dcb2c95128ae30f6b555701bd2c80cc2af24a5e8a72eb4f968d208ccf7cf6c89",
+      "bytes": 10218
+    },
+    {
+      "path": "data/hebrew-interlinear/psalms/134.json",
+      "sha256": "366c0b08eef33eaeb9a600c8326f225573aeb4e26fba6bef60ce324cd55efb98",
+      "bytes": 6810
+    },
+    {
+      "path": "data/hebrew-interlinear/psalms/135.json",
+      "sha256": "8bc581891ea741b48d5306c8ec22cf43b3c440a5128f210e4f50c58fd1cec275",
+      "bytes": 43470
+    },
+    {
+      "path": "data/hebrew-interlinear/psalms/136.json",
+      "sha256": "636efc49d86ea437df0b5d95295fc0264fdebe65c0d3d2bd88347a5bc5c7fe79",
+      "bytes": 47578
+    },
+    {
+      "path": "data/hebrew-interlinear/psalms/137.json",
+      "sha256": "8a49daf13ca9d4d76dd595b5bdcaf1b8c6bbfe76da4edb99500bee298f919cb6",
+      "bytes": 21770
+    },
+    {
+      "path": "data/hebrew-interlinear/psalms/138.json",
+      "sha256": "06cb0f320e1dc3a2271535e36d4746fcdd0dd7c32b7b85fd93eee6ea8f0934df",
+      "bytes": 20422
+    },
+    {
+      "path": "data/hebrew-interlinear/psalms/139.json",
+      "sha256": "56e656a597ac68f1859fc8135d6d1c08166ba9736bbeb057cf26a4a7a0e80075",
+      "bytes": 49648
+    },
+    {
+      "path": "data/hebrew-interlinear/psalms/14.json",
+      "sha256": "5e78b4f42737154d8f87fafe89c0827d29427e3caaa9924ecc6356fde9194530",
+      "bytes": 17962
+    },
+    {
+      "path": "data/hebrew-interlinear/psalms/140.json",
+      "sha256": "f089882e4c25b466d214f3d1d6a566829b5d374ec494fbf5cd2da6f0a93f0516",
+      "bytes": 31105
+    },
+    {
+      "path": "data/hebrew-interlinear/psalms/141.json",
+      "sha256": "ee8e304d817c000f3415e59dd03448fdbb14bdab33a54196409c0c2fb9d2c199",
+      "bytes": 25987
+    },
+    {
+      "path": "data/hebrew-interlinear/psalms/142.json",
+      "sha256": "f03eb5d7ce1913cb5dca5c441cf4d60addee6bc4379430e11eb55e20dbdd4481",
+      "bytes": 20779
+    },
+    {
+      "path": "data/hebrew-interlinear/psalms/143.json",
+      "sha256": "d492fdbd62fa0f230e9e75db022d56631aa6a4df8351bbda34387e98edbd7aab",
+      "bytes": 33068
+    },
+    {
+      "path": "data/hebrew-interlinear/psalms/144.json",
+      "sha256": "42947eaa0da2b8f227a4b7e3cbf3528086865127fa54dfcfb3c6540a1cc2142b",
+      "bytes": 37452
+    },
+    {
+      "path": "data/hebrew-interlinear/psalms/145.json",
+      "sha256": "dabe3c995862538d0ba3bbd2a78ab803a129c041b11b8ff38d5c50b0d4ee3d91",
+      "bytes": 43182
+    },
+    {
+      "path": "data/hebrew-interlinear/psalms/146.json",
+      "sha256": "11e73c0b71fef543a81ae79a40c56f3b35fdf636c6878733a9ccdfa553f8da0f",
+      "bytes": 22636
+    },
+    {
+      "path": "data/hebrew-interlinear/psalms/147.json",
+      "sha256": "d31e20c482949b8d8d06629bc5e0a41e10bb21796f7cec74e19df6437026abde",
+      "bytes": 38558
+    },
+    {
+      "path": "data/hebrew-interlinear/psalms/148.json",
+      "sha256": "7a228bcbb0238f18ac6e0f981df6bd46cef3c9bd9453af03a83e77490224b6d7",
+      "bytes": 29463
+    },
+    {
+      "path": "data/hebrew-interlinear/psalms/149.json",
+      "sha256": "cb57dff19ca90502ac0681c5a782268a456c09d8daba53aff401b50436392947",
+      "bytes": 18074
+    },
+    {
+      "path": "data/hebrew-interlinear/psalms/15.json",
+      "sha256": "50e1ab1ffaefb4fe28da260bf91a38e273289bb9c50a91d410268e285df1b8eb",
+      "bytes": 14270
+    },
+    {
+      "path": "data/hebrew-interlinear/psalms/150.json",
+      "sha256": "7fdec86632401e3bf38affaf5614901b55ad8a41feae90d79f5db038b0dc6e02",
+      "bytes": 11433
+    },
+    {
+      "path": "data/hebrew-interlinear/psalms/16.json",
+      "sha256": "64d7aeebf2a60c811fc0164b2242cfbdf9bb3eab3af585e21dd159e273bab0fb",
+      "bytes": 25871
+    },
+    {
+      "path": "data/hebrew-interlinear/psalms/17.json",
+      "sha256": "f5b303e7f006768e7972451b41399905599abb509bc98d53325bc9d5472b1115",
+      "bytes": 36372
+    },
+    {
+      "path": "data/hebrew-interlinear/psalms/18.json",
+      "sha256": "8a2b9e924c68946b2308fd20c7cb1b823a234947456f039fe62a781618e38efd",
+      "bytes": 112006
+    },
+    {
+      "path": "data/hebrew-interlinear/psalms/19.json",
+      "sha256": "cc75d03114bc03a7360e49daa7eee4efa6ee59fcfaae0bd363921a3fbaa44e9b",
+      "bytes": 34219
+    },
+    {
+      "path": "data/hebrew-interlinear/psalms/2.json",
+      "sha256": "19517e8f1365e691f219d9ef7647c448899a8df37e381a441a7578376c752e3c",
+      "bytes": 24638
+    },
+    {
+      "path": "data/hebrew-interlinear/psalms/20.json",
+      "sha256": "e860c190ddc1041a952d046d4a7f763b36e67f83368f8bc64e49000c329ba46d",
+      "bytes": 20440
+    },
+    {
+      "path": "data/hebrew-interlinear/psalms/21.json",
+      "sha256": "fe840b88a1f3428253f29573708f70b23e7652f6a47363d6db735d99926fc9cb",
+      "bytes": 29204
+    },
+    {
+      "path": "data/hebrew-interlinear/psalms/22.json",
+      "sha256": "95e813bb180cf2a80b54fc004fa6fa411fdfe2b073b8542c846d31e1bd9970b4",
+      "bytes": 69196
+    },
+    {
+      "path": "data/hebrew-interlinear/psalms/23.json",
+      "sha256": "7763a2cf312efdab0248c0adb03620454cb453df31ad7460ea1ee8076c8bb84a",
+      "bytes": 15543
+    },
+    {
+      "path": "data/hebrew-interlinear/psalms/24.json",
+      "sha256": "84bb2052ccfa85ce2a5c2a267fe9cdc2aa07fd0b9b78ca88b7592b34d7de607c",
+      "bytes": 23496
+    },
+    {
+      "path": "data/hebrew-interlinear/psalms/25.json",
+      "sha256": "871a743769cb6c77e1100a52340ebd19df54d8d8345ac6b64d3995e0e6cd6b04",
+      "bytes": 43571
+    },
+    {
+      "path": "data/hebrew-interlinear/psalms/26.json",
+      "sha256": "e171a106c6330678931b849433b9baa729ab27ab846aa691555ba4432fe4125b",
+      "bytes": 23851
+    },
+    {
+      "path": "data/hebrew-interlinear/psalms/27.json",
+      "sha256": "db9e45ef300c66c48688153e20d63c80f4957c7eeacbc7f1f61561482aa82a6e",
+      "bytes": 40660
+    },
+    {
+      "path": "data/hebrew-interlinear/psalms/28.json",
+      "sha256": "3041c65ea4925497f9afb93612a121801c759bbe2cdb2f7ba5a00aad09be0ffc",
+      "bytes": 26638
+    },
+    {
+      "path": "data/hebrew-interlinear/psalms/29.json",
+      "sha256": "124a134d4fb9fb6b876364e547703a0d10a6628d04e38032ffba44d503ef3cc4",
+      "bytes": 23250
+    },
+    {
+      "path": "data/hebrew-interlinear/psalms/3.json",
+      "sha256": "bd9060b9ffaa256d42181a72ecba7418b165a83c4ef16895833c65d6782a6e53",
+      "bytes": 18739
+    },
+    {
+      "path": "data/hebrew-interlinear/psalms/30.json",
+      "sha256": "e920245033a2a49fd83c684adf580a4eb45545b35121951f1ce6218904e023ce",
+      "bytes": 27627
+    },
+    {
+      "path": "data/hebrew-interlinear/psalms/31.json",
+      "sha256": "d558fa2426191b4beefc4462df1c8cd2818851bf5760154caf81d1905d03a85f",
+      "bytes": 61492
+    },
+    {
+      "path": "data/hebrew-interlinear/psalms/32.json",
+      "sha256": "dc66f60a7130a4a9890dc1e0ccd67b9c32f9972b0c7fe1f8ff913122b26bdee5",
+      "bytes": 29237
+    },
+    {
+      "path": "data/hebrew-interlinear/psalms/33.json",
+      "sha256": "2933d8aa41493402ba6268cdfbf58887bf742ff0ad0ac5b1d40cea9a69ed59a9",
+      "bytes": 42887
+    },
+    {
+      "path": "data/hebrew-interlinear/psalms/34.json",
+      "sha256": "10027a2ed3c47e20d03a71cde070d32e03e5ccf546e9dd3b367eb816b46a53cd",
+      "bytes": 44287
+    },
+    {
+      "path": "data/hebrew-interlinear/psalms/35.json",
+      "sha256": "ebb1844c644c91a279173196d36617bb8e9588f9c6ace55e4739a954daa1814c",
+      "bytes": 63482
+    },
+    {
+      "path": "data/hebrew-interlinear/psalms/36.json",
+      "sha256": "330935df73e3121a7ab96d75c55f3240d22e22702cab2495dc987166d7a0e48b",
+      "bytes": 27204
+    },
+    {
+      "path": "data/hebrew-interlinear/psalms/37.json",
+      "sha256": "e7aeeba8c7172efa925549ba4016d40208e3e4e237a29b60a755719d20688bea",
+      "bytes": 80536
+    },
+    {
+      "path": "data/hebrew-interlinear/psalms/38.json",
+      "sha256": "64fa68022fbfa727db265e58f35e0206d6d3caf7b4988b63345e67262a07c2a3",
+      "bytes": 46767
+    },
+    {
+      "path": "data/hebrew-interlinear/psalms/39.json",
+      "sha256": "4609eb06857f017c8b76d44fe097ccc937b83554c6452af2020b052d0e455450",
+      "bytes": 35029
+    },
+    {
+      "path": "data/hebrew-interlinear/psalms/4.json",
+      "sha256": "f415518238b48dcc16b9fc8d01b205215f6555646873264e7722f37e4ce355c9",
+      "bytes": 21042
+    },
+    {
+      "path": "data/hebrew-interlinear/psalms/40.json",
+      "sha256": "21ee2b4f177892ae18ea77a6ed86869411f55e22ddec379d042b87ef5bce9793",
+      "bytes": 50591
+    },
+    {
+      "path": "data/hebrew-interlinear/psalms/41.json",
+      "sha256": "301124e15ab243a072591980149921bb672dede040c5674c16346f29741477e6",
+      "bytes": 32467
+    },
+    {
+      "path": "data/hebrew-interlinear/psalms/42.json",
+      "sha256": "097bc1d0287e427e0a16d78ee2c446d6c5f8d8d72382ce4a887377ea739e49ac",
+      "bytes": 36345
+    },
+    {
+      "path": "data/hebrew-interlinear/psalms/43.json",
+      "sha256": "a5841524eb68b4497a0d28f319b925057d2d917c9623d5f3b3840994a8eae436",
+      "bytes": 16506
+    },
+    {
+      "path": "data/hebrew-interlinear/psalms/44.json",
+      "sha256": "14955729f2c4c7492c2d733f52db289938d9538e66acea08861707bcd2858ddc",
+      "bytes": 55960
+    },
+    {
+      "path": "data/hebrew-interlinear/psalms/45.json",
+      "sha256": "80bcf08a7475804a229ddc3643cbda051f824e51b7c8dad94fe553ee6e65a24e",
+      "bytes": 43447
+    },
+    {
+      "path": "data/hebrew-interlinear/psalms/46.json",
+      "sha256": "6e62c3cff2e92207f10e4dc4de719805b676e925e6d15d170dd14df97d4d1f3d",
+      "bytes": 25632
+    },
+    {
+      "path": "data/hebrew-interlinear/psalms/47.json",
+      "sha256": "45959cfc207cf1979a6e775915c267207846dfaae7fd7f7065a731cac6787e70",
+      "bytes": 19256
+    },
+    {
+      "path": "data/hebrew-interlinear/psalms/48.json",
+      "sha256": "61b3ff2c2b6e583915826e63fabbff7e67b0cd832fed8357eca3477867479eb8",
+      "bytes": 28908
+    },
+    {
+      "path": "data/hebrew-interlinear/psalms/49.json",
+      "sha256": "36f5f38ed5160153102930acb1ab27f187a6d085c69abbb941a1a276c8f759c5",
+      "bytes": 44714
+    },
+    {
+      "path": "data/hebrew-interlinear/psalms/5.json",
+      "sha256": "e8dfe933ae196aeea009a9224b9cff3c152e87355f3fe20a4d04c119d3932dd9",
+      "bytes": 30598
+    },
+    {
+      "path": "data/hebrew-interlinear/psalms/50.json",
+      "sha256": "acb603ad01be891e5373742250491119590e4cd2a37fd10d43e933415bf3e4b5",
+      "bytes": 48225
+    },
+    {
+      "path": "data/hebrew-interlinear/psalms/51.json",
+      "sha256": "2378d085ef36a980a598dc353bfd7d5cf82c4fbbfb7a2337a4043ae5950029e6",
+      "bytes": 43451
+    },
+    {
+      "path": "data/hebrew-interlinear/psalms/52.json",
+      "sha256": "ab462fea96239d368442d1d3eb48e2ee62324eea879e89ce02436f8737e407af",
+      "bytes": 24447
+    },
+    {
+      "path": "data/hebrew-interlinear/psalms/53.json",
+      "sha256": "1adf266cd5f122a5443d0ba7253a53dfc5f4c244d9bddc53ca338ba7ecb308c8",
+      "bytes": 19094
+    },
+    {
+      "path": "data/hebrew-interlinear/psalms/54.json",
+      "sha256": "2fde66fcb69fc289851c612241f3f34777683409ee296eaeeda41b8737bc94bf",
+      "bytes": 18331
+    },
+    {
+      "path": "data/hebrew-interlinear/psalms/55.json",
+      "sha256": "f868a4819d5e1b245fc9f2dddd25dcf8f38bbdd886a3b9bceb530e530145ff8f",
+      "bytes": 53928
+    },
+    {
+      "path": "data/hebrew-interlinear/psalms/56.json",
+      "sha256": "b8bb8438cf8ccf06255f29625bb99c3f136f3c1a16325f69545d7e371a58184f",
+      "bytes": 31888
+    },
+    {
+      "path": "data/hebrew-interlinear/psalms/57.json",
+      "sha256": "7e979ed58fc7bb238e93441a031fc7bc06e5ee0f2b5c99186864f853084f7c49",
+      "bytes": 29350
+    },
+    {
+      "path": "data/hebrew-interlinear/psalms/58.json",
+      "sha256": "d06b4fa3a94a85190b113993ecac431931d76d14b35ea8873a6033afc82e6f05",
+      "bytes": 25935
+    },
+    {
+      "path": "data/hebrew-interlinear/psalms/59.json",
+      "sha256": "ffe78086cc736381f89935a2486929bf87c2e0dae4a8a47a8642409bad42a881",
+      "bytes": 44602
+    },
+    {
+      "path": "data/hebrew-interlinear/psalms/6.json",
+      "sha256": "f7af8f30651a6a4c868f5421e801cad4ebb5ab2d7f3b91c003280c4bb7f25476",
+      "bytes": 23251
+    },
+    {
+      "path": "data/hebrew-interlinear/psalms/60.json",
+      "sha256": "36a135d0a192abd9c35d6ccba6ec25814f59450f41d5b4d5c9fe7591ffb9f904",
+      "bytes": 30464
+    },
+    {
+      "path": "data/hebrew-interlinear/psalms/61.json",
+      "sha256": "0b7dc42e0d870735b5d24cf9e25122237abe9be59697528fbb23a5d7e0ff2899",
+      "bytes": 18412
+    },
+    {
+      "path": "data/hebrew-interlinear/psalms/62.json",
+      "sha256": "fbf4325cd271917d8fccb0c0b8d87d86cb62a2433346b885dcf29ce8eb7bb2f4",
+      "bytes": 30854
+    },
+    {
+      "path": "data/hebrew-interlinear/psalms/63.json",
+      "sha256": "135f929328d8d7c63a131333d6e7199ccadf1de3746a4510d286bab8a391084f",
+      "bytes": 26073
+    },
+    {
+      "path": "data/hebrew-interlinear/psalms/64.json",
+      "sha256": "e687e6bd23e0f202f1fd8191c20486b911ddb39a33b57e5d920dd06589342f25",
+      "bytes": 22417
+    },
+    {
+      "path": "data/hebrew-interlinear/psalms/65.json",
+      "sha256": "6bf00b4befeee677fe639e02d36a77c05eebb8e5830fc18f2c0d26abe100a700",
+      "bytes": 29692
+    },
+    {
+      "path": "data/hebrew-interlinear/psalms/66.json",
+      "sha256": "e2688b8d0fbbe009a7ab6072f1d451caf02e557314011a01a6213f0fe4bb2312",
+      "bytes": 42618
+    },
+    {
+      "path": "data/hebrew-interlinear/psalms/67.json",
+      "sha256": "1d4a561eea5c4175342ac5cb1a32f275718535488fbb748c1d3375641f507391",
+      "bytes": 15203
+    },
+    {
+      "path": "data/hebrew-interlinear/psalms/68.json",
+      "sha256": "10e1043fdd628e1d3af2e552dd6abb13f6e0594f03c5fa7dc99c9bf7853e8b77",
+      "bytes": 83415
+    },
+    {
+      "path": "data/hebrew-interlinear/psalms/69.json",
+      "sha256": "5603ae64e30586a3b1fbbb1e6e9f5a2c37e5648cd87698d196c5f5d73eccd6c8",
+      "bytes": 80660
+    },
+    {
+      "path": "data/hebrew-interlinear/psalms/7.json",
+      "sha256": "19f9015136055a2a1b23563e59e93ece44c574f247b2dbb3024b4c330fa50314",
+      "bytes": 38700
+    },
+    {
+      "path": "data/hebrew-interlinear/psalms/70.json",
+      "sha256": "2ca38ae507fc6f90f6c17087f523d71237d54d9930c7bebf1da926837cd0ab95",
+      "bytes": 13362
+    },
+    {
+      "path": "data/hebrew-interlinear/psalms/71.json",
+      "sha256": "278946466216db5a32a5dd7c2052e20e7bc2d3886598063c7a8f48e8d3682e98",
+      "bytes": 56813
+    },
+    {
+      "path": "data/hebrew-interlinear/psalms/72.json",
+      "sha256": "ae62751260c676c4623fff30c49a9fe658d1b61f035742542e2b2949429ab3d6",
+      "bytes": 44080
+    },
+    {
+      "path": "data/hebrew-interlinear/psalms/73.json",
+      "sha256": "aea8725f8fc9f46f8f2e3def2d7d83a7c49385222685e1ce17d0e05a950a85ad",
+      "bytes": 53403
+    },
+    {
+      "path": "data/hebrew-interlinear/psalms/74.json",
+      "sha256": "b8dc5086711aff44ee6b606b0462b2a4a6d650688746cd047bac5eb69844310d",
+      "bytes": 51551
+    },
+    {
+      "path": "data/hebrew-interlinear/psalms/75.json",
+      "sha256": "e6afb192ab897047431eed231fe6ac67e988742a217e7c03a74ec123b7314831",
+      "bytes": 22791
+    },
+    {
+      "path": "data/hebrew-interlinear/psalms/76.json",
+      "sha256": "f60335703d702e80bda6c11fa0b4607d6b57bb05c884ce147a225b87e782b0e2",
+      "bytes": 24390
+    },
+    {
+      "path": "data/hebrew-interlinear/psalms/77.json",
+      "sha256": "e0db7d3904445eb8ec205f4988fc5b4221b9dd336a60ca27de109b6159cf3055",
+      "bytes": 42785
+    },
+    {
+      "path": "data/hebrew-interlinear/psalms/78.json",
+      "sha256": "1982f99c7a43b09af56724af1c9db120461358f09413763bd01e49c5c4a9fcca",
+      "bytes": 151945
+    },
+    {
+      "path": "data/hebrew-interlinear/psalms/79.json",
+      "sha256": "dda1d6fad1428dcd7dbdb2e1ffd954efe8695a8e46204eba6d8e58f118ceedcc",
+      "bytes": 36369
+    },
+    {
+      "path": "data/hebrew-interlinear/psalms/8.json",
+      "sha256": "8b4676bd326a51bdae70e1df4abb3a35c01e2c60e3097649d7fad7e496f3bef4",
+      "bytes": 21101
+    },
+    {
+      "path": "data/hebrew-interlinear/psalms/80.json",
+      "sha256": "02dc67e8464e7ef9a4b89bf53ccf4de7876706e57c0c8457f77bd7802f9c366e",
+      "bytes": 39481
+    },
+    {
+      "path": "data/hebrew-interlinear/psalms/81.json",
+      "sha256": "4b7f474860baf4ffa0e6f588474a8d7b99ebc1442919ef5ee546e66d9737a49d",
+      "bytes": 34786
+    },
+    {
+      "path": "data/hebrew-interlinear/psalms/82.json",
+      "sha256": "2993f6bb8bfc2177ba887c0c661b992a752ac679a4c3ae8529d690be63739120",
+      "bytes": 15995
+    },
+    {
+      "path": "data/hebrew-interlinear/psalms/83.json",
+      "sha256": "7b192d7c6bdb656a20cd35375e16cd0e778bfd2f50e0d771e762077e4e5c0770",
+      "bytes": 35117
+    },
+    {
+      "path": "data/hebrew-interlinear/psalms/84.json",
+      "sha256": "7a90fbd7431f48d58dfcb57667a07f7b5e425661ff3d4ff5e2294846d5ccdc3d",
+      "bytes": 30300
+    },
+    {
+      "path": "data/hebrew-interlinear/psalms/85.json",
+      "sha256": "0b77fe45d358e1433d297521e2f06ba3e31dc5c3af4301d108990f816f96739b",
+      "bytes": 26922
+    },
+    {
+      "path": "data/hebrew-interlinear/psalms/86.json",
+      "sha256": "2f61638f811ccbea612f6b2be2164a5249c3da50616406fd7a7f2a916296c56d",
+      "bytes": 41623
+    },
+    {
+      "path": "data/hebrew-interlinear/psalms/87.json",
+      "sha256": "5ece9e5a2a28defe0058baa493776469a14e16004e07b0a1e5c5799226452708",
+      "bytes": 14132
+    },
+    {
+      "path": "data/hebrew-interlinear/psalms/88.json",
+      "sha256": "69704b96bb2d85e1491ea2e3f4661744dc5b7bb1523379d0fced4a1ec11b29fc",
+      "bytes": 40357
+    },
+    {
+      "path": "data/hebrew-interlinear/psalms/89.json",
+      "sha256": "4f55b40c37e0a74e1ea054286ea05fae305e03f55bed96b89615aa8b97959c46",
+      "bytes": 106466
+    },
+    {
+      "path": "data/hebrew-interlinear/psalms/9.json",
+      "sha256": "d82c470701c64e5ee27138fc8fb1cded748befa9ec29bbdfb05dfdb49f1ef4e2",
+      "bytes": 43672
+    },
+    {
+      "path": "data/hebrew-interlinear/psalms/90.json",
+      "sha256": "b7fd6f5e664efdbfbb6d203331761303b2917482cdd509b324061aa6736d055c",
+      "bytes": 39630
+    },
+    {
+      "path": "data/hebrew-interlinear/psalms/91.json",
+      "sha256": "72418966927548c920496136f4840986e4f9ea2f9d1f35bd864f1fc95871242f",
+      "bytes": 31491
+    },
+    {
+      "path": "data/hebrew-interlinear/psalms/92.json",
+      "sha256": "082793cf71986e42c845eec157977aa45867f3702a97a6b98b3b35d726a4763a",
+      "bytes": 31068
+    },
+    {
+      "path": "data/hebrew-interlinear/psalms/93.json",
+      "sha256": "dd329081ad89fe49c08ba57a501391d4d26a9b4c2c833369a9a584759b2ca3db",
+      "bytes": 11656
+    },
+    {
+      "path": "data/hebrew-interlinear/psalms/94.json",
+      "sha256": "5d4d8574751221e68db4c4dc0f32196d5ec064e8936fcab1a4f0899604e81060",
+      "bytes": 43682
+    },
+    {
+      "path": "data/hebrew-interlinear/psalms/95.json",
+      "sha256": "61fe82824c8a15d472befa782945e196641870634072d4b1cad4b48ed4aa37e4",
+      "bytes": 24001
+    },
+    {
+      "path": "data/hebrew-interlinear/psalms/96.json",
+      "sha256": "9c7eaadfbc216224cde7df30263e58195912e50673a779c66a1c20eb0d8046ca",
+      "bytes": 29818
+    },
+    {
+      "path": "data/hebrew-interlinear/psalms/97.json",
+      "sha256": "7c6cebf2e5891308c452074831436e32fd06f7419987da51231de9d72edac747",
+      "bytes": 25447
+    },
+    {
+      "path": "data/hebrew-interlinear/psalms/98.json",
+      "sha256": "8ff4c521f8a8a9ab811ed0e994debd1b3b58af6e020ad9bf1e1cf57c4771e6ff",
+      "bytes": 20557
+    },
+    {
+      "path": "data/hebrew-interlinear/psalms/99.json",
+      "sha256": "f64c5f96ac0c2a7173de98c32e3ae64837b625d181b315f6c7702949e6892d5e",
+      "bytes": 22102
+    },
+    {
+      "path": "data/hebrew-interlinear/ruth/1.json",
+      "sha256": "53a62e119b35344a2a7a83c2cec4d892541c5a0441481e48f706b0d190a03a98",
+      "bytes": 86373
+    },
+    {
+      "path": "data/hebrew-interlinear/ruth/2.json",
+      "sha256": "056573d40002770f6a6a3bd0de27c48249432b557a90e50fda88ccd624582664",
+      "bytes": 101775
+    },
+    {
+      "path": "data/hebrew-interlinear/ruth/3.json",
+      "sha256": "82412369227ec8ccf1fc76a9106ad165d4f78485ccb07b89300d88a6e3982852",
+      "bytes": 69753
+    },
+    {
+      "path": "data/hebrew-interlinear/ruth/4.json",
+      "sha256": "767ac1663d124ba00c656e816576f6a84022c16c2397e9e551bb07515f80eb31",
+      "bytes": 88003
+    },
+    {
+      "path": "data/hebrew-interlinear/songofsolomon/1.json",
+      "sha256": "684be3a42bb207cdc74642b675ed5fa59aab02b1f7ea0bb7543d8411f3c15fb5",
+      "bytes": 43133
+    },
+    {
+      "path": "data/hebrew-interlinear/songofsolomon/2.json",
+      "sha256": "843281352c1c356b8c827c0db7346e3d39ae47fe8529c3baa9755666efff1a08",
+      "bytes": 50618
+    },
+    {
+      "path": "data/hebrew-interlinear/songofsolomon/3.json",
+      "sha256": "35af7ce4bf225ffff027fdc3c0128917e4f4395720225e08fe7a5cb5e1f4bf50",
+      "bytes": 38276
+    },
+    {
+      "path": "data/hebrew-interlinear/songofsolomon/4.json",
+      "sha256": "d1010073aff4c358b11f6bf1553c09edb8709ea2e4c51aede6380a5b686108da",
+      "bytes": 50477
+    },
+    {
+      "path": "data/hebrew-interlinear/songofsolomon/5.json",
+      "sha256": "d9f7f2aa915d591aa10502dd16db3ef392e8391f4ea47a08522812e6ca11f883",
+      "bytes": 52102
+    },
+    {
+      "path": "data/hebrew-interlinear/songofsolomon/6.json",
+      "sha256": "23858604e4a0b609e181055e776833245354e6bc0bc5a9f67ba977857d20eefc",
+      "bytes": 34365
+    },
+    {
+      "path": "data/hebrew-interlinear/songofsolomon/7.json",
+      "sha256": "2056900ccb8d1811b792dd205b4f9684ffcff74adcaf4045882c7b4a15b22054",
+      "bytes": 40110
+    },
+    {
+      "path": "data/hebrew-interlinear/songofsolomon/8.json",
+      "sha256": "e6493e3a67813d485f8471a82d117479844fded1eacd5d5f70d5728cb12908ec",
+      "bytes": 48511
+    },
+    {
+      "path": "data/hebrew-interlinear/zechariah/1.json",
+      "sha256": "a1410133dc6625f5e51ce9d192a3ef43b6e7ab8feb4a1b76df4e6ddde079ff47",
+      "bytes": 72258
+    },
+    {
+      "path": "data/hebrew-interlinear/zechariah/10.json",
+      "sha256": "5efdd1e1f807c79bd11c63060ffe5aade528de19a6a474266f13fe1c2a456a89",
+      "bytes": 46008
+    },
+    {
+      "path": "data/hebrew-interlinear/zechariah/11.json",
+      "sha256": "6a80f81de65ceed6159b8e00eda785b3cac2b4d65d924c438857b61c9e46449e",
+      "bytes": 67406
+    },
+    {
+      "path": "data/hebrew-interlinear/zechariah/12.json",
+      "sha256": "11089873cfb02090089beb8019824e641df7eb35bf6f864a2bbac435eeefc636",
+      "bytes": 62082
+    },
+    {
+      "path": "data/hebrew-interlinear/zechariah/13.json",
+      "sha256": "3617ef38576c55d1e543edd876c212e15b4042838a0855948edb068bb237c201",
+      "bytes": 41755
+    },
+    {
+      "path": "data/hebrew-interlinear/zechariah/14.json",
+      "sha256": "e6a586e4a4b1b0bd3eeeacd7294ca380a63850974761e5e7997dd15bfd05cb45",
+      "bytes": 99206
+    },
+    {
+      "path": "data/hebrew-interlinear/zechariah/2.json",
+      "sha256": "1844f0045a6e78a3c7b3b3c7a80c457694be3d14427fda2d5e45ad23c976eff0",
+      "bytes": 58217
+    },
+    {
+      "path": "data/hebrew-interlinear/zechariah/3.json",
+      "sha256": "835b0ebd2946f46a849388b32dbf6d10c704d85e6e99f70ea5e8723bcbfb1b45",
+      "bytes": 43901
+    },
+    {
+      "path": "data/hebrew-interlinear/zechariah/4.json",
+      "sha256": "2591a673715a81f41805310dc2deedb81077d480bacb428c2d9313f45dc8a013",
+      "bytes": 50457
+    },
+    {
+      "path": "data/hebrew-interlinear/zechariah/5.json",
+      "sha256": "0539bacc4f44d8fecad955057c60063cbc9939f0b08458d608ef394c8021ab55",
+      "bytes": 43182
+    },
+    {
+      "path": "data/hebrew-interlinear/zechariah/6.json",
+      "sha256": "5529d06741026672cb75ee77c2e70b12fb4ff3e4892a30aefd27d0b53be2d63f",
+      "bytes": 56440
+    },
+    {
+      "path": "data/hebrew-interlinear/zechariah/7.json",
+      "sha256": "9562774fa174a075e3a1de37b8ad0662a9603e3ed8fa1abe1d5d4d31cf2c8320",
+      "bytes": 51075
+    },
+    {
+      "path": "data/hebrew-interlinear/zechariah/8.json",
+      "sha256": "d32ec359e2878f1d57356c9c3e1487a11fc71d578eaa28ad2724c3d39cd3dec8",
+      "bytes": 93678
+    },
+    {
+      "path": "data/hebrew-interlinear/zechariah/9.json",
+      "sha256": "3e8a2c25c36af6927cdeb244944ae226dfb3e746d0bc73a0c770a6bd4b80e126",
+      "bytes": 60865
+    },
+    {
+      "path": "data/hebrew-interlinear/zephaniah/1.json",
+      "sha256": "b5ffccf93a99bae319bb4f8b6571c4515f14c97c9ee64622fc1c96bb8434c8b1",
+      "bytes": 71481
+    },
+    {
+      "path": "data/hebrew-interlinear/zephaniah/2.json",
+      "sha256": "e9dadd8d6cce49038fb26676af8f5186026e9a80c35bf1a46bc5d53ed60cd676",
+      "bytes": 58541
+    },
+    {
+      "path": "data/hebrew-interlinear/zephaniah/3.json",
+      "sha256": "2ad6f2e89ca90a52072a77fea1b3b47439792cf1b6dd8169e16719bacec1f487",
+      "bytes": 74549
+    }
+  ]
+}

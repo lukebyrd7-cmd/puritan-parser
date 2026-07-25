@@ -230,27 +230,65 @@ test('Adaptive Reader display modes render original and clean interlinear text',
   delete global.state;
 });
 
-test('Hebrew Interlinear is unavailable without reliable token-level gloss data', () => {
-  const verse = {
-    verse: 1,
-    text: 'וַֽיְהִי֙',
-    tokens: [{ surface: 'וַֽיְהִי֙', lemma: '1961', parse: 'HC/Vqw3ms', sourceLemma: 'c/1961' }]
-  };
-  const chapter = { language: 'hebrew', book: 'jonah', bookName: 'Jonah', chapter: 1, verses: [verse] };
-  const html = reader.renderReaderChapter(chapter, { ...reader.ReaderDefaultSettings, display: 'interlinear' });
+test('Hebrew interlinear chapter loading is lazy, deduplicated, and isolated from Standard, English, and Greek', async () => {
+  const before = { ...reader.readerInterlinearLoadCounts };
+  await reader.loadReaderPassage('hebrew', 'genesis', 50, { ...reader.ReaderDefaultSettings, display: 'original', textMode: 'original' });
+  await reader.loadReaderPassage('hebrew', 'genesis', 50, { ...reader.ReaderDefaultSettings, display: 'interlinear', textMode: 'english' });
+  await reader.loadReaderPassage('greek', 'john', 21, { ...reader.ReaderDefaultSettings, display: 'interlinear', textMode: 'original' });
+  assert.deepEqual(reader.readerInterlinearLoadCounts, before);
 
-  assert.match(html, /Hebrew interlinear is not available yet because token-level gloss data is still being prepared\./);
+  const key = 'hebrew-interlinear/genesis/50';
+  const [first, second] = await Promise.all([
+    reader.loadReaderInterlinearChapter('genesis', 50),
+    reader.loadReaderInterlinearChapter('genesis', 50)
+  ]);
+  assert.equal(first, second);
+  assert.equal(reader.readerInterlinearLoadCounts[key], 1);
+});
+
+test('failed Hebrew interlinear chapter loads remain retryable', async () => {
+  const originalFetch = global.fetch;
+  let attempts = 0;
+  global.fetch = async filePath => {
+    if(filePath === 'data/hebrew-interlinear/obadiah/1.json' && attempts++ === 0) return { ok: false };
+    return originalFetch(filePath);
+  };
+  await assert.rejects(reader.loadReaderInterlinearChapter('obadiah', 1), /Unable to load/);
+  const chapter = await reader.loadReaderInterlinearChapter('obadiah', 1);
+  assert.equal(chapter.book, 'obadiah');
+  assert.equal(attempts, 2);
+  global.fetch = originalFetch;
+});
+
+test('qere and ketiv tokens keep distinct stable identities without attaching the qere gloss to ketiv', async () => {
+  const readerChapter = await reader.loadReaderChapter('hebrew', 'genesis', 8);
+  const interlinear = await reader.loadReaderInterlinearChapter('genesis', 8);
+  const aligned = reader.attachReaderInterlinearChapter(readerChapter, interlinear);
+  const verse = aligned.verses.find(item => item.verse === 17);
+  assert.equal(verse.tokens[13].surface, 'הוצא');
+  assert.equal(verse.tokens[13].tokenId, 'genesis.8.17.14');
+  assert.equal(verse.tokens[13].glossStatus, 'missing');
+  assert.equal(verse.tokens[13].interlinearGloss, '');
+  assert.equal(verse.tokens[14].surface, 'הַיְצֵ֣א');
+  assert.equal(verse.tokens[14].tokenId, 'genesis.8.17.15');
+  assert.equal(verse.tokens[14].glossStatus, 'source');
+  assert.ok(verse.tokens[14].interlinearGloss);
+});
+
+test('Hebrew Interlinear renders aligned source glosses with stable token identity', async () => {
+  const chapter = await reader.loadReaderChapter('hebrew', 'genesis', 1);
+  const interlinear = await reader.loadReaderInterlinearChapter('genesis', 1);
+  const aligned = reader.attachReaderInterlinearChapter(chapter, interlinear);
+  const html = reader.renderReaderChapter(aligned, { ...reader.ReaderDefaultSettings, hebrewDisplay: 'interlinear', display: 'interlinear' });
+
   assert.match(html, /<p class="reader-paragraph" lang="he" dir="rtl">/);
-  assert.match(html, /lang="he" dir="rtl" data-reader-assisted="true"/);
-  assert.match(html, /reader-token-surface" lang="he" dir="rtl">וַֽיְהִי֙/);
-  assert.match(html, /data-lemma="1961"/);
-  assert.match(html, /data-parse="HC\/Vqw3ms"/);
-  assert.match(html, /data-source-lemma="c\/1961"/);
-  assert.doesNotMatch(html, /reader-token-interlinear/);
-  assert.doesNotMatch(html, /reader-token-gloss/);
+  assert.match(html, /id="readerToken-genesis\.1\.1\.1"/);
+  assert.match(html, /data-token-id="genesis\.1\.1\.1"/);
+  assert.match(html, /reader-token-surface" lang="he" dir="rtl">בְּרֵאשִׁ֖ית/);
+  assert.match(html, /reader-token-gloss" lang="en" dir="ltr">in beginning/);
+  assert.match(html, /reader-token-gloss-missing" lang="en" dir="ltr">—/);
   assert.doesNotMatch(html, /reader-token-details/);
-  assert.doesNotMatch(html, />1961</);
-  assert.doesNotMatch(html, /HC\/Vqw3ms<\/span>/);
+  assert.doesNotMatch(html, /transliteration/i);
   assert.doesNotMatch(html, /undefined|null/);
 });
 
@@ -299,23 +337,28 @@ test('Hebrew Original mode remains tokenized without interlinear lines', () => {
   assert.doesNotMatch(html, /reader-token-details/);
 });
 
-test('Hebrew Reader Settings disable Interlinear with a quiet note', async () => {
+test('Hebrew Reader Settings preserve an independent Interlinear preference', async () => {
   storageHarness();
   let html = '';
   const shell = { set innerHTML(value){ html = value; }, get innerHTML(){ return html; } };
   global.$ = selector => selector === '#readerShell' ? shell : null;
   global.$$ = () => [];
   reader.saveReaderSettings({ ...reader.ReaderDefaultSettings, display: 'interlinear', translation: 'off' }, 'greek');
+  reader.saveReaderSettings({ ...reader.ReaderDefaultSettings, hebrewDisplay: 'standard', display: 'original', translation: 'off' }, 'hebrew');
   assert.equal(reader.loadReaderSettings('greek').display, 'interlinear');
   assert.equal(reader.loadReaderSettings('hebrew').display, 'original');
 
   await reader.setReaderLocation({ language: 'hebrew', book: 'jonah', chapter: 1 });
+  const saved = reader.updateReaderSetting('display', 'interlinear');
+  assert.equal(saved.hebrewDisplay, 'interlinear');
+  assert.equal(reader.loadReaderSettings('hebrew').display, 'interlinear');
+  assert.equal(require('../src/core/reader-preferences').readHebrewDisplay(), 'interlinear');
+  await reader.setReaderLocation({ language: 'hebrew', book: 'jonah', chapter: 1 });
 
-  assert.match(html, /data-reader-setting="display" data-reader-value="original" [^>]*>Original/);
-  assert.match(html, /data-reader-setting="display" data-reader-value="interlinear" disabled aria-describedby="readerInterlinearUnavailable">Interlinear/);
-  assert.match(html, /Hebrew interlinear is not available yet because token-level gloss data is still being prepared\./);
-  assert.doesNotMatch(html, /reader-token-interlinear/);
-  assert.doesNotMatch(html, /reader-token-gloss/);
+  assert.match(html, /data-reader-setting="display" data-reader-value="original" [^>]*>Standard/);
+  assert.match(html, /data-reader-setting="display" data-reader-value="interlinear" [^>]*>Interlinear/);
+  assert.match(html, /reader-token-interlinear/);
+  assert.match(html, /reader-token-gloss/);
   assert.doesNotMatch(html, /reader-token-details/);
   assert.doesNotMatch(html, /undefined|null/);
 });
@@ -1655,6 +1698,14 @@ test('continuous Reader inserts prepared adjacent chapters and keeps a five-chap
   assert.equal(await reader.loadReaderContinuousAdjacent(1), true);
   assert.deepEqual(reader.readerState().continuousChapters.map(item => item.chapter), [5, 6, 7, 8, 9]);
   assert.equal(new Set(reader.readerState().continuousChapters.map(item => item.chapter)).size, 5);
+});
+
+test('continuous Reader leaves ordinary downward scrolling native until insertion changes content above the viewport', () => {
+  assert.equal(reader.readerContinuousInsertionNeedsAnchorRestore(1, 2), false);
+  assert.equal(reader.readerContinuousInsertionNeedsAnchorRestore(1, 4), false);
+  assert.equal(reader.readerContinuousInsertionNeedsAnchorRestore(1, 5), true);
+  assert.equal(reader.readerContinuousInsertionNeedsAnchorRestore(-1, 2), true);
+  assert.equal(reader.readerContinuousInsertionNeedsAnchorRestore(0, 5), false);
 });
 
 test('continuous Reader handles book boundaries without crossing books', async () => {

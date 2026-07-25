@@ -22,7 +22,7 @@ Original and English visibility share one canonical `textMode` setting and canno
 
 Continuous mode starts adjacent work before the terminal boundary based on scroll direction and remaining distance. Original mode does not wait for English JSON; English mode requests the structural original chapter and translation concurrently. In-flight and completed chapter work is reused, prepared chapter markup is inserted without rerendering existing chapters, and trimming retains the bounded five-chapter window while restoring the canonical verse anchor.
 
-Continuous reading deliberately omits automatic book transitions, unbounded DOM retention, interlinear realignment work, annotations, bookmarks, and reading-history analytics. Chapter JSON and translation JSON remain runtime-loaded and runtime-cached; none are added to the startup precache.
+Continuous reading deliberately omits automatic book transitions, unbounded DOM retention, annotations, bookmarks, and reading-history analytics. Original, translation, and optional Hebrew interlinear chapter JSON remain runtime-loaded and runtime-cached; none are added to the startup precache.
 
 The Reader is a reading-first shell for the Greek New Testament. It intentionally avoids interlinear display, inline glosses, notes, highlighting, commentary, AI, accounts, sync, and Hebrew reading.
 
@@ -213,18 +213,22 @@ Hebrew Reader Search uses the same verse-result flow and adds shared translitera
 
 The Hebrew verse index remains lazy-loaded. Its derived transliteration terms are built only on the first Hebrew lexical search, cached in memory, and never stored as user data or added to startup precache. Direct references and numeric-lemma searches retain their existing paths.
 
-## Hebrew interlinear audit
+## Hebrew interlinear
 
-Hebrew Original mode remains the only supported Hebrew original-language display. The generated token stream has stable array order within a verse and preserves pointed surface forms, numeric lemmas, OSHB morphology, and selected source attributes. It lacks complete contextual token glosses, an explicit stable token ID, and a reliable combined gloss for words containing attached analyzed units. Hebrew lexical glosses are dictionary-style and incomplete; OEB/WEB are verse translations without token alignment.
+Hebrew has two original-language displays: Standard and Interlinear. Standard is the default and retains the existing pointed token stream. Interlinear keeps that exact Hebrew primary and selectable, then adds a concise MACULA/Cherith occurrence gloss underneath. Missing source glosses display an em dash; the Reader does not replace them with dictionary glosses, morphology, numeric IDs, or inferred English.
 
-The Hebrew interlinear gate therefore remains closed. The Reader continues to disable/fall back from Hebrew Interlinear and does not expose transliteration, numeric IDs, roots, or morphology as pseudo-glosses. See `hebrew-search-interlinear-audit.md` for the full audit and future source requirement.
+The setting lives under Settings → Reader in the existing `pp_reader_adaptive_settings` record and is independent of Greek display. It applies only while Hebrew Original text is active. English mode neither displays nor fetches the enrichment; switching back to Original restores the saved Hebrew choice.
+
+`loadReaderPassage` attaches the separate `data/hebrew-interlinear/<book>/<chapter>.json` record only when required. Chapter mode and bounded continuous mode use the same renderer and request caches. Concurrent requests deduplicate, failed enrichment remains retryable, and a failure leaves Standard Hebrew available with a quiet notice. Stable token DOM identities use `<book>.<chapter>.<verse>.<tokenIndex>`, preserving popup and keyboard behavior.
+
+The complete audit and source contract are in `hebrew-search-interlinear-audit.md`.
 
 ## Scope boundaries
 
 The Reader remains intentionally narrow. Do not add:
 
-- interlinear mode;
-- inline gloss display;
+- parsing or morphology lines in the interlinear;
+- fabricated or dictionary-substituted occurrence glosses;
 - full parsing panels;
 - commentary;
 - notes;
