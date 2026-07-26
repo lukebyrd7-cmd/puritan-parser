@@ -16,6 +16,7 @@ const ROUTES = {
   '/word': { viewId: 'wordPageView', nav: 'word' },
   '/profile': { viewId: 'profileView', nav: 'profile' }
 };
+let routerInitialized = false;
 
 function routeForView(viewId){
   const found = Object.entries(ROUTES).find(([path, route]) => path !== '/' && (route.viewId === viewId || route.nav === viewId));
@@ -29,7 +30,10 @@ function navigateTo(path, options = {}){
   showView(ROUTES[target].viewId, { skipHistory: true });
 }
 function initRouter(){
-  window.addEventListener('popstate', () => navigateTo(currentRoutePath(), { replace: true }));
+  if(!routerInitialized){
+    window.addEventListener('popstate', () => navigateTo(currentRoutePath(), { replace: true }));
+    routerInitialized = true;
+  }
   if(typeof shouldShowOnboarding === 'function' && shouldShowOnboarding() && window.location.pathname !== '/onboarding') history.replaceState({}, '', '/onboarding');
   if(!ROUTES[window.location.pathname]) history.replaceState({}, '', '/learn');
   navigateTo(currentRoutePath(), { replace: true });

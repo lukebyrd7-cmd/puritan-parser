@@ -70,7 +70,7 @@ const PURITAN_PARSER_SCRIPTS = [
   ...Object.values(PURITAN_PARSER_FEATURE_SCRIPTS).flat(),
   'src/bootstrap.js'
 ];
-const PURITAN_PARSER_ASSET_VERSION = 'v1.7.1-reader-scroll-hotfix-3';
+const PURITAN_PARSER_ASSET_VERSION = 'v1.7.2-mobile-startup-reader-restoration';
 const PURITAN_SCRIPT_LOAD_TIMEOUT_MS = 9000;
 
 const puritanLoadedScripts = new Map();
@@ -155,15 +155,67 @@ window.PuritanModuleLoader = {
   featureForPath
 };
 
-async function startPuritanParser() {
-  await loadScriptGroup(PURITAN_PARSER_CORE_SCRIPTS);
-  await ensurePuritanFeature(featureForPath());
-  await loadScriptSequentially('src/bootstrap.js');
+let puritanStartupGeneration = 0;
+let puritanServiceWorkerPromise = null;
+let puritanLifecycleWired = false;
+
+function assertCurrentStartupGeneration(generation){
+  if(generation !== puritanStartupGeneration){
+    const error = new Error('A newer startup attempt replaced this one.');
+    error.code = 'PURITAN_STALE_STARTUP';
+    throw error;
+  }
 }
 
-startPuritanParser().catch(error => {
+function registerPuritanServiceWorker(){
+  if(!('serviceWorker' in navigator)) return Promise.resolve(null);
+  if(puritanServiceWorkerPromise) return puritanServiceWorkerPromise;
+  puritanServiceWorkerPromise = navigator.serviceWorker.register('/sw.js')
+    .then(registration => {
+      registration.update?.().catch(error => console.warn('Puritan Parser update check failed.', error));
+      return registration;
+    })
+    .catch(error => {
+      puritanServiceWorkerPromise = null;
+      console.warn('Puritan Parser offline support is unavailable.', error);
+      return null;
+    });
+  return puritanServiceWorkerPromise;
+}
+
+function wirePuritanLifecycle(){
+  if(puritanLifecycleWired || typeof window === 'undefined') return;
+  puritanLifecycleWired = true;
+  window.addEventListener('pageshow', event => {
+    if(event.persisted) registerPuritanServiceWorker();
+  });
+  window.addEventListener('online', registerPuritanServiceWorker);
+}
+
+async function startPuritanParser() {
+  const generation = ++puritanStartupGeneration;
+  window.PuritanStartupUI?.setRetry(() => startPuritanParser().catch(reportPuritanStartupFailure));
+  await loadScriptGroup(PURITAN_PARSER_CORE_SCRIPTS);
+  assertCurrentStartupGeneration(generation);
+  await ensurePuritanFeature(featureForPath());
+  assertCurrentStartupGeneration(generation);
+  await loadScriptSequentially('src/bootstrap.js');
+  assertCurrentStartupGeneration(generation);
+  if(typeof window.runPuritanBootstrap === 'function') await window.runPuritanBootstrap(generation);
+  else if(window.PuritanBootstrapPromise) await window.PuritanBootstrapPromise;
+  assertCurrentStartupGeneration(generation);
+  window.PuritanStartupUI?.ready();
+  wirePuritanLifecycle();
+  registerPuritanServiceWorker();
+  return true;
+}
+
+function reportPuritanStartupFailure(error){
+  if(error?.code === 'PURITAN_STALE_STARTUP') return false;
   console.error('The Puritan Parser failed to load.', error);
-  document.documentElement.classList.add('app-load-failed');
-  const status = document.getElementById('appLoadingStatus');
-  if(status) status.innerHTML = '<strong>Puritan Parser could not start.</strong><br><button type="button" onclick="location.reload()">Try again</button>';
-});
+  window.PuritanStartupUI?.fail();
+  return false;
+}
+
+window.startPuritanParser = startPuritanParser;
+startPuritanParser().catch(reportPuritanStartupFailure);

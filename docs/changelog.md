@@ -4,6 +4,17 @@ This changelog is a human-readable project history, not a Git log. Future entrie
 
 ## Unreleased
 
+### v1.7.2 Mobile startup and Reader restoration
+
+- Added a delayed startup explanation and a recoverable error state with native Retry and home actions. Retry starts a new bounded startup generation and preserves local vocabulary, review, settings, and Reader data.
+- Made bootstrap failures observable by the top-level startup controller, kept whole-vocabulary hydration noncritical, and made router, event, service-worker, and retry setup idempotent.
+- Moved service-worker registration out of general settings event wiring. Registration and update-check failures no longer blank the application; persisted-page and online returns perform a bounded recheck without forced reloads.
+- Prevented an older controlling worker from satisfying a newly versioned JavaScript or CSS URL through query-insensitive cache matching. Unversioned stable assets retain the existing fallback behavior, and JSON remains network-first and runtime cached.
+- Replaced competing hard-reload scroll attempts with one generation-controlled Reader restoration lifecycle. It waits for the requested passage, visible verse, fonts, and a nonzero `.reader-text` viewport; verifies the measured verse offset; and permits no more than one correction beyond the 8-pixel tolerance.
+- Cancelled pending restoration immediately for wheel, touch, pointer, keyboard-scroll, explicit navigation, route changes, and display-mode changes. Invalid saved offsets fall back to the canonical verse start, while older raw `scrollTop`/`scrollY` records remain readable.
+- Kept `pp_reader_location` as the sole location record, retained the five-chapter bound and unified `.reader-text` scroll root, and made no corpus or linguistic-data changes.
+- Bumped the service-worker cache to `puritan-parser-v77-v1.7.2-mobile-startup-reader-restoration`. Physical iPhone Safari, iPhone Chrome, and installed/PWA validation remain release-approval checks.
+
 ### v1.7 Hebrew interlinear data integration and Reader display
 
 - Added a deterministic, source-pinned Hebrew interlinear generator that aligns the complete existing OSHB/WLC Reader stream with MACULA Hebrew occurrence data and Cherith word or morpheme glosses.
