@@ -138,13 +138,14 @@ let readerScrollTimer = null;
 let readerWordLookupRequestId = 0;
 let readerSearchRequestId = 0;
 let readerChapterObserver = null;
-let readerControlsObserver = null;
 let readerContinuousLoadPending = false;
 let readerProgrammaticScroll = false;
 let readerRestoreFrame = null;
 let readerRestoreRequestId = 0;
 let readerPrefetchHandle = null;
 let readerUserScrolledAt = 0;
+let readerMomentumInputAt = 0;
+let readerMomentumDirection = 0;
 let readerLastRestoreAt = 0;
 let readerLastScrollPosition = 0;
 let readerLastScrollAt = 0;
@@ -1584,14 +1585,6 @@ function prepareReaderPassageHtml(passage, settings = getActiveReaderSettings())
   if(!readerPreparedPassageHtml.has(key)) readerPreparedPassageHtml.set(key, renderReaderPassageSection(passage, settings));
   return readerPreparedPassageHtml.get(key);
 }
-function renderReaderStickyToolbar(settings = getActiveReaderSettings(), book = getReaderBook(readerState.language, readerState.book)){
-  const englishDisabled = settings.translation !== 'on' || readerState.translationStatus?.unavailable;
-  return `<div class="reader-sticky-toolbar" id="readerStickyToolbar" role="radiogroup" aria-label="Reader language" hidden>
-      <span class="reader-sticky-reference" id="readerStickyReference">${escHtml(book.name)} ${readerState.chapter}</span>
-      <button type="button" role="radio" data-reader-visibility="original" aria-label="Read original-language text" aria-checked="${settings.textMode === 'original'}" class="${settings.textMode === 'original' ? 'active' : ''}">Original</button>
-      <button type="button" role="radio" data-reader-visibility="english" aria-label="Read English text" aria-checked="${settings.textMode === 'english'}" class="${settings.textMode === 'english' ? 'active' : ''}" ${englishDisabled ? 'disabled' : ''}>English</button>
-    </div>`;
-}
 function renderReader(options = {}){
   const root = $('#readerShell'); if(!root) return;
   const preservedAnchor = options.preserveAnchor || (!readerState.loading ? captureReaderAnchor() : null);
@@ -1641,7 +1634,6 @@ function renderReader(options = {}){
       </article>
       <aside id="readerWordPanelRoot" class="reader-word-panel-slot" aria-live="polite"></aside>
     </div>
-    ${renderReaderStickyToolbar(settings, book)}
     <div id="readerWordPopupRoot"></div>`;
   wireReaderControls();
   renderReaderWordPopup();
@@ -1655,6 +1647,26 @@ function navigateReaderAdjacent(direction){
   const loc = getAdjacentReaderLocation(direction);
   if(loc) setReaderLocation(loc);
   return Boolean(loc);
+}
+function readerMomentumScrollDirection(measuredDirection, options = {}){
+  const inputAt = Number(options.momentumInputAt ?? readerMomentumInputAt) || 0;
+  const inputDirection = Math.sign(Number(options.momentumDirection ?? readerMomentumDirection) || 0);
+  const now = Number(options.now ?? Date.now()) || 0;
+  return inputDirection && inputAt && now - inputAt <= ReaderScrollMomentumGuardMs
+    ? inputDirection
+    : Math.sign(Number(measuredDirection) || 0);
+}
+function handleReaderMomentumInput(event = {}){
+  readerMomentumInputAt = Date.now();
+  const touch = event.touches?.[0] || event.changedTouches?.[0];
+  const delta = event.type === 'wheel'
+    ? Number(event.deltaY) || 0
+    : (touch && readerTouchStart ? readerTouchStart.y - (Number(touch.clientY) || 0) : 0);
+  const direction = Math.sign(delta);
+  if(!direction) return false;
+  readerMomentumDirection = direction;
+  requestReaderContinuousBoundaryLoad(direction);
+  return true;
 }
 function handleReaderTouchStart(event = {}){
   const touch = event.touches?.[0] || event.changedTouches?.[0];
@@ -1677,10 +1689,28 @@ function handleReaderTouchEnd(event = {}){
   return handled;
 }
 function handleReaderChapterKeydown(event = {}){
-  if(event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) return false;
-  if(event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') return false;
+  if(event.altKey || event.ctrlKey || event.metaKey) return false;
   const targetName = String(event.target?.tagName || '').toLowerCase();
   if(['input','select','textarea','button'].includes(targetName) || event.target?.isContentEditable) return false;
+  const pane = event.currentTarget?.classList?.contains?.('reader-text')
+    ? event.currentTarget
+    : (typeof document !== 'undefined' ? document.querySelector?.('.reader-text') : null);
+  const verticalKeys = ['ArrowUp', 'ArrowDown', 'PageUp', 'PageDown', ' ', 'Home', 'End'];
+  if(verticalKeys.includes(event.key) && pane){
+    if(event.shiftKey && event.key !== ' ') return false;
+    const viewport = Math.max(1, Number(pane.clientHeight) || 1);
+    const maximum = Math.max(0, Number(pane.scrollHeight) - viewport);
+    const direction = event.key === 'ArrowUp' || event.key === 'PageUp' || (event.key === ' ' && event.shiftKey) || event.key === 'Home' ? -1 : 1;
+    let next = Number(pane.scrollTop) || 0;
+    if(event.key === 'ArrowUp' || event.key === 'ArrowDown') next += direction * 48;
+    else if(event.key === 'PageUp' || event.key === 'PageDown' || event.key === ' ') next += direction * viewport * .82;
+    else next = event.key === 'Home' ? 0 : maximum;
+    pane.scrollTop = Math.min(maximum, Math.max(0, next));
+    event.preventDefault?.();
+    requestReaderContinuousBoundaryLoad(direction);
+    return true;
+  }
+  if(event.shiftKey || (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight')) return false;
   const handled = navigateReaderAdjacent(event.key === 'ArrowLeft' ? -1 : 1);
   if(handled) event.preventDefault?.();
   return handled;
@@ -1835,9 +1865,6 @@ function renderReaderTokens(tokens, reference = {}, settings = getActiveReaderSe
     return `<span class="reader-interlinear-unit" dir="rtl">${button}${punctuation ? `<span class="reader-token-punctuation" lang="he" dir="rtl" aria-hidden="true">${escHtml(punctuation)}</span>` : ''}</span>`;
   }).join(' ');
 }
-function readerUsesWindowScroll(){
-  return typeof window !== 'undefined' && Boolean(window.matchMedia?.('(max-width: 640px)')?.matches);
-}
 function setReaderBrowserScrollRestoration(active){
   if(typeof history === 'undefined' || !('scrollRestoration' in history)) return false;
   history.scrollRestoration = active ? 'manual' : 'auto';
@@ -1850,8 +1877,8 @@ function captureReaderAnchor(){
   const verses = Array.from(pane.querySelectorAll?.('[data-reader-verse], [data-reader-english-verse]') || [])
     .filter(verse => !verse.closest?.('[data-reader-language-layer][hidden]'));
   const paneRect = pane.getBoundingClientRect?.() || { top: 0, height: Number(pane.clientHeight) || 0 };
-  const viewportTop = readerUsesWindowScroll() ? 0 : Number(paneRect.top) || 0;
-  const viewportHeight = readerUsesWindowScroll() ? Number(window.innerHeight) || 800 : Number(paneRect.height || pane.clientHeight) || 800;
+  const viewportTop = Number(paneRect.top) || 0;
+  const viewportHeight = Number(paneRect.height || pane.clientHeight) || 800;
   const viewportBottom = viewportTop + viewportHeight;
   const anchorLine = viewportTop + Math.min(120, Math.max(48, viewportHeight * .18));
   let chosen = null;
@@ -1868,7 +1895,7 @@ function captureReaderAnchor(){
     verse: cleanReaderTokenValue(chosen?.dataset?.readerVerse || chosen?.dataset?.readerEnglishVerse || readerState.anchorVerse),
     anchorOffset: chosenRect ? Number(chosenRect.top) - viewportTop : Number(readerState.anchorOffset) || 0,
     scrollTop: Math.max(0, Number(pane.scrollTop) || Number(readerState.scrollTop) || 0),
-    scrollY: Math.max(0, Number(typeof window !== 'undefined' ? window.scrollY : 0) || Number(readerState.scrollY) || 0)
+    scrollY: 0
   };
 }
 function captureReaderReflowAnchor(){
@@ -1878,8 +1905,8 @@ function captureReaderReflowAnchor(){
   const pane = typeof document !== 'undefined' ? document.querySelector?.('.reader-text') : null;
   const targetRect = target?.getBoundingClientRect?.();
   const paneRect = pane?.getBoundingClientRect?.();
-  const viewportTop = readerUsesWindowScroll() ? 0 : Number(paneRect?.top) || 0;
-  const viewportBottom = readerUsesWindowScroll() ? Number(window.innerHeight) || 0 : Number(paneRect?.bottom) || 0;
+  const viewportTop = Number(paneRect?.top) || 0;
+  const viewportBottom = Number(paneRect?.bottom) || 0;
   if(!targetRect || targetRect.bottom < viewportTop || targetRect.top > viewportBottom) return measured;
   return {
     chapter: readerState.chapter,
@@ -1908,25 +1935,13 @@ function restoreReaderPlace(anchor = {}, options = {}){
   if(readerUserScrolledAt > Number(options.scheduledAt || 0)) return false;
   const target = findReaderAnchorElement(anchor);
   readerProgrammaticScroll = true;
-  const scrollWindowInstantly = top => {
-    const root = document.documentElement;
-    const previousBehavior = root?.style?.scrollBehavior || '';
-    if(root?.style) root.style.scrollBehavior = 'auto';
-    const nextTop = Math.max(0, Number(top) || 0);
-    try { window.scrollTo?.({ top: nextTop, left: 0, behavior: 'auto' }); }
-    catch(error) { window.scrollTo?.(0, nextTop); }
-    if(root?.style) root.style.scrollBehavior = previousBehavior;
-  };
   if(target?.getBoundingClientRect){
     const paneRect = pane.getBoundingClientRect?.() || { top: 0 };
-    const viewportTop = readerUsesWindowScroll() ? 0 : Number(paneRect.top) || 0;
+    const viewportTop = Number(paneRect.top) || 0;
     const delta = Number(target.getBoundingClientRect().top) - viewportTop - (Number(anchor.anchorOffset) || 0);
-    if(readerUsesWindowScroll()) scrollWindowInstantly((Number(window.scrollY) || 0) + delta);
-    else pane.scrollTop = Math.max(0, Number(pane.scrollTop) + delta);
-  } else if(readerUsesWindowScroll()) {
-    scrollWindowInstantly(anchor.scrollY);
+    pane.scrollTop = Math.max(0, Number(pane.scrollTop) + delta);
   } else {
-    pane.scrollTop = Math.max(0, Number(anchor.scrollTop) || 0);
+    pane.scrollTop = Math.max(0, Number(anchor.scrollTop) || Number(anchor.scrollY) || 0);
   }
   const restoredChapter = clampReaderChapter(readerState.language, readerState.book, anchor.chapter || readerState.chapter);
   if(restoredChapter !== readerState.chapter) updateReaderCurrentChapter(restoredChapter, { persist: false });
@@ -1934,8 +1949,8 @@ function restoreReaderPlace(anchor = {}, options = {}){
   readerState.anchorVerse = cleanReaderTokenValue(anchor.verse);
   readerState.anchorOffset = Number(anchor.anchorOffset) || 0;
   readerState.scrollTop = Math.max(0, Number(pane.scrollTop) || 0);
-  readerState.scrollY = Math.max(0, Number(window.scrollY) || 0);
-  readerLastScrollPosition = readerUsesWindowScroll() ? readerState.scrollY : readerState.scrollTop;
+  readerState.scrollY = 0;
+  readerLastScrollPosition = readerState.scrollTop;
   readerLastRestoreAt = Date.now();
   saveReaderLocation(readerState);
   setTimeout(() => { readerProgrammaticScroll = false; }, 120);
@@ -1994,8 +2009,8 @@ function detectReaderCurrentChapter(){
   const sections = Array.from(pane?.querySelectorAll?.('[data-reader-chapter-section]') || []);
   if(!sections.length) return readerState.chapter;
   const paneRect = pane.getBoundingClientRect?.() || { top: 0, height: Number(pane.clientHeight) || 0 };
-  const viewportTop = readerUsesWindowScroll() ? 0 : Number(paneRect.top) || 0;
-  const viewportHeight = readerUsesWindowScroll() ? Number(window.innerHeight) || 800 : Number(paneRect.height || pane.clientHeight) || 800;
+  const viewportTop = Number(paneRect.top) || 0;
+  const viewportHeight = Number(paneRect.height || pane.clientHeight) || 800;
   const anchorLine = viewportTop + Math.min(160, Math.max(72, viewportHeight * .24));
   let candidate = sections[0];
   sections.forEach(section => {
@@ -2061,9 +2076,14 @@ function syncReaderBookBoundaries(pane){
   if(passages[0]?.chapter === chapters[0]) pane.insertAdjacentHTML?.('afterbegin', `<p class="reader-book-boundary" role="note">Beginning of ${escHtml(book.name)}</p>`);
   if(passages.at(-1)?.chapter === chapters.at(-1)) pane.insertAdjacentHTML?.('beforeend', `<p class="reader-book-boundary" role="note">End of ${escHtml(book.name)}</p>`);
 }
-function readerContinuousInsertionNeedsAnchorRestore(direction, sectionCount){
+const ReaderScrollMomentumGuardMs = 240;
+function readerContinuousInsertionNeedsAnchorRestore(direction, sectionCount, options = {}){
   // Appends below the viewport need no correction until trimming removes a chapter above it.
-  return direction < 0 || (direction > 0 && sectionCount >= ReaderContinuousWindowSize);
+  const changesContentAbove = direction < 0 || (direction > 0 && sectionCount >= ReaderContinuousWindowSize);
+  if(!changesContentAbove) return false;
+  const momentumInputAt = Number(options.momentumInputAt ?? readerMomentumInputAt) || 0;
+  const now = Number(options.now ?? Date.now()) || 0;
+  return !momentumInputAt || now - momentumInputAt > ReaderScrollMomentumGuardMs;
 }
 function insertReaderContinuousPassage(passage, direction, settings = getActiveReaderSettings()){
   if(typeof document === 'undefined') { renderReader(); return false; }
@@ -2087,38 +2107,20 @@ function insertReaderContinuousPassage(passage, direction, settings = getActiveR
   if(anchor) restoreReaderPlace(anchor, { scheduledAt: Date.now() });
   return true;
 }
-function syncReaderStickyToolbarVisibility(primaryHidden){
-  const toolbar = $('#readerStickyToolbar');
-  if(!toolbar) return false;
-  const visible = readerUsesWindowScroll() && Boolean(primaryHidden) && (typeof state === 'undefined' || state.currentView === 'readerView');
-  toolbar.hidden = !visible;
-  toolbar.dataset.visible = visible ? 'true' : 'false';
-  return visible;
-}
 function initReaderObservers(){
   readerChapterObserver?.disconnect?.();
-  readerControlsObserver?.disconnect?.();
   readerChapterObserver = null;
-  readerControlsObserver = null;
   if(typeof document === 'undefined' || typeof IntersectionObserver === 'undefined') return;
   const pane = document.querySelector?.('.reader-text');
   const sections = Array.from(pane?.querySelectorAll?.('[data-reader-chapter-section]') || []);
   if(readerState.mode === 'continuous' && sections.length){
     readerChapterObserver = new IntersectionObserver(() => detectReaderCurrentChapter(), {
-      root: readerUsesWindowScroll() ? null : pane,
+      root: pane,
       rootMargin: '-18% 0px -62% 0px',
       threshold: [0, .01]
     });
     sections.forEach(section => readerChapterObserver.observe(section));
   }
-  const primary = $('#readerPrimaryControls');
-  if(primary && readerUsesWindowScroll()){
-    readerControlsObserver = new IntersectionObserver(entries => {
-      const entry = entries.at(-1);
-      syncReaderStickyToolbarVisibility(entry ? !entry.isIntersecting : false);
-    }, { threshold: .05 });
-    readerControlsObserver.observe(primary);
-  } else syncReaderStickyToolbarVisibility(false);
 }
 async function setReaderMode(mode){
   const nextMode = normalizeReaderMode(mode);
@@ -2151,12 +2153,11 @@ function toggleReaderTextVisibility(kind){
   const settings = getActiveReaderSettings();
   const selected = kind === 'english' && settings.translation === 'on' ? 'english' : 'original';
   if(settings.textMode === selected) {
-    scheduleReaderVisibilityFocus(selected, typeof document !== 'undefined' && document.activeElement?.closest?.('#readerStickyToolbar') ? 'sticky' : 'primary');
+    scheduleReaderVisibilityFocus(selected);
     return settings;
   }
   const anchor = captureReaderAnchor();
   const requestId = ++readerVisibilityRequestId;
-  const focusSource = typeof document !== 'undefined' && document.activeElement?.closest?.('#readerStickyToolbar') ? 'sticky' : 'primary';
   if(anchor){
     readerState.anchorVerse = anchor.verse;
     readerState.anchorOffset = anchor.anchorOffset;
@@ -2179,7 +2180,7 @@ function toggleReaderTextVisibility(kind){
       if(requestId !== readerVisibilityRequestId) return;
       setReaderLanguageLoading(false);
       renderReader({ preserveAnchor: anchor });
-      scheduleReaderVisibilityFocus(selected, focusSource);
+      scheduleReaderVisibilityFocus(selected);
     }).catch(() => {
       if(requestId !== readerVisibilityRequestId) return;
       setReaderLanguageLoading(false);
@@ -2203,10 +2204,10 @@ function toggleReaderTextVisibility(kind){
   }
   if(applyReaderTextModeToRenderedPassages(saved)){
     if(anchor) scheduleReaderPlaceRestore(anchor, { visibilityRequestId: requestId });
-    scheduleReaderVisibilityFocus(selected, focusSource);
+    scheduleReaderVisibilityFocus(selected);
     return saved;
   }
-  scheduleReaderLanguageRender({ requestId, selected, focusSource, anchor });
+  scheduleReaderLanguageRender({ requestId, selected, anchor });
   return saved;
 }
 function setReaderLanguageLoading(loading, label = 'Loading English…'){
@@ -2218,12 +2219,12 @@ function setReaderLanguageLoading(loading, label = 'Loading English…'){
   pane.insertAdjacentHTML?.('afterbegin', `<p class="reader-language-loading" role="status">${escHtml(label)}</p>`);
   return true;
 }
-function scheduleReaderLanguageRender({ requestId, selected, focusSource, anchor }){
+function scheduleReaderLanguageRender({ requestId, selected, anchor }){
   const render = () => {
     readerLanguageRenderFrame = null;
     if(requestId !== readerVisibilityRequestId) return;
     renderReader({ preserveAnchor: anchor });
-    scheduleReaderVisibilityFocus(selected, focusSource);
+    scheduleReaderVisibilityFocus(selected);
   };
   if(typeof window !== 'undefined' && typeof window.requestAnimationFrame === 'function'){
     if(readerLanguageRenderFrame && typeof window.cancelAnimationFrame === 'function') window.cancelAnimationFrame(readerLanguageRenderFrame);
@@ -2256,11 +2257,10 @@ function applyReaderTextModeToRenderedPassages(settings = getActiveReaderSetting
   if(status) status.textContent = renderReaderStatus(settings);
   return true;
 }
-function scheduleReaderVisibilityFocus(kind, source = 'primary'){
+function scheduleReaderVisibilityFocus(kind){
   if(typeof window === 'undefined' || typeof document === 'undefined') return false;
   const focus = () => {
-    const scope = source === 'sticky' && !$('#readerStickyToolbar')?.hidden ? '#readerStickyToolbar' : '.reader-primary-display-controls';
-    document.querySelector?.(`${scope} [data-reader-visibility="${kind}"]`)?.focus?.({ preventScroll: true });
+    document.querySelector?.(`.reader-primary-display-controls [data-reader-visibility="${kind}"]`)?.focus?.({ preventScroll: true });
   };
   window.requestAnimationFrame ? window.requestAnimationFrame(() => setTimeout(focus, 0)) : setTimeout(focus, 0);
   return true;
@@ -2318,7 +2318,11 @@ function wireReaderControls(){
   $$('.reader-token').forEach(btn => btn.addEventListener('click', () => openReaderTokenPopup(btn)));
   const readerText = $('.reader-text');
   readerText?.removeEventListener?.('scroll', handleReaderScroll);
+  readerText?.removeEventListener?.('wheel', handleReaderMomentumInput);
+  readerText?.removeEventListener?.('touchmove', handleReaderMomentumInput);
   readerText?.addEventListener('scroll', handleReaderScroll, { passive: true });
+  readerText?.addEventListener('wheel', handleReaderMomentumInput, { passive: true });
+  readerText?.addEventListener('touchmove', handleReaderMomentumInput, { passive: true });
   readerText?.addEventListener('keydown', handleReaderChapterKeydown);
   readerText?.addEventListener('touchstart', handleReaderTouchStart, { passive: true });
   readerText?.addEventListener('touchend', handleReaderTouchEnd, { passive: false });
@@ -2329,8 +2333,6 @@ function wireReaderControls(){
     document.addEventListener?.('click', handleReaderDocumentClick);
   }
   if(typeof window !== 'undefined'){
-    window.removeEventListener?.('scroll', handleReaderScroll);
-    window.addEventListener?.('scroll', handleReaderScroll, { passive: true });
     window.removeEventListener?.('resize', handleReaderResize);
     window.addEventListener?.('resize', handleReaderResize, { passive: true });
   }
@@ -2350,13 +2352,25 @@ function readerContinuousBoundaryState({ direction = 0, distance = Number.POSITI
     insert: direction !== 0 && remaining < Math.max(720, size * (2.25 + speed * .75))
   };
 }
+function readerContinuousBoundaryForPane(pane, direction, velocity = 0){
+  if(!pane || !direction) return readerContinuousBoundaryState();
+  const remaining = Number(pane.scrollHeight) - Number(pane.scrollTop) - Number(pane.clientHeight);
+  const viewport = Number(pane.clientHeight) || 800;
+  const distance = direction < 0 ? Number(pane.scrollTop) : remaining;
+  return readerContinuousBoundaryState({ direction, distance, viewport, velocity });
+}
+function requestReaderContinuousBoundaryLoad(direction, velocity = 0){
+  if(readerState.mode !== 'continuous' || readerContinuousLoadPending || typeof document === 'undefined') return false;
+  const pane = document.querySelector?.('.reader-text');
+  if(!pane) return false;
+  const boundary = readerContinuousBoundaryForPane(pane, direction, velocity);
+  if(boundary.prefetch) scheduleReaderContinuousPrefetch({ direction, immediate: true });
+  if(!boundary.insert) return false;
+  loadReaderContinuousAdjacent(direction);
+  return true;
+}
 function handleReaderScroll(){
   if(typeof state !== 'undefined' && state.currentView !== 'readerView') return;
-  if(readerUsesWindowScroll() && typeof document !== 'undefined'){
-    const primary = document.getElementById?.('readerPrimaryControls') || $('#readerPrimaryControls');
-    const primaryBottom = Number(primary?.getBoundingClientRect?.().bottom);
-    if(Number.isFinite(primaryBottom)) syncReaderStickyToolbarVisibility(primaryBottom <= 0);
-  }
   if(readerProgrammaticScroll){
     detectReaderCurrentChapter();
     return;
@@ -2367,40 +2381,22 @@ function handleReaderScroll(){
   if(readerState.mode !== 'continuous' || readerContinuousLoadPending || typeof document === 'undefined') return;
   const pane = document.querySelector?.('.reader-text');
   if(!pane) return;
-  const scrollPosition = readerUsesWindowScroll() ? Math.max(0, Number(window.scrollY) || 0) : Math.max(0, Number(pane.scrollTop) || 0);
+  const scrollPosition = Math.max(0, Number(pane.scrollTop) || 0);
   const now = Date.now();
   const scrollDelta = scrollPosition - readerLastScrollPosition;
   const elapsed = readerLastScrollAt ? Math.max(1, now - readerLastScrollAt) : 16;
-  const scrollDirection = Math.sign(scrollDelta);
+  const scrollDirection = readerMomentumScrollDirection(Math.sign(scrollDelta), { now });
   const scrollVelocity = Math.abs(scrollDelta) / elapsed;
   readerLastScrollPosition = scrollPosition;
   readerLastScrollAt = now;
   if(typeof deferAppDataLoadForInteraction === 'function') deferAppDataLoadForInteraction();
-  if(readerUsesWindowScroll()){
-    const sections = Array.from(pane.querySelectorAll?.('[data-reader-chapter-section]') || []);
-    const first = sections[0]?.getBoundingClientRect?.();
-    const last = sections.at(-1)?.getBoundingClientRect?.();
-    const viewport = Number(window.innerHeight) || 800;
-    const distance = scrollDirection < 0 ? Math.max(0, -Number(first?.top)) : Math.max(0, Number(last?.bottom) - viewport);
-    const boundary = readerContinuousBoundaryState({ direction: scrollDirection, distance, viewport, velocity: scrollVelocity });
-    if(boundary.prefetch) scheduleReaderContinuousPrefetch({ direction: scrollDirection, immediate: true });
-    if(boundary.insert) loadReaderContinuousAdjacent(scrollDirection);
-  } else {
-    const remaining = Number(pane.scrollHeight) - Number(pane.scrollTop) - Number(pane.clientHeight);
-    const viewport = Number(pane.clientHeight) || 800;
-    const distance = scrollDirection < 0 ? Number(pane.scrollTop) : remaining;
-    const boundary = readerContinuousBoundaryState({ direction: scrollDirection, distance, viewport, velocity: scrollVelocity });
-    if(boundary.prefetch) scheduleReaderContinuousPrefetch({ direction: scrollDirection, immediate: true });
-    if(boundary.insert) loadReaderContinuousAdjacent(scrollDirection);
-  }
+  requestReaderContinuousBoundaryLoad(scrollDirection, scrollVelocity);
 }
 function suspendReader(){
   persistReaderPlaceNow();
   setReaderBrowserScrollRestoration(false);
   readerChapterObserver?.disconnect?.();
-  readerControlsObserver?.disconnect?.();
   readerChapterObserver = null;
-  readerControlsObserver = null;
   if(readerScrollTimer) clearTimeout(readerScrollTimer);
   readerScrollTimer = null;
   if(readerPrefetchHandle){
@@ -2413,10 +2409,12 @@ function suspendReader(){
   if(typeof document !== 'undefined'){
     document.removeEventListener?.('keydown', handleReaderPopupKeydown);
     document.removeEventListener?.('click', handleReaderDocumentClick);
-    document.querySelector?.('.reader-text')?.removeEventListener?.('scroll', handleReaderScroll);
+    const readerText = document.querySelector?.('.reader-text');
+    readerText?.removeEventListener?.('scroll', handleReaderScroll);
+    readerText?.removeEventListener?.('wheel', handleReaderMomentumInput);
+    readerText?.removeEventListener?.('touchmove', handleReaderMomentumInput);
   }
   if(typeof window !== 'undefined'){
-    window.removeEventListener?.('scroll', handleReaderScroll);
     window.removeEventListener?.('resize', handleReaderResize);
   }
   readerSettingsPanelOpen = false;
@@ -2871,5 +2869,5 @@ async function initReader(){
 }
 if(typeof window !== 'undefined') Object.assign(window, { ReaderConfig, ReaderTranslationOptions, ReaderDefaultSettings, ReaderWordDetailsLayout, readerState, readerChapterCache, readerInterlinearChapterCache, readerTranslationLoadCounts, readerInterlinearLoadCounts, readerManifestCache, readerLoadCounts, getReaderChapterPath, getReaderInterlinearChapterPath, getReaderLanguageMeta, loadReaderManifest, loadReaderChapter, loadReaderInterlinearChapter, loadReaderTranslationChapter, ensureReaderTranslationLoaded, setReaderLocation, getAdjacentReaderLocation, navigateReaderAdjacent, handleReaderChapterKeydown, handleReaderTouchStart, handleReaderTouchEnd, renderReader, renderReaderChapter, renderReaderVerse, renderReaderTokens, initReader, runReaderSearch, loadReaderLocation, saveReaderLocation, loadReaderSettings, saveReaderSettings, getActiveReaderSettings, updateReaderSetting, openReaderSettingsPanel, closeReaderSettingsPanel, openReaderSearch, closeReaderSearch, readerTokenQualifiesForAssistance, renderReaderSettingsPanel, renderReaderTranslationToggle, normalizeReaderWordDetailsDisplay, resolveReaderWordDetailsMode, currentReaderWordDetailsMode, syncReaderWordDetailsLayout, resetReaderWordDetailsState, parseReaderReference, openReaderTokenPopup, closeReaderWordPopup, openReaderWordPage, openReaderWordStandalonePage, openReaderWordPageFromInfo, renderReaderWordPage, renderReaderWordPageContent, lookupReaderWordInfo, explainReaderParse, readerDisplayLemma, readerPrimaryHeadword, readerGrammarLinksForInfo, readerPartOfSpeechForInfo, readerMorphologyFields, renderReaderMorphology, renderReaderGrammar, renderReaderWordIdentity, renderReaderWordOccurrence, getReaderLemmaOccurrences, openReaderContextOccurrence, openReaderBookProgress, renderReaderWordLearning, renderReaderWordSaved, renderReaderWordStudySets, readerLearningStatusForInfo, readerLearningDetailsForInfo, introduceReaderWordFromPage, reviewReaderWordFromPage, toggleReaderSavedWord, addReaderWordToStudySet, createReaderStudySetFromWord });
 if(typeof module !== 'undefined') module.exports = { ReaderConfig, ReaderTranslationOptions, ReaderDefaultSettings, readerState: () => readerState, readerChapterCache, readerInterlinearChapterCache, readerInterlinearLoadCounts, readerTranslationChapterCache, readerTranslationLoadCounts, readerManifestCache, readerLoadCounts, getReaderChapterPath, getReaderInterlinearChapterPath, getReaderLanguageMeta, loadReaderManifest, normalizeReaderManifest, getReaderBookChapters, loadReaderChapter, decodeReaderInterlinearChapter, attachReaderInterlinearChapter, loadReaderInterlinearChapter, loadReaderTranslationChapter, ensureReaderTranslationLoaded, setReaderLocation, getAdjacentReaderLocation, navigateReaderAdjacent, handleReaderChapterKeydown, handleReaderTouchStart, handleReaderTouchEnd, renderReader, renderReaderChapter, renderReaderVerse, renderReaderTokens, runReaderSearch, loadReaderLocation, saveReaderLocation, loadReaderSettings, saveReaderSettings, getActiveReaderSettings, sanitizeReaderSettings, updateReaderSetting, openReaderSettingsPanel, closeReaderSettingsPanel, openReaderSearch, closeReaderSearch, handleReaderPopupKeydown, handleReaderDocumentClick, readerAssistanceThreshold, readerTokenFrequency, readerTokenQualifiesForAssistance, renderReaderSettingsPanel, renderReaderTranslationToggle, normalizeReaderWordDetailsDisplay, resolveReaderWordDetailsMode, currentReaderWordDetailsMode, syncReaderWordDetailsLayout, resetReaderWordDetailsState, readerChapterHasEnglish, readerChapterHasReliableInterlinearGlossData, readerTranslationVerseEnglish, parseReaderReference, normalizeReaderText, lookupReaderWordInfo, explainReaderParse, readerDisplayLemma, readerPrimaryHeadword, readerGrammarLinksForInfo, readerParseKind, readerPartOfSpeechForInfo, readerMorphologyFields, renderReaderMorphology, renderReaderGrammar, renderReaderWordIdentity, renderReaderWordOccurrence, openReaderTokenPopup, closeReaderWordPopup, openReaderWordPage, openReaderWordStandalonePage, openReaderWordPageFromInfo, renderReaderWordPage, loadReaderSearchIndex, representativeReaderOccurrences, getReaderLemmaOccurrences, readerOccurrenceSnippet, renderReaderWordPageContext, renderReaderWordPageContextContent, attachReaderWordPageContextHandlers, openReaderContextOccurrence, openReaderBookProgress, renderReaderWordLearning, renderReaderWordSaved, renderReaderWordStudySets, readerLearningStatusForInfo, readerLearningDetailsForInfo, introduceReaderWordFromPage, reviewReaderWordFromPage, toggleReaderSavedWord, addReaderWordToStudySet, createReaderStudySetFromWord };
-if(typeof window !== 'undefined') Object.assign(window, { setReaderMode, setReaderModePreference, toggleReaderTextVisibility, loadReaderContinuousWindow, loadReaderContinuousAdjacent, captureReaderAnchor, restoreReaderPlace, persistReaderPlaceNow, suspendReader, updateReaderCurrentChapter, syncReaderStickyToolbarVisibility, scheduleReaderContinuousPrefetch });
-if(typeof module !== 'undefined') Object.assign(module.exports, { normalizeReaderMode, readerContinuousChapterNumbers, loadReaderPassage, loadReaderContinuousWindow, loadReaderContinuousAdjacent, readerContinuousPrefetchChapters, scheduleReaderContinuousPrefetch, readerContinuousBoundaryState, readerContinuousInsertionNeedsAnchorRestore, setReaderMode, setReaderModePreference, toggleReaderTextVisibility, applyReaderTextModeToRenderedPassages, captureReaderAnchor, restoreReaderPlace, scheduleReaderPlaceRestore, persistReaderPlaceNow, suspendReader, updateReaderCurrentChapter, detectReaderCurrentChapter, syncReaderStickyToolbarVisibility, refreshReaderTranslations, renderReaderPassages, renderReaderStickyToolbar, setReaderBrowserScrollRestoration, prepareReaderPassageHtml, insertReaderContinuousPassage, setReaderBoundaryLoading });
+if(typeof window !== 'undefined') Object.assign(window, { setReaderMode, setReaderModePreference, toggleReaderTextVisibility, loadReaderContinuousWindow, loadReaderContinuousAdjacent, captureReaderAnchor, restoreReaderPlace, persistReaderPlaceNow, suspendReader, updateReaderCurrentChapter, scheduleReaderContinuousPrefetch });
+if(typeof module !== 'undefined') Object.assign(module.exports, { normalizeReaderMode, readerContinuousChapterNumbers, loadReaderPassage, loadReaderContinuousWindow, loadReaderContinuousAdjacent, readerContinuousPrefetchChapters, scheduleReaderContinuousPrefetch, readerContinuousBoundaryState, readerContinuousBoundaryForPane, readerContinuousInsertionNeedsAnchorRestore, readerMomentumScrollDirection, setReaderMode, setReaderModePreference, toggleReaderTextVisibility, applyReaderTextModeToRenderedPassages, captureReaderAnchor, restoreReaderPlace, scheduleReaderPlaceRestore, persistReaderPlaceNow, suspendReader, updateReaderCurrentChapter, detectReaderCurrentChapter, refreshReaderTranslations, renderReaderPassages, setReaderBrowserScrollRestoration, prepareReaderPassageHtml, insertReaderContinuousPassage, setReaderBoundaryLoading });
