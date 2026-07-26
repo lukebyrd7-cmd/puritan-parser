@@ -1714,6 +1714,41 @@ test('continuous Reader leaves native momentum alone while trimming during activ
   assert.equal(reader.readerContinuousInsertionNeedsAnchorRestore(1, 5, { momentumInputAt: 700, now: 1000 }), true);
 });
 
+test('continuous Reader keeps downward input intent when narrow-window trimming adjusts scrollY upward', () => {
+  assert.equal(reader.readerMomentumScrollDirection(-1, {
+    momentumInputAt: 900,
+    momentumDirection: 1,
+    now: 1000
+  }), 1);
+  assert.equal(reader.readerMomentumScrollDirection(-1, {
+    momentumInputAt: 700,
+    momentumDirection: 1,
+    now: 1000
+  }), -1);
+  assert.equal(reader.readerMomentumScrollDirection(0, {
+    momentumInputAt: 900,
+    momentumDirection: 1,
+    now: 1000
+  }), 1);
+});
+
+test('continuous Reader detects insertion boundaries in both window and pane scrolling layouts', () => {
+  const previousWindow = global.window;
+  global.window = { innerHeight: 800, matchMedia: () => ({ matches: true }) };
+  const windowPane = {
+    querySelectorAll: () => [
+      { getBoundingClientRect: () => ({ top: -1200, bottom: -400 }) },
+      { getBoundingClientRect: () => ({ top: 320, bottom: 780 }) }
+    ]
+  };
+  assert.equal(reader.readerContinuousBoundaryForPane(windowPane, 1).insert, true);
+
+  global.window = { matchMedia: () => ({ matches: false }) };
+  const scrollingPane = { scrollHeight: 1400, scrollTop: 600, clientHeight: 800 };
+  assert.equal(reader.readerContinuousBoundaryForPane(scrollingPane, 1).insert, true);
+  global.window = previousWindow;
+});
+
 test('continuous Reader handles book boundaries without crossing books', async () => {
   await reader.setReaderLocation({ language: 'greek', book: 'john', chapter: 1, mode: 'continuous' });
   assert.equal(reader.getAdjacentReaderLocation(-1), null);

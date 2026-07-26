@@ -146,6 +146,7 @@ let readerRestoreRequestId = 0;
 let readerPrefetchHandle = null;
 let readerUserScrolledAt = 0;
 let readerMomentumInputAt = 0;
+let readerMomentumDirection = 0;
 let readerLastRestoreAt = 0;
 let readerLastScrollPosition = 0;
 let readerLastScrollAt = 0;
@@ -1657,8 +1658,25 @@ function navigateReaderAdjacent(direction){
   if(loc) setReaderLocation(loc);
   return Boolean(loc);
 }
-function handleReaderMomentumInput(){
+function readerMomentumScrollDirection(measuredDirection, options = {}){
+  const inputAt = Number(options.momentumInputAt ?? readerMomentumInputAt) || 0;
+  const inputDirection = Math.sign(Number(options.momentumDirection ?? readerMomentumDirection) || 0);
+  const now = Number(options.now ?? Date.now()) || 0;
+  return inputDirection && inputAt && now - inputAt <= ReaderScrollMomentumGuardMs
+    ? inputDirection
+    : Math.sign(Number(measuredDirection) || 0);
+}
+function handleReaderMomentumInput(event = {}){
   readerMomentumInputAt = Date.now();
+  const touch = event.touches?.[0] || event.changedTouches?.[0];
+  const delta = event.type === 'wheel'
+    ? Number(event.deltaY) || 0
+    : (touch && readerTouchStart ? readerTouchStart.y - (Number(touch.clientY) || 0) : 0);
+  const direction = Math.sign(delta);
+  if(!direction) return false;
+  readerMomentumDirection = direction;
+  requestReaderContinuousBoundaryLoad(direction);
+  return true;
 }
 function handleReaderTouchStart(event = {}){
   const touch = event.touches?.[0] || event.changedTouches?.[0];
@@ -2363,6 +2381,30 @@ function readerContinuousBoundaryState({ direction = 0, distance = Number.POSITI
     insert: direction !== 0 && remaining < Math.max(720, size * (2.25 + speed * .75))
   };
 }
+function readerContinuousBoundaryForPane(pane, direction, velocity = 0){
+  if(!pane || !direction) return readerContinuousBoundaryState();
+  if(readerUsesWindowScroll()){
+    const sections = Array.from(pane.querySelectorAll?.('[data-reader-chapter-section]') || []);
+    const edge = direction < 0 ? sections[0]?.getBoundingClientRect?.() : sections.at(-1)?.getBoundingClientRect?.();
+    const viewport = Number(window.innerHeight) || 800;
+    const distance = direction < 0 ? Math.max(0, -Number(edge?.top)) : Math.max(0, Number(edge?.bottom) - viewport);
+    return readerContinuousBoundaryState({ direction, distance, viewport, velocity });
+  }
+  const remaining = Number(pane.scrollHeight) - Number(pane.scrollTop) - Number(pane.clientHeight);
+  const viewport = Number(pane.clientHeight) || 800;
+  const distance = direction < 0 ? Number(pane.scrollTop) : remaining;
+  return readerContinuousBoundaryState({ direction, distance, viewport, velocity });
+}
+function requestReaderContinuousBoundaryLoad(direction, velocity = 0){
+  if(readerState.mode !== 'continuous' || readerContinuousLoadPending || typeof document === 'undefined') return false;
+  const pane = document.querySelector?.('.reader-text');
+  if(!pane) return false;
+  const boundary = readerContinuousBoundaryForPane(pane, direction, velocity);
+  if(boundary.prefetch) scheduleReaderContinuousPrefetch({ direction, immediate: true });
+  if(!boundary.insert) return false;
+  loadReaderContinuousAdjacent(direction);
+  return true;
+}
 function handleReaderScroll(){
   if(typeof state !== 'undefined' && state.currentView !== 'readerView') return;
   if(readerUsesWindowScroll() && typeof document !== 'undefined'){
@@ -2384,28 +2426,12 @@ function handleReaderScroll(){
   const now = Date.now();
   const scrollDelta = scrollPosition - readerLastScrollPosition;
   const elapsed = readerLastScrollAt ? Math.max(1, now - readerLastScrollAt) : 16;
-  const scrollDirection = Math.sign(scrollDelta);
+  const scrollDirection = readerMomentumScrollDirection(Math.sign(scrollDelta), { now });
   const scrollVelocity = Math.abs(scrollDelta) / elapsed;
   readerLastScrollPosition = scrollPosition;
   readerLastScrollAt = now;
   if(typeof deferAppDataLoadForInteraction === 'function') deferAppDataLoadForInteraction();
-  if(readerUsesWindowScroll()){
-    const sections = Array.from(pane.querySelectorAll?.('[data-reader-chapter-section]') || []);
-    const first = sections[0]?.getBoundingClientRect?.();
-    const last = sections.at(-1)?.getBoundingClientRect?.();
-    const viewport = Number(window.innerHeight) || 800;
-    const distance = scrollDirection < 0 ? Math.max(0, -Number(first?.top)) : Math.max(0, Number(last?.bottom) - viewport);
-    const boundary = readerContinuousBoundaryState({ direction: scrollDirection, distance, viewport, velocity: scrollVelocity });
-    if(boundary.prefetch) scheduleReaderContinuousPrefetch({ direction: scrollDirection, immediate: true });
-    if(boundary.insert) loadReaderContinuousAdjacent(scrollDirection);
-  } else {
-    const remaining = Number(pane.scrollHeight) - Number(pane.scrollTop) - Number(pane.clientHeight);
-    const viewport = Number(pane.clientHeight) || 800;
-    const distance = scrollDirection < 0 ? Number(pane.scrollTop) : remaining;
-    const boundary = readerContinuousBoundaryState({ direction: scrollDirection, distance, viewport, velocity: scrollVelocity });
-    if(boundary.prefetch) scheduleReaderContinuousPrefetch({ direction: scrollDirection, immediate: true });
-    if(boundary.insert) loadReaderContinuousAdjacent(scrollDirection);
-  }
+  requestReaderContinuousBoundaryLoad(scrollDirection, scrollVelocity);
 }
 function suspendReader(){
   persistReaderPlaceNow();
@@ -2888,4 +2914,4 @@ async function initReader(){
 if(typeof window !== 'undefined') Object.assign(window, { ReaderConfig, ReaderTranslationOptions, ReaderDefaultSettings, ReaderWordDetailsLayout, readerState, readerChapterCache, readerInterlinearChapterCache, readerTranslationLoadCounts, readerInterlinearLoadCounts, readerManifestCache, readerLoadCounts, getReaderChapterPath, getReaderInterlinearChapterPath, getReaderLanguageMeta, loadReaderManifest, loadReaderChapter, loadReaderInterlinearChapter, loadReaderTranslationChapter, ensureReaderTranslationLoaded, setReaderLocation, getAdjacentReaderLocation, navigateReaderAdjacent, handleReaderChapterKeydown, handleReaderTouchStart, handleReaderTouchEnd, renderReader, renderReaderChapter, renderReaderVerse, renderReaderTokens, initReader, runReaderSearch, loadReaderLocation, saveReaderLocation, loadReaderSettings, saveReaderSettings, getActiveReaderSettings, updateReaderSetting, openReaderSettingsPanel, closeReaderSettingsPanel, openReaderSearch, closeReaderSearch, readerTokenQualifiesForAssistance, renderReaderSettingsPanel, renderReaderTranslationToggle, normalizeReaderWordDetailsDisplay, resolveReaderWordDetailsMode, currentReaderWordDetailsMode, syncReaderWordDetailsLayout, resetReaderWordDetailsState, parseReaderReference, openReaderTokenPopup, closeReaderWordPopup, openReaderWordPage, openReaderWordStandalonePage, openReaderWordPageFromInfo, renderReaderWordPage, renderReaderWordPageContent, lookupReaderWordInfo, explainReaderParse, readerDisplayLemma, readerPrimaryHeadword, readerGrammarLinksForInfo, readerPartOfSpeechForInfo, readerMorphologyFields, renderReaderMorphology, renderReaderGrammar, renderReaderWordIdentity, renderReaderWordOccurrence, getReaderLemmaOccurrences, openReaderContextOccurrence, openReaderBookProgress, renderReaderWordLearning, renderReaderWordSaved, renderReaderWordStudySets, readerLearningStatusForInfo, readerLearningDetailsForInfo, introduceReaderWordFromPage, reviewReaderWordFromPage, toggleReaderSavedWord, addReaderWordToStudySet, createReaderStudySetFromWord });
 if(typeof module !== 'undefined') module.exports = { ReaderConfig, ReaderTranslationOptions, ReaderDefaultSettings, readerState: () => readerState, readerChapterCache, readerInterlinearChapterCache, readerInterlinearLoadCounts, readerTranslationChapterCache, readerTranslationLoadCounts, readerManifestCache, readerLoadCounts, getReaderChapterPath, getReaderInterlinearChapterPath, getReaderLanguageMeta, loadReaderManifest, normalizeReaderManifest, getReaderBookChapters, loadReaderChapter, decodeReaderInterlinearChapter, attachReaderInterlinearChapter, loadReaderInterlinearChapter, loadReaderTranslationChapter, ensureReaderTranslationLoaded, setReaderLocation, getAdjacentReaderLocation, navigateReaderAdjacent, handleReaderChapterKeydown, handleReaderTouchStart, handleReaderTouchEnd, renderReader, renderReaderChapter, renderReaderVerse, renderReaderTokens, runReaderSearch, loadReaderLocation, saveReaderLocation, loadReaderSettings, saveReaderSettings, getActiveReaderSettings, sanitizeReaderSettings, updateReaderSetting, openReaderSettingsPanel, closeReaderSettingsPanel, openReaderSearch, closeReaderSearch, handleReaderPopupKeydown, handleReaderDocumentClick, readerAssistanceThreshold, readerTokenFrequency, readerTokenQualifiesForAssistance, renderReaderSettingsPanel, renderReaderTranslationToggle, normalizeReaderWordDetailsDisplay, resolveReaderWordDetailsMode, currentReaderWordDetailsMode, syncReaderWordDetailsLayout, resetReaderWordDetailsState, readerChapterHasEnglish, readerChapterHasReliableInterlinearGlossData, readerTranslationVerseEnglish, parseReaderReference, normalizeReaderText, lookupReaderWordInfo, explainReaderParse, readerDisplayLemma, readerPrimaryHeadword, readerGrammarLinksForInfo, readerParseKind, readerPartOfSpeechForInfo, readerMorphologyFields, renderReaderMorphology, renderReaderGrammar, renderReaderWordIdentity, renderReaderWordOccurrence, openReaderTokenPopup, closeReaderWordPopup, openReaderWordPage, openReaderWordStandalonePage, openReaderWordPageFromInfo, renderReaderWordPage, loadReaderSearchIndex, representativeReaderOccurrences, getReaderLemmaOccurrences, readerOccurrenceSnippet, renderReaderWordPageContext, renderReaderWordPageContextContent, attachReaderWordPageContextHandlers, openReaderContextOccurrence, openReaderBookProgress, renderReaderWordLearning, renderReaderWordSaved, renderReaderWordStudySets, readerLearningStatusForInfo, readerLearningDetailsForInfo, introduceReaderWordFromPage, reviewReaderWordFromPage, toggleReaderSavedWord, addReaderWordToStudySet, createReaderStudySetFromWord };
 if(typeof window !== 'undefined') Object.assign(window, { setReaderMode, setReaderModePreference, toggleReaderTextVisibility, loadReaderContinuousWindow, loadReaderContinuousAdjacent, captureReaderAnchor, restoreReaderPlace, persistReaderPlaceNow, suspendReader, updateReaderCurrentChapter, syncReaderStickyToolbarVisibility, scheduleReaderContinuousPrefetch });
-if(typeof module !== 'undefined') Object.assign(module.exports, { normalizeReaderMode, readerContinuousChapterNumbers, loadReaderPassage, loadReaderContinuousWindow, loadReaderContinuousAdjacent, readerContinuousPrefetchChapters, scheduleReaderContinuousPrefetch, readerContinuousBoundaryState, readerContinuousInsertionNeedsAnchorRestore, setReaderMode, setReaderModePreference, toggleReaderTextVisibility, applyReaderTextModeToRenderedPassages, captureReaderAnchor, restoreReaderPlace, scheduleReaderPlaceRestore, persistReaderPlaceNow, suspendReader, updateReaderCurrentChapter, detectReaderCurrentChapter, syncReaderStickyToolbarVisibility, refreshReaderTranslations, renderReaderPassages, renderReaderStickyToolbar, setReaderBrowserScrollRestoration, prepareReaderPassageHtml, insertReaderContinuousPassage, setReaderBoundaryLoading });
+if(typeof module !== 'undefined') Object.assign(module.exports, { normalizeReaderMode, readerContinuousChapterNumbers, loadReaderPassage, loadReaderContinuousWindow, loadReaderContinuousAdjacent, readerContinuousPrefetchChapters, scheduleReaderContinuousPrefetch, readerContinuousBoundaryState, readerContinuousBoundaryForPane, readerContinuousInsertionNeedsAnchorRestore, readerMomentumScrollDirection, setReaderMode, setReaderModePreference, toggleReaderTextVisibility, applyReaderTextModeToRenderedPassages, captureReaderAnchor, restoreReaderPlace, scheduleReaderPlaceRestore, persistReaderPlaceNow, suspendReader, updateReaderCurrentChapter, detectReaderCurrentChapter, syncReaderStickyToolbarVisibility, refreshReaderTranslations, renderReaderPassages, renderReaderStickyToolbar, setReaderBrowserScrollRestoration, prepareReaderPassageHtml, insertReaderContinuousPassage, setReaderBoundaryLoading });
