@@ -193,6 +193,12 @@ The service worker keeps JSON files out of the install precache. JSON is cached 
 
 The Reader persists the last language, book, chapter, reading mode, verse anchor, anchor-relative offset, and scroll fallback under `pp_reader_location`. Reopening the Reader restores the relevant bounded content first and then restores the verse-relative place. Older location records without a valid mode open in Continuous mode and continue to restore safely; valid saved Chapter mode remains unchanged.
 
+The record fields are `language`, `book`, `chapter`, `mode`, `verse`, `anchorOffset`, `scrollTop`, and legacy `scrollY`. Original/English and Hebrew Standard/Interlinear choices remain in the existing `pp_reader_adaptive_settings` record. No second location key or mandatory migration is used, so import/export and older records remain compatible.
+
+Hard-reload restoration no longer competes with the generic render-preservation path. One generation waits for the Reader route, requested passage and text layer, target verse, and a nonzero `.reader-text` viewport. It applies without waiting indefinitely for a remote font; font completion or a measured pane resize can trigger the bounded verification, and only an error greater than 8 CSS pixels can cause one correction. Invalid offsets use the verse start and records without a verse retain their raw scroll fallback. Wheel, touch, primary-pointer, keyboard-scroll, explicit navigation, route departure, and user-initiated display changes cancel pending or verifying work immediately.
+
+The unified `.reader-text` pane remains the only Reader scroll root at every viewport width. Restoration does not change continuous insertion, the five-chapter bound, the 240 ms momentum guard, focus order, or persistent mobile controls. Automated narrow/desktop state coverage is present; physical iPhone Safari, iPhone Chrome, and installed/PWA hard-reload checks remain required before publication approval.
+
 ## Matthew v3.6.1c audit results
 
 Matthew was generated from MorphGNT SBLGNT and contains 28 chapter files under `data/greek/matthew/`. The audit reports 28 Matthew chapters, with verse counts: 25, 23, 17, 25, 48, 34, 29, 34, 38, 42, 30, 50, 58, 36, 39, 28, 26, 34, 30, 34, 46, 46, 38, 51, 46, 75, 66, and 20. The SBLGNT source omits Matthew 17:21, 18:11, and 23:14, so the audit lists those as missing verse numbers rather than inventing text not present in the source. Mark 1 remains present as previously generated sample data, so `npm run reader:audit` reports both `mark` and `matthew`.

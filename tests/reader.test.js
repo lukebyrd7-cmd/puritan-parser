@@ -507,6 +507,138 @@ test('stale scheduled restoration cannot overwrite the latest canonical verse', 
   global.$ = previousDollar;
 });
 
+test('Reader restoration makes at most one measured correction after layout shift', () => {
+  storageHarness();
+  const previousDocument = global.document;
+  const previousWindow = global.window;
+  const previousDollar = global.$;
+  const frames = [];
+  let scrollTop = 0;
+  let layoutShift = 0;
+  const pane = {
+    clientHeight: 700,
+    get scrollTop(){ return scrollTop; },
+    set scrollTop(value){ scrollTop = value; },
+    getBoundingClientRect: () => ({ top: 0, bottom: 700, height: 700 }),
+    querySelectorAll: () => [verse]
+  };
+  const verse = {
+    dataset: { readerBook: reader.readerState().book, readerChapter: String(reader.readerState().chapter), readerVerse: '4' },
+    closest: () => null,
+    getBoundingClientRect: () => ({ top: 180 - scrollTop + layoutShift, bottom: 220 - scrollTop + layoutShift })
+  };
+  global.document = {
+    getElementById: () => null,
+    fonts: null,
+    querySelector: selector => selector === '.reader-text' ? pane : null,
+    querySelectorAll: () => [verse]
+  };
+  global.window = {
+    requestAnimationFrame(callback){ frames.push(callback); return frames.length; },
+    cancelAnimationFrame(){},
+    setTimeout,
+    matchMedia: () => ({ matches: false })
+  };
+  global.$ = selector => selector === '.reader-text' ? pane : null;
+
+  reader.scheduleReaderPlaceRestore({ chapter: reader.readerState().chapter, verse: '4', anchorOffset: 80 });
+  frames.shift()();
+  assert.equal(scrollTop, 100);
+  layoutShift = 16;
+  frames.shift()();
+  assert.equal(scrollTop, 116);
+  assert.deepEqual(reader.readerRestorationState(), {
+    state: 'complete',
+    correctionCount: 1,
+    generation: reader.readerRestorationState().generation
+  });
+
+  global.document = previousDocument;
+  global.window = previousWindow;
+  global.$ = previousDollar;
+});
+
+test('wheel, touch, and keyboard input cancel pending Reader restoration', () => {
+  const previousDocument = global.document;
+  const previousWindow = global.window;
+  const previousDollar = global.$;
+  const frames = [];
+  const pane = {
+    classList: { contains: value => value === 'reader-text' },
+    clientHeight: 700,
+    scrollHeight: 2000,
+    scrollTop: 250,
+    getBoundingClientRect: () => ({ top: 0, bottom: 700, height: 700 }),
+    querySelectorAll: () => []
+  };
+  global.document = {
+    getElementById: () => null,
+    fonts: null,
+    querySelector: selector => selector === '.reader-text' ? pane : null,
+    querySelectorAll: () => []
+  };
+  global.window = {
+    requestAnimationFrame(callback){ frames.push(callback); return frames.length; },
+    cancelAnimationFrame(){},
+    matchMedia: () => ({ matches: false })
+  };
+  global.$ = selector => selector === '.reader-text' ? pane : null;
+
+  reader.scheduleReaderPlaceRestore({ chapter: reader.readerState().chapter, scrollTop: 900 });
+  reader.handleReaderMomentumInput({ type: 'wheel', deltaY: 20 });
+  assert.equal(reader.readerRestorationState().state, 'cancelled');
+  frames.splice(0).forEach(frame => frame());
+  assert.equal(pane.scrollTop, 250);
+
+  reader.scheduleReaderPlaceRestore({ chapter: reader.readerState().chapter, scrollTop: 900 });
+  reader.handleReaderTouchStart({ touches: [{ clientX: 10, clientY: 10 }] });
+  assert.equal(reader.readerRestorationState().state, 'cancelled');
+
+  reader.scheduleReaderPlaceRestore({ chapter: reader.readerState().chapter, scrollTop: 900 });
+  reader.handleReaderChapterKeydown({
+    key: 'PageDown',
+    currentTarget: pane,
+    target: { tagName: 'ARTICLE' },
+    preventDefault(){}
+  });
+  assert.equal(reader.readerRestorationState().state, 'cancelled');
+
+  global.document = previousDocument;
+  global.window = previousWindow;
+  global.$ = previousDollar;
+});
+
+test('invalid Reader anchor offsets fall back to the verse start', () => {
+  const previousDocument = global.document;
+  const previousWindow = global.window;
+  const previousDollar = global.$;
+  let scrollTop = 400;
+  const pane = {
+    clientHeight: 700,
+    get scrollTop(){ return scrollTop; },
+    set scrollTop(value){ scrollTop = value; },
+    getBoundingClientRect: () => ({ top: 50, bottom: 750, height: 700 })
+  };
+  const verse = {
+    dataset: { readerBook: reader.readerState().book, readerChapter: String(reader.readerState().chapter), readerVerse: '5' },
+    getBoundingClientRect: () => ({ top: 210, bottom: 250 })
+  };
+  global.document = {
+    querySelector: selector => selector === '.reader-text' ? pane : null,
+    querySelectorAll: () => [verse]
+  };
+  global.window = { matchMedia: () => ({ matches: false }), setTimeout };
+  global.$ = selector => selector === '.reader-text' ? pane : null;
+
+  assert.equal(reader.restoreReaderPlace({ chapter: reader.readerState().chapter, verse: '5', anchorOffset: Number.POSITIVE_INFINITY }, { scheduledAt: Date.now() }), true);
+  assert.equal(scrollTop, 560);
+  assert.equal(reader.readerState().anchorOffset, 0);
+
+  global.document = previousDocument;
+  global.window = previousWindow;
+  global.$ = previousDollar;
+});
+
 test('Reader render hides the translation toggle when Translation is Off', async () => {
   storageHarness();
   reader.saveReaderSettings({ ...reader.ReaderDefaultSettings, translation: 'off' }, 'greek');

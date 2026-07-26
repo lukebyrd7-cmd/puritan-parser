@@ -24,7 +24,7 @@
 <link rel="apple-touch-icon" href="/logo.png">
 <link rel="icon" href="/logo.png">
 <link rel="manifest" href="/manifest.json">
-<link rel="stylesheet" href="/styles.css?v=v1.7.1-reader-scroll-hotfix-3">
+<link rel="stylesheet" href="/styles.css?v=v1.7.2-mobile-startup-reader-restoration">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="Puritan Parser">
@@ -33,7 +33,16 @@
 <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,600;0,700;0,800;1,400&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
 </head>
 <body>
-<div class="app-loading-shell" id="appLoadingStatus" role="status" aria-live="polite">Loading Puritan Parser…</div>
+<div class="app-loading-shell" id="appLoadingStatus" role="status" aria-live="polite">
+  <div class="app-startup-message">
+    <strong id="appLoadingTitle">Loading Puritan Parser…</strong>
+    <p id="appLoadingDetail" hidden>This is taking longer than expected. The app is still trying to open.</p>
+    <div id="appLoadingActions" class="app-startup-actions" hidden>
+      <button type="button" id="appStartupRetry">Try again</button>
+      <button type="button" id="appStartupHome">Open home</button>
+    </div>
+  </div>
+</div>
 
 <div class="app" id="app" role="application">
 
@@ -587,6 +596,63 @@
 
 </div><!-- /app -->
 
-  <script src="/src/main.js?v=v1.7.1-reader-scroll-hotfix-3"></script>
+  <script>
+  (() => {
+    const delayed = window.setTimeout(() => {
+      document.getElementById('appLoadingDetail')?.removeAttribute('hidden');
+    }, 4500);
+    let retryAction = () => location.reload();
+    const api = {
+      setRetry(action) { if(typeof action === 'function') retryAction = action; },
+      ready() {
+        window.clearTimeout(delayed);
+        document.documentElement.classList.remove('app-load-failed');
+        document.documentElement.classList.add('app-ready');
+      },
+      fail() {
+        window.clearTimeout(delayed);
+        const status = document.getElementById('appLoadingStatus');
+        const title = document.getElementById('appLoadingTitle');
+        const detail = document.getElementById('appLoadingDetail');
+        const actions = document.getElementById('appLoadingActions');
+        document.documentElement.classList.remove('app-ready');
+        document.documentElement.classList.add('app-load-failed');
+        status?.setAttribute('role', 'alert');
+        if(title) title.textContent = 'Puritan Parser could not open.';
+        if(detail) {
+          detail.textContent = 'Your saved work is safe. Check your connection, then try again.';
+          detail.hidden = false;
+        }
+        if(actions) actions.hidden = false;
+        window.setTimeout(() => document.getElementById('appStartupRetry')?.focus(), 0);
+      },
+      retry() {
+        document.documentElement.classList.remove('app-load-failed');
+        const status = document.getElementById('appLoadingStatus');
+        const title = document.getElementById('appLoadingTitle');
+        const detail = document.getElementById('appLoadingDetail');
+        const actions = document.getElementById('appLoadingActions');
+        status?.setAttribute('role', 'status');
+        if(title) title.textContent = 'Trying again…';
+        if(detail) detail.hidden = true;
+        if(actions) actions.hidden = true;
+        retryAction();
+      }
+    };
+    window.PuritanStartupUI = api;
+    window.addEventListener('error', () => {
+      if(!document.documentElement.classList.contains('app-ready')) api.fail();
+    });
+    window.addEventListener('unhandledrejection', () => {
+      if(!document.documentElement.classList.contains('app-ready')) api.fail();
+    });
+    document.getElementById('appStartupRetry')?.addEventListener('click', () => api.retry());
+    document.getElementById('appStartupHome')?.addEventListener('click', () => {
+      history.replaceState({}, '', '/');
+      retryAction();
+    });
+  })();
+  </script>
+  <script src="/src/main.js?v=v1.7.2-mobile-startup-reader-restoration" onerror="PuritanStartupUI.fail()"></script>
 </body>
 </html>

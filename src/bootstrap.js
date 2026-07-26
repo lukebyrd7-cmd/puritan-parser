@@ -3,6 +3,8 @@ let appDataReady = false;
 let appDataPromise = null;
 let appDataScheduleTimer = null;
 let appDataIdleHandle = null;
+let appInitializationPromise = null;
+let appEventsWired = false;
 
 function isAppDataReady(){ return appDataReady; }
 function refreshActiveViewAfterData(){
@@ -62,7 +64,10 @@ async function init(){
   if(lastLang) state.lang = lastLang;
   applyTheme(state.prefs.theme||'light');
   setAccent(state.prefs.accent||DEFAULTS.accent);
-  wireEvents();
+  if(!appEventsWired){
+    wireEvents();
+    appEventsWired = true;
+  }
   if(typeof syncSettingsUI === 'function') syncSettingsUI();
   if(typeof initOnboarding === 'function') initOnboarding();
   setLang(state.lang);
@@ -71,7 +76,6 @@ async function init(){
     document.documentElement.style.setProperty('--fc-word-size', state.prefs.cardFontSize+'px');
     $$('.fc-word-display').forEach(el=>el.style.fontSize=state.prefs.cardFontSize+'px');
   }
-  document.documentElement.classList.add('app-ready');
   const dataCriticalViews = ['learnView', 'listView', 'flashView', 'parsingView', 'dashboardView', 'progressView', 'globalSearchView'];
   if(typeof window !== 'undefined' && !dataCriticalViews.includes(state.currentView)) {
     scheduleNoncriticalAppDataLoad();
@@ -80,9 +84,13 @@ async function init(){
   } else setTimeout(() => startAppDataLoad().catch(reportAppDataLoadError), 0);
 }
 
-init().catch(error => {
-  console.error('Puritan Parser initialization failed.', error);
-  document.documentElement.classList.add('app-load-failed');
-  const status = document.getElementById('appLoadingStatus');
-  if(status) status.innerHTML = '<strong>Puritan Parser could not start.</strong><br><button type="button" onclick="location.reload()">Try again</button>';
-});
+function runPuritanBootstrap(){
+  if(appInitializationPromise) return appInitializationPromise;
+  appInitializationPromise = init().catch(error => {
+    appInitializationPromise = null;
+    throw error;
+  });
+  return appInitializationPromise;
+}
+
+if(typeof window !== 'undefined') window.runPuritanBootstrap = runPuritanBootstrap;

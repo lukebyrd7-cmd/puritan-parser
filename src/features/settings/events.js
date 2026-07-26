@@ -185,5 +185,4 @@ function wireEvents(){
   });
 
   window.addEventListener('beforeunload',()=>{ saveVocab('greek'); saveVocab('hebrew'); savePrefs(); });
-  try { if('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js').catch(()=>{}); } catch(e){}
 }

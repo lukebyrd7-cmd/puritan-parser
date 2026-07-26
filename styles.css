@@ -2670,3 +2670,7 @@ html:not(.app-ready):not(.app-load-failed) .app { visibility: hidden; }
 html.app-ready .app-loading-shell { display: none; }
 html.app-load-failed .app { display: none; }
 .app-loading-shell button { margin-top: 12px; padding: 8px 14px; border: 1px solid #cbd5e1; border-radius: 8px; background: white; cursor: pointer; }
+.app-startup-message { width: min(100%, 30rem); }
+.app-startup-message p { margin: 10px 0 0; }
+.app-startup-actions { display: flex; justify-content: center; gap: 8px; flex-wrap: wrap; }
+.dark .app-loading-shell button { color: #e2e8f0; border-color: #475569; background: #1e293b; }

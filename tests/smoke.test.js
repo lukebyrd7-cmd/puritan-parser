@@ -15,8 +15,40 @@ test('smoke: app shell loads required views and controls', () => {
 test('smoke: startup hides legacy views behind a neutral loading shell', () => {
   assert.match(html, /id="appLoadingStatus"[^>]*role="status"/);
   assert.match(css, /html:not\(\.app-ready\):not\(\.app-load-failed\) \.app \{ visibility: hidden; \}/);
-  assert.match(bootstrap, /classList\.add\('app-ready'\)/);
+  assert.match(fs.readFileSync('src/main.js', 'utf8'), /PuritanStartupUI\?\.ready\(\)/);
   assert.doesNotMatch(html, /<script[^>]+src="app\.js/);
+});
+
+test('smoke: startup exposes delayed, recoverable, accessible states without clearing user data', () => {
+  const main = fs.readFileSync('src/main.js', 'utf8');
+  assert.match(html, /id="appLoadingDetail" hidden>This is taking longer than expected\./);
+  assert.match(html, /id="appStartupRetry">Try again<\/button>/);
+  assert.match(html, /id="appStartupHome">Open home<\/button>/);
+  assert.match(html, /status\?\.setAttribute\('role', 'alert'\)/);
+  assert.match(html, /appStartupRetry'\)\?\.focus\(\)/);
+  assert.match(html, /Your saved work is safe\./);
+  assert.match(html, /addEventListener\('error'/);
+  assert.match(html, /addEventListener\('unhandledrejection'/);
+  assert.match(main, /setRetry\(\(\) => startPuritanParser\(\)\.catch\(reportPuritanStartupFailure\)\)/);
+  assert.doesNotMatch(`${html}\n${main}`, /localStorage\.clear|removeItem\('pp_reader_location'/);
+});
+
+test('smoke: startup retry is generation controlled and bootstrap errors propagate', () => {
+  const main = fs.readFileSync('src/main.js', 'utf8');
+  assert.match(main, /const generation = \+\+puritanStartupGeneration/);
+  assert.match(main, /assertCurrentStartupGeneration\(generation\)/);
+  assert.match(main, /await window\.runPuritanBootstrap\(generation\)/);
+  assert.match(bootstrap, /appInitializationPromise = init\(\)\.catch/);
+  assert.match(bootstrap, /appInitializationPromise = null/);
+});
+
+test('smoke: service-worker failure and mobile lifecycle recovery stay noncritical', () => {
+  const main = fs.readFileSync('src/main.js', 'utf8');
+  assert.match(main, /register\('\/sw\.js'\)[\s\S]*catch\(error => \{[\s\S]*return null/);
+  assert.match(main, /addEventListener\('pageshow'/);
+  assert.match(main, /event\.persisted/);
+  assert.match(main, /addEventListener\('online', registerPuritanServiceWorker\)/);
+  assert.doesNotMatch(main, /controllerchange[\s\S]*location\.reload/);
 });
 
 test('smoke: global language toggle is removed and word list controls are present', () => {
@@ -76,7 +108,7 @@ test('smoke: startup loads only the active feature and reveals navigation before
   assert.match(main, /await ensurePuritanFeature\(featureForPath\(\)\)/);
   assert.match(main, /script\.async = false/);
   assert.doesNotMatch(bootstrap, /await loadData\(\)/);
-  assert.match(bootstrap, /classList\.add\('app-ready'\)[\s\S]*scheduleNoncriticalAppDataLoad\(\)/);
+  assert.match(bootstrap, /initRouter\(\)[\s\S]*scheduleNoncriticalAppDataLoad\(\)/);
   assert.match(bootstrap, /function deferAppDataLoadForInteraction/);
 });
 
@@ -103,7 +135,7 @@ test('smoke: stored theme and accent are applied before the stylesheet and modul
 test('smoke: service worker precaches every startup module from src/main.js', () => {
   const main = fs.readFileSync('src/main.js', 'utf8');
   const sw = fs.readFileSync('sw.js', 'utf8');
-  const startupScripts = [...main.matchAll(/'([^']+\.js)'/g)].map(match => `./${match[1]}`);
+  const startupScripts = [...main.matchAll(/'(src\/[^']+\.js)'/g)].map(match => `./${match[1]}`);
   const missing = startupScripts.filter(script => !sw.includes(`'${script}'`));
   assert.deepEqual(missing, []);
 });
@@ -113,6 +145,13 @@ test('smoke: service worker keeps large JSON out of the install precache', () =>
   assert.doesNotMatch(sw, /'\.\/vocab_all\.json'/);
   assert.match(sw, /url\.pathname\.endsWith\('\.json'\)/);
   assert.match(sw, /cache\.put\(evt\.request, copy\)/);
+});
+
+test('smoke: versioned startup assets cannot match an older query version', () => {
+  const sw = fs.readFileSync('sw.js', 'utf8');
+  assert.match(sw, /const isVersionedStartupAsset = url\.searchParams\.has\('v'\)/);
+  assert.match(sw, /ignoreSearch: !isVersionedStartupAsset/);
+  assert.doesNotMatch(sw, /cache\.put\([^)]*(?:404|failed)/);
 });
 
 test('smoke: Vercel rewrites deep links to the app shell', () => {
@@ -129,15 +168,15 @@ test('smoke: nested hard refreshes resolve startup assets from the app root', ()
   const main = fs.readFileSync('src/main.js', 'utf8');
   const events = fs.readFileSync('src/features/settings/events.js', 'utf8');
   const sw = fs.readFileSync('sw.js', 'utf8');
-  assert.match(html, /href="\/styles\.css\?v=v1\.7\.1-reader-scroll-hotfix-3"/);
-  assert.match(html, /src="\/src\/main\.js\?v=v1\.7\.1-reader-scroll-hotfix-3"/);
+  assert.match(html, /href="\/styles\.css\?v=v1\.7\.2-mobile-startup-reader-restoration"/);
+  assert.match(html, /src="\/src\/main\.js\?v=v1\.7\.2-mobile-startup-reader-restoration"/);
   assert.match(main, /const rootPath = src\.startsWith\('\/'\) \? src : `\/\$\{src\}`/);
   assert.match(main, /script\.src = `\$\{rootPath\}\?v=\$\{PURITAN_PARSER_ASSET_VERSION\}`/);
-  assert.match(main, /PURITAN_PARSER_ASSET_VERSION = 'v1\.7\.1-reader-scroll-hotfix-3'/);
+  assert.match(main, /PURITAN_PARSER_ASSET_VERSION = 'v1\.7\.2-mobile-startup-reader-restoration'/);
   assert.match(main, /PURITAN_SCRIPT_LOAD_TIMEOUT_MS = 9000/);
   assert.match(main, /puritanLoadedScripts\.delete\(src\)/);
-  assert.match(events, /serviceWorker\.register\('\/sw\.js'\)/);
-  assert.match(sw, /'\.\/styles\.css\?v=v1\.7\.1-reader-scroll-hotfix-3'/);
-  assert.match(sw, /'\.\/src\/main\.js\?v=v1\.7\.1-reader-scroll-hotfix-3'/);
-  assert.match(sw, /caches\.match\(evt\.request, \{ ignoreSearch: true \}\)/);
+  assert.match(main, /serviceWorker\.register\('\/sw\.js'\)/);
+  assert.match(sw, /'\.\/styles\.css\?v=v1\.7\.2-mobile-startup-reader-restoration'/);
+  assert.match(sw, /'\.\/src\/main\.js\?v=v1\.7\.2-mobile-startup-reader-restoration'/);
+  assert.match(sw, /ignoreSearch: !isVersionedStartupAsset/);
 });
