@@ -1,13 +1,13 @@
 // Service worker for the static Puritan Parser app.
 // Keep this file next to index.html so root-scoped registration covers every route.
-const CACHE = 'puritan-parser-v75-v1.7.1-reader-scroll-hotfix-2';
+const CACHE = 'puritan-parser-v76-v1.7.1-reader-scroll-hotfix-3';
 const FILES = [
   './',
   './index.html',
   './styles.css',
-  './styles.css?v=v1.7.1-reader-scroll-hotfix-2',
+  './styles.css?v=v1.7.1-reader-scroll-hotfix-3',
   './src/main.js',
-  './src/main.js?v=v1.7.1-reader-scroll-hotfix-2',
+  './src/main.js?v=v1.7.1-reader-scroll-hotfix-3',
   './src/core/parser-core.js',
   './src/core/hebrew-search.js',
   './src/core/migrations/migrations.js',

@@ -1635,6 +1635,37 @@ test('Reader text supports keyboard chapter navigation without stealing input ar
   assert.equal(prevented, false);
 });
 
+test('Reader text scrolls its dedicated pane with vertical navigation keys', () => {
+  const pane = {
+    classList: { contains: value => value === 'reader-text' },
+    clientHeight: 800,
+    scrollHeight: 3200,
+    scrollTop: 400
+  };
+  const run = (key, options = {}) => {
+    let prevented = false;
+    const handled = reader.handleReaderChapterKeydown({
+      key,
+      currentTarget: pane,
+      target: { tagName: 'ARTICLE' },
+      preventDefault(){ prevented = true; },
+      ...options
+    });
+    assert.equal(handled, true);
+    assert.equal(prevented, true);
+  };
+  run('ArrowDown');
+  assert.equal(pane.scrollTop, 448);
+  run('PageDown');
+  assert.equal(pane.scrollTop, 1104);
+  run(' ', { shiftKey: true });
+  assert.equal(pane.scrollTop, 448);
+  run('Home');
+  assert.equal(pane.scrollTop, 0);
+  run('End');
+  assert.equal(pane.scrollTop, 2400);
+});
+
 test('last reader location persists', () => {
   storageHarness();
   reader.saveReaderLocation({ language: 'greek', book: 'mark', chapter: 1, scrollY: 420 });
@@ -1732,21 +1763,33 @@ test('continuous Reader keeps downward input intent when narrow-window trimming 
   }), 1);
 });
 
-test('continuous Reader detects insertion boundaries in both window and pane scrolling layouts', () => {
+test('continuous Reader uses the pane boundary below and above the former mobile breakpoint', () => {
   const previousWindow = global.window;
   global.window = { innerHeight: 800, matchMedia: () => ({ matches: true }) };
-  const windowPane = {
-    querySelectorAll: () => [
-      { getBoundingClientRect: () => ({ top: -1200, bottom: -400 }) },
-      { getBoundingClientRect: () => ({ top: 320, bottom: 780 }) }
-    ]
-  };
-  assert.equal(reader.readerContinuousBoundaryForPane(windowPane, 1).insert, true);
-
-  global.window = { matchMedia: () => ({ matches: false }) };
   const scrollingPane = { scrollHeight: 1400, scrollTop: 600, clientHeight: 800 };
   assert.equal(reader.readerContinuousBoundaryForPane(scrollingPane, 1).insert, true);
+
+  global.window = { matchMedia: () => ({ matches: false }) };
+  assert.equal(reader.readerContinuousBoundaryForPane(scrollingPane, 1).insert, true);
   global.window = previousWindow;
+});
+
+test('Reader keeps one dedicated vertical scroll root across the 640px breakpoint', () => {
+  const css = fs.readFileSync(path.join(process.cwd(), 'styles.css'), 'utf8');
+  const html = fs.readFileSync(path.join(process.cwd(), 'index.html'), 'utf8');
+  const source = fs.readFileSync(path.join(process.cwd(), 'src/features/reader/index.js'), 'utf8');
+  const mobileReader = css.match(/@media \(max-width: 640px\)[\s\S]*?\.reader-text \{([\s\S]*?)\n  \}/)?.[1] || '';
+  assert.match(css, /body:has\(#readerView:not\(\.hidden\)\) \{ overflow: hidden; \}/);
+  assert.match(css, /\.app:has\(#readerView:not\(\.hidden\)\)[\s\S]*?height: 100dvh;[\s\S]*?overflow: hidden;/);
+  assert.match(mobileReader, /height: 100%/);
+  assert.match(mobileReader, /min-height: 0/);
+  assert.match(mobileReader, /overflow-y: auto/);
+  assert.doesNotMatch(mobileReader, /overflow: visible/);
+  assert.doesNotMatch(source, /readerUsesWindowScroll/);
+  assert.doesNotMatch(source, /window\.addEventListener\?\.\('scroll', handleReaderScroll/);
+  assert.match(source, /root: pane/);
+  assert.match(html, /viewport-fit=cover/);
+  assert.match(css, /padding: calc\(6px \+ env\(safe-area-inset-top\)\) max\(8px, env\(safe-area-inset-right\)\)/);
 });
 
 test('continuous Reader handles book boundaries without crossing books', async () => {
@@ -1761,7 +1804,7 @@ test('continuous Reader handles book boundaries without crossing books', async (
   assert.deepEqual(reader.readerState().continuousChapters.map(item => item.chapter), [20, 21]);
 });
 
-test('Reader omits mode shortcuts from primary and sticky controls and preserves unique verse ids', async () => {
+test('Reader keeps controls in the primary bar without a detached mobile toolbar', async () => {
   let html = '';
   const shell = { set innerHTML(value){ html = value; }, get innerHTML(){ return html; } };
   global.$ = selector => selector === '#readerShell' ? shell : null;
@@ -1770,10 +1813,8 @@ test('Reader omits mode shortcuts from primary and sticky controls and preserves
   assert.doesNotMatch(html, /aria-label="Reading mode"/);
   assert.doesNotMatch(html, /data-reader-mode=/);
   assert.doesNotMatch(html, /Reader options|readerOptionsBtn|reader-options-link/);
-  const sticky = reader.renderReaderStickyToolbar();
-  assert.match(sticky, /id="readerStickyToolbar"/);
-  assert.match(sticky, />Original<\/button>[\s\S]*>English<\/button>/);
-  assert.doesNotMatch(sticky, /Reader options|readerOptionsBtn|reader-options-link/);
+  assert.match(html, /id="readerPrimaryControls"/);
+  assert.doesNotMatch(html, /id="readerStickyToolbar"/);
   const ids = [...html.matchAll(/\sid="([^"]+)"/g)].map(match => match[1]);
   assert.equal(new Set(ids).size, ids.length);
   assert.deepEqual(reader.readerState().continuousChapters.map(item => item.chapter), [1, 2, 3]);
@@ -1815,25 +1856,18 @@ test('invalid Reader location fields fail safely', async () => {
   assert.equal(reader.readerState().mode, 'continuous');
 });
 
-test('primary and sticky text controls expose synchronized exclusive radio state and mobile safe-area styling', () => {
+test('Original and English remain exclusive controls in the persistent primary bar', () => {
   const settings = reader.sanitizeReaderSettings({ ...reader.ReaderDefaultSettings, textMode: 'english', showOriginal: false, showEnglish: true });
   const primary = reader.renderReaderTranslationToggle(settings, reader.readerState().chapterData);
-  const sticky = reader.renderReaderStickyToolbar(settings);
   assert.match(primary, /role="radiogroup" aria-label="Reader language"/);
   assert.match(primary, /data-reader-visibility="original"[^>]*aria-checked="false"/);
   assert.match(primary, /data-reader-visibility="english"[^>]*aria-checked="true"/);
   assert.doesNotMatch(primary, /aria-pressed/);
-  assert.match(sticky, /role="radiogroup"/);
-  assert.match(sticky, /data-reader-visibility="original"[^>]*aria-checked="false"/);
-  assert.match(sticky, /data-reader-visibility="english"[^>]*aria-checked="true"/);
-  assert.doesNotMatch(sticky, /aria-pressed/);
   const css = fs.readFileSync(path.join(process.cwd(), 'styles.css'), 'utf8');
-  const mobileToolbar = css.match(/@media \(max-width: 640px\)[\s\S]*?\.reader-sticky-toolbar \{([\s\S]*?)\n  \}/)?.[1] || '';
-  assert.match(mobileToolbar, /top: calc\(58px \+ env\(safe-area-inset-top\)\)/);
-  assert.doesNotMatch(mobileToolbar, /bottom:/);
-  assert.match(css, /\.reader-sticky-toolbar\s*\{\s*display: none/);
   const source = fs.readFileSync(path.join(process.cwd(), 'src/features/reader/index.js'), 'utf8');
-  assert.match(source, /syncReaderStickyToolbarVisibility\(primaryBottom <= 0\)/);
+  assert.doesNotMatch(css, /reader-sticky-toolbar/);
+  assert.doesNotMatch(source, /readerStickyToolbar|renderReaderStickyToolbar|syncReaderStickyToolbarVisibility/);
+  assert.match(source, /\.reader-primary-display-controls \[data-reader-visibility=/);
 });
 
 test('continuous visibility toggles use the nearest measured verse instead of stale restored state', async () => {
