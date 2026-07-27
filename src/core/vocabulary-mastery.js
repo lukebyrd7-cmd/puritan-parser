@@ -11,8 +11,12 @@
     D: { label: 'Weak', rank: 3 },
     F: { label: 'Relearning', rank: 4 }
   };
+  const GRADE_LETTERS = Object.freeze(Object.keys(GRADE_META));
+  const DEFAULT_SELECTED_GRADES = Object.freeze(['C', 'D', 'F']);
+  const DEFAULT_SOURCE = 'all';
+  const DEFAULT_ORDER = 'reinforcement';
   const DEFAULT_GRADE_FILTER = 'c-f';
-  const DEFAULT_FOCUS = 'reinforcement';
+  const DEFAULT_FOCUS = DEFAULT_ORDER;
   const DEFAULT_SESSION_SIZE = 20;
 
   function clean(value){ return typeof value === 'string' ? value.trim() : ''; }
@@ -72,6 +76,19 @@
     if(filter === 'all') return Boolean(GRADE_META[letter]);
     return letter === 'C' || letter === 'D' || letter === 'F';
   }
+  function normalizeSelectedGrades(selectedGrades, gradeFilter){
+    if(selectedGrades instanceof Set || Array.isArray(selectedGrades)){
+      const supplied = selectedGrades instanceof Set ? [...selectedGrades] : selectedGrades;
+      return GRADE_LETTERS.filter(letter => supplied.includes(letter));
+    }
+    if(gradeFilter === 'all') return GRADE_LETTERS.slice();
+    if(gradeFilter === 'd-f') return ['D', 'F'];
+    return DEFAULT_SELECTED_GRADES.slice();
+  }
+  function matchesSelectedGrades(grade, selectedGrades = DEFAULT_SELECTED_GRADES){
+    const letter = typeof grade === 'string' ? grade : grade?.letter;
+    return normalizeSelectedGrades(selectedGrades).includes(letter);
+  }
   function latestEventDate(record = {}, result = ''){
     return practiceEvents(record).filter(event => !result || event.result === result).map(event => clean(event.date)).filter(Boolean).sort().at(-1) || '';
   }
@@ -87,9 +104,12 @@
   }
   function knownCandidates(entries = [], store = {}, model, options = {}){
     const records = store?.records || {};
-    const gradeFilter = options.gradeFilter || DEFAULT_GRADE_FILTER;
+    const selectedGrades = normalizeSelectedGrades(options.selectedGrades, options.gradeFilter);
+    const seen = new Set();
     return entries.map(entry => {
       const id = model.lemmaId(entry);
+      if(!id || seen.has(id)) return null;
+      seen.add(id);
       const record = records[id];
       const status = model.learningStatusForRecord
         ? model.learningStatusForRecord(record, options.dateISO)
@@ -98,7 +118,7 @@
       const safeRecord = record || {};
       const grade = masteryGrade(safeRecord, options.dateISO);
       return { id, entry, record: safeRecord, grade, lastMiss: latestEventDate(safeRecord, 'missed'), lastPractice: latestEventDate(safeRecord) };
-    }).filter(Boolean).filter(item => matchesGradeFilter(item.grade, gradeFilter));
+    }).filter(Boolean).filter(item => matchesSelectedGrades(item.grade, selectedGrades));
   }
   function seededShuffle(items, random = Math.random){
     const copy = items.slice();
@@ -109,32 +129,30 @@
     return copy;
   }
   function buildMaintenanceSession(entries = [], store = {}, model, options = {}){
-    const focus = ['reinforcement','random','book'].includes(options.focus) ? options.focus : DEFAULT_FOCUS;
+    const source = options.source === 'book' || options.focus === 'book' ? 'book' : DEFAULT_SOURCE;
+    const orderValue = options.order || options.focus;
+    const order = orderValue === 'random' ? 'random' : DEFAULT_ORDER;
+    const selectedGrades = normalizeSelectedGrades(options.selectedGrades, options.gradeFilter);
     const requested = options.size === 'unlimited' ? Infinity : Math.max(1, Number(options.size) || DEFAULT_SESSION_SIZE);
-    let candidates = knownCandidates(entries, store, model, options);
-    let fallback = options.gradeFilter === 'all' ? [] : knownCandidates(entries, store, model, { ...options, gradeFilter: 'all' });
-    if(options.bookIds instanceof Set) {
+    let candidates = knownCandidates(entries, store, model, { ...options, selectedGrades });
+    if(source === 'book' && options.bookIds instanceof Set) {
       candidates = candidates.filter(item => options.bookIds.has(item.id));
-      fallback = fallback.filter(item => options.bookIds.has(item.id));
     }
-    const preferredIds = new Set(candidates.map(item => item.id));
-    fallback = fallback.filter(item => !preferredIds.has(item.id));
-    if(focus === 'random') {
+    if(order === 'random') {
       candidates = seededShuffle(candidates, options.random);
-      fallback = seededShuffle(fallback, options.random);
     } else {
       candidates.sort(reinforcementCompare);
-      fallback.sort(reinforcementCompare);
     }
-    const preferredCount = candidates.length;
-    if(requested === Infinity || candidates.length < requested) candidates.push(...fallback);
     return {
-      focus,
-      gradeFilter: options.gradeFilter || DEFAULT_GRADE_FILTER,
+      source,
+      order,
+      focus: order,
+      selectedGrades: Object.freeze(selectedGrades.slice()),
       unlimited: requested === Infinity,
       entries: candidates.slice(0, requested === Infinity ? candidates.length : requested).map(item => item.entry),
       candidates,
-      broadened: candidates.length > preferredCount
+      requestedSize: requested === Infinity ? 'unlimited' : requested,
+      limitedByPool: requested !== Infinity && candidates.length < requested
     };
   }
   function dailyPracticeSummary(store = {}, language = 'greek', dateISO = '', target = 0){
@@ -167,7 +185,7 @@
   }
   function gradeDistribution(entries = [], store = {}, model, options = {}){
     const result = { A: 0, B: 0, C: 0, D: 0, F: 0, total: 0 };
-    knownCandidates(entries, store, model, { ...options, gradeFilter: 'all' }).forEach(item => {
+    knownCandidates(entries, store, model, { ...options, selectedGrades: GRADE_LETTERS }).forEach(item => {
       result[item.grade.letter] += 1;
       result.total += 1;
     });
@@ -176,12 +194,18 @@
 
   return {
     GRADE_META,
+    GRADE_LETTERS,
+    DEFAULT_SELECTED_GRADES,
+    DEFAULT_SOURCE,
+    DEFAULT_ORDER,
     DEFAULT_GRADE_FILTER,
     DEFAULT_FOCUS,
     DEFAULT_SESSION_SIZE,
     practiceEvents,
     masteryGrade,
     matchesGradeFilter,
+    normalizeSelectedGrades,
+    matchesSelectedGrades,
     reinforcementCompare,
     knownCandidates,
     buildMaintenanceSession,

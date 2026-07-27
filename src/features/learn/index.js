@@ -88,6 +88,9 @@ const LearnActivePathsStorageKey = 'pp_learn_active_paths';
 const LearnPracticeSrsPreferenceDefault = 'practice-only';
 const LearnPracticeSrsPreferenceOptions = ['ask', 'practice-only', 'count-srs'];
 const LearnReviewTargetCustomMin = 1;
+const LearnMaintenanceSessionSizeMax = 200;
+const LearnMaintenanceGradeLetters = ['A', 'B', 'C', 'D', 'F'];
+const LearnMaintenanceDefaultGrades = ['C', 'D', 'F'];
 const LearnReviewTargetCustomMax = 200;
 const LearnTestaments = {
   'old-testament': { title: 'Old Testament', language: 'hebrew' },
@@ -1071,8 +1074,9 @@ function saveLearnActivePath(pathPage){
 }
 function renderLearnHome(){
   const summaries = ['greek','hebrew'].map(learnReviewQueueSummary);
-  const daily = ['greek','hebrew'].map(learnDailyPracticeSummary);
+  const daily = ['greek','hebrew'].map(language => learnDailyPracticeSummary(language));
   const totalToday = summaries.reduce((sum, item) => sum + item.todayCount, 0);
+  const dailyGoalsComplete = daily.every(item => item.complete);
   const estimated = summaries.reduce((sum, item) => sum + (item.todayCount ? item.estimatedMinutes : 0), 0);
   const allPathItems = learnActiveItems();
   const activeItems = allPathItems.filter(item => item.remaining > 0);
@@ -1094,7 +1098,7 @@ function renderLearnHome(){
           <h2 id="learnReviewQueueTitle">Scheduled reviews</h2>
           <p>${totalToday ? 'Review what is due, or practice known words voluntarily.' : 'Scheduled reviews complete'}</p>
         </div>
-        <div class="learn-review-overview"><strong>${totalToday ? `${totalToday} due today` : 'Scheduled reviews complete'}</strong>${totalToday ? `<span>About ${Math.max(1, estimated)} ${Math.max(1, estimated) === 1 ? 'minute' : 'minutes'}</span>` : '<span>Practice known words to continue toward today’s goal.</span>'}</div>
+        <div class="learn-review-overview"><strong>${totalToday ? `${totalToday} due today` : 'Scheduled reviews complete'}</strong>${totalToday ? `<span>About ${Math.max(1, estimated)} ${Math.max(1, estimated) === 1 ? 'minute' : 'minutes'}</span>` : `<span>${dailyGoalsComplete ? 'Scheduled reviews and today’s goals are complete.' : 'Practice known words to continue toward today’s goal.'}</span>`}</div>
         <div class="learn-review-summary-grid">
           ${summaries.map(summary => `
             <article class="learn-review-summary" data-learn-review-language="${escHtml(summary.language)}">
@@ -1115,14 +1119,14 @@ function renderLearnHome(){
           </div>
         </section>
         <div class="learn-review-actions">
-          ${learnState.activeReviewPage ? `<button class="btn btn-primary" type="button" data-learn-page="${escHtml(learnState.activeReviewPage)}">Resume Review</button>` : ''}
+          ${learnState.activeReviewPage && totalToday ? `<button class="btn btn-primary" type="button" data-learn-page="${escHtml(learnState.activeReviewPage)}">Resume Review</button>` : ''}
           ${totalToday
-            ? '<button class="btn btn-primary" type="button" data-learn-page="vocabulary:review:mixed">Review scheduled words</button>'
-            : `<button class="btn btn-primary" type="button" data-learn-page="vocabulary:maintenance">${daily.every(item => item.complete) ? 'Continue practicing' : 'Continue daily practice'}</button>`}
-          <button class="btn btn-ghost" type="button" data-learn-page="vocabulary:maintenance">Practice known words</button>
-          ${learnState.activeReviewPage === 'vocabulary:review:greek' ? '' : `<button class="btn ${summaries[0].todayCount ? 'btn-primary' : 'btn-ghost'}" type="button" data-learn-page="vocabulary:review:greek" ${summaries[0].todayCount ? '' : 'disabled aria-disabled="true"'}>Review Greek</button>`}
-          ${learnState.activeReviewPage === 'vocabulary:review:hebrew' ? '' : `<button class="btn ${summaries[1].todayCount ? 'btn-primary' : 'btn-ghost'}" type="button" data-learn-page="vocabulary:review:hebrew" ${summaries[1].todayCount ? '' : 'disabled aria-disabled="true"'}>Review Hebrew</button>`}
-          ${learnState.activeReviewPage === 'vocabulary:review:mixed' ? '' : `<button class="btn btn-ghost btn-sm" type="button" data-learn-page="vocabulary:review:mixed" ${totalToday ? '' : 'disabled aria-disabled="true"'}>Review Mixed</button>`}
+            ? `<button class="btn btn-primary" type="button" data-learn-page="vocabulary:review:mixed">Review scheduled words</button>
+               <button class="btn btn-ghost" type="button" data-learn-page="vocabulary:maintenance">Practice known words</button>
+               ${learnState.activeReviewPage === 'vocabulary:review:greek' || !summaries[0].todayCount ? '' : '<button class="btn btn-ghost btn-sm" type="button" data-learn-page="vocabulary:review:greek">Review Greek</button>'}
+               ${learnState.activeReviewPage === 'vocabulary:review:hebrew' || !summaries[1].todayCount ? '' : '<button class="btn btn-ghost btn-sm" type="button" data-learn-page="vocabulary:review:hebrew">Review Hebrew</button>'}
+               ${learnState.activeReviewPage === 'vocabulary:review:mixed' ? '' : '<button class="btn btn-ghost btn-sm" type="button" data-learn-page="vocabulary:review:mixed">Review Mixed</button>'}`
+            : `<button class="btn btn-primary" type="button" data-learn-page="vocabulary:maintenance">${dailyGoalsComplete ? 'Continue practicing' : 'Continue daily practice'}</button>`}
           <button class="learn-settings-action" type="button" data-learn-page="learning-preferences" aria-label="Learning settings" title="Learning settings">⚙</button>
         </div>
       </section>
@@ -1649,13 +1653,21 @@ function renderReadingReadinessBooks(testamentId){
 }
 function maintenanceConfig(language = 'greek'){
   const current = learnState.maintenanceConfig || {};
+  const books = learnBookList(language);
+  const selectedGrades = Array.isArray(current.selectedGrades)
+    ? LearnMaintenanceGradeLetters.filter(letter => current.selectedGrades.includes(letter))
+    : LearnMaintenanceDefaultGrades.slice();
+  const sameLanguage = current.language === language;
+  const savedBookId = sameLanguage ? current.bookId : '';
   return {
     language,
-    focus: ['reinforcement','random','book'].includes(current.focus) ? current.focus : 'reinforcement',
-    gradeFilter: ['c-f','d-f','all'].includes(current.gradeFilter) ? current.gradeFilter : 'c-f',
-    size: ['10','20','50','unlimited'].includes(String(current.size)) ? String(current.size) : '20',
+    source: current.source === 'book' ? 'book' : 'all',
+    order: current.order === 'random' ? 'random' : 'reinforcement',
+    selectedGrades,
+    size: current.size === undefined ? '20' : String(current.size),
+    unlimited: current.unlimited === true,
     adjustSchedule: current.adjustSchedule === true,
-    bookId: current.bookId || learnBookList(language)[0]?.id || ''
+    bookId: books.some(book => book.id === savedBookId) ? savedBookId : books[0]?.id || ''
   };
 }
 function maintenanceBookIds(language, bookId){
@@ -1663,40 +1675,103 @@ function maintenanceBookIds(language, bookId){
   const words = progress?.overall?.vocabulary || progress?.vocabulary || [];
   return new Set(words.map(item => learnWordId(item.entry || item)).filter(Boolean));
 }
+function parseMaintenanceSessionSize(value, unlimited = false){
+  if(unlimited) return { valid: true, value: 'unlimited' };
+  const raw = String(value ?? '').trim();
+  if(!raw) return { valid: false, error: 'Enter a session size from 1 to 200.' };
+  if(!/^\d+$/.test(raw)) return { valid: false, error: 'Session size must be a whole number from 1 to 200.' };
+  const number = Number(raw);
+  if(number < 1 || number > LearnMaintenanceSessionSizeMax) return { valid: false, error: 'Session size must be from 1 to 200.' };
+  return { valid: true, value: number };
+}
+function maintenanceScopedCandidates(config, selectedGrades = config.selectedGrades){
+  const options = { selectedGrades };
+  if(config.source === 'book') options.bookIds = maintenanceBookIds(config.language, config.bookId);
+  let candidates = VocabularyMasteryModel?.knownCandidates(
+    learnVocabularyEntries(config.language),
+    learnVocabularyStore(),
+    VocabularyLearningModel,
+    options
+  ) || [];
+  if(config.source === 'book') candidates = candidates.filter(item => options.bookIds.has(item.id));
+  return candidates;
+}
+function maintenanceSetupState(config){
+  const size = parseMaintenanceSessionSize(config.size, config.unlimited);
+  const books = learnBookList(config.language);
+  const validBook = config.source !== 'book' || books.some(book => book.id === config.bookId);
+  const bookKey = bookProgressKey(config.language, config.bookId);
+  const bookLoading = config.source === 'book' && !learnState.progressCache[bookKey];
+  const selectedGrades = LearnMaintenanceGradeLetters.filter(letter => config.selectedGrades.includes(letter));
+  const allKnown = bookLoading || !validBook ? [] : maintenanceScopedCandidates(config, LearnMaintenanceGradeLetters);
+  const eligible = bookLoading || !validBook || !selectedGrades.length ? [] : maintenanceScopedCandidates(config, selectedGrades);
+  let error = '';
+  if(!selectedGrades.length) error = 'Select at least one mastery grade.';
+  else if(!size.valid) error = size.error;
+  else if(!validBook) error = 'Choose a valid book for this language.';
+  else if(bookLoading) error = 'Book vocabulary is loading.';
+  else if(!allKnown.length) error = config.source === 'book'
+    ? 'No known words are available in this book. Choose another book or vocabulary source.'
+    : `No known ${config.language} words are available yet.`;
+  else if(!eligible.length) error = 'No known words match the selected mastery grades.';
+  return { size, selectedGrades, allKnown, eligible, error, valid: !error };
+}
 function startLearnMaintenanceSession(values = {}){
   if(!VocabularyMasteryModel || !VocabularyLearningModel) return null;
   const language = values.language === 'hebrew' ? 'hebrew' : 'greek';
+  const books = learnBookList(language);
+  const requestedGrades = Array.isArray(values.selectedGrades) ? values.selectedGrades : LearnMaintenanceDefaultGrades;
+  const selectedGrades = LearnMaintenanceGradeLetters.filter(letter => requestedGrades.includes(letter));
   const config = {
     language,
-    focus: ['reinforcement','random','book'].includes(values.focus) ? values.focus : 'reinforcement',
-    gradeFilter: ['c-f','d-f','all'].includes(values.gradeFilter) ? values.gradeFilter : 'c-f',
-    size: ['10','20','50','unlimited'].includes(String(values.size)) ? String(values.size) : '20',
+    source: values.source === 'book' ? 'book' : 'all',
+    order: values.order === 'random' ? 'random' : 'reinforcement',
+    selectedGrades,
+    size: String(values.size ?? ''),
+    unlimited: values.unlimited === true,
     adjustSchedule: values.adjustSchedule === true,
-    bookId: values.bookId || learnBookList(language)[0]?.id || ''
+    bookId: books.some(book => book.id === values.bookId) ? values.bookId : books[0]?.id || ''
   };
   learnState.maintenanceConfig = config;
   let bookIds;
-  if(config.focus === 'book'){
+  if(config.source === 'book'){
     ensureBookProgress(language, config.bookId);
     const key = bookProgressKey(language, config.bookId);
     if(!learnState.progressCache[key]){
-      learnState.maintenanceError = 'Book vocabulary is loading. Start the session again when it is ready.';
+      learnState.maintenanceError = 'Book vocabulary is loading.';
       renderLearn();
       return null;
     }
     bookIds = maintenanceBookIds(language, config.bookId);
   }
+  const setup = maintenanceSetupState(config);
+  if(!setup.valid){
+    learnState.maintenanceError = setup.error;
+    renderLearn();
+    return null;
+  }
+  const immutableConfig = Object.freeze({
+    language,
+    source: config.source,
+    bookId: config.source === 'book' ? config.bookId : null,
+    order: config.order,
+    selectedGrades: Object.freeze(selectedGrades.slice()),
+    size: setup.size.value,
+    unlimited: config.unlimited,
+    adjustSchedule: config.adjustSchedule
+  });
   const store = learnVocabularyStore();
   const built = VocabularyMasteryModel.buildMaintenanceSession(
     learnVocabularyEntries(language),
     store,
     VocabularyLearningModel,
-    { ...config, bookIds }
+    { ...immutableConfig, bookIds, random: values.random }
   );
   const daily = learnDailyPracticeSummary(language);
   learnState.maintenanceError = '';
   learnState.maintenanceSession = {
-    ...config,
+    ...immutableConfig,
+    configuration: immutableConfig,
     entries: built.entries.slice(),
     index: 0,
     revealed: false,
@@ -1704,7 +1779,7 @@ function startLearnMaintenanceSession(values = {}){
     missed: 0,
     results: [],
     stopped: false,
-    broadened: built.broadened,
+    limitedByPool: built.limitedByPool,
     startingGoalCount: daily.combined
   };
   renderLearn();
@@ -1746,13 +1821,32 @@ function stopLearnMaintenance(){
 function resetLearnMaintenance(){
   learnState.maintenanceSession = null;
   learnState.maintenanceError = '';
-  learnState.maintenanceConfig = { ...maintenanceConfig(learnState.page.split(':')[2]), focus: 'reinforcement', gradeFilter: 'c-f', adjustSchedule: false };
+  const language = learnState.page.split(':')[2] === 'hebrew' ? 'hebrew' : 'greek';
+  learnState.maintenanceConfig = {
+    language,
+    source: 'all',
+    order: 'reinforcement',
+    selectedGrades: LearnMaintenanceDefaultGrades.slice(),
+    size: '20',
+    unlimited: false,
+    adjustSchedule: false,
+    bookId: learnBookList(language)[0]?.id || ''
+  };
   renderLearn();
 }
 function chooseLearnMaintenanceFocus(){
   learnState.maintenanceSession = null;
   learnState.maintenanceError = '';
   renderLearn();
+}
+function selectAllLearnMaintenanceGrades(language){
+  learnState.maintenanceConfig = {
+    ...maintenanceConfig(language === 'hebrew' ? 'hebrew' : 'greek'),
+    selectedGrades: LearnMaintenanceGradeLetters.slice()
+  };
+  learnState.maintenanceError = '';
+  renderLearn();
+  return learnState.maintenanceConfig.selectedGrades.slice();
 }
 function renderMaintenanceLanguageChoices(){
   return `
@@ -1768,53 +1862,83 @@ function renderMaintenanceLanguageChoices(){
 function renderMaintenanceSetup(language){
   ensureLearnManifest(language);
   const config = maintenanceConfig(language);
-  if(config.focus === 'book') ensureBookProgress(language, config.bookId);
-  const known = VocabularyMasteryModel?.knownCandidates(
-    learnVocabularyEntries(language),
-    learnVocabularyStore(),
-    VocabularyLearningModel,
-    { gradeFilter: 'all' }
-  ) || [];
+  learnState.maintenanceConfig = config;
+  if(config.source === 'book') ensureBookProgress(language, config.bookId);
+  const setup = maintenanceSetupState(config);
   const distribution = { A: 0, B: 0, C: 0, D: 0, F: 0 };
-  known.forEach(item => { distribution[item.grade.letter] += 1; });
+  setup.allKnown.forEach(item => { distribution[item.grade.letter] += 1; });
+  const book = learnBookList(language).find(item => item.id === config.bookId);
+  const gradeText = setup.selectedGrades.length === 1
+    ? setup.selectedGrades[0]
+    : `${setup.selectedGrades.slice(0, -1).join(', ')}${setup.selectedGrades.length > 1 ? `, and ${setup.selectedGrades.at(-1)}` : ''}`;
+  const finiteCount = setup.size.valid && setup.size.value !== 'unlimited'
+    ? Math.min(setup.size.value, setup.eligible.length)
+    : setup.eligible.length;
+  const sizeSummary = config.unlimited ? 'Continue until stopped' : `${finiteCount} ${finiteCount === 1 ? 'word' : 'words'}`;
+  const poolNote = setup.valid && !config.unlimited && setup.eligible.length < setup.size.value
+    ? `${setup.eligible.length} eligible ${setup.eligible.length === 1 ? 'word is' : 'words are'} available, so this session will contain ${setup.eligible.length} ${setup.eligible.length === 1 ? 'word' : 'words'}.`
+    : '';
+  const setupError = learnState.maintenanceError || setup.error;
   return `
     <section class="panel learn-panel" aria-labelledby="learnMaintenanceSetupTitle">
-      ${renderLearnHeader(`${learnLanguageTitle(language)} maintenance practice`, 'Choose a focus, then begin.', 'learnMaintenanceSetupTitle')}
+      ${renderLearnHeader(`${learnLanguageTitle(language)} maintenance practice`, 'Choose what to practice, then begin.', 'learnMaintenanceSetupTitle')}
       <form class="learn-maintenance-setup word-page-section" data-learn-maintenance-start="true">
         <input type="hidden" name="language" value="${escHtml(language)}" />
-        <label>Focus
-          <select class="input" name="focus">
-            <option value="reinforcement" ${config.focus === 'reinforcement' ? 'selected' : ''}>Words needing reinforcement</option>
-            <option value="random" ${config.focus === 'random' ? 'selected' : ''}>Random known words</option>
-            <option value="book" ${config.focus === 'book' ? 'selected' : ''}>Choose a book</option>
+        <label>Vocabulary source
+          <select class="input" name="source">
+            <option value="all" ${config.source === 'all' ? 'selected' : ''}>All known vocabulary</option>
+            <option value="book" ${config.source === 'book' ? 'selected' : ''}>One selected book</option>
           </select>
+          <small>Uses known words from the active language within the selected mastery grades.</small>
         </label>
-        <label>Book
+        ${config.source === 'book' ? `<label>Book
           <select class="input" name="bookId">
             ${learnBookList(language).map(book => `<option value="${escHtml(book.id)}" ${config.bookId === book.id ? 'selected' : ''}>${escHtml(book.name)}</option>`).join('')}
           </select>
-        </label>
-        <label>Grades
-          <select class="input" name="gradeFilter">
-            <option value="c-f" ${config.gradeFilter === 'c-f' ? 'selected' : ''}>C–F</option>
-            <option value="d-f" ${config.gradeFilter === 'd-f' ? 'selected' : ''}>D–F</option>
-            <option value="all" ${config.gradeFilter === 'all' ? 'selected' : ''}>All known words</option>
+        </label>` : ''}
+        <label>Practice order
+          <select class="input" name="order">
+            <option value="reinforcement" ${config.order === 'reinforcement' ? 'selected' : ''}>Words needing reinforcement</option>
+            <option value="random" ${config.order === 'random' ? 'selected' : ''}>Random order</option>
           </select>
         </label>
-        <label>Session size
-          <select class="input" name="size">
-            ${['10','20','50'].map(size => `<option value="${size}" ${config.size === size ? 'selected' : ''}>${size}</option>`).join('')}
-            <option value="unlimited" ${config.size === 'unlimited' ? 'selected' : ''}>Continue until stopped</option>
-          </select>
-        </label>
+        <fieldset class="learn-maintenance-grades">
+          <legend>Mastery grades</legend>
+          <div class="learn-maintenance-grade-options">
+            ${LearnMaintenanceGradeLetters.map(letter => `<label><input type="checkbox" name="selectedGrades" value="${letter}" ${config.selectedGrades.includes(letter) ? 'checked' : ''} /><span>${letter} — ${escHtml(VocabularyMasteryModel.GRADE_META[letter].label)} (${distribution[letter]})</span></label>`).join('')}
+          </div>
+          <button class="btn btn-ghost btn-sm" type="button" data-learn-maintenance-select-all="true">Select all grades</button>
+          <small>Counts reflect the selected vocabulary source.</small>
+        </fieldset>
+        <fieldset class="learn-maintenance-size">
+          <legend>Session size</legend>
+          <label>Number of words
+            <input class="input" type="number" name="size" value="${escHtml(config.size)}" min="1" max="${LearnMaintenanceSessionSizeMax}" step="1" inputmode="numeric" ${config.unlimited ? 'disabled aria-disabled="true"' : ''} aria-describedby="learnMaintenanceSizeHelp" />
+          </label>
+          <small id="learnMaintenanceSizeHelp">Choose a whole number from 1 to ${LearnMaintenanceSessionSizeMax}.</small>
+          <label class="learn-maintenance-toggle">
+            <input type="checkbox" name="unlimited" ${config.unlimited ? 'checked' : ''} />
+            <span><strong>Continue until stopped</strong><small>Uses a bounded word pool and does not create an unbounded queue.</small></span>
+          </label>
+        </fieldset>
         <label class="learn-maintenance-toggle">
           <input type="checkbox" name="adjustSchedule" ${config.adjustSchedule ? 'checked' : ''} />
           <span><strong>Adjust review schedule from this session</strong><small>Default: Off</small></span>
         </label>
         <p class="small muted">${config.adjustSchedule ? 'Answers in this session will update the normal review schedule.' : 'This session will not change review due dates.'}</p>
-        <p class="small muted">Known words by grade: A ${distribution.A}, B ${distribution.B}, C ${distribution.C}, D ${distribution.D}, F ${distribution.F}. Mastery grades summarize recorded recall evidence.</p>
-        ${learnState.maintenanceError ? `<p class="learn-custom-frequency-error" role="status">${escHtml(learnState.maintenanceError)}</p>` : ''}
-        <button class="btn btn-primary" type="submit">Start maintenance practice</button>
+        <section class="learn-maintenance-summary" aria-labelledby="learnMaintenanceSummaryTitle">
+          <h2 id="learnMaintenanceSummaryTitle">Session summary</h2>
+          <ul>
+            <li>${escHtml(sizeSummary)}</li>
+            <li>${config.source === 'book' ? `${escHtml(book?.name || 'Selected book')} known ${escHtml(learnLanguageTitle(language))} vocabulary` : `All known ${escHtml(learnLanguageTitle(language))} vocabulary`}</li>
+            <li>${setup.selectedGrades.length ? `Grades ${escHtml(gradeText)}` : 'No mastery grades selected'}</li>
+            <li>${config.order === 'random' ? 'Random order' : 'Words needing reinforcement'}</li>
+            <li>${config.adjustSchedule ? 'Review schedule will be updated' : 'Review schedule unchanged'}</li>
+          </ul>
+          ${poolNote ? `<p class="small muted">${escHtml(poolNote)}</p>` : ''}
+        </section>
+        ${setupError ? `<p id="learnMaintenanceError" class="learn-custom-frequency-error" role="status" aria-live="polite">${escHtml(setupError)}</p>` : ''}
+        <button class="btn btn-primary" type="submit" ${setup.valid ? '' : 'disabled aria-disabled="true" aria-describedby="learnMaintenanceError"'}>Start maintenance practice</button>
       </form>
     </section>`;
 }
@@ -1873,7 +1997,6 @@ function renderMaintenancePracticePage(language){
         <button class="btn btn-ghost btn-sm" type="button" data-learn-maintenance-stop="true">Stop</button>
       </div>
       <p class="small muted">${session.adjustSchedule ? 'Answers in this session update the normal review schedule.' : 'This session does not change review due dates.'}</p>
-      ${session.broadened ? '<p class="small muted">The selected grade range was broadened to fill the requested session.</p>' : ''}
     </section>`;
 }
 function renderVocabularyPracticeHome(){
@@ -2282,17 +2405,35 @@ function wireLearn(){
   $$('[data-learn-practice-reveal]', root).forEach(button => button.addEventListener('click', revealLearnPractice));
   $$('[data-learn-practice-grade]', root).forEach(button => button.addEventListener('click', () => gradeLearnPractice(button.dataset.learnPracticeGrade)));
   $$('[data-learn-practice-count-srs]', root).forEach(button => button.addEventListener('click', countLearnPracticeTowardSrs));
-  $$('[data-learn-maintenance-start]', root).forEach(form => form.addEventListener('submit', event => {
-    event.preventDefault();
+  function maintenanceValuesFromForm(form){
     const data = new FormData(form);
-    startLearnMaintenanceSession({
+    const language = data.get('language') === 'hebrew' ? 'hebrew' : 'greek';
+    return {
       language: data.get('language'),
-      focus: data.get('focus'),
-      bookId: data.get('bookId'),
-      gradeFilter: data.get('gradeFilter'),
-      size: data.get('size'),
+      source: data.get('source'),
+      bookId: data.get('bookId') || maintenanceConfig(language).bookId,
+      order: data.get('order'),
+      selectedGrades: data.getAll('selectedGrades'),
+      size: data.get('size') ?? maintenanceConfig(language).size,
+      unlimited: data.get('unlimited') === 'on',
       adjustSchedule: data.get('adjustSchedule') === 'on'
+    };
+  }
+  $$('[data-learn-maintenance-start]', root).forEach(form => {
+    form.addEventListener('submit', event => {
+      event.preventDefault();
+      startLearnMaintenanceSession(maintenanceValuesFromForm(form));
     });
+    form.addEventListener('change', () => {
+      learnState.maintenanceConfig = maintenanceValuesFromForm(form);
+      learnState.maintenanceError = '';
+      renderLearn();
+    });
+  });
+  $$('[data-learn-maintenance-select-all]', root).forEach(button => button.addEventListener('click', () => {
+    const form = button.closest?.('[data-learn-maintenance-start]');
+    const language = form ? new FormData(form).get('language') : learnState.page.split(':')[2];
+    selectAllLearnMaintenanceGrades(language);
   }));
   $$('[data-learn-maintenance-reveal]', root).forEach(button => button.addEventListener('click', revealLearnMaintenance));
   $$('[data-learn-maintenance-grade]', root).forEach(button => button.addEventListener('click', () => gradeLearnMaintenance(button.dataset.learnMaintenanceGrade)));
@@ -2366,5 +2507,5 @@ function renderLearn(){
 
 if(typeof window !== 'undefined') Object.assign(window, { LearnAreas, LearnReviewTargetDefaults, LearnReviewTargetPresets, LearnReviewTargetStorageKey, LearnPracticeSrsPreferenceStorageKey, learnState, learnArea, learnChild, learnPageTitle, learnBreadcrumbs, learnReviewTargets, learnReviewTarget, saveLearnReviewTargets, setLearnReviewTarget, learnPracticeSrsPreference, setLearnPracticeSrsPreference, learnReviewQueueSummary, parseLearnCustomFrequency, setLearnCustomFrequency, resetLearn, setLearnPage, backLearnPage, wireLearn, renderLearn, renderLearnPage, learnBookList, learnPathForPage, startLearnVocabularyPath, learnCurrentVocabularyWord, markLearnPathKnown, learnStudySets, learnStudySet, createLearnStudySet, createStudySetFromCurrentScope, addVocabularyToLearnStudySet, addSelectedVocabularyToLearnStudySet, createStudySetWithVocabulary, deleteLearnStudySet, markLearnStudySetKnown, reviewLearnVocabularyWord, revealLearnReview, gradeLearnReview, ensureLearnPracticeSession, revealLearnPractice, gradeLearnPractice, countLearnPracticeTowardSrs, recognitionTargetsForLearn, selectedRecognitionTargetIds, toggleRecognitionSelection, clearRecognitionSelection, startRecognitionSession, startSelectedRecognitionSession, revealRecognitionAnswer, gradeRecognitionAnswer, openLearnReference });
 if(typeof module !== 'undefined') module.exports = { LearnAreas, LearnFrequencyThresholds, LearnReviewTargetDefaults, LearnReviewTargetPresets, LearnReviewTargetStorageKey, LearnPracticeSrsPreferenceStorageKey, learnState, learnArea, learnChild, learnPageTitle, learnBreadcrumbs, learnReviewTargets, learnReviewTarget, saveLearnReviewTargets, setLearnReviewTarget, learnPracticeSrsPreference, setLearnPracticeSrsPreference, learnReviewQueueSummary, parseLearnCustomFrequency, setLearnCustomFrequency, resetLearn, learnBookList, learnPathForPage, setLearnPage, backLearnPage, wireLearn, renderLearnPage, startLearnVocabularyPath, learnCurrentVocabularyWord, markLearnPathKnown, learnStudySets, learnStudySet, createLearnStudySet, createStudySetFromCurrentScope, addVocabularyToLearnStudySet, addSelectedVocabularyToLearnStudySet, createStudySetWithVocabulary, deleteLearnStudySet, markLearnStudySetKnown, reviewLearnVocabularyWord, revealLearnReview, gradeLearnReview, ensureLearnPracticeSession, revealLearnPractice, gradeLearnPractice, countLearnPracticeTowardSrs, recognitionTargetsForLearn, selectedRecognitionTargetIds, toggleRecognitionSelection, clearRecognitionSelection, startRecognitionSession, startSelectedRecognitionSession, revealRecognitionAnswer, gradeRecognitionAnswer, openLearnReference };
-if(typeof window !== 'undefined') Object.assign(window, { learnDailyPracticeSummary, startLearnMaintenanceSession, revealLearnMaintenance, gradeLearnMaintenance, stopLearnMaintenance, resetLearnMaintenance, chooseLearnMaintenanceFocus, renderMaintenancePracticePage });
-if(typeof module !== 'undefined') Object.assign(module.exports, { learnDailyPracticeSummary, startLearnMaintenanceSession, revealLearnMaintenance, gradeLearnMaintenance, stopLearnMaintenance, resetLearnMaintenance, chooseLearnMaintenanceFocus, renderMaintenancePracticePage });
+if(typeof window !== 'undefined') Object.assign(window, { LearnMaintenanceSessionSizeMax, learnDailyPracticeSummary, parseMaintenanceSessionSize, startLearnMaintenanceSession, revealLearnMaintenance, gradeLearnMaintenance, stopLearnMaintenance, resetLearnMaintenance, chooseLearnMaintenanceFocus, selectAllLearnMaintenanceGrades, renderMaintenancePracticePage });
+if(typeof module !== 'undefined') Object.assign(module.exports, { LearnMaintenanceSessionSizeMax, learnDailyPracticeSummary, parseMaintenanceSessionSize, startLearnMaintenanceSession, revealLearnMaintenance, gradeLearnMaintenance, stopLearnMaintenance, resetLearnMaintenance, chooseLearnMaintenanceFocus, selectAllLearnMaintenanceGrades, renderMaintenancePracticePage });

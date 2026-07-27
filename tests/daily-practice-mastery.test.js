@@ -163,7 +163,7 @@ test('zero daily target is safe and never reports required completion', () => {
   assert.equal(summary.complete, false);
 });
 
-test('reinforcement sessions default to C–F and rank F before D before C', () => {
+test('maintenance sessions default to all vocabulary, reinforcement order, and grades C, D, and F', () => {
   const words = [entry('c'), entry('f'), entry('d')];
   const store = storeOf([
     knownRecord(words[0], ['recognized']),
@@ -171,43 +171,101 @@ test('reinforcement sessions default to C–F and rank F before D before C', () 
     knownRecord(words[2], ['recognized','recognized','missed','missed'])
   ]);
   const session = VocabularyMastery.buildMaintenanceSession(words, store, VocabularyLearning, {});
-  assert.equal(session.focus, VocabularyMastery.DEFAULT_FOCUS);
-  assert.equal(session.gradeFilter, VocabularyMastery.DEFAULT_GRADE_FILTER);
+  assert.equal(session.source, VocabularyMastery.DEFAULT_SOURCE);
+  assert.equal(session.order, VocabularyMastery.DEFAULT_ORDER);
+  assert.deepEqual(session.selectedGrades, ['C', 'D', 'F']);
   assert.deepEqual(session.entries.map(item => item.lemma), ['f','d','c']);
 });
 
-test('session construction fills from safer grades only when needed and has no duplicates', () => {
+test('selected mastery grades are exact and never broadened to fill a session', () => {
   const words = [entry('f'), entry('b'), entry('a')];
   const store = storeOf([
     knownRecord(words[0], ['missed','missed','missed']),
     knownRecord(words[1], ['recognized','recognized','recognized','missed','recognized']),
     knownRecord(words[2], Array(8).fill('recognized'))
   ]);
-  const session = VocabularyMastery.buildMaintenanceSession(words, store, VocabularyLearning, { gradeFilter: 'd-f', size: 3 });
+  const session = VocabularyMastery.buildMaintenanceSession(words, store, VocabularyLearning, { selectedGrades: ['D', 'F'], size: 3 });
   assert.equal(session.entries[0].lemma, 'f');
-  assert.equal(session.entries.length, 3);
-  assert.equal(new Set(session.entries.map(item => item.id)).size, 3);
-  assert.equal(session.broadened, true);
+  assert.equal(session.entries.length, 1);
+  assert.equal(session.limitedByPool, true);
 });
 
-test('random sessions accept deterministic randomness and respect size', () => {
+test('independent grade combinations reach session construction unchanged', () => {
+  const words = ['a','b','c','d','f'].map(value => entry(value));
+  const store = storeOf([
+    knownRecord(words[0], Array(8).fill('recognized')),
+    knownRecord(words[1], ['recognized','recognized','recognized','missed','recognized']),
+    knownRecord(words[2], ['recognized']),
+    knownRecord(words[3], ['recognized','recognized','missed','missed']),
+    knownRecord(words[4], ['missed','missed','missed'])
+  ]);
+  for(const selectedGrades of [['A'], ['B','D'], ['A','B','C'], ['A','B','C','D','F']]){
+    const session = VocabularyMastery.buildMaintenanceSession(words, store, VocabularyLearning, { selectedGrades, size: 20 });
+    assert.deepEqual(session.selectedGrades, selectedGrades);
+    assert.deepEqual(new Set(session.candidates.map(item => item.grade.letter)), new Set(selectedGrades));
+  }
+});
+
+test('random sessions accept deterministic randomness across all vocabulary', () => {
   const words = ['a','b','c'].map(value => entry(value));
   const store = storeOf(words.map(word => knownRecord(word, ['recognized'])));
-  const session = VocabularyMastery.buildMaintenanceSession(words, store, VocabularyLearning, { focus: 'random', gradeFilter: 'all', size: 2, random: () => 0 });
+  const session = VocabularyMastery.buildMaintenanceSession(words, store, VocabularyLearning, { order: 'random', selectedGrades: ['C'], size: 2, random: () => 0 });
   assert.deepEqual(session.entries.map(item => item.lemma), ['b','c']);
 });
 
-test('book-filtered sessions use the supplied occurrence index and remain language-safe', () => {
+test('selected-book sessions use the supplied occurrence index with either practice order', () => {
   const greek = [entry('in-book'), entry('out-book')];
   const hebrew = entry('in-book', 'hebrew');
   const store = storeOf([...greek.map(word => knownRecord(word, ['recognized'])), knownRecord(hebrew, ['recognized'])]);
-  const session = VocabularyMastery.buildMaintenanceSession(greek, store, VocabularyLearning, {
-    focus: 'book',
-    gradeFilter: 'all',
-    size: 10,
-    bookIds: new Set([greek[0].id])
+  for(const order of ['reinforcement', 'random']){
+    const session = VocabularyMastery.buildMaintenanceSession(greek, store, VocabularyLearning, {
+      source: 'book',
+      order,
+      selectedGrades: ['C'],
+      size: 10,
+      bookIds: new Set([greek[0].id]),
+      random: () => 0
+    });
+    assert.deepEqual(session.entries.map(item => item.id), [greek[0].id]);
+  }
+});
+
+test('all-vocabulary scope ignores stale book filters', () => {
+  const words = [entry('one'), entry('two')];
+  const store = storeOf(words.map(word => knownRecord(word, ['recognized'])));
+  const session = VocabularyMastery.buildMaintenanceSession(words, store, VocabularyLearning, {
+    source: 'all',
+    order: 'reinforcement',
+    selectedGrades: ['C'],
+    size: 20,
+    bookIds: new Set([words[0].id])
   });
-  assert.deepEqual(session.entries.map(item => item.id), [greek[0].id]);
+  assert.deepEqual(session.entries.map(item => item.id).sort(), words.map(item => item.id).sort());
+});
+
+test('finite session sizes are exact, unique, and limited honestly by the eligible pool', () => {
+  const words = Array.from({ length: 80 }, (_, index) => entry(`word-${index}`));
+  const store = storeOf(words.map(word => knownRecord(word, ['recognized'])));
+  for(const size of [1, 7, 37, 75]){
+    const session = VocabularyMastery.buildMaintenanceSession(words, store, VocabularyLearning, { selectedGrades: ['C'], size });
+    assert.equal(session.entries.length, size);
+    assert.equal(new Set(session.entries.map(item => item.id)).size, size);
+    assert.equal(session.limitedByPool, false);
+  }
+  const oversized = VocabularyMastery.buildMaintenanceSession(words.slice(0, 7), store, VocabularyLearning, { selectedGrades: ['C'], size: 75 });
+  assert.equal(oversized.entries.length, 7);
+  assert.equal(new Set(oversized.entries.map(item => item.id)).size, 7);
+  assert.equal(oversized.limitedByPool, true);
+});
+
+test('duplicate input lemmas cannot create duplicate finite or unlimited queue entries', () => {
+  const word = entry('unique');
+  const store = storeOf([knownRecord(word, ['recognized'])]);
+  const finite = VocabularyMastery.buildMaintenanceSession([word, { ...word }], store, VocabularyLearning, { selectedGrades: ['C'], size: 20 });
+  const unlimited = VocabularyMastery.buildMaintenanceSession([word, { ...word }], store, VocabularyLearning, { selectedGrades: ['C'], size: 'unlimited' });
+  assert.deepEqual(finite.entries.map(item => item.id), [word.id]);
+  assert.deepEqual(unlimited.entries.map(item => item.id), [word.id]);
+  assert.equal(unlimited.unlimited, true);
 });
 
 test('export and import keep optional learning history while older vocabulary-only payloads remain accepted', () => {

@@ -101,12 +101,11 @@ test('Learn home connects scheduled reviews, daily practice, and Learning Paths'
   storage.delete(learn.LearnActivePathsStorageKey || 'pp_learn_active_paths');
   const html = renderPage('home');
   const text = renderedText(html);
-  ['Scheduled reviews', 'Daily practice', 'Practice known words', 'Learning Paths', 'Active Paths', 'Study Sets (0)', 'More Practice', 'Practice Vocabulary', 'Paradigm Practice'].forEach(label => assert.match(text, new RegExp(label.replace(/[()]/g, '\\$&'))));
+  ['Scheduled reviews', 'Daily practice', 'Continue daily practice', 'Learning Paths', 'Active Paths', 'Study Sets (0)', 'More Practice', 'Practice Vocabulary', 'Paradigm Practice'].forEach(label => assert.match(text, new RegExp(label.replace(/[()]/g, '\\$&'))));
   const order = ['review-queue', 'learning-paths', 'study-sets', 'more-practice'].map(section => html.indexOf(`data-learn-dashboard-section="${section}"`));
   assert.deepEqual(order, [...order].sort((a, b) => a - b));
-  assert.match(html, /data-learn-page="vocabulary:review:greek"/);
-  assert.match(html, /data-learn-page="vocabulary:review:hebrew"/);
-  assert.match(html, /data-learn-page="vocabulary:review:mixed"/);
+  assert.doesNotMatch(html, />Practice known words<|>Review Greek<|>Review Hebrew<|>Review Mixed</);
+  assert.equal((html.match(/data-learn-page="vocabulary:maintenance"/g) || []).length, 1);
   assert.doesNotMatch(text, /Continue Learning|Start Something New|Grammar Paths|Grammar Practice|Mixed Practice/);
   assert.match(text, /Scheduled reviews complete/);
   assert.match(text, /What you are actively learning/);
@@ -319,7 +318,43 @@ test('Learn dashboard review queue separates Greek and Hebrew with capped today 
   const greekSummary = learn.learnReviewQueueSummary('greek');
   assert.equal(greekSummary.todayCount, 2);
   assert.equal(greekSummary.moreAvailable, 2);
+  assert.match(text, /Review scheduled words Practice known words Review Greek Review Hebrew Review Mixed/);
+  assert.equal((html.match(/Practice known words/g) || []).length, 1);
+  assert.doesNotMatch(html, /disabled aria-disabled="true"/);
   storage.delete(learn.LearnReviewTargetStorageKey);
+});
+
+test('Learn dashboard uses one contextual maintenance action when no reviews are due', () => {
+  storage.delete(VocabularyLearning.STORAGE_KEY);
+  storage.delete(learn.LearnReviewTargetStorageKey);
+  let html = renderPage('home');
+  let text = renderedText(html);
+  assert.match(text, /Continue daily practice/);
+  assert.doesNotMatch(html, />Practice known words<|>Continue practicing<|>Review Greek<|>Review Hebrew<|>Review Mixed</);
+  assert.equal((html.match(/data-learn-page="vocabulary:maintenance"/g) || []).length, 1);
+
+  storage.set(learn.LearnReviewTargetStorageKey, JSON.stringify({
+    greek: { preset: 'custom', dailyTarget: 1 },
+    hebrew: { preset: 'custom', dailyTarget: 1 }
+  }));
+  let completedStore = VocabularyLearning.normalizeStore();
+  for(const word of [global.state.data.greek[0], global.state.data.hebrew[0]]){
+    completedStore = VocabularyLearning.markEntryKnown(completedStore, word, { type: 'manual', knownSource: 'manual' }, '2026-06-25');
+    completedStore = VocabularyLearning.maintenancePracticeEntry(completedStore, word, 'recognized', { adjustSchedule: false }, '2026-06-26');
+  }
+  VocabularyLearning.saveStore(completedStore);
+  assert.equal(learn.learnDailyPracticeSummary('greek', '2026-06-26').combined, 1);
+  assert.equal(learn.learnDailyPracticeSummary('hebrew', '2026-06-26').combined, 1);
+  assert.equal(learn.learnDailyPracticeSummary('greek').combined, 1);
+  assert.equal(learn.learnDailyPracticeSummary('hebrew').combined, 1);
+  learn.learnState.page = 'home';
+  html = learn.renderLearnPage();
+  text = renderedText(html);
+  assert.match(text, /Continue practicing/);
+  assert.match(text, /Scheduled reviews and today’s goals are complete/);
+  assert.doesNotMatch(html, />Practice known words<|>Continue daily practice<|>Review Greek<|>Review Hebrew<|>Review Mixed</);
+  storage.delete(learn.LearnReviewTargetStorageKey);
+  storage.delete(VocabularyLearning.STORAGE_KEY);
 });
 
 test('Clicking Review Greek from the dashboard starts the capped Greek review session', () => {
@@ -498,22 +533,254 @@ test('Vocabulary Practice exposes on-demand sources and can practice non-due fre
 });
 
 test('Maintenance practice setup exposes safe defaults and all targeting controls', () => {
+  storage.delete(VocabularyLearning.STORAGE_KEY);
   learn.learnState.maintenanceSession = null;
   learn.learnState.maintenanceConfig = null;
   const html = renderPage('vocabulary:maintenance:greek');
   const text = renderedText(html);
   assert.match(text, /Greek maintenance practice/);
-  assert.match(text, /Words needing reinforcement Random known words Choose a book/);
-  assert.match(text, /C–F D–F All known words/);
-  assert.match(text, /10 20 50 Continue until stopped/);
+  assert.match(text, /Vocabulary source All known vocabulary One selected book/);
+  assert.match(text, /Practice order Words needing reinforcement Random order/);
+  assert.match(text, /A — Strong \(0\).*B — Familiar \(0\).*C — Developing \(0\).*D — Weak \(0\).*F — Relearning \(0\)/);
+  assert.match(text, /Select all grades/);
+  assert.match(text, /Session size Number of words Choose a whole number from 1 to 200.*Continue until stopped/);
   assert.match(text, /Adjust review schedule from this session Default: Off/);
   assert.match(text, /This session will not change review due dates/);
-  assert.match(html, /name="focus"[\s\S]*value="reinforcement" selected/);
-  assert.match(html, /name="gradeFilter"[\s\S]*value="c-f" selected/);
+  assert.match(text, /Session summary 0 words All known Greek vocabulary Grades C, D, and F Words needing reinforcement Review schedule unchanged/);
+  assert.match(html, /name="source"[\s\S]*value="all" selected/);
+  assert.match(html, /name="order"[\s\S]*value="reinforcement" selected/);
+  for(const grade of ['C', 'D', 'F']) assert.match(html, new RegExp(`name="selectedGrades" value="${grade}" checked`));
+  for(const grade of ['A', 'B']) assert.doesNotMatch(html, new RegExp(`name="selectedGrades" value="${grade}" checked`));
+  assert.match(html, /name="size" value="20" min="1" max="200" step="1" inputmode="numeric"/);
+  assert.doesNotMatch(html, /<label>Book/);
   assert.doesNotMatch(html, /name="adjustSchedule" checked/);
+  const setupOrder = ['name="source"', 'name="order"', 'class="learn-maintenance-grades"', 'class="learn-maintenance-size"', 'name="adjustSchedule"'].map(marker => html.indexOf(marker));
+  assert.deepEqual(setupOrder, [...setupOrder].sort((a, b) => a - b));
   const source = fs.readFileSync('src/features/learn/index.js', 'utf8');
+  const styles = fs.readFileSync('styles.css', 'utf8');
   assert.match(source, /function renderMaintenanceSetup\(language\)\{\s*ensureLearnManifest\(language\)/);
   assert.match(source, /fetch\(`\/data\/\$\{language\}\/manifest\.json`\)/);
+  assert.match(styles, /\.learn-maintenance-grade-options\s*\{[^}]*flex-wrap:wrap/);
+  assert.match(styles, /@media \(max-width: 480px\)[\s\S]*\.learn-maintenance-setup[\s\S]*grid-template-columns:1fr/);
+});
+
+test('selected-book scope conditionally shows the language-specific book list and resets invalid books', () => {
+  learn.learnState.maintenanceSession = null;
+  learn.learnState.maintenanceConfig = {
+    language: 'greek',
+    source: 'book',
+    order: 'random',
+    selectedGrades: ['A'],
+    size: '7',
+    unlimited: false,
+    adjustSchedule: false,
+    bookId: 'matthew'
+  };
+  learn.learnState.progressCache['book:greek:matthew'] = { overall: { vocabulary: [] } };
+  let html = renderPage('vocabulary:maintenance:greek');
+  assert.match(html, /<label>Book/);
+  assert.equal((html.match(/<option value="/g) || []).length, 27 + 4);
+  assert.match(renderedText(html), /Matthew.*Revelation/);
+  assert.match(html, /name="order"[\s\S]*value="random" selected/);
+
+  learn.learnState.maintenanceConfig = { ...learn.learnState.maintenanceConfig, language: 'greek', bookId: 'revelation' };
+  learn.learnState.progressCache['book:hebrew:genesis'] = { overall: { vocabulary: [] } };
+  html = renderPage('vocabulary:maintenance:hebrew');
+  assert.match(html, /<label>Book/);
+  assert.match(html, /name="source"[\s\S]*value="book" selected/);
+  assert.equal(learn.learnState.maintenanceConfig.language, 'hebrew');
+  assert.equal(learn.learnState.maintenanceConfig.bookId, 'genesis');
+  assert.equal(learn.learnBookList('hebrew').length, 39);
+});
+
+test('maintenance session size validation rejects every invalid finite value', () => {
+  for(const value of ['0', '-1', '1.5', 'words', '', '201']){
+    const parsed = learn.parseMaintenanceSessionSize(value, false);
+    assert.equal(parsed.valid, false, value);
+    assert.match(parsed.error, /whole number|from 1 to 200/);
+  }
+  for(const value of ['1', '7', '15', '20', '37', '75', '200']){
+    assert.deepEqual(learn.parseMaintenanceSessionSize(value, false), { valid: true, value: Number(value) });
+  }
+  assert.deepEqual(learn.parseMaintenanceSessionSize('', true), { valid: true, value: 'unlimited' });
+  assert.equal(learn.LearnMaintenanceSessionSizeMax, 200);
+});
+
+test('Select all grades updates the setup and small pools are explained before Start', () => {
+  storage.delete(VocabularyLearning.STORAGE_KEY);
+  const word = global.state.data.greek[0];
+  let store = VocabularyLearning.markEntryKnown(
+    VocabularyLearning.normalizeStore(),
+    word,
+    { type: 'manual', knownSource: 'manual' },
+    '2026-06-20'
+  );
+  store = VocabularyLearning.maintenancePracticeEntry(store, word, 'recognized', { adjustSchedule: false }, '2026-06-21');
+  VocabularyLearning.saveStore(store);
+  learn.learnState.maintenanceSession = null;
+  learn.learnState.maintenanceConfig = {
+    language: 'greek',
+    source: 'all',
+    order: 'reinforcement',
+    selectedGrades: ['C'],
+    size: '20',
+    unlimited: false,
+    adjustSchedule: false,
+    bookId: 'matthew'
+  };
+  let html = renderPage('vocabulary:maintenance:greek');
+  assert.match(renderedText(html), /C — Developing \(1\)/);
+  assert.match(renderedText(html), /1 eligible word is available, so this session will contain 1 word/);
+  assert.match(html, />Start maintenance practice</);
+
+  assert.deepEqual(learn.selectAllLearnMaintenanceGrades('greek'), ['A', 'B', 'C', 'D', 'F']);
+  html = learn.renderLearnPage();
+  for(const grade of ['A', 'B', 'C', 'D', 'F']){
+    assert.match(html, new RegExp(`name="selectedGrades" value="${grade}" checked`));
+  }
+});
+
+test('invalid setup states render accessible inline guidance and prevent Start', () => {
+  learn.learnState.maintenanceSession = null;
+  learn.learnState.maintenanceConfig = {
+    language: 'greek',
+    source: 'all',
+    order: 'reinforcement',
+    selectedGrades: [],
+    size: '0',
+    unlimited: false,
+    adjustSchedule: false,
+    bookId: 'matthew'
+  };
+  let html = renderPage('vocabulary:maintenance:greek');
+  assert.match(html, /role="status" aria-live="polite"/);
+  assert.match(renderedText(html), /Select at least one mastery grade/);
+  assert.match(html, /type="submit" disabled aria-disabled="true" aria-describedby="learnMaintenanceError"/);
+
+  learn.learnState.maintenanceConfig = { ...learn.learnState.maintenanceConfig, selectedGrades: ['C'], size: '1.5' };
+  html = learn.renderLearnPage();
+  assert.match(renderedText(html), /Session size must be a whole number from 1 to 200/);
+  assert.match(html, /type="submit" disabled aria-disabled="true"/);
+});
+
+test('maintenance construction receives an immutable explicit configuration and ignores stale books for all vocabulary', () => {
+  storage.delete(VocabularyLearning.STORAGE_KEY);
+  const records = {};
+  global.state.data.greek.forEach(word => {
+    records[word.id] = {
+      id: word.id,
+      lemma: word.lemma,
+      lang: 'greek',
+      status: 'Known',
+      knownSource: 'manual',
+      due: '9999-12-31',
+      history: [{ date: '2026-06-20', result: 'recognized' }]
+    };
+  });
+  VocabularyLearning.saveStore(VocabularyLearning.normalizeStore({ records }));
+  const before = JSON.stringify(VocabularyLearning.loadStore());
+  const session = learn.startLearnMaintenanceSession({
+    language: 'greek',
+    source: 'all',
+    bookId: 'not-a-book',
+    order: 'reinforcement',
+    selectedGrades: ['C'],
+    size: '1',
+    unlimited: false,
+    adjustSchedule: false
+  });
+  assert.ok(session);
+  assert.deepEqual(session.configuration, {
+    language: 'greek',
+    source: 'all',
+    bookId: null,
+    order: 'reinforcement',
+    selectedGrades: ['C'],
+    size: 1,
+    unlimited: false,
+    adjustSchedule: false
+  });
+  assert.equal(Object.isFrozen(session.configuration), true);
+  assert.equal(Object.isFrozen(session.configuration.selectedGrades), true);
+  assert.equal(session.entries.length, 1);
+  assert.equal(JSON.stringify(VocabularyLearning.loadStore()), before);
+});
+
+test('selected-book sessions use the cached occurrence vocabulary without changing source or grades', () => {
+  storage.delete(VocabularyLearning.STORAGE_KEY);
+  const inBook = global.state.data.greek[0];
+  const outBook = global.state.data.greek[1];
+  const records = Object.fromEntries([inBook, outBook].map(word => [word.id, {
+    id: word.id,
+    lemma: word.lemma,
+    lang: 'greek',
+    status: 'Known',
+    knownSource: 'manual',
+    due: '9999-12-31',
+    history: [{ date: '2026-06-20', result: 'recognized' }]
+  }]));
+  VocabularyLearning.saveStore(VocabularyLearning.normalizeStore({ records }));
+  learn.learnState.progressCache['book:greek:matthew'] = { overall: { vocabulary: [{ entry: inBook }] } };
+  const session = learn.startLearnMaintenanceSession({
+    language: 'greek',
+    source: 'book',
+    bookId: 'matthew',
+    order: 'random',
+    selectedGrades: ['C'],
+    size: '20',
+    unlimited: false,
+    adjustSchedule: false,
+    random: () => 0
+  });
+  assert.deepEqual(session.entries.map(item => item.id), [inBook.id]);
+  assert.equal(session.configuration.source, 'book');
+  assert.equal(session.configuration.bookId, 'matthew');
+  assert.equal(session.configuration.order, 'random');
+  assert.deepEqual(session.configuration.selectedGrades, ['C']);
+  assert.equal(session.limitedByPool, true);
+});
+
+test('maintenance setup blocks empty grades and supports bounded continue-until-stopped sessions', () => {
+  storage.delete(VocabularyLearning.STORAGE_KEY);
+  const word = global.state.data.greek[0];
+  VocabularyLearning.saveStore(VocabularyLearning.normalizeStore({ records: {
+    [word.id]: {
+      id: word.id,
+      lemma: word.lemma,
+      lang: 'greek',
+      status: 'Known',
+      knownSource: 'manual',
+      due: '9999-12-31',
+      history: [{ date: '2026-06-20', result: 'recognized' }]
+    }
+  } }));
+  assert.equal(learn.startLearnMaintenanceSession({
+    language: 'greek',
+    source: 'all',
+    order: 'reinforcement',
+    selectedGrades: [],
+    size: '20',
+    unlimited: false
+  }), null);
+  assert.match(learn.learnState.maintenanceError, /Select at least one mastery grade/);
+  const session = learn.startLearnMaintenanceSession({
+    language: 'greek',
+    source: 'all',
+    order: 'reinforcement',
+    selectedGrades: ['C'],
+    size: '',
+    unlimited: true,
+    adjustSchedule: false
+  });
+  assert.ok(session);
+  assert.equal(session.size, 'unlimited');
+  assert.equal(session.entries.length, 1);
+  for(let index = 0; index < 3; index += 1){
+    learn.learnState.maintenanceSession.revealed = true;
+    learn.gradeLearnMaintenance('recognized');
+  }
+  assert.equal(session.index, 3);
+  assert.equal(session.entries.length, 1);
 });
 
 test('On-demand practice can count toward SRS through the preference', () => {
