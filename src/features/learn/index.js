@@ -2,6 +2,9 @@
 const VocabularyLearningModel = (typeof VocabularyLearning !== 'undefined')
   ? VocabularyLearning
   : (typeof require === 'function' ? require('../../models/vocabulary-learning') : null);
+const VocabularyMasteryModel = (typeof VocabularyMastery !== 'undefined')
+  ? VocabularyMastery
+  : (typeof require === 'function' ? require('../../core/vocabulary-mastery') : null);
 const BookProgressModel = (typeof BookProgress !== 'undefined')
   ? BookProgress
   : (typeof require === 'function' ? require('../../core/book-progress') : null);
@@ -65,7 +68,7 @@ const LearnAreas = [
   }
 ];
 
-const learnState = { page: 'home', history: [], customFrequencyErrors: {}, activeVocabularyPath: '', activeReviewPage: '', currentVocabularyWordId: '', focusedReviewWordId: '', reviewReveal: false, lastReviewResult: null, progressCache: {}, progressLoading: {}, recognitionSession: null, practiceSession: null, studySetFormError: '', studySetWordPickerQuery: '', selectedRecognitionTargets: {} };
+const learnState = { page: 'home', history: [], customFrequencyErrors: {}, activeVocabularyPath: '', activeReviewPage: '', currentVocabularyWordId: '', focusedReviewWordId: '', reviewReveal: false, lastReviewResult: null, progressCache: {}, progressLoading: {}, recognitionSession: null, practiceSession: null, maintenanceSession: null, maintenanceError: '', studySetFormError: '', studySetWordPickerQuery: '', selectedRecognitionTargets: {} };
 const LearnFrequencyThresholds = {
   greek: ['25', '10', '5', 'all'],
   hebrew: ['60', '30', '10', '5', 'all']
@@ -82,7 +85,7 @@ const LearnReviewTargetPresets = {
 const LearnReviewTargetStorageKey = 'pp_learn_review_targets';
 const LearnPracticeSrsPreferenceStorageKey = 'pp_learn_practice_srs_preference';
 const LearnActivePathsStorageKey = 'pp_learn_active_paths';
-const LearnPracticeSrsPreferenceDefault = 'ask';
+const LearnPracticeSrsPreferenceDefault = 'practice-only';
 const LearnPracticeSrsPreferenceOptions = ['ask', 'practice-only', 'count-srs'];
 const LearnReviewTargetCustomMin = 1;
 const LearnReviewTargetCustomMax = 200;
@@ -91,6 +94,7 @@ const LearnTestaments = {
   'new-testament': { title: 'New Testament', language: 'greek' }
 };
 const learnManifestLoading = {};
+const learnManifestBooks = {};
 
 function learnArea(id){ return LearnAreas.find(area => area.id === id); }
 function learnChild(area, id){
@@ -194,6 +198,7 @@ function learnThresholds(language){
   return BookProgressModel?.languageThresholds ? BookProgressModel.languageThresholds(language) : (LearnFrequencyThresholds[language] || LearnFrequencyThresholds.greek);
 }
 function learnBookList(language){
+  if(Array.isArray(learnManifestBooks[language]) && learnManifestBooks[language].length) return learnManifestBooks[language];
   if(typeof getReaderBooks === 'function') return getReaderBooks(language);
   if(typeof require === 'function'){
     try {
@@ -207,10 +212,20 @@ function learnBookList(language){
 }
 function learnBook(language, bookId){ return learnBookList(language).find(book => book.id === bookId) || learnBookList(language)[0]; }
 function ensureLearnManifest(language){
-  if(typeof loadReaderManifest !== 'function' || learnManifestLoading[language]) return;
+  if(learnManifestBooks[language]?.length || learnManifestLoading[language]) return;
   learnManifestLoading[language] = true;
-  loadReaderManifest(language)
-    .then(() => { if(learnState.page.includes(`:${language}`) || learnState.page.includes('old-testament') || learnState.page.includes('new-testament')) renderLearn(); })
+  const load = typeof loadReaderManifest === 'function'
+    ? loadReaderManifest(language)
+    : fetch(`/data/${language}/manifest.json`).then(response => {
+        if(!response.ok) throw new Error(`Unable to load the ${language} book list.`);
+        return response.json();
+      });
+  Promise.resolve(load)
+    .then(manifest => {
+      const books = Array.isArray(manifest?.books) ? manifest.books : [];
+      if(books.length) learnManifestBooks[language] = books.map(book => ({ ...book, chapters: Array.isArray(book.chapters) ? book.chapters : [] }));
+      if(learnState.page.includes(`:${language}`) || learnState.page.includes('old-testament') || learnState.page.includes('new-testament')) renderLearn();
+    })
     .catch(() => {})
     .finally(() => { learnManifestLoading[language] = false; });
 }
@@ -231,6 +246,7 @@ function setLearnPage(page, options = {}){
   if(changed) learnState.lastReviewResult = null;
   if(changed && !next.includes(':session:')) learnState.recognitionSession = null;
   if(changed && !next.includes(':practice')) learnState.practiceSession = null;
+  if(changed && !next.includes(':maintenance')) learnState.maintenanceSession = null;
   if(changed) learnState.studySetFormError = '';
   if(changed) learnState.studySetWordPickerQuery = '';
   if(!options.preserveFocusedReview) learnState.focusedReviewWordId = '';
@@ -249,6 +265,8 @@ function resetLearn(options = {}){
   learnState.progressLoading = {};
   learnState.recognitionSession = null;
   learnState.practiceSession = null;
+  learnState.maintenanceSession = null;
+  learnState.maintenanceError = '';
   learnState.studySetFormError = '';
   learnState.studySetWordPickerQuery = '';
   if(options.render !== false) renderLearn();
@@ -524,6 +542,10 @@ function learnReviewQueueSummary(language){
     estimatedMinutes: Math.max(1, Math.ceil(Math.min(due.length, target) * 0.5))
   };
 }
+function learnDailyPracticeSummary(language, dateISO = todayISO()){
+  if(!VocabularyMasteryModel) return { language, target: learnReviewTarget(language), scheduled: 0, maintenance: 0, combined: 0, remaining: learnReviewTarget(language), complete: false };
+  return VocabularyMasteryModel.dailyPracticeSummary(learnVocabularyStore(), language, dateISO, learnReviewTarget(language));
+}
 function learnMixedReviewEntries(){
   const greek = learnReviewEntries('greek').slice(0, learnReviewTarget('greek'));
   const hebrew = learnReviewEntries('hebrew').slice(0, learnReviewTarget('hebrew'));
@@ -673,6 +695,23 @@ function renderLearningStatusSummary(entry, options = {}){
       </dl>
     </div>`;
 }
+function learnMasteryGrade(entry){
+  if(!VocabularyMasteryModel || !VocabularyLearningModel || !entry) return null;
+  const record = VocabularyLearningModel.getRecord(learnVocabularyStore(), entry) || {};
+  return VocabularyMasteryModel.masteryGrade(record, todayISO());
+}
+function renderMasteryGrade(entry, options = {}){
+  const grade = learnMasteryGrade(entry);
+  if(!grade) return '';
+  return `
+    <details class="learn-mastery-grade${options.compact ? ' learn-mastery-grade-compact' : ''}">
+      <summary aria-label="Mastery grade ${escHtml(grade.letter)}, ${escHtml(grade.label)}">
+        <span class="learn-grade-letter">${escHtml(grade.letter)}</span>
+        <span>${escHtml(grade.label)}</span>
+      </summary>
+      <p>${escHtml(grade.explanation)}</p>
+    </details>`;
+}
 function renderVocabularyLearningCard(entry, options = {}){
   const headword = typeof displayHeadwordForEntry === 'function'
     ? displayHeadwordForEntry(entry)
@@ -682,6 +721,7 @@ function renderVocabularyLearningCard(entry, options = {}){
       <h2>${escHtml(headword)}</h2>
       ${entry.lemma && entry.lemma !== headword ? `<p class="muted">${escHtml(entry.lemma)}</p>` : ''}
       ${renderVocabularyLearningDetails(entry, options.revealed !== false)}
+      ${options.showMastery ? renderMasteryGrade(entry, { compact: true }) : ''}
     </article>`;
 }
 function startLearnVocabularyPath(pathPage){
@@ -1031,6 +1071,7 @@ function saveLearnActivePath(pathPage){
 }
 function renderLearnHome(){
   const summaries = ['greek','hebrew'].map(learnReviewQueueSummary);
+  const daily = ['greek','hebrew'].map(learnDailyPracticeSummary);
   const totalToday = summaries.reduce((sum, item) => sum + item.todayCount, 0);
   const estimated = summaries.reduce((sum, item) => sum + (item.todayCount ? item.estimatedMinutes : 0), 0);
   const allPathItems = learnActiveItems();
@@ -1050,10 +1091,10 @@ function renderLearnHome(){
       ${renderLearnHeader('Learn', 'Practice and acquire knowledge.', 'learnTitle')}
       <section class="learn-dashboard-section learn-review-dashboard" aria-labelledby="learnReviewQueueTitle" data-learn-dashboard-section="review-queue">
         <div class="learn-section-heading">
-          <h2 id="learnReviewQueueTitle">Review Queue</h2>
-          <p>Review what is due today.</p>
+          <h2 id="learnReviewQueueTitle">Scheduled reviews</h2>
+          <p>${totalToday ? 'Review what is due, or practice known words voluntarily.' : 'Scheduled reviews complete'}</p>
         </div>
-        <div class="learn-review-overview"><strong>${totalToday ? `${totalToday} due today` : 'Nothing due today'}</strong>${totalToday ? `<span>About ${Math.max(1, estimated)} ${Math.max(1, estimated) === 1 ? 'minute' : 'minutes'}</span>` : ''}</div>
+        <div class="learn-review-overview"><strong>${totalToday ? `${totalToday} due today` : 'Scheduled reviews complete'}</strong>${totalToday ? `<span>About ${Math.max(1, estimated)} ${Math.max(1, estimated) === 1 ? 'minute' : 'minutes'}</span>` : '<span>Practice known words to continue toward today’s goal.</span>'}</div>
         <div class="learn-review-summary-grid">
           ${summaries.map(summary => `
             <article class="learn-review-summary" data-learn-review-language="${escHtml(summary.language)}">
@@ -1062,8 +1103,23 @@ function renderLearnHome(){
               <p class="learn-review-meta">${summary.moreAvailable ? `${escHtml(String(summary.moreAvailable))} beyond daily target · ` : ''}Target ${escHtml(String(summary.target))}/day</p>
             </article>`).join('')}
         </div>
+        <section class="learn-daily-practice" aria-labelledby="learnDailyPracticeTitle">
+          <h3 id="learnDailyPracticeTitle">Daily practice</h3>
+          <div class="learn-daily-grid">
+            ${daily.map(item => `
+              <div>
+                <strong>${escHtml(learnLanguageTitle(item.language))}: ${escHtml(String(item.combined))} of ${escHtml(String(item.target))}</strong>
+                <span>${escHtml(String(item.scheduled))} scheduled reviews · ${escHtml(String(item.maintenance))} maintenance words</span>
+                <span>${item.complete ? 'Daily goal complete' : `${escHtml(String(item.remaining))} unique ${item.remaining === 1 ? 'word' : 'words'} remaining`}</span>
+              </div>`).join('')}
+          </div>
+        </section>
         <div class="learn-review-actions">
           ${learnState.activeReviewPage ? `<button class="btn btn-primary" type="button" data-learn-page="${escHtml(learnState.activeReviewPage)}">Resume Review</button>` : ''}
+          ${totalToday
+            ? '<button class="btn btn-primary" type="button" data-learn-page="vocabulary:review:mixed">Review scheduled words</button>'
+            : `<button class="btn btn-primary" type="button" data-learn-page="vocabulary:maintenance">${daily.every(item => item.complete) ? 'Continue practicing' : 'Continue daily practice'}</button>`}
+          <button class="btn btn-ghost" type="button" data-learn-page="vocabulary:maintenance">Practice known words</button>
           ${learnState.activeReviewPage === 'vocabulary:review:greek' ? '' : `<button class="btn ${summaries[0].todayCount ? 'btn-primary' : 'btn-ghost'}" type="button" data-learn-page="vocabulary:review:greek" ${summaries[0].todayCount ? '' : 'disabled aria-disabled="true"'}>Review Greek</button>`}
           ${learnState.activeReviewPage === 'vocabulary:review:hebrew' ? '' : `<button class="btn ${summaries[1].todayCount ? 'btn-primary' : 'btn-ghost'}" type="button" data-learn-page="vocabulary:review:hebrew" ${summaries[1].todayCount ? '' : 'disabled aria-disabled="true"'}>Review Hebrew</button>`}
           ${learnState.activeReviewPage === 'vocabulary:review:mixed' ? '' : `<button class="btn btn-ghost btn-sm" type="button" data-learn-page="vocabulary:review:mixed" ${totalToday ? '' : 'disabled aria-disabled="true"'}>Review Mixed</button>`}
@@ -1137,10 +1193,11 @@ function renderLanguageReviewPage(area, language){
           </div>
           ${reviewCount > 1 ? `<p class="muted small">${reviewCount} reviews available</p>` : ''}`
         : `${renderReviewResultFeedback()}<section class="word-page-section learn-explainer">
-            <h2>No reviews available</h2>
-            <p>${mixed ? 'You are caught up for today. You can practice more or continue a learning path.' : `${escHtml(learnLanguageTitle(language))} words you are learning will appear here when they are ready to review.`}</p>
+            <h2>Scheduled reviews complete</h2>
+            <p>Practice known words to continue toward today’s goal. Maintenance practice does not change due dates unless you turn schedule adjustment on for the session.</p>
             <div class="learn-vocab-actions">
-              <button class="btn btn-primary btn-sm" type="button" data-learn-page="vocabulary:new-words">Start New Words</button>
+              <button class="btn btn-primary" type="button" data-learn-page="vocabulary:maintenance${mixed ? '' : `:${language}`}">Continue daily practice</button>
+              <button class="btn btn-ghost btn-sm" type="button" data-learn-page="vocabulary:new-words">Start New Words</button>
               <button class="btn btn-ghost btn-sm" type="button" data-learn-page="home">Back to Learn</button>
             </div>
           </section>`}
@@ -1590,6 +1647,235 @@ function renderReadingReadinessBooks(testamentId){
       ${renderLearnBookGrid(testament.language, `reading-readiness:${testamentId}`)}
     </section>`;
 }
+function maintenanceConfig(language = 'greek'){
+  const current = learnState.maintenanceConfig || {};
+  return {
+    language,
+    focus: ['reinforcement','random','book'].includes(current.focus) ? current.focus : 'reinforcement',
+    gradeFilter: ['c-f','d-f','all'].includes(current.gradeFilter) ? current.gradeFilter : 'c-f',
+    size: ['10','20','50','unlimited'].includes(String(current.size)) ? String(current.size) : '20',
+    adjustSchedule: current.adjustSchedule === true,
+    bookId: current.bookId || learnBookList(language)[0]?.id || ''
+  };
+}
+function maintenanceBookIds(language, bookId){
+  const progress = learnState.progressCache[bookProgressKey(language, bookId)];
+  const words = progress?.overall?.vocabulary || progress?.vocabulary || [];
+  return new Set(words.map(item => learnWordId(item.entry || item)).filter(Boolean));
+}
+function startLearnMaintenanceSession(values = {}){
+  if(!VocabularyMasteryModel || !VocabularyLearningModel) return null;
+  const language = values.language === 'hebrew' ? 'hebrew' : 'greek';
+  const config = {
+    language,
+    focus: ['reinforcement','random','book'].includes(values.focus) ? values.focus : 'reinforcement',
+    gradeFilter: ['c-f','d-f','all'].includes(values.gradeFilter) ? values.gradeFilter : 'c-f',
+    size: ['10','20','50','unlimited'].includes(String(values.size)) ? String(values.size) : '20',
+    adjustSchedule: values.adjustSchedule === true,
+    bookId: values.bookId || learnBookList(language)[0]?.id || ''
+  };
+  learnState.maintenanceConfig = config;
+  let bookIds;
+  if(config.focus === 'book'){
+    ensureBookProgress(language, config.bookId);
+    const key = bookProgressKey(language, config.bookId);
+    if(!learnState.progressCache[key]){
+      learnState.maintenanceError = 'Book vocabulary is loading. Start the session again when it is ready.';
+      renderLearn();
+      return null;
+    }
+    bookIds = maintenanceBookIds(language, config.bookId);
+  }
+  const store = learnVocabularyStore();
+  const built = VocabularyMasteryModel.buildMaintenanceSession(
+    learnVocabularyEntries(language),
+    store,
+    VocabularyLearningModel,
+    { ...config, bookIds }
+  );
+  const daily = learnDailyPracticeSummary(language);
+  learnState.maintenanceError = '';
+  learnState.maintenanceSession = {
+    ...config,
+    entries: built.entries.slice(),
+    index: 0,
+    revealed: false,
+    recognized: 0,
+    missed: 0,
+    results: [],
+    stopped: false,
+    broadened: built.broadened,
+    startingGoalCount: daily.combined
+  };
+  renderLearn();
+  return learnState.maintenanceSession;
+}
+function revealLearnMaintenance(){
+  if(!learnState.maintenanceSession) return;
+  learnState.maintenanceSession.revealed = true;
+  renderLearn();
+}
+function gradeLearnMaintenance(result){
+  const session = learnState.maintenanceSession;
+  const currentIndex = session?.size === 'unlimited' && session.entries?.length
+    ? session.index % session.entries.length
+    : session?.index;
+  const current = session?.entries?.[currentIndex];
+  if(!session || !current || !VocabularyLearningModel) return;
+  const normalizedResult = result === 'missed' ? 'missed' : 'recognized';
+  const before = learnMasteryGrade(current);
+  VocabularyLearningModel.persistMaintenancePracticeEntry(current, normalizedResult, { adjustSchedule: session.adjustSchedule });
+  const after = learnMasteryGrade(current);
+  session.results.push({
+    id: learnWordId(current),
+    result: normalizedResult,
+    before: before?.letter || 'C',
+    after: after?.letter || 'C'
+  });
+  if(normalizedResult === 'recognized') session.recognized += 1;
+  else session.missed += 1;
+  session.index += 1;
+  session.revealed = false;
+  renderLearn();
+}
+function stopLearnMaintenance(){
+  if(!learnState.maintenanceSession) return;
+  learnState.maintenanceSession.stopped = true;
+  renderLearn();
+}
+function resetLearnMaintenance(){
+  learnState.maintenanceSession = null;
+  learnState.maintenanceError = '';
+  learnState.maintenanceConfig = { ...maintenanceConfig(learnState.page.split(':')[2]), focus: 'reinforcement', gradeFilter: 'c-f', adjustSchedule: false };
+  renderLearn();
+}
+function chooseLearnMaintenanceFocus(){
+  learnState.maintenanceSession = null;
+  learnState.maintenanceError = '';
+  renderLearn();
+}
+function renderMaintenanceLanguageChoices(){
+  return `
+    <section class="panel learn-panel" aria-labelledby="learnMaintenanceLanguageTitle">
+      ${renderLearnHeader('Maintenance practice', 'Practice known words without waiting for a due date.', 'learnMaintenanceLanguageTitle')}
+      <div class="learn-card-grid">
+        ${learnCard({ title: 'Greek', description: 'Practice known Greek words.' }, 'vocabulary:maintenance:greek')}
+        ${learnCard({ title: 'Hebrew', description: 'Practice known Hebrew words.' }, 'vocabulary:maintenance:hebrew')}
+      </div>
+      <p class="small muted">Schedule adjustment is Off by default. Scheduled reviews remain separate.</p>
+    </section>`;
+}
+function renderMaintenanceSetup(language){
+  ensureLearnManifest(language);
+  const config = maintenanceConfig(language);
+  if(config.focus === 'book') ensureBookProgress(language, config.bookId);
+  const known = VocabularyMasteryModel?.knownCandidates(
+    learnVocabularyEntries(language),
+    learnVocabularyStore(),
+    VocabularyLearningModel,
+    { gradeFilter: 'all' }
+  ) || [];
+  const distribution = { A: 0, B: 0, C: 0, D: 0, F: 0 };
+  known.forEach(item => { distribution[item.grade.letter] += 1; });
+  return `
+    <section class="panel learn-panel" aria-labelledby="learnMaintenanceSetupTitle">
+      ${renderLearnHeader(`${learnLanguageTitle(language)} maintenance practice`, 'Choose a focus, then begin.', 'learnMaintenanceSetupTitle')}
+      <form class="learn-maintenance-setup word-page-section" data-learn-maintenance-start="true">
+        <input type="hidden" name="language" value="${escHtml(language)}" />
+        <label>Focus
+          <select class="input" name="focus">
+            <option value="reinforcement" ${config.focus === 'reinforcement' ? 'selected' : ''}>Words needing reinforcement</option>
+            <option value="random" ${config.focus === 'random' ? 'selected' : ''}>Random known words</option>
+            <option value="book" ${config.focus === 'book' ? 'selected' : ''}>Choose a book</option>
+          </select>
+        </label>
+        <label>Book
+          <select class="input" name="bookId">
+            ${learnBookList(language).map(book => `<option value="${escHtml(book.id)}" ${config.bookId === book.id ? 'selected' : ''}>${escHtml(book.name)}</option>`).join('')}
+          </select>
+        </label>
+        <label>Grades
+          <select class="input" name="gradeFilter">
+            <option value="c-f" ${config.gradeFilter === 'c-f' ? 'selected' : ''}>C–F</option>
+            <option value="d-f" ${config.gradeFilter === 'd-f' ? 'selected' : ''}>D–F</option>
+            <option value="all" ${config.gradeFilter === 'all' ? 'selected' : ''}>All known words</option>
+          </select>
+        </label>
+        <label>Session size
+          <select class="input" name="size">
+            ${['10','20','50'].map(size => `<option value="${size}" ${config.size === size ? 'selected' : ''}>${size}</option>`).join('')}
+            <option value="unlimited" ${config.size === 'unlimited' ? 'selected' : ''}>Continue until stopped</option>
+          </select>
+        </label>
+        <label class="learn-maintenance-toggle">
+          <input type="checkbox" name="adjustSchedule" ${config.adjustSchedule ? 'checked' : ''} />
+          <span><strong>Adjust review schedule from this session</strong><small>Default: Off</small></span>
+        </label>
+        <p class="small muted">${config.adjustSchedule ? 'Answers in this session will update the normal review schedule.' : 'This session will not change review due dates.'}</p>
+        <p class="small muted">Known words by grade: A ${distribution.A}, B ${distribution.B}, C ${distribution.C}, D ${distribution.D}, F ${distribution.F}. Mastery grades summarize recorded recall evidence.</p>
+        ${learnState.maintenanceError ? `<p class="learn-custom-frequency-error" role="status">${escHtml(learnState.maintenanceError)}</p>` : ''}
+        <button class="btn btn-primary" type="submit">Start maintenance practice</button>
+      </form>
+    </section>`;
+}
+function renderMaintenanceCompletion(session){
+  const daily = learnDailyPracticeSummary(session.language);
+  const gradeChanges = session.results.filter(item => item.before !== item.after);
+  const distribution = { A: 0, B: 0, C: 0, D: 0, F: 0 };
+  session.results.forEach(item => { distribution[item.before] = (distribution[item.before] || 0) + 1; });
+  return `
+    <section class="word-page-section learn-explainer" aria-labelledby="learnMaintenanceCompleteTitle">
+      <h2 id="learnMaintenanceCompleteTitle">${session.stopped ? 'Maintenance practice stopped' : 'Maintenance practice complete'}</h2>
+      <dl class="learn-session-summary">
+        <div><dt>Words practiced</dt><dd>${escHtml(String(new Set(session.results.map(item => item.id)).size))}</dd></div>
+        <div><dt>Added to today’s goal</dt><dd>${escHtml(String(Math.max(0, daily.combined - session.startingGoalCount)))}</dd></div>
+        <div><dt>Recognized</dt><dd>${escHtml(String(session.recognized))}</dd></div>
+        <div><dt>Missed</dt><dd>${escHtml(String(session.missed))}</dd></div>
+        <div><dt>Schedule adjusted</dt><dd>${session.adjustSchedule ? 'Yes' : 'No'}</dd></div>
+        <div><dt>Daily goal</dt><dd>${escHtml(String(daily.combined))} of ${escHtml(String(daily.target))}</dd></div>
+      </dl>
+      <p class="small muted">Grades practiced: A ${distribution.A}, B ${distribution.B}, C ${distribution.C}, D ${distribution.D}, F ${distribution.F}. ${gradeChanges.length ? `${gradeChanges.length} ${gradeChanges.length === 1 ? 'word has' : 'words have'} updated mastery evidence.` : 'No mastery grade changed in this session.'}</p>
+      <div class="learn-vocab-actions">
+        <button class="btn btn-primary" type="button" data-learn-maintenance-reset="true">Practice more weak words</button>
+        <button class="btn btn-ghost btn-sm" type="button" data-learn-maintenance-choose="true">Choose another focus</button>
+        <button class="btn btn-ghost btn-sm" type="button" data-learn-page="home">Return to Learn</button>
+      </div>
+    </section>`;
+}
+function renderMaintenancePracticePage(language){
+  const session = learnState.maintenanceSession;
+  if(!session || session.language !== language) return renderMaintenanceSetup(language);
+  const currentIndex = session.size === 'unlimited' && session.entries.length
+    ? session.index % session.entries.length
+    : session.index;
+  const current = session.entries[currentIndex];
+  if(session.stopped || !current) return `
+    <section class="panel learn-panel" aria-labelledby="learnMaintenanceTitle">
+      ${renderLearnHeader('Maintenance practice', 'Session summary', 'learnMaintenanceTitle')}
+      ${renderMaintenanceCompletion(session)}
+    </section>`;
+  const grade = learnMasteryGrade(current);
+  return `
+    <section class="panel learn-panel" aria-labelledby="learnMaintenanceTitle">
+      ${renderLearnHeader('Maintenance practice', session.adjustSchedule ? 'Schedule adjustment On' : 'Schedule adjustment Off', 'learnMaintenanceTitle')}
+      <div class="learn-recognition-progress" role="status">
+        <span>${session.size === 'unlimited' ? `${session.index + 1} practiced` : `${session.index + 1} of ${session.entries.length}`}</span>
+        <span>Recognized ${session.recognized}</span>
+        <span>Missed ${session.missed}</span>
+      </div>
+      ${renderVocabularyLearningCard(current, { revealed: session.revealed, showMastery: true })}
+      <p class="small muted">Current mastery: ${escHtml(grade?.letter || 'C')} — ${escHtml(grade?.label || 'Developing')}.</p>
+      <div class="learn-vocab-actions">
+        ${session.revealed
+          ? `<button class="learn-review-action learn-review-recognized" type="button" data-learn-maintenance-grade="recognized">Recognized</button>
+             <button class="learn-review-action learn-review-missed" type="button" data-learn-maintenance-grade="missed">Missed</button>`
+          : '<button class="btn btn-primary learn-review-action learn-review-reveal" type="button" data-learn-maintenance-reveal="true">Reveal meaning</button>'}
+        <button class="btn btn-ghost btn-sm" type="button" data-learn-maintenance-stop="true">Stop</button>
+      </div>
+      <p class="small muted">${session.adjustSchedule ? 'Answers in this session update the normal review schedule.' : 'This session does not change review due dates.'}</p>
+      ${session.broadened ? '<p class="small muted">The selected grade range was broadened to fill the requested session.</p>' : ''}
+    </section>`;
+}
 function renderVocabularyPracticeHome(){
   return `
     <section class="panel learn-panel" aria-labelledby="learnVocabularyPracticeTitle">
@@ -1901,11 +2187,11 @@ function renderLearningPreferencesPage(){
       <section class="word-page-section learn-preference-group">
         <h2>Practice and SRS</h2>
         <select id="learnPracticeSrsPreference" class="input" aria-label="Practice count toward SRS">
-          <option value="ask" ${practicePref === 'ask' ? 'selected' : ''}>Ask whether to count practice toward SRS</option>
-          <option value="practice-only" ${practicePref === 'practice-only' ? 'selected' : ''}>Always practice only</option>
-          <option value="count-srs" ${practicePref === 'count-srs' ? 'selected' : ''}>Always count toward SRS</option>
+          <option value="practice-only" ${practicePref === 'practice-only' ? 'selected' : ''}>Do not adjust schedule (recommended)</option>
+          <option value="ask" ${practicePref === 'ask' ? 'selected' : ''}>Ask after legacy on-demand sessions</option>
+          <option value="count-srs" ${practicePref === 'count-srs' ? 'selected' : ''}>Adjust schedule for legacy on-demand practice</option>
         </select>
-        <p class="small muted">On-demand practice will consult this preference before changing SRS scheduling.</p>
+        <p class="small muted">New maintenance sessions always show a session-level schedule toggle, Off by default.</p>
       </section>
     </section>`;
 }
@@ -1919,6 +2205,8 @@ function renderLearnPage(){
   if(areaId === 'study-sets') return renderStudySetsPlaceholder();
   if(areaId === 'mixed-practice') return renderMixedPracticePlaceholder();
   if(!area) return renderLearnHome();
+  if(area.id === 'vocabulary' && childId === 'maintenance' && !thirdId) return renderMaintenanceLanguageChoices();
+  if(area.id === 'vocabulary' && childId === 'maintenance' && (thirdId === 'greek' || thirdId === 'hebrew')) return renderMaintenancePracticePage(thirdId);
   if(area.id === 'vocabulary' && childId === 'practice' && !thirdId) return renderVocabularyPracticeHome();
   if(area.id === 'vocabulary' && childId === 'practice' && thirdId === 'frequency' && !fourthId) return renderPracticeLanguageChoices('Frequency Practice', 'Practice vocabulary by frequency.', 'vocabulary:practice:frequency');
   if(area.id === 'vocabulary' && childId === 'practice' && thirdId === 'frequency' && fourthId && !fifthId) return renderPracticeFrequencyLanguage(fourthId);
@@ -1994,6 +2282,23 @@ function wireLearn(){
   $$('[data-learn-practice-reveal]', root).forEach(button => button.addEventListener('click', revealLearnPractice));
   $$('[data-learn-practice-grade]', root).forEach(button => button.addEventListener('click', () => gradeLearnPractice(button.dataset.learnPracticeGrade)));
   $$('[data-learn-practice-count-srs]', root).forEach(button => button.addEventListener('click', countLearnPracticeTowardSrs));
+  $$('[data-learn-maintenance-start]', root).forEach(form => form.addEventListener('submit', event => {
+    event.preventDefault();
+    const data = new FormData(form);
+    startLearnMaintenanceSession({
+      language: data.get('language'),
+      focus: data.get('focus'),
+      bookId: data.get('bookId'),
+      gradeFilter: data.get('gradeFilter'),
+      size: data.get('size'),
+      adjustSchedule: data.get('adjustSchedule') === 'on'
+    });
+  }));
+  $$('[data-learn-maintenance-reveal]', root).forEach(button => button.addEventListener('click', revealLearnMaintenance));
+  $$('[data-learn-maintenance-grade]', root).forEach(button => button.addEventListener('click', () => gradeLearnMaintenance(button.dataset.learnMaintenanceGrade)));
+  $$('[data-learn-maintenance-stop]', root).forEach(button => button.addEventListener('click', stopLearnMaintenance));
+  $$('[data-learn-maintenance-reset]', root).forEach(button => button.addEventListener('click', resetLearnMaintenance));
+  $$('[data-learn-maintenance-choose]', root).forEach(button => button.addEventListener('click', chooseLearnMaintenanceFocus));
   $$('[data-learn-recognition-start]', root).forEach(button => button.addEventListener('click', () => startRecognitionSession(button.dataset.learnRecognitionStart, button.dataset.learnRecognitionCategory || '')));
   $$('[data-learn-recognition-select]', root).forEach(button => button.addEventListener('click', () => toggleRecognitionSelection(button.dataset.learnRecognitionCategory || '', button.dataset.learnRecognitionSelect)));
   $$('[data-learn-recognition-clear]', root).forEach(button => button.addEventListener('click', () => clearRecognitionSelection(button.dataset.learnRecognitionClear)));
@@ -2061,3 +2366,5 @@ function renderLearn(){
 
 if(typeof window !== 'undefined') Object.assign(window, { LearnAreas, LearnReviewTargetDefaults, LearnReviewTargetPresets, LearnReviewTargetStorageKey, LearnPracticeSrsPreferenceStorageKey, learnState, learnArea, learnChild, learnPageTitle, learnBreadcrumbs, learnReviewTargets, learnReviewTarget, saveLearnReviewTargets, setLearnReviewTarget, learnPracticeSrsPreference, setLearnPracticeSrsPreference, learnReviewQueueSummary, parseLearnCustomFrequency, setLearnCustomFrequency, resetLearn, setLearnPage, backLearnPage, wireLearn, renderLearn, renderLearnPage, learnBookList, learnPathForPage, startLearnVocabularyPath, learnCurrentVocabularyWord, markLearnPathKnown, learnStudySets, learnStudySet, createLearnStudySet, createStudySetFromCurrentScope, addVocabularyToLearnStudySet, addSelectedVocabularyToLearnStudySet, createStudySetWithVocabulary, deleteLearnStudySet, markLearnStudySetKnown, reviewLearnVocabularyWord, revealLearnReview, gradeLearnReview, ensureLearnPracticeSession, revealLearnPractice, gradeLearnPractice, countLearnPracticeTowardSrs, recognitionTargetsForLearn, selectedRecognitionTargetIds, toggleRecognitionSelection, clearRecognitionSelection, startRecognitionSession, startSelectedRecognitionSession, revealRecognitionAnswer, gradeRecognitionAnswer, openLearnReference });
 if(typeof module !== 'undefined') module.exports = { LearnAreas, LearnFrequencyThresholds, LearnReviewTargetDefaults, LearnReviewTargetPresets, LearnReviewTargetStorageKey, LearnPracticeSrsPreferenceStorageKey, learnState, learnArea, learnChild, learnPageTitle, learnBreadcrumbs, learnReviewTargets, learnReviewTarget, saveLearnReviewTargets, setLearnReviewTarget, learnPracticeSrsPreference, setLearnPracticeSrsPreference, learnReviewQueueSummary, parseLearnCustomFrequency, setLearnCustomFrequency, resetLearn, learnBookList, learnPathForPage, setLearnPage, backLearnPage, wireLearn, renderLearnPage, startLearnVocabularyPath, learnCurrentVocabularyWord, markLearnPathKnown, learnStudySets, learnStudySet, createLearnStudySet, createStudySetFromCurrentScope, addVocabularyToLearnStudySet, addSelectedVocabularyToLearnStudySet, createStudySetWithVocabulary, deleteLearnStudySet, markLearnStudySetKnown, reviewLearnVocabularyWord, revealLearnReview, gradeLearnReview, ensureLearnPracticeSession, revealLearnPractice, gradeLearnPractice, countLearnPracticeTowardSrs, recognitionTargetsForLearn, selectedRecognitionTargetIds, toggleRecognitionSelection, clearRecognitionSelection, startRecognitionSession, startSelectedRecognitionSession, revealRecognitionAnswer, gradeRecognitionAnswer, openLearnReference };
+if(typeof window !== 'undefined') Object.assign(window, { learnDailyPracticeSummary, startLearnMaintenanceSession, revealLearnMaintenance, gradeLearnMaintenance, stopLearnMaintenance, resetLearnMaintenance, chooseLearnMaintenanceFocus, renderMaintenancePracticePage });
+if(typeof module !== 'undefined') Object.assign(module.exports, { learnDailyPracticeSummary, startLearnMaintenanceSession, revealLearnMaintenance, gradeLearnMaintenance, stopLearnMaintenance, resetLearnMaintenance, chooseLearnMaintenanceFocus, renderMaintenancePracticePage });

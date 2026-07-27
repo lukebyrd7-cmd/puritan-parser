@@ -14,6 +14,9 @@ const ReaderStudySetsModel = (typeof PuritanStudySets !== 'undefined')
 const ReaderSavedVocabularyModel = (typeof PuritanSavedVocabulary !== 'undefined')
   ? PuritanSavedVocabulary
   : (typeof require === 'function' ? require('../../models/saved-vocabulary') : null);
+const ReaderVocabularyMasteryModel = (typeof VocabularyMastery !== 'undefined')
+  ? VocabularyMastery
+  : (typeof require === 'function' ? require('../../core/vocabulary-mastery') : null);
 const ReaderDefaultSettings = {
   display: 'original',
   hebrewDisplay: 'standard',
@@ -616,6 +619,9 @@ function renderReaderWordLearning(info = {}){
   const entry = readerVocabularyLearningEntry(info);
   const status = readerLearningStatusForInfo(info);
   const details = readerLearningDetailsForInfo(info);
+  const mastery = entry && ReaderVocabularyMasteryModel && ReaderVocabularyLearningModel
+    ? ReaderVocabularyMasteryModel.masteryGrade(ReaderVocabularyLearningModel.getRecord(ReaderVocabularyLearningModel.loadStore(), entry) || {})
+    : null;
   const label = readerLearningStatusLabel(info);
   const id = entry && ReaderVocabularyLearningModel ? ReaderVocabularyLearningModel.lemmaId(entry) : '';
   const language = info.language || readerState.language || 'greek';
@@ -632,6 +638,7 @@ function renderReaderWordLearning(info = {}){
             ${readerWordPageMeta('Total Reviews', String(details.totalReviews))}
             ${readerWordPageMeta('Review History', details.historySummary)}
             ${readerWordPageMeta('Known Source', details.knownSource ? details.knownSource.replace(/_/g, ' ') : '')}
+            ${mastery ? readerWordPageMeta('Mastery Grade', `${mastery.letter} — ${mastery.label}`) : ''}
           </dl>
           <p class="small muted">${escHtml(details.explanation)}</p>` : '';
   return `
@@ -642,6 +649,7 @@ function renderReaderWordLearning(info = {}){
             ${entry && ReaderVocabularyLearningModel ? action : '<span class="muted small">Not available in vocabulary learning.</span>'}
           </div>
           ${detailsHtml}
+          ${mastery ? `<details class="word-page-mastery"><summary>Why ${escHtml(mastery.letter)} — ${escHtml(mastery.label)}?</summary><p class="small muted">${escHtml(mastery.explanation)}</p></details>` : ''}
         </section>`;
 }
 function renderReaderWordStudySets(info = {}){

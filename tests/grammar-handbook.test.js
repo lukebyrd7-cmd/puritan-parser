@@ -172,18 +172,13 @@ test('v1.3.7 preserves every existing focused Paradigm Chart id and form',()=>{
   assert.equal(hash(hebrew),'84d8a7b650e0605a8518f909ae374f4100688815a2b46c1fce7e44eb4f9eed59');
 });
 
-test('v1.7 Hebrew interlinear changes remain isolated from Learn, SRS, storage, and migrations',()=>{
+test('v1.8 preserves v1.7 recognition and migration boundaries',()=>{
   const expected={
-    'src/features/learn/index.js':'c4b4c50106d96e8d02848d6b487b204720d160f20a04be77a5e8fada383a2cdf',
     'src/features/learn/recognition-engine.js':'8a3de2d03901a7e6cd6fa2ea32c50c6f11c3676756282af7c6d2d2980ff1e7a2',
-    'src/features/progress/index.js':'7c5a23be215503d7a6dc5d2ae2ea843c814eea2698a8481be8a048a4fdb28e37',
-    'src/core/progress-service.js':'0e8f2e03ccdb6e47a95d9990055a2c0788c848a6ea5dfdc335dbc40310c8f64b',
-    'src/models/vocabulary-learning.js':'df8c48fea08a3e12d2a79d7230be51da98b40f419582b6efbb63984aaf528787',
-    'src/core/storage/storage.js':'b15fce85bac07ea80acab1bafe1dc4c04543086e818444edb05fe5c84217b544',
     'src/core/storage/prefs-storage.js':'8db2b04460f73e253d957840d79727e51c608bbe61725484efc1f4fc5cb01d1d',
     'src/core/migrations/migrations.js':'d809fbe1879423a266d08012819487f5f9d781e0e9ebb00553277bce557b1386'
   };
   for(const [path,digest] of Object.entries(expected)) assert.equal(fileHash(path),digest,path);
-  const storageText=Object.keys(expected).filter(path=>/storage|migration|vocabulary-learning/.test(path)).map(path=>fs.readFileSync(path,'utf8')).join('\n');
+  const storageText=['src/models/vocabulary-learning.js','src/core/storage/storage.js','src/core/storage/prefs-storage.js','src/core/migrations/migrations.js'].map(path=>fs.readFileSync(path,'utf8')).join('\n');
   for(const key of ['pp_vocab_learning','pp_study_sets','pp_reader_location','pp_reader_adaptive_settings','pp_learn_review_targets','pp_learn_practice_srs_preference','pp_recognition_history']) assert.doesNotMatch(storageText,new RegExp(`removeItem\\(['"]${key}`));
 });

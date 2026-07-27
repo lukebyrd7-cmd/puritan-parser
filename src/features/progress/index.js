@@ -154,6 +154,8 @@ function renderReadingReadiness(readiness = {}, loading = false){
 function renderVocabularyGrowth(vocab = {}){
   const languageMetrics = language => {
     const stats = vocab.byLanguage?.[language] || {};
+    const mastery = stats.mastery || {};
+    const daily = stats.dailyPractice || {};
     return `
       <section class="progress-subsection">
         <h3>${escHtml(languageTitle(language))}</h3>
@@ -164,6 +166,9 @@ function renderVocabularyGrowth(vocab = {}){
           ${progressMetric('Reviewing', stats.reviewing || 0)}
           ${progressMetric('Not Learned', stats.notLearned || 0)}
           ${progressMetric('Due Today', stats.dueToday || 0)}
+          ${progressMetric('Daily Goal', `${daily.combined || 0} of ${daily.target || 0}`, `${daily.scheduled || 0} scheduled reviews; ${daily.maintenance || 0} maintenance words.`)}
+          ${progressMetric('Mastery Grades', `A ${mastery.A || 0} · B ${mastery.B || 0} · C ${mastery.C || 0} · D ${mastery.D || 0} · F ${mastery.F || 0}`, 'Grades summarize recorded recall evidence and guide practice priority.')}
+          ${progressMetric('Needs Reinforcement', (mastery.D || 0) + (mastery.F || 0))}
         </dl>
       </section>`;
   };

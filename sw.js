@@ -1,13 +1,13 @@
 // Service worker for the static Puritan Parser app.
 // Keep this file next to index.html so root-scoped registration covers every route.
-const CACHE = 'puritan-parser-v77-v1.7.2-mobile-startup-reader-restoration';
+const CACHE = 'puritan-parser-v78-v1.8-daily-practice-mastery';
 const FILES = [
   './',
   './index.html',
   './styles.css',
-  './styles.css?v=v1.7.2-mobile-startup-reader-restoration',
+  './styles.css?v=v1.8-daily-practice-mastery',
   './src/main.js',
-  './src/main.js?v=v1.7.2-mobile-startup-reader-restoration',
+  './src/main.js?v=v1.8-daily-practice-mastery',
   './src/core/parser-core.js',
   './src/core/hebrew-search.js',
   './src/core/migrations/migrations.js',
@@ -23,6 +23,7 @@ const FILES = [
   './src/models/preferences.js',
   './src/models/dashboard-stats.js',
   './src/models/vocabulary-learning.js',
+  './src/core/vocabulary-mastery.js',
   './src/models/saved-vocabulary.js',
   './src/models/study-sets.js',
   './src/models/onboarding.js',

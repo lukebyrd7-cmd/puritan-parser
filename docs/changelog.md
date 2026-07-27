@@ -4,6 +4,19 @@ This changelog is a human-readable project history, not a Git log. Future entrie
 
 ## Unreleased
 
+### v1.8 Daily Practice and Vocabulary Mastery
+
+- Made maintenance practice of known Greek and Hebrew words a first-class Learn action beside scheduled reviews and in the scheduled-review completion state.
+- Connected the existing per-language review targets to unique daily vocabulary practice. Scheduled and maintenance category counts remain separate; their deduplicated union drives goal completion, so repeated attempts and overlap never inflate the goal.
+- Added deterministic A–F mastery summaries from recorded scheduled and maintenance outcomes. Sparse legacy records begin at Developing, established accurate histories can advance, and recent or repeated misses lower confidence without changing the underlying Known/Learning status.
+- Added Words needing reinforcement, Random known words, and Choose a book maintenance focus options with C–F, D–F, and All known grade filters; 10, 20, 50, and continue-until-stopped sizes; stable finite-session snapshots; and deterministic weak-word priority.
+- Added a session-level schedule-adjustment control that defaults Off. Off records bounded maintenance evidence without changing status, due date, interval, or success count; On routes the answer through the existing vocabulary review transition and tags it as maintenance.
+- Extended Progress with per-language mastery distribution, D/F reinforcement counts, daily goal progress, and separate scheduled/maintenance totals.
+- Kept maintenance events in the existing `pp_vocab_learning` word records, bounded to the 20 newest maintenance outcomes. No migration, second vocabulary store, second scheduler, or second goal record was added.
+- Expanded export/import to carry the optional vocabulary-learning store, review targets, and legacy on-demand SRS preference while retaining support for older vocabulary-only exports. Clear All removes the related Learn records intentionally.
+- Added accessible grade disclosures, native setup controls, responsive 320px layouts, and methodology notes under Settings → About & Sources.
+- Bumped the offline cache once to `puritan-parser-v78-v1.8-daily-practice-mastery`; no Reader corpus, linguistic source, or generated data changed.
+
 ### v1.7.2 Mobile startup and Reader restoration
 
 - Added a delayed startup explanation and a recoverable error state with native Retry and home actions. Retry starts a new bounded startup generation and preserves local vocabulary, review, settings, and Reader data.

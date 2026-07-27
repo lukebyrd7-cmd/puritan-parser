@@ -23,7 +23,14 @@ async function loadData(){
 
 /* ---------- Export ---------- */
 function exportData(){
-  const data = { greek: state.data.greek, hebrew: state.data.hebrew, exported: new Date().toISOString() };
+  const data = {
+    greek: state.data.greek,
+    hebrew: state.data.hebrew,
+    vocabularyLearning: typeof VocabularyLearning !== 'undefined' ? VocabularyLearning.loadStore() : undefined,
+    learnReviewTargets: typeof learnReviewTargets === 'function' ? learnReviewTargets() : undefined,
+    practiceSrsPreference: typeof learnPracticeSrsPreference === 'function' ? learnPracticeSrsPreference() : undefined,
+    exported: new Date().toISOString()
+  };
   const blob = new Blob([JSON.stringify(data,null,2)], {type:'application/json'});
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a'); a.href=url; a.download='puritan-parser-export.json'; a.click();
@@ -41,7 +48,8 @@ async function importDataFile(file){
       const lang = String(item.lang||'greek').toLowerCase();
       return ensureSRS(createWordEntry(Object.assign({}, item, { lang, source: item.source || 'Imported' })));
     });
-    if(!valid.length){
+    const learningImported = payload?.vocabularyLearning && typeof VocabularyLearning !== 'undefined';
+    if(!valid.length && !learningImported){
       if(preview){ preview.textContent = invalid.length ? `No valid entries found. First error: row ${invalid[0].index+1} ${invalid[0].errors.join(', ')}` : 'No entries found.'; preview.classList.remove('hidden'); }
       toast('Import failed.','danger');
       return;
@@ -53,12 +61,15 @@ async function importDataFile(file){
       state.data[lang] = Array.from(map.values());
       saveVocab(lang);
     });
+    if(learningImported) VocabularyLearning.saveStore(VocabularyLearning.normalizeStore(payload.vocabularyLearning));
+    if(payload?.learnReviewTargets && typeof saveLearnReviewTargets === 'function') saveLearnReviewTargets(payload.learnReviewTargets);
+    if(payload?.practiceSrsPreference && typeof setLearnPracticeSrsPreference === 'function') setLearnPracticeSrsPreference(payload.practiceSrsPreference);
     updatePosOptions();
     updateParsingFilterOptions();
     renderList();
     updateDueBadge();
     if(preview){
-      preview.textContent = `Imported ${valid.length} entr${valid.length===1?'y':'ies'}${invalid.length ? `; skipped ${invalid.length} invalid row${invalid.length===1?'':'s'}` : ''}.`;
+      preview.textContent = `Imported ${valid.length} entr${valid.length===1?'y':'ies'}${learningImported ? ' and vocabulary learning history' : ''}${invalid.length ? `; skipped ${invalid.length} invalid row${invalid.length===1?'':'s'}` : ''}.`;
       preview.classList.remove('hidden');
     }
     toast('Import complete.','success');

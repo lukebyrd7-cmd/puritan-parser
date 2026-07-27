@@ -153,6 +153,13 @@ function computeMastery(item){
   const raw = (reps*ease)/((state.prefs.initialEase||2.5));
   return Math.round(clamp(raw/5*100, 0, 100));
 }
+function vocabularyMasteryGrade(item, store){
+  if(typeof VocabularyLearning === 'undefined' || typeof VocabularyMastery === 'undefined') return null;
+  const activeStore = store || VocabularyLearning.loadStore();
+  const status = VocabularyLearning.learningStatus(activeStore, item);
+  if(status !== VocabularyLearning.STATUS.KNOWN && status !== VocabularyLearning.STATUS.KNOWN_SELF_REPORTED) return null;
+  return VocabularyMastery.masteryGrade(VocabularyLearning.getRecord(activeStore, item) || {});
+}
 
 /* ---------- LIST VIEW ---------- */
 function renderList(){
@@ -160,6 +167,13 @@ function renderList(){
   const { query, minFreq, maxFreq, dueOnly, pos } = state.filters;
   const sort = $('#sortSelect')?.value||'freq-desc';
   const today = todayISO();
+  const masteryStore = typeof VocabularyLearning !== 'undefined' ? VocabularyLearning.loadStore() : null;
+  const masteryCache = new Map();
+  const masteryFor = item => {
+    const id = typeof VocabularyLearning !== 'undefined' ? VocabularyLearning.lemmaId(item) : item.id;
+    if(!masteryCache.has(id)) masteryCache.set(id, vocabularyMasteryGrade(item, masteryStore));
+    return masteryCache.get(id);
+  };
   let list = getCurrentStudyList().filter(it=>{
     if(!it) return false;
     const freq = it.freq||0;
@@ -174,7 +188,7 @@ function renderList(){
     if(sort==='freq-desc') return (b.freq||0)-(a.freq||0);
     if(sort==='freq-asc') return (a.freq||0)-(b.freq||0);
     if(sort==='due-asc') return (a.due||'9999').localeCompare(b.due||'9999');
-    if(sort==='mastery-asc') return computeMastery(a)-computeMastery(b);
+    if(sort==='mastery-asc') return (masteryFor(b)?.rank ?? -1) - (masteryFor(a)?.rank ?? -1);
     if(sort==='word-az') return displayHeadwordForEntry(a).localeCompare(displayHeadwordForEntry(b));
     return 0;
   });
@@ -188,8 +202,7 @@ function renderList(){
   }
   const visible = list.slice(0, LIST_RENDER_LIMIT);
   tbody.innerHTML = visible.map((it,i)=>{
-    const m = computeMastery(it);
-    const cls = m>60?'high':m>25?'mid':'low';
+    const mastery = masteryFor(it);
     const isDue = it.due<=today;
     const posColor = {noun:'#246b9c',verb:'#8a2b2b',adj:'#d97706',prep:'#475569',adv:'#2a9d8f'}[(it.pos||'').toLowerCase().slice(0,4)]||'#6b7280';
     return `<tr data-idx="${i}" style="cursor:pointer">
@@ -199,7 +212,7 @@ function renderList(){
       <td class="muted small">${escHtml(String(it.freq||0))}</td>
       <td class="muted small">${escHtml(it.due||'—')}</td>
       <td class="muted small">${typeof it.ease==='number'?it.ease.toFixed(1):'—'}</td>
-      <td><div class="mastery-wrap"><div class="mastery-bar"><div class="mastery-fill ${cls}" style="width:${m}%"></div></div><span class="mastery-pct">${m}</span></div></td>
+      <td>${mastery ? `<span class="mastery-grade" title="${escHtml(mastery.explanation)}">${escHtml(mastery.letter)} — ${escHtml(mastery.label)}</span>` : '<span class="muted small">Not tracked</span>'}</td>
     </tr>`;
   }).join('');
 

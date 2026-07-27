@@ -18,6 +18,7 @@ const PURITAN_PARSER_CORE_SCRIPTS = [
   'src/models/preferences.js',
   'src/models/dashboard-stats.js',
   'src/models/vocabulary-learning.js',
+  'src/core/vocabulary-mastery.js',
   'src/models/saved-vocabulary.js',
   'src/models/study-sets.js',
   'src/models/onboarding.js',
@@ -70,7 +71,7 @@ const PURITAN_PARSER_SCRIPTS = [
   ...Object.values(PURITAN_PARSER_FEATURE_SCRIPTS).flat(),
   'src/bootstrap.js'
 ];
-const PURITAN_PARSER_ASSET_VERSION = 'v1.7.2-mobile-startup-reader-restoration';
+const PURITAN_PARSER_ASSET_VERSION = 'v1.8-daily-practice-mastery';
 const PURITAN_SCRIPT_LOAD_TIMEOUT_MS = 9000;
 
 const puritanLoadedScripts = new Map();

@@ -95,20 +95,20 @@ function wireHomeReviewButtons(){
   };
 }
 
-test('Learn home exposes only Review Queue and Learning Paths workflows', () => {
+test('Learn home connects scheduled reviews, daily practice, and Learning Paths', () => {
   storage.delete(VocabularyLearning.STORAGE_KEY);
   storage.delete(StudySets.STORAGE_KEY);
   storage.delete(learn.LearnActivePathsStorageKey || 'pp_learn_active_paths');
   const html = renderPage('home');
   const text = renderedText(html);
-  ['Review Queue', 'Learning Paths', 'Active Paths', 'Study Sets (0)', 'More Practice', 'Practice Vocabulary', 'Paradigm Practice'].forEach(label => assert.match(text, new RegExp(label.replace(/[()]/g, '\\$&'))));
+  ['Scheduled reviews', 'Daily practice', 'Practice known words', 'Learning Paths', 'Active Paths', 'Study Sets (0)', 'More Practice', 'Practice Vocabulary', 'Paradigm Practice'].forEach(label => assert.match(text, new RegExp(label.replace(/[()]/g, '\\$&'))));
   const order = ['review-queue', 'learning-paths', 'study-sets', 'more-practice'].map(section => html.indexOf(`data-learn-dashboard-section="${section}"`));
   assert.deepEqual(order, [...order].sort((a, b) => a - b));
   assert.match(html, /data-learn-page="vocabulary:review:greek"/);
   assert.match(html, /data-learn-page="vocabulary:review:hebrew"/);
   assert.match(html, /data-learn-page="vocabulary:review:mixed"/);
   assert.doesNotMatch(text, /Continue Learning|Start Something New|Grammar Paths|Grammar Practice|Mixed Practice/);
-  assert.match(text, /Review what is due today/);
+  assert.match(text, /Scheduled reviews complete/);
   assert.match(text, /What you are actively learning/);
   assert.match(text, /No active learning paths/);
   assert.equal((html.match(/data-learn-page="study-sets"/g) || []).length, 1);
@@ -405,22 +405,22 @@ test('Dashboard review buttons show a calm empty state when no reviews are avail
     assert.equal(learn.learnState.page, 'vocabulary:review:greek');
     let text = renderedText(shell.root.innerHTML);
     assert.match(text, /Greek Review/);
-    assert.match(text, /No reviews available/);
-    assert.match(text, /Greek words you are learning will appear here when they are ready to review/);
+    assert.match(text, /Scheduled reviews complete/);
+    assert.match(text, /Continue daily practice/);
 
     shell.buttons.hebrew.click();
     assert.equal(learn.learnState.page, 'vocabulary:review:hebrew');
     text = renderedText(shell.root.innerHTML);
     assert.match(text, /Hebrew Review/);
-    assert.match(text, /No reviews available/);
-    assert.match(text, /Hebrew words you are learning will appear here when they are ready to review/);
+    assert.match(text, /Scheduled reviews complete/);
+    assert.match(text, /Continue daily practice/);
 
     shell.buttons.mixed.click();
     assert.equal(learn.learnState.page, 'vocabulary:review:mixed');
     text = renderedText(shell.root.innerHTML);
     assert.match(text, /Mixed Review/);
-    assert.match(text, /No reviews available/);
-    assert.match(text, /You are caught up for today/);
+    assert.match(text, /Scheduled reviews complete/);
+    assert.match(text, /Practice known words/);
   } finally {
     shell.restore();
   }
@@ -432,7 +432,7 @@ test('Learning preferences persist review targets and practice SRS preference', 
 
   assert.equal(learn.learnReviewTarget('greek'), 30);
   assert.equal(learn.learnReviewTarget('hebrew'), 30);
-  assert.equal(learn.learnPracticeSrsPreference(), 'ask');
+  assert.equal(learn.learnPracticeSrsPreference(), 'practice-only');
 
   learn.setLearnReviewTarget('greek', 'light');
   learn.setLearnReviewTarget('hebrew', 'custom', '72');
@@ -446,13 +446,19 @@ test('Learning preferences persist review targets and practice SRS preference', 
 
   assert.equal(learn.setLearnPracticeSrsPreference('count-srs'), 'count-srs');
   assert.equal(learn.learnPracticeSrsPreference(), 'count-srs');
-  assert.equal(learn.setLearnPracticeSrsPreference('nope'), 'ask');
+  storage.set(learn.LearnPracticeSrsPreferenceStorageKey, 'count-srs');
+  assert.equal(learn.learnPracticeSrsPreference(), 'count-srs');
+  storage.set(learn.LearnPracticeSrsPreferenceStorageKey, 'practice-only');
+  assert.equal(learn.learnPracticeSrsPreference(), 'practice-only');
+  assert.equal(learn.setLearnPracticeSrsPreference('nope'), 'practice-only');
+  storage.delete(learn.LearnPracticeSrsPreferenceStorageKey);
+  assert.equal(learn.learnPracticeSrsPreference(), 'practice-only');
 
   const html = renderPage('learning-preferences');
   const text = renderedText(html);
   assert.match(text, /Greek Review Target/);
   assert.match(text, /Hebrew Review Target/);
-  assert.match(text, /Ask whether to count practice toward SRS/);
+  assert.match(text, /Do not adjust schedule/);
 });
 
 test('Vocabulary Practice exposes on-demand sources and can practice non-due frequency words', () => {
@@ -489,6 +495,25 @@ test('Vocabulary Practice exposes on-demand sources and can practice non-due fre
   assert.match(renderedText(learn.renderLearnPage()), /Recognized 1/);
 
   storage.delete(learn.LearnPracticeSrsPreferenceStorageKey);
+});
+
+test('Maintenance practice setup exposes safe defaults and all targeting controls', () => {
+  learn.learnState.maintenanceSession = null;
+  learn.learnState.maintenanceConfig = null;
+  const html = renderPage('vocabulary:maintenance:greek');
+  const text = renderedText(html);
+  assert.match(text, /Greek maintenance practice/);
+  assert.match(text, /Words needing reinforcement Random known words Choose a book/);
+  assert.match(text, /C–F D–F All known words/);
+  assert.match(text, /10 20 50 Continue until stopped/);
+  assert.match(text, /Adjust review schedule from this session Default: Off/);
+  assert.match(text, /This session will not change review due dates/);
+  assert.match(html, /name="focus"[\s\S]*value="reinforcement" selected/);
+  assert.match(html, /name="gradeFilter"[\s\S]*value="c-f" selected/);
+  assert.doesNotMatch(html, /name="adjustSchedule" checked/);
+  const source = fs.readFileSync('src/features/learn/index.js', 'utf8');
+  assert.match(source, /function renderMaintenanceSetup\(language\)\{\s*ensureLearnManifest\(language\)/);
+  assert.match(source, /fetch\(`\/data\/\$\{language\}\/manifest\.json`\)/);
 });
 
 test('On-demand practice can count toward SRS through the preference', () => {

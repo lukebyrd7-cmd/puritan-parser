@@ -14,6 +14,7 @@
     KNOWN_SELF_REPORTED: 'Known by Self-Report'
   };
   const RECOGNIZED_INTERVALS = [1, 3, 7];
+  const MAX_MAINTENANCE_HISTORY = 20;
   const KNOWN_SOURCES = { REVIEW: 'review', MANUAL: 'manual', SELF_REPORTED: 'self_reported' };
   let cachedRaw = null;
   let cachedStore = null;
@@ -109,14 +110,16 @@
     const id = typeof entry === 'string' ? entry : lemmaId(entry);
     return normalizeStore(store).records[id] || null;
   }
-  function learningStatus(store, entry, dateISO = todayISO()){
-    const record = getRecord(store, entry);
+  function learningStatusForRecord(record, dateISO = todayISO()){
     if(!record) return STATUS.NOT_LEARNED;
     if(record.knownSource === KNOWN_SOURCES.SELF_REPORTED || record.status === STATUS.KNOWN_SELF_REPORTED) return STATUS.KNOWN_SELF_REPORTED;
     if(record.status === STATUS.KNOWN && record.knownSource === KNOWN_SOURCES.MANUAL) return STATUS.KNOWN;
     if(record.successCount >= 3 && clean(record.due) > dateISO) return STATUS.KNOWN;
     if(record.successCount > 0 || record.intervalDays > 1) return STATUS.REVIEWING;
     return STATUS.LEARNING;
+  }
+  function learningStatus(store, entry, dateISO = todayISO()){
+    return learningStatusForRecord(getRecord(store, entry), dateISO);
   }
   function formatDateLabel(dateISO, today = todayISO()){
     const date = clean(dateISO);
@@ -267,6 +270,49 @@
     next.records[id] = normalizeRecord(base);
     return next;
   }
+  function trimMaintenanceHistory(history = []){
+    let remaining = MAX_MAINTENANCE_HISTORY;
+    return history.slice().reverse().filter(event => {
+      if(event?.practice !== 'maintenance') return true;
+      if(remaining <= 0) return false;
+      remaining -= 1;
+      return true;
+    }).reverse();
+  }
+  function maintenancePracticeEntry(store, entry, result, options = {}, dateISO = todayISO()){
+    const adjustSchedule = options.adjustSchedule === true;
+    const normalizedResult = result === 'missed' ? 'missed' : 'recognized';
+    const next = adjustSchedule ? reviewEntry(store, entry, normalizedResult, dateISO) : normalizeStore(store);
+    const id = lemmaId(entry);
+    const record = normalizeRecord(next.records[id] || {
+      id,
+      lemma: clean(entry.lemma) || clean(entry.word),
+      lang: clean(entry.lang).toLowerCase(),
+      status: STATUS.KNOWN,
+      successCount: 3,
+      intervalDays: 0,
+      due: '9999-12-31',
+      introducedAt: dateISO,
+      history: []
+    });
+    if(adjustSchedule && record.history.length){
+      record.history[record.history.length - 1] = {
+        ...record.history[record.history.length - 1],
+        practice: 'maintenance',
+        scheduleAdjusted: true
+      };
+    } else {
+      record.history.push({
+        date: dateISO,
+        result: normalizedResult,
+        practice: 'maintenance',
+        scheduleAdjusted: false
+      });
+    }
+    record.history = trimMaintenanceHistory(record.history);
+    next.records[id] = normalizeRecord(record);
+    return next;
+  }
   function markEntryKnown(store, entry, source = {}, dateISO = todayISO()){
     const next = normalizeStore(store);
     const id = lemmaId(entry);
@@ -310,6 +356,9 @@
   function persistReviewEntry(entry, result, dateISO = todayISO()){
     return saveStore(reviewEntry(loadStore(), entry, result, dateISO));
   }
+  function persistMaintenancePracticeEntry(entry, result, options = {}, dateISO = todayISO()){
+    return saveStore(maintenancePracticeEntry(loadStore(), entry, result, options, dateISO));
+  }
 
   return {
     STORAGE_KEY,
@@ -322,6 +371,7 @@
     loadStore,
     saveStore,
     getRecord,
+    learningStatusForRecord,
     learningStatus,
     learningStatusDetails,
     formatDateLabel,
@@ -335,10 +385,13 @@
     remainingNotLearnedCount,
     introduceEntry,
     reviewEntry,
+    MAX_MAINTENANCE_HISTORY,
+    maintenancePracticeEntry,
     markEntryKnown,
     markPathKnown,
     dueEntries,
     persistIntroduceEntry,
-    persistReviewEntry
+    persistReviewEntry,
+    persistMaintenancePracticeEntry
   };
 });
