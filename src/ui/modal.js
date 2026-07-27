@@ -35,7 +35,9 @@ function openWordModal(item){
     ['Ease', typeof item.ease==='number'?item.ease.toFixed(2):'—'],
     ['Interval', item.interval ? `${item.interval} day${item.interval!==1?'s':''}` : '—'],
     ['Repetitions', item.repetitions||0],
-    ['Mastery', computeMastery(item)+'%'],
+    ['Mastery', typeof vocabularyMasteryGrade === 'function' && vocabularyMasteryGrade(item)
+      ? `${vocabularyMasteryGrade(item).letter} — ${vocabularyMasteryGrade(item).label}`
+      : 'Not tracked'],
   ]);
   if(item.studyEntryType === 'lemma') rows.splice(glossRows.length, 0, ['Forms', (item.forms || []).join(', ') || '—'], ['Representative form', item.representativeForm || '—']);
   $('#modalRows').innerHTML = `<div class="parse-explain">${escHtml(decoded)}</div>`+

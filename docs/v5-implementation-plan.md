@@ -363,7 +363,7 @@ Acceptance criteria:
 
 - Study Sets reuse learning-path architecture.
 - Practice hierarchy remains Vocabulary, Grammar, Mixed.
-- On-demand practice asks whether to count toward SRS by default.
+- Superseded by v1.8: maintenance practice exposes a session-level schedule-adjustment toggle that defaults Off; the legacy on-demand preference remains readable for older practice routes.
 
 Deferred:
 

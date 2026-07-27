@@ -5,6 +5,7 @@
   root.ProgressService = api;
 })(typeof globalThis !== 'undefined' ? globalThis : this, function(root){
   const VocabularyLearningModel = root.VocabularyLearning || (typeof require === 'function' ? require('../models/vocabulary-learning') : null);
+  const VocabularyMasteryModel = root.VocabularyMastery || (typeof require === 'function' ? require('./vocabulary-mastery') : null);
   const BookProgressModel = root.BookProgress || (typeof require === 'function' ? require('./book-progress') : null);
   const RecognitionModel = root.ParadigmRecognition || (typeof require === 'function' ? require('../features/learn/recognition-engine') : null);
   const RECOGNITION_STORAGE_KEY = 'pp_recognition_history';
@@ -101,6 +102,11 @@
   function loadVocabularyStore(){
     return VocabularyLearningModel?.loadStore ? VocabularyLearningModel.loadStore() : { records: {} };
   }
+  function reviewTarget(language){
+    if(typeof root.learnReviewTarget === 'function') return root.learnReviewTarget(language);
+    const saved = readJson('pp_learn_review_targets', {});
+    return Math.max(1, Number(saved?.[language]?.dailyTarget) || 30);
+  }
   function vocabularyProgress(entriesByLanguage = { greek: stateEntries('greek'), hebrew: stateEntries('hebrew') }, store = loadVocabularyStore(), dateISO = todayISO()){
     const normalized = VocabularyLearningModel?.normalizeStore ? VocabularyLearningModel.normalizeStore(store) : { records: store?.records || {} };
     const indexed = entryIndex(entriesByLanguage);
@@ -117,7 +123,9 @@
     records.forEach(record => {
       const entry = indexed.get(record.id) || record;
       const language = clean(record.lang || entry.lang).toLowerCase() || 'greek';
-      const status = VocabularyLearningModel?.learningStatus ? VocabularyLearningModel.learningStatus(normalized, entry, dateISO) : record.status;
+      const status = VocabularyLearningModel?.learningStatusForRecord
+        ? VocabularyLearningModel.learningStatusForRecord(record, dateISO)
+        : (VocabularyLearningModel?.learningStatus ? VocabularyLearningModel.learningStatus(normalized, entry, dateISO) : record.status);
       const bucket = byLanguage[language] || (byLanguage[language] = baseLanguageStats());
       if(status === VocabularyLearningModel?.STATUS?.KNOWN || status === 'Known'){
         bucket.known += 1;
@@ -144,11 +152,20 @@
       totals.notLearned += bucket.notLearned;
       const totalFrequency = entries.reduce((sum, entry) => sum + Math.max(0, Number(entry.freq) || 0), 0);
       const knownFrequency = entries.reduce((sum, entry) => {
-        const status = VocabularyLearningModel?.learningStatus ? VocabularyLearningModel.learningStatus(normalized, entry, dateISO) : '';
+        const record = normalized.records?.[VocabularyLearningModel?.lemmaId?.(entry) || entry?.id];
+        const status = VocabularyLearningModel?.learningStatusForRecord
+          ? VocabularyLearningModel.learningStatusForRecord(record, dateISO)
+          : (VocabularyLearningModel?.learningStatus ? VocabularyLearningModel.learningStatus(normalized, entry, dateISO) : '');
         const isKnown = status === VocabularyLearningModel?.STATUS?.KNOWN || status === VocabularyLearningModel?.STATUS?.KNOWN_SELF_REPORTED || status === 'Known' || status === 'Known by Self-Report';
         return isKnown ? sum + Math.max(0, Number(entry.freq) || 0) : sum;
       }, 0);
       bucket.coveragePercent = totalFrequency > 0 ? Math.round((knownFrequency / totalFrequency) * 100) : NOT_TRACKED;
+      bucket.mastery = VocabularyMasteryModel?.gradeDistribution
+        ? VocabularyMasteryModel.gradeDistribution(entries, normalized, VocabularyLearningModel, { dateISO })
+        : { A: 0, B: 0, C: 0, D: 0, F: 0, total: 0 };
+      bucket.dailyPractice = VocabularyMasteryModel?.dailyPracticeSummary
+        ? VocabularyMasteryModel.dailyPracticeSummary(normalized, language, dateISO, reviewTarget(language))
+        : { scheduled: 0, maintenance: 0, combined: 0, target: reviewTarget(language), remaining: reviewTarget(language), complete: false };
     });
     return { ...totals, byLanguage, records };
   }

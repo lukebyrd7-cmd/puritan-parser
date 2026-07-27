@@ -202,7 +202,23 @@ Language-specific review targets use a small local preference key, `pp_learn_rev
 
 Vocabulary learning transparency lives in `src/models/vocabulary-learning.js`. The model normalizes older records and exposes user-facing status details for Not Learned, Learning, Reviewing, Known, and future Known by Self-Report records. New review metadata should be derived through this helper rather than by duplicating status logic in Learn, Reader, or Progress.
 
-On-demand practice uses the local preference key `pp_learn_practice_srs_preference`, defaulting to `ask`. Practice flows should consult this preference before allowing optional practice to update SRS scheduling. Full Mixed Practice remains a later feature, but the storage hook is intentionally separate from review queue targets.
+### Daily practice and vocabulary mastery
+
+v1.8 keeps scheduled review and voluntary maintenance practice in the same vocabulary-learning architecture while presenting them as distinct work. Scheduled answers use `VocabularyLearning.reviewEntry()`. Maintenance answers use `VocabularyLearning.maintenancePracticeEntry()`: schedule adjustment Off appends only a tagged maintenance outcome; On calls the normal review transition and tags that resulting event. There is no second scheduler.
+
+`src/core/vocabulary-mastery.js` is the single deterministic calculator for mastery grades, weak-word ordering, maintenance-session construction, daily accounting, and grade distributions. A–F grades are derived summaries, not statuses or persisted labels. The calculator uses recorded recognized/missed outcomes, recent misses, maintenance evidence, and current interval evidence. Sparse or legacy Known records default to C — Developing. A requires established accurate recall and cannot be earned from interval length alone.
+
+Maintenance events are optional objects in the existing word `history`, distinguished by `practice: "maintenance"` and `scheduleAdjusted`. The model retains at most 20 maintenance events per word while preserving scheduled history. Older records need no migration and normalize safely.
+
+Daily goal accounting derives three sets for the active local study date and language: unique scheduled word IDs, unique maintenance word IDs, and their union. Category counts may overlap; the union is authoritative for the existing per-language `pp_learn_review_targets` goal. Repeated answers cannot increase any unique count. No daily-goal storage record is created.
+
+Maintenance setup passes one explicit session configuration: language, vocabulary source, optional selected book, practice order, selected mastery grades, finite size or continue-until-stopped, and schedule-adjustment state. All known vocabulary is the default source and ignores stale book values. One selected book uses the existing cached Book Progress occurrence vocabulary rather than scanning Scripture. Reinforcement and random ordering are independent of source, and grade selection is exact: the calculator never broadens the requested set.
+
+Finite maintenance sessions copy a unique ordered entry snapshot and do not rebuild after each answer. They contain the requested number of unique lemmas when available, or the complete smaller eligible pool with an explanation in setup. The editable size accepts whole numbers from 1 through 200; blank, nonnumeric, fractional, zero, negative, and larger values receive accessible inline validation. Continue-until-stopped cycles lazily through the same bounded eligible pool and does not prebuild an unbounded queue. The configuration is frozen when Start is pressed; setup itself writes no learning progress.
+
+Progress calculates mastery and daily summaries from one already-loaded vocabulary store. Word-status checks reuse each normalized record instead of normalizing the full store inside vocabulary loops; this keeps session construction and Progress summaries linear in the active collection size. Saving the vocabulary store invalidates the existing Progress cache. Grade summaries are not built during startup, inactive languages are not scanned from a card-answer path, and no generated mastery dataset exists.
+
+Legacy on-demand practice uses the local preference key `pp_learn_practice_srs_preference`, defaulting to practice-only (no schedule adjustment). Maintenance practice keeps its safer Off default at the session level. Full Mixed Practice remains a later feature, but the storage hook is intentionally separate from review queue targets.
 
 Study Sets use the local-first `pp_study_sets` key. The v5.8 shape is intentionally small: each set stores an id, title, language, type, timestamps, optional description, lightweight criteria, and optional item references. Vocabulary Study Sets resolve criteria against the current vocabulary source data and `VocabularyLearning` state instead of duplicating large source rows. Grammar and Mixed Study Sets can be saved as foundations, but full drill criteria are deferred until the grammar practice contract is stable enough to avoid an advanced query-builder UI.
 
@@ -575,7 +591,7 @@ JSON content continues to use service-worker network-first runtime caching. This
 
 ### Import/export future-proofing
 
-Import/export currently focuses on vocabulary records. Future persisted exports should remain local-first and versioned through the storage/migration layer. The export envelope can grow to include user progress, preferences, notes, custom glosses, and profile data, but static source content should stay separate from user data and should not be duplicated into user backups unless explicitly required.
+Import/export includes source vocabulary rows plus the optional normalized vocabulary-learning store, per-language review targets, and legacy on-demand SRS preference. Older vocabulary-only exports remain supported. Static source corpora remain separate from derived mastery summaries and are not duplicated as a mastery dataset.
 
 
 ### Gloss Architecture

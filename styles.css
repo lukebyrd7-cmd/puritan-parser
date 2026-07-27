@@ -1153,6 +1153,11 @@ button:focus-visible, input:focus-visible, select:focus-visible {
 }
 .learn-review-summary .learn-review-meta { font-size:12px; }
 .learn-review-actions { display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-top:2px; }
+.learn-daily-practice { border-top:1px solid var(--border); padding-top:14px; }
+.learn-daily-practice h3 { margin:0 0 10px; font-family:var(--font-serif); }
+.learn-daily-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; }
+.learn-daily-grid > div { display:flex; flex-direction:column; gap:3px; min-width:0; }
+.learn-daily-grid span { color:var(--muted); font-size:13px; }
 .learn-settings-action { width:32px; height:32px; margin-left:auto; border:1px solid var(--border); border-radius:50%; background:transparent; color:var(--muted); cursor:pointer; font-size:16px; line-height:1; }
 .learn-settings-action:hover, .learn-settings-action:focus-visible { border-color:var(--accent); color:var(--accent-dark); outline:none; }
 .learn-srs-status {
@@ -1503,6 +1508,41 @@ button:focus-visible, input:focus-visible, select:focus-visible {
   flex-wrap: wrap;
   margin-top: 6px;
 }
+.learn-maintenance-setup { display:grid; grid-template-columns:minmax(0,1fr); gap:18px; }
+.learn-maintenance-setup > label { display:flex; flex-direction:column; gap:6px; min-width:0; font-weight:700; }
+.learn-maintenance-setup > label small,
+.learn-maintenance-setup fieldset small { color:var(--muted); font-weight:400; }
+.learn-maintenance-setup > p,
+.learn-maintenance-setup > button,
+.learn-maintenance-toggle { grid-column:1 / -1; }
+.learn-maintenance-setup fieldset { min-width:0; margin:0; padding:0; border:0; }
+.learn-maintenance-setup legend { margin-bottom:8px; padding:0; font-weight:700; }
+.learn-maintenance-grades,
+.learn-maintenance-size { display:grid; gap:10px; }
+.learn-maintenance-grade-options { display:flex; gap:10px 16px; flex-wrap:wrap; }
+.learn-maintenance-grade-options label { display:flex; align-items:center; gap:7px; min-height:32px; cursor:pointer; }
+.learn-maintenance-grade-options input { flex:0 0 auto; }
+.learn-maintenance-grades > .btn { justify-self:start; }
+.learn-maintenance-size > label:not(.learn-maintenance-toggle) { display:grid; gap:6px; max-width:240px; font-weight:700; }
+.learn-maintenance-toggle { flex-direction:row !important; align-items:flex-start; cursor:pointer; }
+.learn-maintenance-toggle input { margin-top:4px; }
+.learn-maintenance-toggle span { display:flex; flex-direction:column; gap:2px; }
+.learn-maintenance-toggle small { color:var(--muted); font-weight:400; }
+.learn-maintenance-summary { padding:14px 16px; border:1px solid var(--border); border-radius:var(--radius-sm); background:var(--surface-2); }
+.learn-maintenance-summary h2 { margin:0 0 8px; font-size:17px; }
+.learn-maintenance-summary ul { display:grid; gap:4px; margin:0; padding-left:20px; }
+.learn-maintenance-summary p { margin:10px 0 0; }
+.learn-mastery-grade { width:100%; border-top:1px solid var(--border); padding-top:12px; }
+.learn-mastery-grade summary { display:flex; align-items:center; gap:8px; width:max-content; max-width:100%; cursor:pointer; font-weight:700; }
+.learn-mastery-grade p { margin:8px 0 0; color:var(--muted); font-size:14px; }
+.learn-grade-letter { display:inline-grid; place-items:center; min-width:28px; min-height:28px; border:1px solid var(--accent); border-radius:50%; color:var(--accent-dark); }
+.mastery-grade { font-weight:700; white-space:nowrap; }
+.word-page-mastery { margin-top:12px; }
+.word-page-mastery summary { cursor:pointer; font-weight:700; }
+.learn-session-summary { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px 18px; margin:14px 0; }
+.learn-session-summary div { border-bottom:1px solid var(--border); padding-bottom:8px; }
+.learn-session-summary dt { color:var(--muted); font-size:12px; }
+.learn-session-summary dd { margin:2px 0 0; font-weight:700; }
 .learn-recognition-progress {
   display: flex;
   gap: 8px;
@@ -1611,6 +1651,9 @@ button:focus-visible, input:focus-visible, select:focus-visible {
   .learn-header h1 { font-size: 30px; }
   .learn-card-grid { grid-template-columns: 1fr; }
   .learn-review-summary-grid { grid-template-columns: 1fr; }
+  .learn-daily-grid,
+  .learn-maintenance-setup,
+  .learn-session-summary { grid-template-columns:1fr; }
   .learn-srs-status dl { grid-template-columns: 1fr; }
   .learn-study-stats { grid-template-columns: 1fr; }
   .learn-progress-row { grid-template-columns: 1fr; }

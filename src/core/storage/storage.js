@@ -51,7 +51,11 @@ function clearUserStorage(){
     StorageKeys.lastLang,
     'pp_onboarding_completed',
     'pp_onboarding_profile',
-    'pp_onboarding_start_here'
+    'pp_onboarding_start_here',
+    'pp_learn_review_targets',
+    'pp_learn_practice_srs_preference',
+    'pp_learn_active_paths',
+    'pp_recognition_history'
   ].forEach(removeStorageKey);
 }
 function getLastLanguage(){ return activeStorageAdapter.get(StorageKeys.lastLang); }

@@ -4,6 +4,22 @@ This changelog is a human-readable project history, not a Git log. Future entrie
 
 ## Unreleased
 
+### v1.8 Daily Practice and Vocabulary Mastery
+
+- Made maintenance practice of known Greek and Hebrew words a first-class Learn action beside scheduled reviews and in the scheduled-review completion state.
+- Connected the existing per-language review targets to unique daily vocabulary practice. Scheduled and maintenance category counts remain separate; their deduplicated union drives goal completion, so repeated attempts and overlap never inflate the goal.
+- Added deterministic A–F mastery summaries from recorded scheduled and maintenance outcomes. Sparse legacy records begin at Developing, established accurate histories can advance, and recent or repeated misses lower confidence without changing the underlying Known/Learning status.
+- Refined maintenance practice into independent controls for vocabulary source, practice order, mastery grades, and session size. All known vocabulary is the default; One selected book conditionally reveals the complete language-specific book list and uses the cached occurrence index. Reinforcement and random ordering work in either scope.
+- Replaced grade ranges with accessible independent A–F checkboxes, defaulting to C, D, and F with a Select all action and source-aware eligible counts. Empty grade sets and empty pools show inline guidance without silently broadening scope or grades.
+- Replaced preset sizes with an exact whole-number field from 1 through 200 plus Continue until stopped. Finite sessions use unique lemmas and explain smaller eligible pools before Start; unlimited sessions retain a bounded reusable pool.
+- Made the Learn dashboard maintenance action contextual: scheduled work keeps Practice known words as a secondary action, zero-due incomplete goals show only Continue daily practice, completed goals show Continue practicing, and unavailable review actions are hidden.
+- Added a session-level schedule-adjustment control that defaults Off. Off records bounded maintenance evidence without changing status, due date, interval, or success count; On routes the answer through the existing vocabulary review transition and tags it as maintenance.
+- Extended Progress with per-language mastery distribution, D/F reinforcement counts, daily goal progress, and separate scheduled/maintenance totals.
+- Kept maintenance events in the existing `pp_vocab_learning` word records, bounded to the 20 newest maintenance outcomes. No migration, second vocabulary store, second scheduler, or second goal record was added.
+- Expanded export/import to carry the optional vocabulary-learning store, review targets, and legacy on-demand SRS preference while retaining support for older vocabulary-only exports. Clear All removes the related Learn records intentionally.
+- Added accessible grade disclosures, native setup controls, responsive 320px layouts, and methodology notes under Settings → About & Sources.
+- Bumped the offline cache once after the controls refinement to `puritan-parser-v79-v1.8-practice-controls-polish`; no Reader corpus, linguistic source, or generated data changed.
+
 ### v1.7.2 Mobile startup and Reader restoration
 
 - Added a delayed startup explanation and a recoverable error state with native Retry and home actions. Retry starts a new bounded startup generation and preserves local vocabulary, review, settings, and Reader data.
