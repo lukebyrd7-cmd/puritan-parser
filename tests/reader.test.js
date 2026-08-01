@@ -1448,7 +1448,7 @@ test('Word Page learning section reflects shared vocabulary learning state', () 
   delete global.getStudyEntries;
 });
 
-test('Word Page adds vocabulary to Study Sets without changing SRS status', () => {
+test('Word Page adds vocabulary to Custom Decks without changing SRS status', () => {
   const storage = new Map();
   global.localStorage = {
     getItem: key => storage.get(key) || null,
@@ -1464,7 +1464,7 @@ test('Word Page adds vocabulary to Study Sets without changing SRS status', () =
   const existing = StudySets.createStudySet({ title: 'Sermon words', language: 'greek', type: 'vocabulary', criteria: { kind: 'hand-picked' } }).set;
   const info = { language: 'greek', lemma: 'λόγος', surface: 'λόγος' };
   let html = reader.renderReaderWordStudySets(info);
-  assert.match(renderedText(html), /Study Sets Add this word to a collection/);
+  assert.match(renderedText(html), /Custom Decks Add this word to a collection/);
   assert.match(html, /data-word-study-set-add="true"/);
   assert.match(html, /data-word-study-set-create="true"/);
 

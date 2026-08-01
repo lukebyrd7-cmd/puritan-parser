@@ -104,7 +104,7 @@ function startParsing(){
   state.parsingFilters = readParsingFiltersFromDOM();
   let pool = parsingPool();
   if(!pool.length){
-    toast('No parseable words found. Words need a "parse" field in your vocab JSON (e.g. "parse":"N-NSM").','danger'); return;
+    toast('No forms are available for this selection. Try another drill family.','danger'); return;
   }
   pool = shuffle(pool).slice(0, Math.min(count, pool.length));
   parsingSession = { questions: pool, idx:0, correct:0, total:pool.length, results:[], wordformsLemma: '' };

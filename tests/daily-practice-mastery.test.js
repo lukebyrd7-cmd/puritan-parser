@@ -273,7 +273,9 @@ test('export and import keep optional learning history while older vocabulary-on
   assert.match(source, /vocabularyLearning:\s*typeof VocabularyLearning/);
   assert.match(source, /learnReviewTargets:\s*typeof learnReviewTargets/);
   assert.match(source, /practiceSrsPreference:\s*typeof learnPracticeSrsPreference/);
-  assert.match(source, /if\(!valid\.length && !learningImported\)/);
+  assert.match(source, /learningPractice:\s*typeof LearningPractice/);
+  assert.match(source, /customDecks:\s*typeof PuritanStudySets/);
+  assert.match(source, /if\(!valid\.length && !learningImported && !practiceImported && !decksImported\)/);
   assert.match(source, /VocabularyLearning\.saveStore\(VocabularyLearning\.normalizeStore\(payload\.vocabularyLearning\)\)/);
 });
 

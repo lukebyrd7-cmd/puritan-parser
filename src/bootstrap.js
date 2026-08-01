@@ -11,6 +11,7 @@ function refreshActiveViewAfterData(){
   const view = state.currentView;
   if(view === 'learnView' && typeof renderLearn === 'function') renderLearn();
   else if(view === 'listView' && typeof renderList === 'function') renderList();
+  else if(view === 'globalSearchView' && typeof renderGlobalSearch === 'function') renderGlobalSearch();
   else if(view === 'progressView' && typeof renderProgress === 'function') {
     if(typeof invalidateProgressViewCache === 'function') invalidateProgressViewCache();
     renderProgress();
@@ -77,7 +78,9 @@ async function init(){
     $$('.fc-word-display').forEach(el=>el.style.fontSize=state.prefs.cardFontSize+'px');
   }
   const dataCriticalViews = ['learnView', 'listView', 'flashView', 'parsingView', 'dashboardView', 'progressView', 'globalSearchView'];
-  if(typeof window !== 'undefined' && !dataCriticalViews.includes(state.currentView)) {
+  if(typeof window !== 'undefined' && state.currentView === 'globalSearchView') {
+    // The Search feature renders its interactive shell before beginning corpus hydration.
+  } else if(typeof window !== 'undefined' && !dataCriticalViews.includes(state.currentView)) {
     scheduleNoncriticalAppDataLoad();
   } else if(typeof window !== 'undefined' && typeof window.requestAnimationFrame === 'function') {
     window.requestAnimationFrame(() => setTimeout(() => startAppDataLoad().catch(reportAppDataLoadError), 0));

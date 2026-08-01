@@ -10,6 +10,7 @@
     hebrew: ['60', '30', '10', '5', 'all']
   };
   const cache = new Map();
+  const manifestCache = new Map();
 
   function clean(value){ return typeof value === 'string' ? value.trim() : ''; }
   function normalizeText(value){ return clean(value).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, ''); }
@@ -41,16 +42,44 @@
     }
     return fallbackBook(language, bookId);
   }
+  async function listBooks(language){
+    if(typeof root.loadReaderManifest === 'function'){
+      const manifest = await root.loadReaderManifest(language);
+      const books = Array.isArray(manifest?.books) ? manifest.books : [];
+      if(books.length) return books.map(book => ({ ...book, chapters: Array.isArray(book.chapters) ? book.chapters : [] }));
+    }
+    if(typeof require === 'function'){
+      try {
+        const manifest = require(`../../data/${language}/manifest.json`);
+        if(Array.isArray(manifest.books)) return manifest.books.map(book => ({ ...book, chapters: Array.isArray(book.chapters) ? book.chapters : [] }));
+      } catch(e) {}
+    }
+    if(typeof root.fetch === 'function'){
+      if(!manifestCache.has(language)) manifestCache.set(language, root.fetch(`/data/${language}/manifest.json`).then(response => {
+        if(!response.ok) throw new Error(`Unable to load the ${language} book list.`);
+        return response.json();
+      }));
+      const manifest = await manifestCache.get(language);
+      if(Array.isArray(manifest?.books)) return manifest.books.map(book => ({ ...book, chapters: Array.isArray(book.chapters) ? book.chapters : [] }));
+    }
+    return [fallbackBook(language)];
+  }
   async function loadChapter(language, bookId, chapter){
     if(typeof root.loadReaderChapter === 'function') return root.loadReaderChapter(language, bookId, chapter);
     if(typeof require === 'function') return require(`../../data/${language}/${bookId}/${chapter}.json`);
+    if(typeof root.fetch === 'function'){
+      const response = await root.fetch(`/data/${language}/${bookId}/${chapter}.json`);
+      if(!response.ok) throw new Error(`Unable to load ${bookId} ${chapter}.`);
+      return response.json();
+    }
     throw new Error('Reader chapter loading is unavailable.');
   }
   async function loadBookChapters(language, bookId){
     if(typeof root.loadReaderManifest === 'function') {
       try { await root.loadReaderManifest(language); } catch(e) {}
     }
-    const book = getBook(language, bookId);
+    const books = await listBooks(language);
+    const book = books.find(item => item.id === bookId) || books[0] || getBook(language, bookId);
     const chapters = Array.isArray(book?.chapters) ? book.chapters : [];
     const data = await Promise.all(chapters.map(chapter => loadChapter(language, book.id, chapter)));
     return { book, chapters: data };
@@ -147,7 +176,8 @@
     return result;
   }
   async function chapterProgress(language, bookId, chapter, options = {}){
-    const book = getBook(language, bookId);
+    const books = await listBooks(language);
+    const book = books.find(item => item.id === bookId) || getBook(language, bookId);
     const chapterData = await loadChapter(language, book.id, Number(chapter) || 1);
     const store = options.store || VocabularyLearningModel?.loadStore?.();
     const overall = calculateProgress({ language, book, chapters: [chapterData], chapter: Number(chapterData.chapter), store });
@@ -160,6 +190,7 @@
     cache,
     languageThresholds,
     frequencyLabel,
+    listBooks,
     collectVocabulary,
     calculateProgress,
     bookProgress,

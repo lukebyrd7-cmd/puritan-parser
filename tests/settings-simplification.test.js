@@ -14,6 +14,9 @@ test('legacy form-mode preferences migrate to lemma study without dropping data'
   assert.equal(migrated.studyMode, 'lemma');
   assert.equal(migrated.accent, '#123456');
   assert.equal(migrated.customPreference, 'kept');
+  const legacyPreset = createPreferences({ srsPreset: 'gentle', dailyCap: 100, newPerDay: 10 });
+  assert.equal(legacyPreset.srsPreset, 'gentle');
+  assert.equal(legacyPreset.studyMode, 'lemma');
 });
 
 test('SRS presets map to existing scheduler preferences and preserve the algorithm', () => {
@@ -34,7 +37,8 @@ test('settings markup uses named theme swatches and a native custom color picker
   const theme = fs.readFileSync('src/ui/theme.js', 'utf8');
   ['Neutral Green', 'Slate', 'Ocean', 'Warm Sand', 'Deep Blue', 'Burgundy'].forEach(name => assert.match(theme, new RegExp(name)));
   assert.match(html, /id="customAccent" type="color"/);
-  assert.match(html, /id="srsPreset"/);
+  assert.doesNotMatch(html, /id="srsPreset"/);
+  assert.doesNotMatch(html, />\s*(Gentle|Balanced|Intensive)\s*</);
   assert.doesNotMatch(html, /id="studyModeSetting"|id="initialEase"|id="minEase"/);
 });
 
@@ -42,7 +46,15 @@ test('About & Sources is a normal Settings destination with the required section
   const html = fs.readFileSync('index.html', 'utf8');
   const settings = fs.readFileSync('src/features/settings/index.js', 'utf8');
   assert.match(html, /id="openAboutSourcesBtn"/);
+  assert.match(html, /id="openPracticeMethodologyBtn"[^>]*>Learn how practice and scheduling work/);
   assert.match(settings, /About The Puritan Parser/);
+  assert.match(settings, /id="how-vocabulary-practice-works"/);
+  assert.match(settings, /Scheduled reviews come first/);
+  assert.match(settings, /Greek first/);
+  assert.match(settings, /Hebrew first/);
+  assert.match(settings, /Recent maintenance outcomes are kept in a limited history/);
+  assert.doesNotMatch(settings, /vocabulary-mastery-methodology/);
+  assert.doesNotMatch(settings, />\s*(Gentle|Balanced|Intensive)\s*</);
   assert.match(settings, /Greek Reference Sources/);
   assert.match(settings, /Hebrew Reference Sources/);
   assert.match(settings, /Text and Translation Sources/);

@@ -19,6 +19,7 @@ const PURITAN_PARSER_CORE_SCRIPTS = [
   'src/models/dashboard-stats.js',
   'src/models/vocabulary-learning.js',
   'src/core/vocabulary-mastery.js',
+  'src/core/learning-practice.js',
   'src/models/saved-vocabulary.js',
   'src/models/study-sets.js',
   'src/models/onboarding.js',
@@ -71,7 +72,7 @@ const PURITAN_PARSER_SCRIPTS = [
   ...Object.values(PURITAN_PARSER_FEATURE_SCRIPTS).flat(),
   'src/bootstrap.js'
 ];
-const PURITAN_PARSER_ASSET_VERSION = 'v1.8-practice-controls-polish';
+const PURITAN_PARSER_ASSET_VERSION = 'v1.8.1-unified-learning-practice-verified-5';
 const PURITAN_SCRIPT_LOAD_TIMEOUT_MS = 9000;
 
 const puritanLoadedScripts = new Map();
@@ -153,7 +154,8 @@ function puritanFeatureReadyForView(viewId = '') {
 window.PuritanModuleLoader = {
   ensureView(viewId) { return ensurePuritanFeature(featureForView(viewId)); },
   isViewReady: puritanFeatureReadyForView,
-  featureForPath
+  featureForPath,
+  ensureRecognitionData() { return loadScriptSequentially('src/features/grammar/reference-data.js'); }
 };
 
 let puritanStartupGeneration = 0;

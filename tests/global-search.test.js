@@ -4,16 +4,19 @@ const fs = require('node:fs');
 const vm = require('node:vm');
 
 const storage = new Map();
+let storageWriteCount = 0;
 global.localStorage = {
   getItem: key => storage.get(key) || null,
-  setItem: (key, value) => storage.set(key, value),
-  removeItem: key => storage.delete(key)
+  setItem: (key, value) => { storageWriteCount += 1; storage.set(key, value); },
+  removeItem: key => { storageWriteCount += 1; storage.delete(key); }
 };
 global.escHtml = value => String(value || '').replace(/[&<>]/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[ch]));
 global.normalizeAlternateGlosses = value => Array.isArray(value) ? value.map(item => String(item).trim()).filter(Boolean) : [];
 global.getDisplayGloss = entry => entry.customGloss || entry.primaryGloss || entry.gloss || '';
 global.getStudyEntries = entries => entries;
+global.getStudyEntriesAsync = async entries => entries;
 global.state = {
+  dataRevision: 0,
   prefs: { studyMode: 'lemma' },
   data: {
     greek: [
@@ -137,6 +140,87 @@ test('Global Search limits default rendering and can show more', () => {
   global.state.data.greek = originalGreek;
 });
 
+test('Book and chapter scopes filter Greek and Hebrew vocabulary and clear invalid state', async () => {
+  const originalBookProgress = global.BookProgress;
+  const rootEl = { querySelector: () => null };
+  const greekEntries = global.state.data.greek;
+  const hebrewEntries = global.state.data.hebrew;
+  global.BookProgress = {
+    listBooks: async language => language === 'greek'
+      ? [{ id: 'romans', name: 'Romans', chapters: [1, 8] }, { id: 'mark', name: 'Mark', chapters: [1] }]
+      : [{ id: 'genesis', name: 'Genesis', chapters: [1, 2] }],
+    bookProgress: async (language, bookId) => ({ overall: { vocabulary: language === 'greek'
+      ? greekEntries.map((entry, index) => ({ entry, count: index + 2 }))
+      : hebrewEntries.map((entry, index) => ({ entry, count: index + 3 })) } }),
+    chapterProgress: async (language, bookId, chapter) => ({ overall: { vocabulary: language === 'greek'
+      ? [{ entry: greekEntries[1], count: Number(chapter) === 8 ? 4 : 1 }]
+      : [{ entry: hebrewEntries[0], count: Number(chapter) === 1 ? 5 : 1 }] } })
+  };
+
+  search.setSearchLanguage('greek');
+  await search.loadSearchBooks('greek', rootEl);
+  search.setSearchBook('romans');
+  await search.applySearchPassageScope(rootEl);
+  let result = search.searchGlobalVocabulary({ language: 'greek', bookId: 'romans' });
+  assert.deepEqual(result.results.map(item => item.headword).sort(), ['λόγος', 'ἀγάπη'].sort());
+
+  search.SEARCH_STATE.passageScope = 'chapter';
+  search.SEARCH_STATE.chapter = 8;
+  await search.applySearchPassageScope(rootEl);
+  result = search.searchGlobalVocabulary({ query: 'love', language: 'greek', bookId: 'romans' });
+  assert.deepEqual(result.results.map(item => item.headword), ['ἀγάπη']);
+  assert.equal(result.results[0].scopeFrequency, 4);
+
+  search.setSearchBook('mark');
+  assert.equal(search.SEARCH_STATE.chapter, 0);
+  assert.equal(search.SEARCH_STATE.passageScope, 'book');
+  search.setSearchLanguage('hebrew');
+  assert.equal(search.SEARCH_STATE.bookId, '');
+  assert.equal(search.SEARCH_STATE.chapter, 0);
+  await search.loadSearchBooks('hebrew', rootEl);
+  search.setSearchBook('genesis');
+  await search.applySearchPassageScope(rootEl);
+  result = search.searchGlobalVocabulary({ query: 'matter', language: 'hebrew', bookId: 'genesis' });
+  assert.equal(result.results[0].headword, 'דָּבָר');
+  search.SEARCH_STATE.passageScope = 'chapter';
+  search.SEARCH_STATE.chapter = 1;
+  await search.applySearchPassageScope(rootEl);
+  result = search.searchGlobalVocabulary({ query: 'davar', language: 'hebrew', bookId: 'genesis' });
+  assert.equal(result.results[0].headword, 'דָּבָר');
+  assert.equal(result.results[0].scopeFrequency, 5);
+
+  search.SEARCH_STATE.chapter = 99;
+  await search.applySearchPassageScope(rootEl);
+  assert.equal(search.SEARCH_STATE.chapter, 0);
+  search.setSearchLanguage('all');
+  global.BookProgress = originalBookProgress;
+});
+
+test('chapter scope composes with user and vocabulary filters', async () => {
+  const originals = { BookProgress: global.BookProgress, LearningPractice: global.LearningPractice, VocabularyMastery: global.VocabularyMastery, PuritanStudySets: global.PuritanStudySets };
+  const entry = global.state.data.greek[1];
+  let store = global.VocabularyLearning.normalizeStore();
+  store = global.VocabularyLearning.introduceEntry(store, entry, { type: 'test' }, '2026-07-03');
+  global.VocabularyLearning.saveStore(store);
+  global.LearningPractice = { ATTENTION_KEY: 'test-attention', revision: () => 1, loadAttention: () => ({ items: { [entry.id]: { language: 'greek' } } }) };
+  global.VocabularyMastery = { masteryGrade: () => ({ letter: 'A' }) };
+  global.PuritanStudySets = { STORAGE_KEY: 'test-decks', listStudySets: () => [{ id: 'deck-1', type: 'vocabulary', language: 'greek', vocabularyIds: [entry.id] }] };
+  global.BookProgress = {
+    listBooks: async () => [{ id: 'romans', name: 'Romans', chapters: [8] }],
+    chapterProgress: async () => ({ overall: { vocabulary: [{ entry, count: 4 }] } }),
+    bookProgress: async () => ({ overall: { vocabulary: [{ entry, count: 4 }] } })
+  };
+  search.setSearchLanguage('greek');
+  search.setSearchBook('romans');
+  search.SEARCH_STATE.passageScope = 'chapter'; search.SEARCH_STATE.chapter = 8;
+  await search.applySearchPassageScope({ querySelector: () => null });
+  await search.prepareGlobalSearchIndex();
+  const result = search.searchGlobalVocabulary({ query: 'love', language: 'greek', bookId: 'romans', status: 'Learning', mastery: 'A', attentionOnly: true, partOfSpeech: 'Noun', frequencyMinimum: 100, frequencyMaximum: 200, deckId: 'deck-1' });
+  assert.deepEqual(result.results.map(item => item.headword), ['ἀγάπη']);
+  Object.assign(global, originals);
+  search.setSearchLanguage('all');
+});
+
 test('Global Search indexes browser app lexical state and realistic study entries', () => {
   const context = {
     console,
@@ -174,7 +258,7 @@ test('Global Search indexes browser app lexical state and realistic study entrie
   assert.equal(result.results.every(item => item.language === 'hebrew'), true);
 });
 
-test('Global Search renders in the app shell without the optional global DOM helper', () => {
+test('Global Search renders in the app shell without the optional global DOM helper', async () => {
   const originalDocument = global.document;
   const originalDollar = global.$;
   const originalDoubleDollar = global.$$;
@@ -182,7 +266,10 @@ test('Global Search renders in the app shell without the optional global DOM hel
   const makeEl = id => ({
     id,
     innerHTML: '',
-    addEventListener(){},
+    value: '',
+    listeners: {},
+    addEventListener(type, handler){ this.listeners[type] = handler; },
+    classList: { toggle(){}, contains(){ return false; } },
     querySelector: selector => elements.get(selector.slice(1)) || null,
     querySelectorAll: () => []
   });
@@ -191,7 +278,7 @@ test('Global Search renders in the app shell without the optional global DOM hel
     set innerHTML(value){
       this.rawHtml = value;
       if(value.includes('globalSearchPanel')){
-        ['globalSearchPanel', 'globalSearchInput', 'globalSearchLanguage', 'globalSearchStatus', 'globalSearchSort', 'globalSearchSummary', 'globalSearchResults', 'globalSearchActions', 'closeGlobalSearch'].forEach(id => {
+        ['globalSearchPanel', 'globalSearchForm', 'globalSearchInput', 'globalSearchLanguage', 'globalSearchStatus', 'globalSearchMastery', 'globalSearchPartOfSpeech', 'globalSearchBook', 'globalSearchPassageScopeField', 'globalSearchPassageScope', 'globalSearchChapterField', 'globalSearchChapter', 'globalSearchDeck', 'globalSearchAttention', 'globalSearchFrequencyMinimum', 'globalSearchFrequencyMaximum', 'globalSearchSort', 'globalSearchSummary', 'globalSearchResults', 'globalSearchActions', 'closeGlobalSearch'].forEach(id => {
           if(!elements.has(id)) elements.set(id, makeEl(id));
         });
       }
@@ -214,20 +301,83 @@ test('Global Search renders in the app shell without the optional global DOM hel
   search.SEARCH_STATE.sort = 'relevance';
   search.SEARCH_STATE.visible = search.RESULT_LIMIT;
 
+  global.state.dataRevision += 1;
   const html = search.renderGlobalSearch();
   assert.match(html, /id="globalSearchTitle"/);
-  assert.match(html, /Search Words/);
+  assert.match(html, /Vocabulary Search/);
   assert.match(html, /id="globalSearchInput"/);
   assert.match(html, /Greek/);
   assert.match(html, /Hebrew/);
-  assert.match(html, /Search words by lemma or gloss/);
+  assert.equal(elements.get('globalSearchSummary').textContent, 'Preparing vocabulary search…');
+  assert.ok(elements.get('globalSearchInput').listeners.input === undefined || typeof elements.get('globalSearchInput').focus !== 'undefined' || elements.get('globalSearchInput'));
+
+  elements.get('globalSearchInput').value = 'love';
+  elements.get('globalSearchForm').listeners.submit({ preventDefault(){} });
+  assert.equal(search.SEARCH_STATE.query, 'love');
+  await search.prepareGlobalSearchIndex();
+  await new Promise(resolve => setTimeout(resolve, 10));
+  assert.match(elements.get('globalSearchResults').innerHTML, /ἀγάπη/);
+  assert.match(elements.get('globalSearchSummary').innerHTML, /results/);
 
   global.document = originalDocument;
   if(originalDollar) global.$ = originalDollar;
   if(originalDoubleDollar) global.$$ = originalDoubleDollar;
 });
 
-test('Global Search result updates do not replace the input shell while typing', () => {
+test('Global Search reuses corpus work, refreshes user decoration separately, and performs no writes', async () => {
+  await search.prepareGlobalSearchIndex();
+  const baseline = search.globalSearchIndexDebug();
+  const writesBeforeReadOnlyWork = storageWriteCount;
+  await Promise.all([search.prepareGlobalSearchIndex(), search.prepareGlobalSearchIndex()]);
+  search.searchGlobalVocabulary({ query: 'logos', language: 'greek', sort: 'frequency' });
+  assert.equal(storageWriteCount, writesBeforeReadOnlyWork);
+  assert.equal(search.globalSearchIndexDebug().preparationCount, baseline.preparationCount);
+
+  global.state.dataRevision += 1;
+  await search.prepareGlobalSearchIndex();
+  const afterCorpus = search.globalSearchIndexDebug();
+  assert.equal(afterCorpus.corpusBuildCount, baseline.corpusBuildCount + 1);
+
+  storage.set(global.VocabularyLearning.STORAGE_KEY, JSON.stringify(global.VocabularyLearning.normalizeStore()));
+  await search.prepareGlobalSearchIndex();
+  const afterUserData = search.globalSearchIndexDebug();
+  assert.equal(afterUserData.corpusBuildCount, afterCorpus.corpusBuildCount);
+  assert.equal(afterUserData.decorationBuildCount, afterCorpus.decorationBuildCount + 1);
+  assert.equal(storageWriteCount, writesBeforeReadOnlyWork);
+});
+
+test('leaving cold Global Search suppresses the pending result render', async () => {
+  const originalDocument = global.document;
+  const originalShowView = global.showView;
+  const elements = new Map();
+  const makeEl = id => ({ id, innerHTML: '', value: '', listeners: {}, addEventListener(type, handler){ this.listeners[type] = handler; }, classList: { toggle(){}, contains(){ return false; } }, querySelector: selector => elements.get(selector.slice(1)) || null, querySelectorAll: () => [] });
+  const shell = {
+    dataset: {},
+    rawHtml: '',
+    set innerHTML(value){
+      this.rawHtml = value;
+      if(value.includes('globalSearchPanel')) ['globalSearchPanel','globalSearchForm','globalSearchInput','globalSearchLanguage','globalSearchStatus','globalSearchMastery','globalSearchPartOfSpeech','globalSearchBook','globalSearchPassageScopeField','globalSearchPassageScope','globalSearchChapterField','globalSearchChapter','globalSearchDeck','globalSearchAttention','globalSearchFrequencyMinimum','globalSearchFrequencyMaximum','globalSearchSort','globalSearchSummary','globalSearchResults','globalSearchActions','closeGlobalSearch'].forEach(id => { if(!elements.has(id)) elements.set(id, makeEl(id)); });
+    },
+    get innerHTML(){ return this.rawHtml; },
+    querySelector: selector => elements.get(selector.slice(1)) || null,
+    querySelectorAll: () => [],
+    closest: () => null
+  };
+  global.document = { querySelector: selector => selector === '#globalSearchShell' ? shell : elements.get(selector.slice(1)) || null, querySelectorAll: () => [] };
+  let shown = '';
+  global.showView = view => { shown = view; };
+  global.state.dataRevision += 1;
+  search.renderGlobalSearch();
+  elements.get('closeGlobalSearch').listeners.click();
+  await search.prepareGlobalSearchIndex();
+  await new Promise(resolve => setTimeout(resolve, 10));
+  assert.equal(shown, 'learnView');
+  assert.equal(elements.get('globalSearchResults').innerHTML, '');
+  global.document = originalDocument;
+  global.showView = originalShowView;
+});
+
+test('Global Search result updates do not replace the input shell while typing', async () => {
   const input = { id: 'globalSearchInput', value: 'wo', addEventListener(){} };
   const summary = { id: 'globalSearchSummary', innerHTML: '' };
   const results = { id: 'globalSearchResults', innerHTML: '' };
@@ -250,6 +400,7 @@ test('Global Search result updates do not replace the input shell while typing',
   search.SEARCH_STATE.sort = 'relevance';
   search.SEARCH_STATE.visible = search.RESULT_LIMIT;
 
+  await search.prepareGlobalSearchIndex();
   search.renderGlobalSearchResults(rootEl);
   assert.equal(input.value, 'wo');
   assert.match(rootEl.innerHTML, /globalSearchInput/);
@@ -278,4 +429,22 @@ test('Global Search result handoff opens a lemma-level Word Page', () => {
 
   delete global.openReaderWordPageFromInfo;
   delete global.showView;
+});
+
+test('Global Search lazy-loads the Reader before a cold Word Page handoff', async () => {
+  let loadedView = '';
+  let openedInfo = null;
+  delete global.openReaderWordPageFromInfo;
+  global.PuritanModuleLoader = {
+    ensureView: async view => {
+      loadedView = view;
+      global.openReaderWordPageFromInfo = info => { openedInfo = info; };
+    }
+  };
+  const item = search.searchGlobalVocabulary({ query: 'love', language: 'greek' }).results[0];
+  assert.equal(await search.openGlobalSearchResult(item), true);
+  assert.equal(loadedView, 'wordPageView');
+  assert.equal(openedInfo.lemma, 'ἀγάπη');
+  delete global.PuritanModuleLoader;
+  delete global.openReaderWordPageFromInfo;
 });

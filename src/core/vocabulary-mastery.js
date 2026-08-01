@@ -22,25 +22,29 @@
   function clean(value){ return typeof value === 'string' ? value.trim() : ''; }
   function practiceEvents(record = {}){
     return (Array.isArray(record.history) ? record.history : []).filter(event =>
-      event?.result === 'recognized' || event?.result === 'missed'
-    );
+      event?.result === 'recognized' || event?.result === 'missed' || ['again','hard','good','easy'].includes(event?.confidence)
+    ).map(event => {
+      if(event.result === 'recognized' || event.result === 'missed') return event;
+      return { ...event, result: event.confidence === 'again' ? 'missed' : 'recognized' };
+    });
   }
   function masteryGrade(record = {}, dateISO = ''){
     const events = practiceEvents(record);
     const recognized = events.filter(event => event.result === 'recognized').length;
     const missed = events.length - recognized;
+    const evidencePoints = events.reduce((sum, event) => sum + ({ again: 0, hard: .45, good: .8, easy: 1 }[event.confidence] ?? (event.result === 'recognized' ? 1 : 0)), 0);
     const recent = events.slice(-5);
     const recentMisses = recent.filter(event => event.result === 'missed').length;
     const last = events.at(-1);
     const interval = Math.max(0, Number(record.intervalDays) || 0);
-    const accuracy = events.length ? recognized / events.length : null;
+    const accuracy = events.length ? evidencePoints / events.length : null;
     let letter = 'C';
 
     if((recent.slice(-3).length === 3 && recent.slice(-3).every(event => event.result === 'missed'))
       || (events.length >= 4 && accuracy < 0.35)) letter = 'F';
     else if(recentMisses >= 2 || (events.length >= 4 && accuracy < 0.6)) letter = 'D';
     else if(events.length >= 8 && accuracy >= 0.9 && interval >= 7 && recentMisses === 0) letter = 'A';
-    else if(events.length >= 5 && accuracy >= 0.75 && recentMisses <= 1) letter = 'B';
+    else if(events.length >= 5 && accuracy >= 0.68 && recentMisses <= 1) letter = 'B';
 
     const maintenance = events.filter(event => event.practice === 'maintenance');
     const evidence = [];
@@ -64,6 +68,7 @@
       attempts: events.length,
       recognized,
       missed,
+      evidencePoints,
       recentMisses,
       maintenanceAttempts: maintenance.length,
       accuracy,
@@ -162,6 +167,7 @@
       if(clean(record.lang).toLowerCase() !== language) return;
       practiceEvents(record).forEach(event => {
         if(clean(event.date) !== dateISO) return;
+        if(event.recap === true || event.practice === 'recap' || event.countTowardDaily === false) return;
         const destination = event.practice === 'maintenance' ? maintenance : scheduled;
         destination.add(record.id);
       });

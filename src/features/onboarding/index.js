@@ -20,7 +20,7 @@ const OnboardingGoals = [
   { id: 'build-vocabulary', title: 'Build vocabulary', description: 'Make vocabulary review your first habit.' },
   { id: 'prepare-book', title: 'Prepare for a book', description: 'Start from a reading goal and study what helps.' },
   { id: 'maintain', title: 'Maintain what I know', description: 'Keep known material fresh without unnecessary review debt.' },
-  { id: 'start-beginning', title: 'Start from the beginning', description: 'Use gentle beginner defaults.' }
+  { id: 'start-beginning', title: 'Start from the beginning', description: 'Use beginner-friendly defaults.' }
 ];
 const OnboardingLanguageOptions = [
   { id: 'greek', title: 'Greek', description: 'Greek New Testament' },
@@ -341,10 +341,11 @@ function renderOnboardingPage(){
 }
 function openOnboardingStartAction(action){
   const primary = onboardingState.profile.languages?.[0] || 'greek';
-  if(action === 'review' && typeof setLearnPage === 'function'){
-    setLearnPage(`vocabulary:review:${primary}`, { skipHistory: true });
+  if(action === 'review' && (typeof startDailyPractice === 'function' || typeof setLearnPage === 'function')){
     if(typeof navigateTo === 'function') navigateTo('/learn');
     else if(typeof showView === 'function') showView('learnView');
+    if(typeof startDailyPractice === 'function') startDailyPractice(primary);
+    else setLearnPage('home', { skipHistory: true });
     return;
   }
   if(action === 'reader'){

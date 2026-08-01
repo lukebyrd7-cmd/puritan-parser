@@ -33,6 +33,7 @@ global.getDisplayGloss = entry => entry.customGloss || entry.primaryGloss || ent
 global.normalizeAlternateGlosses = value => Array.isArray(value) ? value : [];
 
 const learn = require('../src/features/learn/index.js');
+const LearningPractice = require('../src/core/learning-practice.js');
 const VocabularyLearning = require('../src/models/vocabulary-learning');
 const BookProgress = require('../src/core/book-progress');
 const StudySets = require('../src/models/study-sets');
@@ -95,24 +96,77 @@ function wireHomeReviewButtons(){
   };
 }
 
-test('Learn home connects scheduled reviews, daily practice, and Learning Paths', () => {
+test('Learn home prioritizes independent daily practice, parsing, focused sources, and tools', () => {
   storage.delete(VocabularyLearning.STORAGE_KEY);
   storage.delete(StudySets.STORAGE_KEY);
   storage.delete(learn.LearnActivePathsStorageKey || 'pp_learn_active_paths');
   const html = renderPage('home');
   const text = renderedText(html);
-  ['Scheduled reviews', 'Daily practice', 'Continue daily practice', 'Learning Paths', 'Active Paths', 'Study Sets (0)', 'More Practice', 'Practice Vocabulary', 'Paradigm Practice'].forEach(label => assert.match(text, new RegExp(label.replace(/[()]/g, '\\$&'))));
-  const order = ['review-queue', 'learning-paths', 'study-sets', 'more-practice'].map(section => html.indexOf(`data-learn-dashboard-section="${section}"`));
+  ['Today’s Practice', 'Greek practice', 'Hebrew practice', 'Parsing Practice', 'Practice by book', 'Practice by frequency', 'Practice weak words', 'Custom Decks', 'Vocabulary tools'].forEach(label => assert.match(text, new RegExp(label.replace(/[()]/g, '\\$&'))));
+  const order = ['Today’s Practice', 'Parsing Practice', 'Focused vocabulary practice', 'Vocabulary tools'].map(label => text.indexOf(label));
   assert.deepEqual(order, [...order].sort((a, b) => a - b));
-  assert.doesNotMatch(html, />Practice known words<|>Review Greek<|>Review Hebrew<|>Review Mixed</);
-  assert.equal((html.match(/data-learn-page="vocabulary:maintenance"/g) || []).length, 1);
-  assert.doesNotMatch(text, /Continue Learning|Start Something New|Grammar Paths|Grammar Practice|Mixed Practice/);
-  assert.match(text, /Scheduled reviews complete/);
-  assert.match(text, /What you are actively learning/);
-  assert.match(text, /No active learning paths/);
-  assert.equal((html.match(/data-learn-page="study-sets"/g) || []).length, 1);
+  assert.match(html, /data-learn-start-daily="greek"/);
+  assert.match(html, /data-learn-start-daily="hebrew"/);
+  assert.doesNotMatch(text, /Review Mixed|generic practice option simply called/);
   assert.doesNotMatch(html, /id="learnBackBtn"/);
   assert.doesNotMatch(html, /alert\(/);
+});
+
+test('Parsing Practice presents equivalent Greek and Hebrew choices and stacks on mobile', () => {
+  const html = renderPage('home');
+  const styles = require('node:fs').readFileSync('styles.css', 'utf8');
+  const choices = html.match(/<button class="learn-parsing-choice"[^>]*data-learn-page="parsing:setup:(greek|hebrew)"/g) || [];
+  assert.equal(choices.length, 2);
+  assert.match(html, /Recognize Greek and Hebrew forms through focused paradigm drills/);
+  assert.doesNotMatch(html, /learn-parsing-choice[^>]*(btn-primary|primary|recommended)/);
+  assert.match(styles, /\.learn-parsing-choice-grid\{grid-template-columns:1fr\}/);
+  assert.match(styles, /\.learn-parsing-choice\{width:100%\}/);
+});
+
+test('daily and focused practice setup render only context-valid dependent controls', () => {
+  storage.delete(StudySets.STORAGE_KEY);
+  learn.learnState.profileError = '';
+  learn.learnState.profileDrafts = { greek: { ...LearningPractice.defaultProfile('greek'), source: 'all-known', sourceId: '' } };
+  let html = renderPage('vocabulary:customize:greek');
+  assert.match(html, /Vocabulary scope/);
+  assert.doesNotMatch(html, /data-dependent-field=/);
+
+  learn.learnState.profileDrafts.greek = { ...LearningPractice.defaultProfile('greek'), source: 'book', sourceId: '' };
+  html = renderPage('vocabulary:customize:greek:book');
+  assert.match(html, /data-dependent-field="book"/);
+  assert.match(html, /Choose a book/);
+  assert.doesNotMatch(html, /name="frequencyChoice"|name="source"/);
+  assert.match(html, /disabled aria-disabled="true"/);
+
+  learn.learnState.profileDrafts.greek = { ...LearningPractice.defaultProfile('greek'), source: 'frequency', sourceId: 'custom:5:9' };
+  html = renderPage('vocabulary:customize:greek:frequency:custom:5:9');
+  assert.match(html, /data-dependent-field="frequency"/);
+  assert.match(html, /name="frequencyMinimum"[^>]*value="5"/);
+  assert.match(html, /name="frequencyMaximum"[^>]*value="9"/);
+  assert.doesNotMatch(html, /Choose a book|Choose a Custom Deck/);
+
+  const greekDeck = learn.createLearnStudySet({ title: 'Greek deck', language: 'greek', type: 'vocabulary', source: 'hand-picked' });
+  learn.createLearnStudySet({ title: 'Hebrew deck', language: 'hebrew', type: 'vocabulary', source: 'hand-picked' });
+  learn.learnState.profileDrafts.greek = { ...LearningPractice.defaultProfile('greek'), source: 'custom-deck', sourceId: greekDeck.id };
+  html = renderPage(`vocabulary:customize:greek:custom-deck:${greekDeck.id}`);
+  assert.match(html, /Greek deck/);
+  assert.doesNotMatch(html, /Hebrew deck|Choose a book|name="frequencyChoice"/);
+
+  learn.learnState.profileDrafts.greek = { ...LearningPractice.defaultProfile('greek'), source: 'weak', sourceId: '' };
+  html = renderPage('vocabulary:customize:greek:weak');
+  assert.match(renderedText(html), /recent difficulty, Hard or Again answers, and words marked Needs attention/);
+  assert.doesNotMatch(html, /name="source"|name="strategy"|name="selectedGrades"/);
+  assert.match(html, /Continue until I stop/);
+});
+
+test('recognition parsing setup is language-specific and separated from vocabulary filters', () => {
+  let html = renderPage('parsing:setup:greek');
+  assert.match(renderedText(html), /Greek parsing practice.*Mixed recognition.*Verbs.*Nouns.*5.*10.*20.*30.*Start parsing practice/);
+  assert.doesNotMatch(html, /Due only|Needs attention|Frequency|vocab JSON/);
+  html = renderPage('parsing:setup:hebrew');
+  assert.match(renderedText(html), /Hebrew parsing practice/);
+  assert.match(html, /data-learn-parsing-start="hebrew"/);
+  assert.match(html, /data-learn-page="home"/);
 });
 
 test('Learning Paths renders a persisted actual path with progress and no generic Continue card', () => {
@@ -145,10 +199,10 @@ test('completed Learning Paths leave Active Paths without losing their review ac
 
 test('Study Sets storage fails gracefully for missing and corrupt data', () => {
   storage.delete(StudySets.STORAGE_KEY);
-  assert.deepEqual(StudySets.loadStore(), { schemaVersion: 1, sets: [] });
+  assert.deepEqual(StudySets.loadStore(), { schemaVersion: 2, revision: 0, sets: [] });
 
   storage.set(StudySets.STORAGE_KEY, '{bad json');
-  assert.deepEqual(StudySets.loadStore(), { schemaVersion: 1, sets: [] });
+  assert.deepEqual(StudySets.loadStore(), { schemaVersion: 2, revision: 0, sets: [] });
 });
 
 test('Study Sets page creates and renders a simple vocabulary set', () => {
@@ -157,8 +211,8 @@ test('Study Sets page creates and renders a simple vocabulary set', () => {
 
   let html = renderPage('study-sets');
   let text = renderedText(html);
-  assert.match(text, /Study Sets Focused custom collections/);
-  assert.match(text, /No Study Sets yet/);
+  assert.match(text, /Custom Decks Focused custom collections/);
+  assert.match(text, /No Custom Decks yet/);
   assert.match(html, /data-learn-page="study-sets:create"/);
 
   const created = learn.createLearnStudySet({
@@ -176,15 +230,34 @@ test('Study Sets page creates and renders a simple vocabulary set', () => {
   html = learn.renderLearnPage();
   text = renderedText(html);
   assert.match(text, /Romans Quiz/);
-  assert.match(text, /Greek vocabulary, 25x and higher/);
-  assert.match(text, /4 items/);
-  assert.match(html, new RegExp(`data-learn-page="vocabulary:practice:study-set:${created.id}"`));
-  assert.match(html, new RegExp(`data-learn-page="study-sets:browse:${created.id}"`));
+  assert.match(text, /Greek vocabulary, 25\+ occurrences/);
+  assert.match(text, /Word count 4/);
+  assert.match(html, new RegExp(`data-learn-page="vocabulary:customize:greek:custom-deck:${created.id}"`));
+  html = renderPage(`vocabulary:customize:greek:custom-deck:${created.id}`);
+  assert.doesNotMatch(html, /name="source"/);
+  assert.match(html, new RegExp(`option value="${created.id}" selected`));
 
   html = renderPage(`study-sets:browse:${created.id}`);
   text = renderedText(html);
   assert.match(text, /eis/);
   assert.match(text, /into/);
+});
+
+test('book-derived Custom Decks retain scoped vocabulary membership', () => {
+  storage.delete(StudySets.STORAGE_KEY);
+  learn.learnState.studySetDraft = { title: 'Matthew words', language: 'greek', source: 'book', sourceId: 'matthew' };
+  delete learn.learnState.progressCache['book:greek:matthew'];
+  let html = renderPage('study-sets:create');
+  assert.match(html, /Create Custom Deck<\/button>/);
+
+  learn.learnState.progressCache['book:greek:matthew'] = {
+    overall: { vocabulary: state.data.greek.slice(0, 2).map(entry => ({ entry })) }
+  };
+  html = renderPage('study-sets:create');
+  assert.doesNotMatch(html, /Create Custom Deck<\/button>\s*<\/div>[\s\S]*disabled/);
+  const created = learn.createLearnStudySet({ title: 'Matthew words', language: 'greek', source: 'book', sourceId: 'matthew' });
+  assert.deepEqual(created.criteria.vocabularyIds, ['lemma:greek:logos', 'lemma:greek:agape']);
+  assert.match(renderedText(learn.renderLearnPage()), /Word count 2/);
 });
 
 test('Study Sets accept explicit vocabulary words and practice includes them', () => {
@@ -209,8 +282,8 @@ test('Study Sets accept explicit vocabulary words and practice includes them', (
   let html = renderPage(`study-sets:detail:${created.id}`);
   let text = renderedText(html);
   assert.match(text, /Rare Quiz/);
-  assert.match(text, /Hand-picked vocabulary collection/);
-  assert.match(text, /Hand-picked words 1/);
+  assert.match(text, /Hand-picked Greek vocabulary collection/);
+  assert.match(text, /Word count 1/);
 
   html = renderPage(`study-sets:browse:${created.id}`);
   text = renderedText(html);
@@ -237,7 +310,7 @@ test('Study Set detail can add selected words without duplicates or SRS changes'
 
   let html = renderPage(`study-sets:detail:${created.id}`);
   let text = renderedText(html);
-  assert.match(text, /Add Words/);
+  assert.match(text, /Add words/);
   assert.match(text, /logos/);
 
   learn.addSelectedVocabularyToLearnStudySet(created.id, ['lemma:greek:logos', 'lemma:greek:logos']);
@@ -269,7 +342,7 @@ test('Saved words source can be created and practiced', () => {
   let html = renderPage(`study-sets:detail:${created.id}`);
   let text = renderedText(html);
   assert.match(text, /Saved Greek words/);
-  assert.match(text, /1 items/);
+  assert.match(text, /Word count 1/);
 
   html = renderPage(`vocabulary:practice:study-set:${created.id}`);
   text = renderedText(html);
@@ -295,7 +368,7 @@ test('Study Set delete requires confirmation and preserves learning data', () =>
   delete global.confirm;
 });
 
-test('Learn dashboard review queue separates Greek and Hebrew with capped today counts', () => {
+test('Learn dashboard separates Greek and Hebrew and never hides due work behind the target', () => {
   storage.delete(VocabularyLearning.STORAGE_KEY);
   storage.set(learn.LearnReviewTargetStorageKey, JSON.stringify({
     greek: { preset: 'custom', dailyTarget: 2 },
@@ -310,28 +383,26 @@ test('Learn dashboard review queue separates Greek and Hebrew with capped today 
 
   const html = renderPage('home');
   const text = renderedText(html);
-  assert.match(text, /Greek 2 due 2 beyond daily target · Target 2\/day/);
-  assert.match(text, /Hebrew 1 due Target 30\/day/);
-  assert.match(text, /3 due today About \d+ minutes?/);
+  assert.match(text, /Greek practice 0 of 2 Scheduled 4/);
+  assert.match(text, /Hebrew practice 0 of 30 Scheduled 1/);
+  assert.match(text, /4 scheduled reviews/);
   assert.doesNotMatch(text, /0 more available|daily target limits/);
 
   const greekSummary = learn.learnReviewQueueSummary('greek');
   assert.equal(greekSummary.todayCount, 2);
   assert.equal(greekSummary.moreAvailable, 2);
-  assert.match(text, /Review scheduled words Practice known words Review Greek Review Hebrew Review Mixed/);
-  assert.equal((html.match(/Practice known words/g) || []).length, 1);
+  assert.match(text, /Start Greek practice Customize.*Start Hebrew practice Customize/);
   assert.doesNotMatch(html, /disabled aria-disabled="true"/);
   storage.delete(learn.LearnReviewTargetStorageKey);
 });
 
-test('Learn dashboard uses one contextual maintenance action when no reviews are due', () => {
+test('Learn dashboard primary labels adapt after daily goals are complete', () => {
   storage.delete(VocabularyLearning.STORAGE_KEY);
   storage.delete(learn.LearnReviewTargetStorageKey);
   let html = renderPage('home');
   let text = renderedText(html);
-  assert.match(text, /Continue daily practice/);
-  assert.doesNotMatch(html, />Practice known words<|>Continue practicing<|>Review Greek<|>Review Hebrew<|>Review Mixed</);
-  assert.equal((html.match(/data-learn-page="vocabulary:maintenance"/g) || []).length, 1);
+  assert.match(text, /Start Greek practice/);
+  assert.match(text, /Start Hebrew practice/);
 
   storage.set(learn.LearnReviewTargetStorageKey, JSON.stringify({
     greek: { preset: 'custom', dailyTarget: 1 },
@@ -350,15 +421,48 @@ test('Learn dashboard uses one contextual maintenance action when no reviews are
   learn.learnState.page = 'home';
   html = learn.renderLearnPage();
   text = renderedText(html);
-  assert.match(text, /Continue practicing/);
-  assert.match(text, /Scheduled reviews and today’s goals are complete/);
-  assert.doesNotMatch(html, />Practice known words<|>Continue daily practice<|>Review Greek<|>Review Hebrew<|>Review Mixed</);
+  assert.match(text, /Practice more Greek/);
+  assert.match(text, /Practice more Hebrew/);
   storage.delete(learn.LearnReviewTargetStorageKey);
   storage.delete(VocabularyLearning.STORAGE_KEY);
 });
 
-test('Clicking Review Greek from the dashboard starts the capped Greek review session', () => {
+test('daily practice moves from scheduled work into maintenance with shared confidence controls and resume state', () => {
   storage.delete(VocabularyLearning.STORAGE_KEY);
+  storage.delete(LearningPractice.SESSION_KEY);
+  storage.delete(LearningPractice.PROFILE_KEY);
+  storage.set(learn.LearnReviewTargetStorageKey, JSON.stringify({ greek: { preset: 'custom', dailyTarget: 2 }, hebrew: { preset: 'standard', dailyTarget: 30 } }));
+  const scheduled = global.state.data.greek[0];
+  const maintenance = global.state.data.greek[1];
+  VocabularyLearning.saveStore(VocabularyLearning.normalizeStore({ records: {
+    [scheduled.id]: { id: scheduled.id, lemma: scheduled.lemma, lang: 'greek', status: 'Reviewing', knownSource: 'review', successCount: 1, intervalDays: 3, due: '2026-06-26', introducedAt: '2026-06-01', history: [] },
+    [maintenance.id]: { id: maintenance.id, lemma: maintenance.lemma, lang: 'greek', status: 'Known', knownSource: 'manual', successCount: 6, intervalDays: 14, due: '9999-12-31', introducedAt: '2026-01-01', history: Array(8).fill(null).map((_, index) => ({ date: `2026-05-${String(index + 1).padStart(2, '0')}`, result: 'recognized' })) }
+  } }));
+
+  const session = learn.startDailyPractice('greek');
+  assert.deepEqual(session.cards.map(card => card.phase), ['scheduled', 'maintenance']);
+  let html = learn.renderLearnPage();
+  assert.match(renderedText(html), /Greek daily practice Scheduled reviews 1 of 2 words today/);
+  assert.match(html, /data-learn-unified-reveal="true"/);
+
+  learn.revealUnifiedPractice();
+  html = learn.renderLearnPage();
+  for(const confidence of ['again','hard','good','easy']) assert.match(html, new RegExp(`data-learn-unified-confidence="${confidence}"`));
+  assert.equal(learn.gradeUnifiedPractice('good'), true);
+  const resumed = LearningPractice.activeSession('greek');
+  assert.equal(resumed.position, 1);
+  assert.equal(LearningPractice.currentCard(resumed).phase, 'maintenance');
+  assert.match(renderedText(learn.renderLearnPage()), /Balanced maintenance/);
+
+  learn.revealUnifiedPractice();
+  assert.equal(learn.gradeUnifiedPractice('hard'), true);
+  assert.match(renderedText(learn.renderLearnPage()), /Greek practice complete.*Scheduled reviews 1.*Maintenance words 1.*Review difficult words again/);
+  storage.delete(learn.LearnReviewTargetStorageKey);
+});
+
+test('legacy Review Greek links delegate to the resumable Greek LearningPractice route', () => {
+  storage.delete(VocabularyLearning.STORAGE_KEY);
+  storage.delete(LearningPractice.SESSION_KEY);
   storage.delete(learn.LearnReviewTargetStorageKey);
   storage.set(learn.LearnReviewTargetStorageKey, JSON.stringify({
     greek: { preset: 'custom', dailyTarget: 1 },
@@ -374,19 +478,19 @@ test('Clicking Review Greek from the dashboard starts the capped Greek review se
   try {
     shell.buttons.greek.click();
     const text = renderedText(shell.root.innerHTML);
-    assert.equal(learn.learnState.page, 'vocabulary:review:greek');
-    assert.match(text, /Greek Review Reviews Available/);
-    assert.match(text, /eis/);
-    assert.doesNotMatch(text, /logos/);
-    assert.match(text, /Reveal Meaning/);
+    assert.equal(learn.learnState.page, 'vocabulary:daily:greek');
+    assert.match(text, /Greek practice/);
+    assert.match(text, /Start practice/);
+    assert.doesNotMatch(text, /Known|Missed/);
   } finally {
     shell.restore();
     storage.delete(learn.LearnReviewTargetStorageKey);
   }
 });
 
-test('Clicking Review Hebrew from the dashboard starts the Hebrew review session', () => {
+test('legacy Review Hebrew links delegate to the resumable Hebrew LearningPractice route', () => {
   storage.delete(VocabularyLearning.STORAGE_KEY);
+  storage.delete(LearningPractice.SESSION_KEY);
   storage.delete(learn.LearnReviewTargetStorageKey);
   VocabularyLearning.saveStore(VocabularyLearning.introduceEntry(
     VocabularyLearning.normalizeStore(),
@@ -399,17 +503,18 @@ test('Clicking Review Hebrew from the dashboard starts the Hebrew review session
   try {
     shell.buttons.hebrew.click();
     const text = renderedText(shell.root.innerHTML);
-    assert.equal(learn.learnState.page, 'vocabulary:review:hebrew');
-    assert.match(text, /Hebrew Review Reviews Available/);
-    assert.match(text, /אמר/);
-    assert.match(text, /Reveal Meaning/);
+    assert.equal(learn.learnState.page, 'vocabulary:daily:hebrew');
+    assert.match(text, /Hebrew practice/);
+    assert.match(text, /Start practice/);
+    assert.doesNotMatch(text, /Known|Missed/);
   } finally {
     shell.restore();
   }
 });
 
-test('Clicking Review Mixed from the dashboard starts a mixed review session from today queues', () => {
+test('legacy mixed review links return to separate Greek and Hebrew daily practice', () => {
   storage.delete(VocabularyLearning.STORAGE_KEY);
+  storage.delete(LearningPractice.SESSION_KEY);
   storage.delete(learn.LearnReviewTargetStorageKey);
   let store = VocabularyLearning.normalizeStore();
   store = VocabularyLearning.introduceEntry(store, global.state.data.greek[0], { type: 'frequency', language: 'greek' }, '2026-06-26');
@@ -420,42 +525,35 @@ test('Clicking Review Mixed from the dashboard starts a mixed review session fro
   try {
     shell.buttons.mixed.click();
     const text = renderedText(shell.root.innerHTML);
-    assert.equal(learn.learnState.page, 'vocabulary:review:mixed');
-    assert.match(text, /Mixed Review Reviews Available/);
-    assert.match(text, /logos/);
-    assert.match(text, /2 reviews available/);
-    assert.match(text, /Reveal Meaning/);
+    assert.equal(learn.learnState.page, 'home');
+    assert.match(text, /Greek practice.*Hebrew practice/);
+    assert.doesNotMatch(text, /Mixed Review|Known|Missed/);
   } finally {
     shell.restore();
   }
 });
 
-test('Dashboard review buttons show a calm empty state when no reviews are available', () => {
+test('legacy empty review links retain a calm shared-engine start state', () => {
   storage.delete(VocabularyLearning.STORAGE_KEY);
+  storage.delete(LearningPractice.SESSION_KEY);
   storage.delete(learn.LearnReviewTargetStorageKey);
 
   const shell = wireHomeReviewButtons();
   try {
     shell.buttons.greek.click();
-    assert.equal(learn.learnState.page, 'vocabulary:review:greek');
+    assert.equal(learn.learnState.page, 'vocabulary:daily:greek');
     let text = renderedText(shell.root.innerHTML);
-    assert.match(text, /Greek Review/);
-    assert.match(text, /Scheduled reviews complete/);
-    assert.match(text, /Continue daily practice/);
+    assert.match(text, /Greek practice.*No resumable session is available.*Start practice/);
 
     shell.buttons.hebrew.click();
-    assert.equal(learn.learnState.page, 'vocabulary:review:hebrew');
+    assert.equal(learn.learnState.page, 'vocabulary:daily:hebrew');
     text = renderedText(shell.root.innerHTML);
-    assert.match(text, /Hebrew Review/);
-    assert.match(text, /Scheduled reviews complete/);
-    assert.match(text, /Continue daily practice/);
+    assert.match(text, /Hebrew practice.*No resumable session is available.*Start practice/);
 
     shell.buttons.mixed.click();
-    assert.equal(learn.learnState.page, 'vocabulary:review:mixed');
+    assert.equal(learn.learnState.page, 'home');
     text = renderedText(shell.root.innerHTML);
-    assert.match(text, /Mixed Review/);
-    assert.match(text, /Scheduled reviews complete/);
-    assert.match(text, /Practice known words/);
+    assert.match(text, /Today’s Practice.*Greek practice.*Hebrew practice/);
   } finally {
     shell.restore();
   }
@@ -464,10 +562,11 @@ test('Dashboard review buttons show a calm empty state when no reviews are avail
 test('Learning preferences persist review targets and practice SRS preference', () => {
   storage.delete(learn.LearnReviewTargetStorageKey);
   storage.delete(learn.LearnPracticeSrsPreferenceStorageKey);
+  storage.delete(LearningPractice.MAINTENANCE_SRS_KEY);
 
   assert.equal(learn.learnReviewTarget('greek'), 30);
   assert.equal(learn.learnReviewTarget('hebrew'), 30);
-  assert.equal(learn.learnPracticeSrsPreference(), 'practice-only');
+  assert.equal(learn.learnPracticeSrsPreference(), 'count-srs');
 
   learn.setLearnReviewTarget('greek', 'light');
   learn.setLearnReviewTarget('hebrew', 'custom', '72');
@@ -481,19 +580,18 @@ test('Learning preferences persist review targets and practice SRS preference', 
 
   assert.equal(learn.setLearnPracticeSrsPreference('count-srs'), 'count-srs');
   assert.equal(learn.learnPracticeSrsPreference(), 'count-srs');
-  storage.set(learn.LearnPracticeSrsPreferenceStorageKey, 'count-srs');
-  assert.equal(learn.learnPracticeSrsPreference(), 'count-srs');
-  storage.set(learn.LearnPracticeSrsPreferenceStorageKey, 'practice-only');
-  assert.equal(learn.learnPracticeSrsPreference(), 'practice-only');
+  assert.equal(JSON.parse(storage.get(LearningPractice.MAINTENANCE_SRS_KEY)).enabled, true);
+  assert.equal(learn.setLearnPracticeSrsPreference('ask'), 'practice-only');
+  assert.equal(JSON.parse(storage.get(LearningPractice.MAINTENANCE_SRS_KEY)).enabled, false);
   assert.equal(learn.setLearnPracticeSrsPreference('nope'), 'practice-only');
-  storage.delete(learn.LearnPracticeSrsPreferenceStorageKey);
   assert.equal(learn.learnPracticeSrsPreference(), 'practice-only');
 
   const html = renderPage('learning-preferences');
   const text = renderedText(html);
   assert.match(text, /Greek Review Target/);
   assert.match(text, /Hebrew Review Target/);
-  assert.match(text, /Do not adjust schedule/);
+  assert.match(text, /Maintenance Practice/);
+  assert.match(text, /Practice updates review schedule/);
 });
 
 test('Vocabulary Practice exposes on-demand sources and can practice non-due frequency words', () => {
@@ -504,7 +602,7 @@ test('Vocabulary Practice exposes on-demand sources and can practice non-due fre
   const home = renderPage('vocabulary:practice');
   const homeText = renderedText(home);
   assert.match(homeText, /Vocabulary Practice Drill on demand/);
-  ['Frequency', 'Learning Status', 'Saved Words', 'Study Set', 'Book', 'Chapter', 'Overdue / Backlog'].forEach(source => assert.match(homeText, new RegExp(source.replace('/', '\\/'))));
+  ['Frequency', 'Learning Status', 'Saved Words', 'Custom Deck', 'Book', 'Chapter', 'Overdue / Backlog'].forEach(source => assert.match(homeText, new RegExp(source.replace('/', '\\/'))));
   assert.match(home, /data-learn-page="vocabulary:practice:frequency"/);
   assert.match(home, /data-learn-page="vocabulary:practice:status"/);
   assert.match(home, /data-learn-page="vocabulary:practice:saved"/);
@@ -526,7 +624,7 @@ test('Vocabulary Practice exposes on-demand sources and can practice non-due fre
   html = learn.renderLearnPage();
   assert.match(renderedText(html), /word Other translations message • account/);
   learn.gradeLearnPractice('recognized');
-  assert.equal(VocabularyLearning.getRecord(VocabularyLearning.loadStore(), global.state.data.greek[0]), null);
+  assert.equal(VocabularyLearning.getRecord(VocabularyLearning.loadStore(), global.state.data.greek[0]).history.at(-1).confidence, 'good');
   assert.match(renderedText(learn.renderLearnPage()), /Recognized 1/);
 
   storage.delete(learn.LearnPracticeSrsPreferenceStorageKey);
@@ -534,27 +632,27 @@ test('Vocabulary Practice exposes on-demand sources and can practice non-due fre
 
 test('Maintenance practice setup exposes safe defaults and all targeting controls', () => {
   storage.delete(VocabularyLearning.STORAGE_KEY);
+  LearningPractice.setMaintenancePreference(true);
   learn.learnState.maintenanceSession = null;
   learn.learnState.maintenanceConfig = null;
   const html = renderPage('vocabulary:maintenance:greek');
   const text = renderedText(html);
   assert.match(text, /Greek maintenance practice/);
-  assert.match(text, /Vocabulary source All known vocabulary One selected book/);
+  assert.match(text, /Vocabulary scope All known vocabulary One selected book/);
   assert.match(text, /Practice order Words needing reinforcement Random order/);
   assert.match(text, /A — Strong \(0\).*B — Familiar \(0\).*C — Developing \(0\).*D — Weak \(0\).*F — Relearning \(0\)/);
   assert.match(text, /Select all grades/);
   assert.match(text, /Session size Number of words Choose a whole number from 1 to 200.*Continue until stopped/);
-  assert.match(text, /Adjust review schedule from this session Default: Off/);
-  assert.match(text, /This session will not change review due dates/);
-  assert.match(text, /Session summary 0 words All known Greek vocabulary Grades C, D, and F Words needing reinforcement Review schedule unchanged/);
+  assert.match(text, /Maintenance scheduling follows Settings → Learn → Maintenance Practice/);
+  assert.match(text, /Session summary 0 words All known Greek vocabulary Grades C, D, and F Words needing reinforcement Review schedule will be updated/);
   assert.match(html, /name="source"[\s\S]*value="all" selected/);
   assert.match(html, /name="order"[\s\S]*value="reinforcement" selected/);
   for(const grade of ['C', 'D', 'F']) assert.match(html, new RegExp(`name="selectedGrades" value="${grade}" checked`));
   for(const grade of ['A', 'B']) assert.doesNotMatch(html, new RegExp(`name="selectedGrades" value="${grade}" checked`));
   assert.match(html, /name="size" value="20" min="1" max="200" step="1" inputmode="numeric"/);
   assert.doesNotMatch(html, /<label>Book/);
-  assert.doesNotMatch(html, /name="adjustSchedule" checked/);
-  const setupOrder = ['name="source"', 'name="order"', 'class="learn-maintenance-grades"', 'class="learn-maintenance-size"', 'name="adjustSchedule"'].map(marker => html.indexOf(marker));
+  assert.doesNotMatch(html, /name="adjustSchedule"/);
+  const setupOrder = ['name="source"', 'name="order"', 'class="learn-maintenance-grades"', 'class="learn-maintenance-size"'].map(marker => html.indexOf(marker));
   assert.deepEqual(setupOrder, [...setupOrder].sort((a, b) => a - b));
   const source = fs.readFileSync('src/features/learn/index.js', 'utf8');
   const styles = fs.readFileSync('styles.css', 'utf8');
@@ -686,8 +784,7 @@ test('maintenance construction receives an immutable explicit configuration and 
     order: 'reinforcement',
     selectedGrades: ['C'],
     size: '1',
-    unlimited: false,
-    adjustSchedule: false
+    unlimited: false
   });
   assert.ok(session);
   assert.deepEqual(session.configuration, {
@@ -697,8 +794,7 @@ test('maintenance construction receives an immutable explicit configuration and 
     order: 'reinforcement',
     selectedGrades: ['C'],
     size: 1,
-    unlimited: false,
-    adjustSchedule: false
+    unlimited: false
   });
   assert.equal(Object.isFrozen(session.configuration), true);
   assert.equal(Object.isFrozen(session.configuration.selectedGrades), true);
@@ -785,7 +881,7 @@ test('maintenance setup blocks empty grades and supports bounded continue-until-
 
 test('On-demand practice can count toward SRS through the preference', () => {
   storage.delete(VocabularyLearning.STORAGE_KEY);
-  storage.set(learn.LearnPracticeSrsPreferenceStorageKey, 'count-srs');
+  LearningPractice.setMaintenancePreference(true);
 
   renderPage('vocabulary:practice:frequency:greek:25');
   learn.revealLearnPractice();
@@ -793,27 +889,23 @@ test('On-demand practice can count toward SRS through the preference', () => {
 
   const record = VocabularyLearning.getRecord(VocabularyLearning.loadStore(), global.state.data.greek[0]);
   assert.equal(record.successCount, 1);
-  assert.equal(record.due, '2026-06-27');
+  assert.equal(record.due, '2026-06-29');
   storage.delete(learn.LearnPracticeSrsPreferenceStorageKey);
 });
 
-test('Ask-mode practice exposes an explicit count-toward-SRS action at session end', () => {
+test('global maintenance Off preserves schedule but still records confidence evidence', () => {
   storage.delete(VocabularyLearning.STORAGE_KEY);
-  storage.set(learn.LearnPracticeSrsPreferenceStorageKey, 'ask');
+  LearningPractice.setMaintenancePreference(false);
 
   renderPage('vocabulary:practice:frequency:hebrew:60');
   learn.revealLearnPractice();
   learn.gradeLearnPractice('missed');
-  let html = learn.renderLearnPage();
-  assert.match(html, /data-learn-practice-count-srs="true"/);
-  assert.equal(VocabularyLearning.getRecord(VocabularyLearning.loadStore(), global.state.data.hebrew[1]), null);
-
-  learn.countLearnPracticeTowardSrs();
   const record = VocabularyLearning.getRecord(VocabularyLearning.loadStore(), global.state.data.hebrew[1]);
   assert.equal(record.successCount, 0);
-  assert.equal(record.intervalDays, 1);
-  assert.match(renderedText(learn.renderLearnPage()), /This session has been counted toward SRS/);
-  storage.delete(learn.LearnPracticeSrsPreferenceStorageKey);
+  assert.equal(record.intervalDays, 0);
+  assert.equal(record.history.at(-1).confidence, 'again');
+  assert.equal(record.history.at(-1).scheduleUpdated, false);
+  LearningPractice.setMaintenancePreference(true);
 });
 
 test('Vocabulary shell opens review and the new words path chooser', () => {
@@ -1160,24 +1252,21 @@ test('Language review page reveals due vocabulary and grading updates state', ()
   assert.doesNotMatch(text, /word •/);
   assert.equal((html.match(/<span>word<\/span>/g) || []).length, 0);
   assert.equal((html.match(/<span>message<\/span>/g) || []).length, 1);
-  assert.match(html, /Recognized/);
-  assert.match(html, /Missed/);
-  assert.match(html, /learn-review-recognized/);
-  assert.match(html, /learn-review-missed/);
+  for(const confidence of ['Again','Hard','Good','Easy']) assert.match(html, new RegExp(confidence));
 
-  learn.gradeLearnReview('greek', 'lemma:greek:logos', 'recognized');
+  learn.gradeLearnReview('greek', 'lemma:greek:logos', 'good');
   let record = VocabularyLearning.getRecord(VocabularyLearning.loadStore(), global.state.data.greek[0]);
   assert.equal(record.successCount, 1);
-  assert.equal(record.due, '2026-06-27');
-  assert.match(renderedText(learn.renderLearnPage()), /Last Review logos: Reviewing\. Next review: 2026-06-27\. Interval: 1 day\./);
+  assert.equal(record.due, '2026-06-29');
+  assert.match(renderedText(learn.renderLearnPage()), /Last Review logos: Reviewing\. Next review: 2026-06-29\. Interval: 3 days\./);
 
-  learn.gradeLearnReview('greek', 'lemma:greek:logos', 'missed');
+  learn.gradeLearnReview('greek', 'lemma:greek:logos', 'again');
   record = VocabularyLearning.getRecord(VocabularyLearning.loadStore(), global.state.data.greek[0]);
   assert.equal(record.successCount, 0);
   assert.equal(record.due, '2026-06-27');
 });
 
-test('Focused word review reuses the existing review interface even when the word is not due', () => {
+test('Focused word review uses the resumable LearningPractice engine even when the word is not due', () => {
   storage.delete(VocabularyLearning.STORAGE_KEY);
   let store = VocabularyLearning.normalizeStore();
   store = VocabularyLearning.introduceEntry(store, global.state.data.greek[0], { type: 'word-page' }, '2026-06-26');
@@ -1186,11 +1275,19 @@ test('Focused word review reuses the existing review interface even when the wor
 
   learn.reviewLearnVocabularyWord('greek', 'lemma:greek:logos');
   const html = learn.renderLearnPage();
-  assert.equal(learn.learnState.page, 'vocabulary:review:greek');
-  assert.match(renderedText(html), /Greek Review Word Review/);
+  assert.equal(learn.learnState.page, 'vocabulary:daily:greek');
+  assert.match(renderedText(html), /Greek daily practice Scheduled reviews 1 of 1 words today/);
   assert.match(renderedText(html), /logos/);
-  assert.match(html, /Reveal Meaning/);
-  assert.match(html, /learn-review-action/);
+  assert.match(html, /data-learn-unified-reveal="true"/);
+  assert.doesNotMatch(html, /Known|Missed/);
+});
+
+test('legacy vocabulary practice routes normalize to shared-engine destinations', () => {
+  assert.equal(learn.normalizeLegacyLearnPracticePage('vocabulary:maintenance:greek'), 'vocabulary:customize:greek:all-known');
+  assert.equal(learn.normalizeLegacyLearnPracticePage('vocabulary:practice:frequency:hebrew:10'), 'vocabulary:customize:hebrew:frequency:10:');
+  assert.equal(learn.normalizeLegacyLearnPracticePage('vocabulary:practice:book:greek:romans'), 'vocabulary:customize:greek:book:romans');
+  assert.equal(learn.normalizeLegacyLearnPracticePage('vocabulary:practice:study-sets'), 'study-sets');
+  assert.equal(learn.normalizeLegacyLearnPracticePage('vocabulary:review:mixed'), 'home');
 });
 
 test('Review gloss display splits embedded separators before deduping alternates', () => {
@@ -1209,10 +1306,10 @@ test('Review gloss display splits embedded separators before deduping alternates
   assert.equal((html.match(/<span>for<\/span>/g) || []).length, 1);
 });
 
-test('Paradigms shell emphasizes Recognition Practice and exposes Parsing Drills', () => {
+test('Paradigms shell emphasizes Recognition Practice and exposes Parsing Practice', () => {
   const html = renderPage('paradigms');
   assert.match(renderedText(html), /Recognition Practice/);
-  assert.match(renderedText(html), /Parsing Drills/);
+  assert.match(renderedText(html), /Parsing Practice/);
   assert.match(html, /data-learn-page="paradigms:recognition-practice"/);
   assert.match(html, /data-learn-page="paradigms:parsing-drills"/);
   assert.equal((html.match(/learn-card-emphasis/g) || []).length, 1);
@@ -1227,12 +1324,10 @@ test('Paradigms shell emphasizes Recognition Practice and exposes Parsing Drills
   assert.match(recognition, /data-learn-page="paradigms:hebrew-verbs"/);
   assert.match(recognition, /data-learn-page="paradigms:hebrew-nouns"/);
 
-  const parsingDrills = renderPage('paradigms:parsing-drills');
-  assert.match(renderedText(parsingDrills), /Greek Parsing Drills/);
-  assert.match(renderedText(parsingDrills), /Hebrew Parsing Drills/);
-  assert.match(parsingDrills, /data-learn-open-view="parsing"/);
-  assert.match(parsingDrills, /data-learn-open-lang="greek"/);
-  assert.match(parsingDrills, /data-learn-open-lang="hebrew"/);
+  const parsingPractice = renderPage('paradigms:parsing-drills');
+  assert.match(renderedText(parsingPractice), /Parsing Practice.*Greek parsing.*Hebrew parsing/);
+  assert.match(parsingPractice, /data-learn-page="parsing:setup:greek"/);
+  assert.match(parsingPractice, /data-learn-page="parsing:setup:hebrew"/);
 
   assert.match(renderedText(renderPage('paradigms:greek-verbs')), /Greek Verbs Choose grouped practice or one paradigm/);
   assert.match(renderPage('paradigms:greek-verbs'), /data-learn-recognition-start="greek-verbs"/);

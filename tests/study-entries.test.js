@@ -2,11 +2,43 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const {
   groupEntriesByLemma,
+  groupEntriesByLemmaAsync,
   getStudyEntries,
+  getStudyEntriesAsync,
+  invalidateStudyEntriesCache,
+  studyEntriesAsyncDebug,
   getStudyEntrySearchText,
   getStudyEntryOriginals,
   aggregateLemmaFrequency
 } = require('../src/core/study-entries');
+
+test('async lemma preparation reuses one idempotent grouped build', async () => {
+  const entries = [
+    { id: 'one', lang: 'greek', lemma: 'λόγος', word: 'λόγος', primaryGloss: 'word', freq: 10 },
+    { id: 'two', lang: 'greek', lemma: 'λόγος', word: 'λόγον', primaryGloss: 'word', freq: 8 }
+  ];
+  const before = studyEntriesAsyncDebug().buildCount;
+  const [first, second] = await Promise.all([
+    groupEntriesByLemmaAsync(entries, { budgetMs: 4 }),
+    getStudyEntriesAsync(entries, 'lemma', { budgetMs: 4 })
+  ]);
+  assert.equal(first, second);
+  assert.equal(first.length, 1);
+  assert.equal(studyEntriesAsyncDebug().buildCount, before + 1);
+  assert.equal(await getStudyEntriesAsync(entries), first);
+  assert.equal(studyEntriesAsyncDebug().buildCount, before + 1);
+});
+
+test('lemma grouping is reused until the source array is explicitly invalidated', () => {
+  const entries = [{ lang: 'greek', lemma: 'λόγος', word: 'λόγος', gloss: 'word', freq: 10 }];
+  const first = getStudyEntries(entries, 'lemma');
+  assert.equal(getStudyEntries(entries, 'lemma'), first);
+  entries[0].customGloss = 'message';
+  invalidateStudyEntriesCache(entries);
+  const refreshed = getStudyEntries(entries, 'lemma');
+  assert.notEqual(refreshed, first);
+  assert.equal(refreshed[0].primaryGloss, 'message');
+});
 
 const entries = [
   { id:'g1', lang:'greek', word:'λόγος', lemma:'λόγος', primaryGloss:'word', alternateGlosses:['message'], freq:10, due:'2026-01-02', parse:'N-NSM', pos:'noun' },

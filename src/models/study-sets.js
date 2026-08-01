@@ -5,7 +5,7 @@
   root.PuritanStudySets = api;
 })(typeof globalThis !== 'undefined' ? globalThis : this, function(root){
   const STORAGE_KEY = 'pp_study_sets';
-  const VERSION = 1;
+  const VERSION = 2;
   const LANGUAGES = ['greek', 'hebrew', 'mixed'];
   const TYPES = ['vocabulary', 'grammar', 'mixed'];
   const VOCABULARY_SOURCE_KINDS = ['frequency', 'known', 'learning', 'not-learned', 'hand-picked', 'saved', 'overdue', 'book', 'chapter'];
@@ -25,6 +25,7 @@
     try { return raw ? JSON.parse(raw) : fallback; } catch(e){ return fallback; }
   }
   function makeId(){
+    if(root.crypto?.randomUUID) return `study-set-${root.crypto.randomUUID()}`;
     const suffix = Math.random().toString(36).slice(2, 8);
     return `study-set-${Date.now().toString(36)}-${suffix}`;
   }
@@ -33,8 +34,12 @@
     if(type !== 'vocabulary') return { kind: 'placeholder' };
     const kind = VOCABULARY_SOURCE_KINDS.includes(clean(source.kind)) ? clean(source.kind) : 'frequency';
     if(kind === 'frequency'){
-      const threshold = clean(source.threshold) === 'all' ? 'all' : String(Math.max(1, Math.floor(Number(source.threshold) || 25)));
-      return { kind, threshold };
+      const threshold = clean(source.threshold) === 'all' ? 'all' : String(Math.max(1, Math.floor(Number(source.minimum || source.threshold) || 25)));
+      const maximumNumber = Number(source.maximum);
+      const maximum = Number.isFinite(maximumNumber) && maximumNumber >= Number(threshold) ? String(Math.floor(maximumNumber)) : '';
+      return Object.prototype.hasOwnProperty.call(source, 'minimum') || Object.prototype.hasOwnProperty.call(source, 'maximum')
+        ? { kind, threshold, minimum: threshold, maximum }
+        : { kind, threshold };
     }
     if(kind === 'book' || kind === 'chapter'){
       const threshold = clean(source.threshold) === 'all' ? 'all' : (clean(source.threshold) ? String(Math.max(1, Math.floor(Number(source.threshold) || 1))) : 'all');
@@ -96,12 +101,13 @@
     const id = clean(source.id) || clean(existing?.id) || makeId();
     return {
       id,
-      title: clean(source.title) || 'Untitled Study Set',
+      title: clean(source.title) || 'Untitled Custom Deck',
       language,
       type,
       description: clean(source.description),
       criteria: normalizeCriteria(source.criteria, type),
       itemRefs: Array.isArray(source.itemRefs) ? source.itemRefs.map(clean).filter(Boolean) : [],
+      excludedItemRefs: Array.isArray(source.excludedItemRefs) ? [...new Set(source.excludedItemRefs.map(clean).filter(Boolean))] : [],
       explicitItems: normalizeExplicitItems(source.explicitItems || source.items),
       createdAt,
       updatedAt: clean(source.updatedAt) || nowISO()
@@ -116,7 +122,7 @@
       seen.add(item.id);
       return true;
     });
-    return { schemaVersion: VERSION, sets };
+    return { schemaVersion: VERSION, revision: Math.max(0, Number(source.revision) || 0), sets };
   }
   function loadStore(){
     const adapter = storage();
@@ -125,8 +131,10 @@
   }
   function saveStore(store){
     const normalized = normalizeStore(store);
+    normalized.revision += 1;
     const adapter = storage();
     if(adapter) adapter.set(STORAGE_KEY, JSON.stringify(normalized));
+    root.LearningPractice?.bumpRevision?.();
     return normalized;
   }
   function listStudySets(store = loadStore()){
@@ -171,7 +179,27 @@
   function addVocabularyItemToStudySet(id, entry = {}, store = loadStore()){
     const lang = clean(entry.lang).toLowerCase();
     const lemma = clean(entry.lemma || entry.word);
-    return addExplicitItemToStudySet(id, { type: 'vocabulary', lang, lemma, id: clean(entry.id) || `lemma:${lang}:${lemma}` }, store);
+    const normalized = normalizeStore(store);
+    const index = normalized.sets.findIndex(set => set.id === id);
+    if(index < 0) return { store: normalized, set: null, added: false };
+    const entryId = clean(entry.id) || `lemma:${lang}:${lemma}`;
+    normalized.sets[index].excludedItemRefs = normalized.sets[index].excludedItemRefs.filter(value => value !== entryId);
+    return addExplicitItemToStudySet(id, { type: 'vocabulary', lang, lemma, id: entryId }, normalized);
+  }
+  function removeVocabularyItemFromStudySet(id, entry = {}, store = loadStore()){
+    const normalized = normalizeStore(store);
+    const index = normalized.sets.findIndex(set => set.id === id);
+    if(index < 0) return { store: normalized, set: null, removed: false };
+    const set = normalizeSet(normalized.sets[index]);
+    const lang = clean(entry.lang).toLowerCase();
+    const lemma = clean(entry.lemma || entry.word);
+    const entryId = clean(entry.id) || `lemma:${lang}:${lemma}`;
+    const before = set.explicitItems.length;
+    set.explicitItems = set.explicitItems.filter(item => !(item.type === 'vocabulary' && (item.id === entryId || (item.lang === lang && item.lemma === lemma))));
+    if(set.criteria.kind !== 'hand-picked' && !set.excludedItemRefs.includes(entryId)) set.excludedItemRefs.push(entryId);
+    set.updatedAt = nowISO();
+    normalized.sets[index] = normalizeSet(set);
+    return { store: saveStore(normalized), set: normalized.sets[index], removed: before !== set.explicitItems.length || set.criteria.kind !== 'hand-picked' };
   }
   function explicitItemsOfType(set = {}, type = ''){
     return normalizeExplicitItems(set.explicitItems).filter(item => !type || item.type === type);
@@ -182,7 +210,11 @@
     if(set.type !== 'vocabulary') return `${language} ${set.type || 'study'} foundation`;
     const explicitCount = explicitItemsOfType(set, 'vocabulary').length;
     if(criteria.kind === 'hand-picked') return `Hand-picked ${language} vocabulary collection`;
-    if(criteria.kind === 'frequency') return `${language} vocabulary, ${criteria.threshold === 'all' ? 'all words' : `${criteria.threshold}x and higher`}${explicitCount ? ` + ${explicitCount} hand-picked` : ''}`;
+    if(criteria.kind === 'frequency'){
+      const legacy = !Object.prototype.hasOwnProperty.call(criteria, 'minimum') && !Object.prototype.hasOwnProperty.call(criteria, 'maximum');
+      const range = criteria.threshold === 'all' ? 'all words' : criteria.maximum ? `${criteria.minimum || criteria.threshold}–${criteria.maximum} occurrences` : legacy ? `${criteria.threshold}x and higher` : `${criteria.minimum || criteria.threshold}+ occurrences`;
+      return `${language} vocabulary, ${range}${explicitCount ? ` + ${explicitCount} hand-picked` : ''}`;
+    }
     if(criteria.kind === 'known') return `${language} Known words`;
     if(criteria.kind === 'learning') return `${language} Learning words`;
     if(criteria.kind === 'not-learned') return `${language} Not Learned words`;
@@ -206,9 +238,10 @@
     }
     return false;
   }
-  function thresholdMatchesEntry(entry = {}, threshold = 'all'){
+  function thresholdMatchesEntry(entry = {}, threshold = 'all', maximum = ''){
     if(threshold === 'all' || !clean(threshold)) return true;
-    return (Number(entry.freq) || 0) >= (Number(threshold) || 0);
+    const frequency = Number(entry.freq) || 0;
+    return frequency >= (Number(threshold) || 0) && (!clean(maximum) || frequency <= Number(maximum));
   }
   function vocabularyMatchesCriteria(entry = {}, set = {}, vocabModel, store, savedModel){
     if(set.type !== 'vocabulary') return false;
@@ -216,7 +249,7 @@
     const criteria = set.criteria || {};
     if(criteria.kind === 'hand-picked') return false;
     if(criteria.kind === 'frequency'){
-      return thresholdMatchesEntry(entry, criteria.threshold);
+      return thresholdMatchesEntry(entry, criteria.minimum || criteria.threshold, criteria.maximum);
     }
     if(criteria.kind === 'saved') return Boolean(savedModel?.isSaved?.(entry));
     if(criteria.kind === 'overdue') return statusMatchesCriterion(entry, 'overdue', vocabModel, store, savedModel);
@@ -249,11 +282,13 @@
       ? vocabModel.sortedFrequencyEntries(entries)
       : entries.slice().sort((a, b) => (Number(b.freq) || 0) - (Number(a.freq) || 0));
     const seen = new Set();
+    const excluded = new Set(Array.isArray(set.excludedItemRefs) ? set.excludedItemRefs : []);
     return [
       ...sorted.filter(entry => vocabularyMatchesCriteria(entry, set, vocabModel, store, savedModel)),
       ...resolveExplicitVocabularyEntries(set, sorted, vocabModel)
     ].filter(entry => {
       const key = vocabModel?.lemmaId ? vocabModel.lemmaId(entry) : clean(entry.id || entry.lemma || entry.word);
+      if(excluded.has(key)) return false;
       if(seen.has(key)) return false;
       seen.add(key);
       return true;
@@ -276,6 +311,7 @@
     deleteStudySet,
     addExplicitItemToStudySet,
     addVocabularyItemToStudySet,
+    removeVocabularyItemFromStudySet,
     explicitItemsOfType,
     sourceSummary,
     vocabularyMatchesCriteria,

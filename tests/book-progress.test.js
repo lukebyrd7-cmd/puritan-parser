@@ -1,5 +1,7 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const vm = require('node:vm');
 
 global.todayISO = () => '2026-06-26';
 global.state = {
@@ -54,4 +56,27 @@ test('Book Progress exposes current Greek and Hebrew milestone labels', () => {
   assert.deepEqual(BookProgress.languageThresholds('hebrew'), ['60', '30', '10', '5', 'all']);
   assert.equal(BookProgress.frequencyLabel('all'), 'All Words');
   assert.equal(BookProgress.frequencyLabel('10'), '10+');
+});
+
+test('browser chapter progress resolves the selected book from the manifest', async () => {
+  const requested = [];
+  const context = {
+    console,
+    fetch: async path => {
+      requested.push(path);
+      if(path === '/data/greek/manifest.json') return { ok: true, json: async () => ({ books: [{ id: 'romans', name: 'Romans', chapters: [1, 8] }] }) };
+      if(path === '/data/greek/romans/8.json') return { ok: true, json: async () => ({ chapter: 8, verses: [{ verse: 1, tokens: [{ surface: 'λόγος', lemma: 'λόγος' }] }] }) };
+      return { ok: false, json: async () => ({}) };
+    },
+    state: { data: { greek: global.state.data.greek } },
+    getStudyEntries: entries => entries,
+    VocabularyLearning: { STATUS: { KNOWN: 'Known' }, normalizeStore: value => value || { records: {} }, loadStore: () => ({ records: {} }), learningStatus: () => 'Not Learned', lemmaId: entry => entry.id }
+  };
+  context.window = context;
+  vm.createContext(context);
+  vm.runInContext(fs.readFileSync('src/core/book-progress.js', 'utf8'), context, { filename: 'src/core/book-progress.js' });
+  const progress = await context.BookProgress.chapterProgress('greek', 'romans', 8);
+  assert.equal(progress.book.id, 'romans');
+  assert.equal(progress.chapter, 8);
+  assert.deepEqual(requested, ['/data/greek/manifest.json', '/data/greek/romans/8.json']);
 });

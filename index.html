@@ -24,7 +24,7 @@
 <link rel="apple-touch-icon" href="/logo.png">
 <link rel="icon" href="/logo.png">
 <link rel="manifest" href="/manifest.json">
-<link rel="stylesheet" href="/styles.css?v=v1.8-practice-controls-polish">
+<link rel="stylesheet" href="/styles.css?v=v1.8.1-unified-learning-practice-verified-5">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="Puritan Parser">
@@ -103,7 +103,7 @@
   <div class="filter-bar" id="sharedFilterBar">
     <!-- Search: only shown on list view -->
     <div class="filter-bar-group" id="filterSearchGroup">
-      <input class="input" id="searchInput" placeholder="🔍 Search word, gloss, pos…" style="min-width:160px" autocomplete="off" />
+      <input class="input" id="searchInput" placeholder="Search word, gloss, or part of speech" autocomplete="off" aria-label="Search vocabulary" />
     </div>
     <!-- Freq range -->
     <div class="filter-bar-group">
@@ -120,6 +120,15 @@
         <option value="all">All parts of speech</option>
       </select>
     </div>
+    <div class="filter-bar-group" id="filterStatusGroup">
+      <span class="filter-label">Status</span>
+      <select id="statusFilterSelect" class="input grammar-select">
+        <option value="all">All statuses</option>
+        <option value="new">New</option>
+        <option value="learning">Learning</option>
+        <option value="known">Known</option>
+      </select>
+    </div>
     <!-- Due only toggle -->
     <div class="filter-bar-group">
       <label class="due-toggle-wrap" title="Show only cards due for review">
@@ -127,14 +136,20 @@
         <span class="filter-label">Due only</span>
       </label>
     </div>
+    <div class="filter-bar-group">
+      <label class="due-toggle-wrap" title="Show only vocabulary marked Needs attention">
+        <input type="checkbox" id="attentionOnlyToggle" />
+        <span class="filter-label">Needs attention</span>
+      </label>
+    </div>
     <!-- Sort: only shown on list view -->
     <div class="filter-bar-group" id="filterSortGroup">
       <select id="sortSelect" class="input">
-        <option value="freq-desc">freq ↓</option>
-        <option value="freq-asc">freq ↑</option>
-        <option value="due-asc">due ↑</option>
-        <option value="mastery-asc">mastery ↑</option>
-        <option value="word-az">word A→Z</option>
+        <option value="freq-desc">Frequency: highest first</option>
+        <option value="freq-asc">Frequency: lowest first</option>
+        <option value="due-asc">Due: soonest first</option>
+        <option value="mastery-asc">Mastery: lowest first</option>
+        <option value="word-az">Word: A–Z</option>
       </select>
     </div>
     <div class="filter-entries" id="filterEntriesCount"></div>
@@ -145,6 +160,13 @@
 
     <!-- ==================== LIST VIEW ==================== -->
     <div id="listView" class="fade-in">
+      <section class="browse-heading">
+        <button class="btn ghost" id="browseBackToLearn" type="button">← Back to Learn</button>
+        <div>
+          <h1>Browse vocabulary</h1>
+          <p>Explore the vocabulary corpus without changing your learning or review schedule.</p>
+        </div>
+      </section>
       <div class="panel" style="padding:0">
         <div class="table-wrap">
           <table id="wordsTable" aria-label="Vocabulary list">
@@ -155,7 +177,7 @@
                 <th>POS</th>
                 <th>Freq</th>
                 <th>Due</th>
-                <th>Ease</th>
+                <th>Status</th>
                 <th>Mastery</th>
               </tr>
             </thead>
@@ -163,6 +185,7 @@
           </table>
         </div>
       </div>
+      <div class="browse-load-more"><button class="btn secondary hidden" id="listLoadMore" type="button">Load more</button></div>
     </div>
 
     <!-- ==================== FLASH VIEW ==================== -->
@@ -268,8 +291,8 @@
             <span class="small muted">Count</span>
             <input id="parsingCount" type="number" class="input" value="10" min="5" max="100" style="width:70px" />
           </div>
-          <button class="btn btn-primary" id="startParsing">Start Study</button>
-          <button class="btn btn-ghost btn-sm hidden" id="endParsing">End Study</button>
+          <button class="btn btn-primary" id="startParsing">Start parsing practice</button>
+          <button class="btn btn-ghost btn-sm hidden" id="endParsing">End parsing practice</button>
         </div>
         <div class="parsing-filters-panel" aria-label="Parsing filters">
           <div class="parsing-filters-title">Parsing Filters</div>
@@ -299,7 +322,7 @@
           <div class="empty-icon">🔤</div>
           <p style="font-size:15px;font-weight:600;color:var(--text);margin-bottom:6px">Parsing Practice</p>
           <p>Identify the grammatical form of a word. Choose noun or verb drills, or train all forms of a specific word.</p>
-          <p class="small muted" style="margin-top:8px">Words need a <code>parse</code> field in your vocab JSON (e.g. <code>"parse":"N-NSM"</code>).</p>
+          <p class="small muted" style="margin-top:8px">Practice recognizing noun and verb forms in context.</p>
         </div>
       </div>
 
@@ -413,16 +436,6 @@
           <hr class="divider">
           <h2 class="settings-group-title">Learning</h2>
 
-          <div class="settings-section">
-            <div class="settings-label">Review Pace</div>
-            <select id="srsPreset" class="input" style="max-width:260px">
-              <option value="gentle">Gentle</option>
-              <option value="balanced">Balanced (recommended)</option>
-              <option value="intensive">Intensive</option>
-            </select>
-            <div class="review-pace-descriptions small muted"><p><strong>Gentle</strong> — Fewer reviews with longer intervals.</p><p><strong>Balanced (Recommended)</strong> — Best for most learners.</p><p><strong>Intensive</strong> — More frequent review for stronger retention.</p></div>
-          </div>
-
           <div class="settings-section"><div class="settings-label">Vocabulary Study</div><p class="small muted">Vocabulary is always studied by lemma.</p></div>
 
           <div class="settings-section">
@@ -449,14 +462,11 @@
                 <input id="hebrewReviewTargetCustom" class="input" type="number" min="1" max="200" step="1" value="30" style="margin-top:6px" />
               </label>
             </div>
-            <label class="settings-full-width-control" style="margin-top:10px">
-              <span class="small muted">On-demand practice</span>
-              <select id="practiceSrsPreference" class="input">
-                <option value="practice-only">Do not adjust schedule (recommended)</option>
-                <option value="ask">Ask after legacy on-demand sessions</option>
-                <option value="count-srs">Adjust schedule for legacy on-demand practice</option>
-              </select>
+            <label class="settings-full-width-control learn-maintenance-toggle" style="margin-top:10px">
+              <input id="practiceSrsPreference" type="checkbox" checked>
+              <span><strong>Practice updates review schedule</strong><small>Maintenance Practice · scheduled reviews always update the schedule.</small></span>
             </label>
+            <button class="btn btn-ghost btn-sm" id="openPracticeMethodologyBtn" type="button" style="margin-top:10px">Learn how practice and scheduling work</button>
           </div>
 
           <hr class="divider">
@@ -591,7 +601,7 @@
   </div><!-- /mainArea -->
 
   <footer style="font-size:11px;color:var(--muted);padding:8px 0;border-top:1px solid var(--border);margin-top:auto">
-    The Puritan Parser v3 — all data stored locally. <span id="footerLang"></span>
+    The Puritan Parser — all data stored locally. <span id="footerLang"></span>
   </footer>
 
 </div><!-- /app -->
@@ -653,6 +663,6 @@
     });
   })();
   </script>
-  <script src="/src/main.js?v=v1.8-practice-controls-polish" onerror="PuritanStartupUI.fail()"></script>
+  <script src="/src/main.js?v=v1.8.1-unified-learning-practice-verified-5" onerror="PuritanStartupUI.fail()"></script>
 </body>
 </html>
