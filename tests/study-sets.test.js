@@ -47,7 +47,7 @@ test('Study Set normalization handles corrupt and unsupported values safely', ()
     type: 'deck',
     criteria: { kind: 'frequency', threshold: '-1' }
   });
-  assert.equal(normalized.title, 'Untitled Study Set');
+  assert.equal(normalized.title, 'Untitled Custom Deck');
   assert.equal(normalized.language, 'greek');
   assert.equal(normalized.type, 'vocabulary');
   assert.deepEqual(normalized.criteria, { kind: 'frequency', threshold: '1' });

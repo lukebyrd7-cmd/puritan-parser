@@ -5,6 +5,9 @@
   root.StudyEntries = api;
   Object.keys(api).forEach(key => { root[key] = root[key] || api[key]; });
 })(typeof globalThis !== 'undefined' ? globalThis : this, function(root){
+  const groupedCache = new WeakMap();
+  let groupedAsyncCache = new WeakMap();
+  let asyncBuildCount = 0;
   function clean(value){ return typeof value === 'string' ? value.trim() : ''; }
   function normalizeGlosses(value){
     if(typeof root.normalizeAlternateGlosses === 'function') return root.normalizeAlternateGlosses(value);
@@ -106,8 +109,63 @@
     return Array.from(groups.values()).map(createLemmaStudyEntry);
   }
   function getStudyEntries(entries = [], studyMode = 'lemma'){
-    return studyMode === 'form' ? entries : groupEntriesByLemma(entries);
+    if(studyMode === 'form' || !Array.isArray(entries)) return entries;
+    if(groupedCache.has(entries)) return groupedCache.get(entries);
+    const grouped = groupEntriesByLemma(entries);
+    groupedCache.set(entries, grouped);
+    return grouped;
   }
+  function yieldToBrowser(){
+    return new Promise(resolve => {
+      const schedule = typeof root.setTimeout === 'function' ? root.setTimeout.bind(root) : setTimeout;
+      schedule(resolve, 0);
+    });
+  }
+  function now(){ return root.performance?.now?.() || Date.now(); }
+  async function groupEntriesByLemmaAsync(entries = [], options = {}){
+    if(!Array.isArray(entries)) return entries;
+    if(groupedCache.has(entries)) return groupedCache.get(entries);
+    if(groupedAsyncCache.has(entries)) return groupedAsyncCache.get(entries);
+    const budgetMs = Math.max(4, Math.min(24, Number(options.budgetMs) || 10));
+    asyncBuildCount += 1;
+    const pending = (async () => {
+      const groups = new Map();
+      let index = 0;
+      while(index < entries.length){
+        const started = now();
+        do {
+          const entry = entries[index++];
+          if(entry){
+            const key = groupKey(entry);
+            if(!groups.has(key)) groups.set(key, []);
+            groups.get(key).push(entry);
+          }
+        } while(index < entries.length && now() - started < budgetMs);
+        if(index < entries.length) await yieldToBrowser();
+      }
+      const groupedValues = Array.from(groups.values());
+      const grouped = [];
+      index = 0;
+      while(index < groupedValues.length){
+        const started = now();
+        do { grouped.push(createLemmaStudyEntry(groupedValues[index++])); }
+        while(index < groupedValues.length && now() - started < budgetMs);
+        if(index < groupedValues.length) await yieldToBrowser();
+      }
+      groupedCache.set(entries, grouped);
+      return grouped;
+    })().catch(error => { groupedAsyncCache.delete(entries); throw error; });
+    groupedAsyncCache.set(entries, pending);
+    return pending;
+  }
+  async function getStudyEntriesAsync(entries = [], studyMode = 'lemma', options = {}){
+    if(studyMode === 'form' || !Array.isArray(entries)) return entries;
+    return groupEntriesByLemmaAsync(entries, options);
+  }
+  function invalidateStudyEntriesCache(entries){
+    if(Array.isArray(entries)){ groupedCache.delete(entries); groupedAsyncCache.delete(entries); }
+  }
+  function studyEntriesAsyncDebug(){ return { buildCount: asyncBuildCount }; }
   function isLemmaStudyEntry(entry){ return entry?.studyEntryType === 'lemma'; }
   function getStudyEntryOriginals(entry){ return isLemmaStudyEntry(entry) ? (entry.originalEntries || []) : [entry].filter(Boolean); }
   function getStudyEntrySearchText(entry = {}){
@@ -118,5 +176,5 @@
     if(typeof root.glossSearchText === 'function') return root.glossSearchText(entry);
     return [displayHeadword(entry), entry.word, entry.lemma, entry.lexicalForm, entry.gloss, entry.primaryGloss, ...(normalizeGlosses(entry.alternateGlosses))].map(clean).filter(Boolean).join(' ').toLowerCase();
   }
-  return { groupEntriesByLemma, getStudyEntries, isLemmaStudyEntry, getStudyEntryOriginals, getStudyEntrySearchText, aggregateLemmaFrequency };
+  return { groupEntriesByLemma, groupEntriesByLemmaAsync, getStudyEntries, getStudyEntriesAsync, invalidateStudyEntriesCache, studyEntriesAsyncDebug, isLemmaStudyEntry, getStudyEntryOriginals, getStudyEntrySearchText, aggregateLemmaFrequency };
 });

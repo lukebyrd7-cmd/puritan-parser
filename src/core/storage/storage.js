@@ -55,7 +55,13 @@ function clearUserStorage(){
     'pp_learn_review_targets',
     'pp_learn_practice_srs_preference',
     'pp_learn_active_paths',
-    'pp_recognition_history'
+    'pp_recognition_history',
+    'pp_learning_practice_profiles',
+    'pp_learning_practice_sessions',
+    'pp_learning_attempts',
+    'pp_needs_attention',
+    'pp_learn_maintenance_srs',
+    'pp_learning_data_revision'
   ].forEach(removeStorageKey);
 }
 function getLastLanguage(){ return activeStorageAdapter.get(StorageKeys.lastLang); }

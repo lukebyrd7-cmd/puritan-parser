@@ -66,23 +66,26 @@
       knownSource: normalizeKnownSource(record.knownSource, status),
       introducedAt: clean(record.introducedAt),
       introducedBy: record.introducedBy && typeof record.introducedBy === 'object' ? { ...record.introducedBy } : null,
+      createdAt: clean(record.createdAt || record.introducedAt),
+      updatedAt: clean(record.updatedAt || record.lastReviewed || record.introducedAt),
+      revision: Math.max(0, Number(record.revision) || 0),
       history: Array.isArray(record.history) ? record.history.filter(Boolean).map(item => ({ ...item })) : []
     };
     if(!next.status) next.status = STATUS.LEARNING;
     return next;
   }
-  function createStore(records = {}){
+  function createStore(records = {}, revision = 0){
     const byLemma = {};
     Object.values(records || {}).forEach(record => {
       const normalized = normalizeRecord(record);
       if(normalized.id) byLemma[normalized.id] = normalized;
     });
-    return { schemaVersion: 1, records: byLemma };
+    return { schemaVersion: 2, revision: Math.max(0, Number(revision) || 0), records: byLemma };
   }
   function normalizeStore(payload){
     if(!payload || typeof payload !== 'object') return createStore();
-    if(payload.records && typeof payload.records === 'object') return createStore(payload.records);
-    if(payload.lemmas && typeof payload.lemmas === 'object') return createStore(payload.lemmas);
+    if(payload.records && typeof payload.records === 'object') return createStore(payload.records, payload.revision);
+    if(payload.lemmas && typeof payload.lemmas === 'object') return createStore(payload.lemmas, payload.revision);
     return createStore(payload);
   }
   function loadStore(){
@@ -99,11 +102,13 @@
   function saveStore(store){
     const adapter = storage();
     const normalized = normalizeStore(store);
+    normalized.revision += 1;
     const raw = JSON.stringify(normalized);
     if(adapter) adapter.set(STORAGE_KEY, raw);
     cachedRaw = raw;
     cachedStore = normalized;
     root.ProgressService?.invalidateProgressCache?.();
+    root.LearningPractice?.bumpRevision?.();
     return normalized;
   }
   function getRecord(store, entry){
@@ -236,6 +241,9 @@
     record.introducedBy = record.introducedBy || { ...introducedBy };
     record.history = Array.isArray(record.history) ? record.history : [];
     record.history.push({ date: dateISO, result: 'introduced', source: introducedBy?.type || '' });
+    record.createdAt = clean(record.createdAt) || new Date().toISOString();
+    record.updatedAt = new Date().toISOString();
+    record.revision = Math.max(0, Number(record.revision) || 0) + 1;
     next.records[id] = normalizeRecord(record);
     return next;
   }
@@ -267,6 +275,9 @@
     base.knownSource = KNOWN_SOURCES.REVIEW;
     base.lastReviewed = dateISO;
     base.history.push({ date: dateISO, result: recognized ? 'recognized' : 'missed', successCount: base.successCount, intervalDays: base.intervalDays, due: base.due, status: base.status });
+    base.createdAt = clean(base.createdAt) || new Date().toISOString();
+    base.updatedAt = new Date().toISOString();
+    base.revision = Math.max(0, Number(base.revision) || 0) + 1;
     next.records[id] = normalizeRecord(base);
     return next;
   }
@@ -310,6 +321,9 @@
       });
     }
     record.history = trimMaintenanceHistory(record.history);
+    record.createdAt = clean(record.createdAt) || new Date().toISOString();
+    record.updatedAt = new Date().toISOString();
+    record.revision = Math.max(0, Number(record.revision) || 0) + 1;
     next.records[id] = normalizeRecord(record);
     return next;
   }
@@ -334,6 +348,9 @@
     record.introducedBy = record.introducedBy || { ...source };
     record.history = Array.isArray(record.history) ? record.history : [];
     record.history.push({ date: dateISO, result: 'marked-known', source: source?.type || '', knownSource: record.knownSource, due: record.due });
+    record.createdAt = clean(record.createdAt) || new Date().toISOString();
+    record.updatedAt = new Date().toISOString();
+    record.revision = Math.max(0, Number(record.revision) || 0) + 1;
     next.records[id] = normalizeRecord(record);
     return next;
   }
@@ -346,7 +363,7 @@
   function dueEntries(entries = [], store, dateISO = todayISO()){
     const normalized = normalizeStore(store);
     return sortedFrequencyEntries(entries).filter(entry => {
-      const record = getRecord(normalized, entry);
+      const record = normalized.records[lemmaId(entry)] || null;
       return record && clean(record.due) <= dateISO;
     });
   }
@@ -367,6 +384,7 @@
     RECOGNIZED_INTERVALS,
     addDaysISO,
     lemmaId,
+    normalizeRecord,
     normalizeStore,
     loadStore,
     saveStore,

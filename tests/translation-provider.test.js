@@ -153,7 +153,7 @@ test('WEB importer parses USFM book codes and strips word-level markup', () => {
 
 test('service worker precaches translation provider manifests while JSON remains runtime cached', () => {
   const sw = fs.readFileSync('sw.js', 'utf8');
-  assert.match(sw, /puritan-parser-v79-v1\.8-practice-controls-polish/);
+  assert.match(sw, /puritan-parser-v95-v1\.8\.1-unified-learning-practice/);
   assert.match(sw, /\.\/src\/core\/translations\/translation-provider\.js/);
   assert.match(sw, /\.\/data\/translations\/oeb\/manifest\.json/);
   assert.match(sw, /\.\/data\/translations\/web\/manifest\.json/);

@@ -4,7 +4,9 @@ function readFiltersFromDOM(){
   state.filters.minFreq = Number($('#freqMin')?.value)||1;
   state.filters.maxFreq = Number($('#freqMax')?.value)||9999;
   state.filters.dueOnly = $('#dueOnlyToggle')?.checked||false;
+  state.filters.attentionOnly = $('#attentionOnlyToggle')?.checked||false;
   state.filters.pos = readPosFilterFromDOM();
+  state.filters.status = $('#statusFilterSelect')?.value || 'all';
 }
 function applyRangeDueFilter(list){
   const { minFreq, maxFreq, dueOnly } = state.filters;
@@ -14,7 +16,10 @@ function applyRangeDueFilter(list){
     const freq = it.freq||0;
     if(freq < minFreq) return false;
     if(freq > maxFreq) return false;
-    if(dueOnly && it.due > today) return false;
+    if(dueOnly && typeof VocabularyLearning !== 'undefined'){
+      const details = VocabularyLearning.learningStatusDetails(VocabularyLearning.loadStore(), it, today);
+      if(details.dueState !== 'overdue' && details.dueState !== 'due-today') return false;
+    } else if(dueOnly && it.due > today) return false;
     return true;
   });
 }

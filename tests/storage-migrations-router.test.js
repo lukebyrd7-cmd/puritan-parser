@@ -59,15 +59,42 @@ test('router changes routes and selects views', () => {
 
   app.navigateTo('/flashcards');
   assert.equal(app.window.location.pathname, '/flashcards');
-  assert.equal(shown.at(-1), 'flashView');
+  assert.equal(shown.at(-1), 'learnView');
   assert.equal(app.routeForView('dashboardView'), '/dashboard');
   assert.equal(app.routeForView('progressView'), '/progress');
   assert.equal(app.routeForView('globalSearchView'), '/search');
+  app.navigateTo('/list');
+  assert.equal(shown.at(-1), 'globalSearchView');
   assert.equal(app.routeForView('wordPageView'), '/word');
   app.navigateTo('/settings/sources');
   assert.equal(app.window.location.pathname, '/settings/sources');
   assert.equal(shown.at(-1), 'aboutSourcesView');
   assert.equal(app.routeForView('aboutSourcesView'), '/settings/sources');
+  app.navigateTo('/parsing/hebrew');
+  assert.equal(shown.at(-1), 'learnView');
+  assert.equal(app.window.location.pathname, '/parsing/hebrew');
+});
+
+test('direct parsing deep links apply the recognition page after Learn loads lazily', async () => {
+  const learnPages = [];
+  let resolveLearn;
+  const app = loadBrowserScripts(['src/core/router.js'], {
+    window: {
+      location: { pathname: '/parsing/greek' },
+      addEventListener() {},
+      PuritanModuleLoader: { ensureView: () => new Promise(resolve => { resolveLearn = resolve; }) }
+    },
+    history: { pushState() {}, replaceState() {} },
+    showView() {}
+  });
+
+  app.initRouter();
+  app.setLearnPage = (page, options) => learnPages.push({ page, options });
+  resolveLearn();
+  await Promise.resolve();
+
+  assert.equal(learnPages.at(-1).page, 'parsing:setup:greek');
+  assert.equal(learnPages.at(-1).options.skipBrowserHistory, true);
 });
 
 test('router treats root as the Learn view', () => {
@@ -81,6 +108,25 @@ test('router treats root as the Learn view', () => {
   app.initRouter();
   assert.equal(app.window.location.pathname, '/');
   assert.equal(shown.at(-1), 'learnView');
+});
+
+test('browser Back restores the Learn dashboard when an older history entry has no subpage', () => {
+  const shown = [];
+  const learnPages = [];
+  let popstate;
+  const app = loadBrowserScripts(['src/core/router.js'], {
+    window: { location: { pathname: '/learn' }, addEventListener(type, handler) { if(type === 'popstate') popstate = handler; } },
+    history: { pushState() {}, replaceState() {} },
+    showView: viewId => shown.push(viewId),
+    setLearnPage: (page, options) => learnPages.push({ page, options })
+  });
+
+  app.initRouter();
+  popstate({ state: null });
+  assert.equal(shown.at(-1), 'learnView');
+  assert.equal(learnPages.at(-1).page, 'home');
+  assert.equal(learnPages.at(-1).options.skipHistory, true);
+  assert.equal(learnPages.at(-1).options.skipBrowserHistory, true);
 });
 
 test('router sends true first-run users to onboarding', () => {

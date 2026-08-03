@@ -15,14 +15,19 @@ function wireEvents(){
   }));
 
   // Shared filter bar inputs
-  const debouncedRender = debounce(()=>renderList(),150);
+  const resetListLimit = () => { state.listRenderLimit = LIST_RENDER_LIMIT; };
+  const debouncedRender = debounce(()=>{ resetListLimit(); renderList(); },150);
   $('#searchInput')?.addEventListener('input', debouncedRender);
-  $('#freqMin')?.addEventListener('input', ()=>{ readFiltersFromDOM(); renderList(); if(state.currentView==='parsingView'){ renderLemmaPicker(); updateParsingMatchCount(); } });
-  $('#freqMax')?.addEventListener('input', ()=>{ readFiltersFromDOM(); renderList(); if(state.currentView==='parsingView'){ renderLemmaPicker(); updateParsingMatchCount(); } });
-  $('#dueOnlyToggle')?.addEventListener('change', ()=>{ readFiltersFromDOM(); renderList(); if(state.currentView==='parsingView'){ renderLemmaPicker(); updateParsingMatchCount(); } });
-  $('#posFilterSelect')?.addEventListener('change', ()=>{ readFiltersFromDOM(); renderList(); });
+  $('#freqMin')?.addEventListener('input', ()=>{ resetListLimit(); readFiltersFromDOM(); renderList(); if(state.currentView==='parsingView'){ renderLemmaPicker(); updateParsingMatchCount(); } });
+  $('#freqMax')?.addEventListener('input', ()=>{ resetListLimit(); readFiltersFromDOM(); renderList(); if(state.currentView==='parsingView'){ renderLemmaPicker(); updateParsingMatchCount(); } });
+  $('#dueOnlyToggle')?.addEventListener('change', ()=>{ resetListLimit(); readFiltersFromDOM(); renderList(); if(state.currentView==='parsingView'){ renderLemmaPicker(); updateParsingMatchCount(); } });
+  $('#attentionOnlyToggle')?.addEventListener('change', ()=>{ resetListLimit(); readFiltersFromDOM(); renderList(); });
+  $('#posFilterSelect')?.addEventListener('change', ()=>{ resetListLimit(); readFiltersFromDOM(); renderList(); });
+  $('#statusFilterSelect')?.addEventListener('change', ()=>{ resetListLimit(); readFiltersFromDOM(); renderList(); });
   $('#parsingFamilySelect')?.addEventListener('change', ()=>{ state.parsingFilters = readParsingFiltersFromDOM(); cleanParsingFiltersForMode(); updateParsingFilterOptions(); renderLemmaPicker(); updateParsingMatchCount(); });
-  $('#sortSelect')?.addEventListener('change', ()=>renderList());
+  $('#sortSelect')?.addEventListener('change', ()=>{ resetListLimit(); renderList(); });
+  $('#listLoadMore')?.addEventListener('click', ()=>{ state.listRenderLimit = (state.listRenderLimit || LIST_RENDER_LIMIT) + LIST_RENDER_LIMIT; renderList(); });
+  $('#browseBackToLearn')?.addEventListener('click', ()=>typeof navigateTo === 'function' ? navigateTo('/learn') : showView('learnView'));
 
   // Flashcard
   $('#startFlashBtn').addEventListener('click',startFlash);
@@ -55,6 +60,7 @@ function wireEvents(){
     showView('settingsView');
   });
   $('#openAboutSourcesBtn')?.addEventListener('click',()=>openAboutSources());
+  $('#openPracticeMethodologyBtn')?.addEventListener('click',()=>openAboutSources('how-vocabulary-practice-works'));
   $('#openGlobalSearch')?.addEventListener('click',()=>showView('globalSearchView'));
   $('#closeSettingsBtn').addEventListener('click',()=>showView('listView'));
   $('#readerSettingsReturn')?.addEventListener('click',()=>typeof navigateTo === 'function' ? navigateTo('/reader') : showView('readerView'));
@@ -91,7 +97,7 @@ function wireEvents(){
   });
 
   $('#practiceSrsPreference')?.addEventListener('change', e=>{
-    if(typeof setLearnPracticeSrsPreference === 'function') setLearnPracticeSrsPreference(e.target.value);
+    if(typeof LearningPractice !== 'undefined') LearningPractice.setMaintenancePreference(e.target.checked);
     if(typeof renderLearn === 'function') renderLearn();
   });
 

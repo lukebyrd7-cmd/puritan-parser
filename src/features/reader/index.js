@@ -17,6 +17,9 @@ const ReaderSavedVocabularyModel = (typeof PuritanSavedVocabulary !== 'undefined
 const ReaderVocabularyMasteryModel = (typeof VocabularyMastery !== 'undefined')
   ? VocabularyMastery
   : (typeof require === 'function' ? require('../../core/vocabulary-mastery') : null);
+const ReaderLearningPracticeModel = (typeof LearningPractice !== 'undefined')
+  ? LearningPractice
+  : (typeof require === 'function' ? require('../../core/learning-practice') : null);
 const ReaderDefaultSettings = {
   display: 'original',
   hebrewDisplay: 'standard',
@@ -625,6 +628,7 @@ function renderReaderWordLearning(info = {}){
   const label = readerLearningStatusLabel(info);
   const id = entry && ReaderVocabularyLearningModel ? ReaderVocabularyLearningModel.lemmaId(entry) : '';
   const language = info.language || readerState.language || 'greek';
+  const attention = id && ReaderLearningPracticeModel?.needsAttention?.(id, language);
   const action = status === ReaderVocabularyLearningModel?.STATUS?.NOT_LEARNED || status === 'Not Learned'
     ? `<button class="btn btn-ghost btn-sm" type="button" data-word-learn-action="learn" data-language="${escReaderAttr(language)}" data-word-id="${escReaderAttr(id)}">Learn This Word</button>`
     : status === ReaderVocabularyLearningModel?.STATUS?.LEARNING || status === ReaderVocabularyLearningModel?.STATUS?.REVIEWING || status === 'Learning' || status === 'Reviewing'
@@ -647,6 +651,7 @@ function renderReaderWordLearning(info = {}){
           <div class="word-page-learning-row">
             <span class="word-page-learning-status">${escHtml(label)}</span>
             ${entry && ReaderVocabularyLearningModel ? action : '<span class="muted small">Not available in vocabulary learning.</span>'}
+            ${id && ReaderLearningPracticeModel ? `<button class="btn btn-ghost btn-sm" type="button" data-word-attention-toggle="true" aria-pressed="${attention}">${attention ? 'Remove Needs attention' : 'Needs attention'}</button>` : ''}
           </div>
           ${detailsHtml}
           ${mastery ? `<details class="word-page-mastery"><summary>Why ${escHtml(mastery.letter)} — ${escHtml(mastery.label)}?</summary><p class="small muted">${escHtml(mastery.explanation)}</p></details>` : ''}
@@ -660,14 +665,14 @@ function renderReaderWordStudySets(info = {}){
     .filter(set => set.type === 'vocabulary' && set.language === language);
   return `
         <section class="word-page-section word-page-study-sets" aria-labelledby="wordPageStudySetsHeading">
-          <h2 id="wordPageStudySetsHeading">Study Sets</h2>
+          <h2 id="wordPageStudySetsHeading">Custom Decks</h2>
           <p class="small muted">Add this word to a collection for practice. This does not change its SRS status.</p>
           ${sets.length ? `
             <form class="word-page-study-set-form" data-word-study-set-add="true">
               <input type="hidden" name="language" value="${escReaderAttr(language)}" />
-              <label>Add to Study Set<select class="input" name="setId">${sets.map(set => `<option value="${escReaderAttr(set.id)}">${escHtml(set.title)}</option>`).join('')}</select></label>
-              <button class="btn btn-primary btn-sm" type="submit">Add to Study Set</button>
-            </form>` : '<p class="word-page-context-empty">No vocabulary Study Sets for this language yet.</p>'}
+              <label>Add to Custom Deck<select class="input" name="setId">${sets.map(set => `<option value="${escReaderAttr(set.id)}">${escHtml(set.title)}</option>`).join('')}</select></label>
+              <button class="btn btn-primary btn-sm" type="submit">Add to Custom Deck</button>
+            </form>` : '<p class="word-page-context-empty">No vocabulary Custom Decks for this language yet.</p>'}
           <form class="word-page-study-set-form" data-word-study-set-create="true">
             <input type="hidden" name="language" value="${escReaderAttr(language)}" />
             <label>New hand-picked collection<input class="input" name="title" placeholder="Quiz list" /></label>
@@ -682,7 +687,7 @@ function renderReaderWordSaved(info = {}){
   return `
         <section class="word-page-section word-page-saved" aria-labelledby="wordPageSavedHeading">
           <h2 id="wordPageSavedHeading">Saved</h2>
-          <p class="small muted">Save this word for later without choosing a Study Set. This does not change SRS status.</p>
+          <p class="small muted">Save this word for later without choosing a Custom Deck. This does not change SRS status.</p>
           <button class="btn ${saved ? 'btn-ghost' : 'btn-primary'} btn-sm" type="button" data-word-save-toggle="true">${saved ? 'Unsave Word' : 'Save Word'}</button>
         </section>`;
 }
@@ -694,11 +699,22 @@ function toggleReaderSavedWord(info = readerState.wordPageInfo || {}){
   renderReaderWordPage();
   return result;
 }
+function toggleReaderNeedsAttention(info = readerState.wordPageInfo || {}){
+  const entry = readerVocabularyLearningEntry(info);
+  if(!entry || !ReaderLearningPracticeModel || !ReaderVocabularyLearningModel) return null;
+  const id = ReaderVocabularyLearningModel.lemmaId(entry);
+  const language = entry.lang || info.language || readerState.language || 'greek';
+  const active = !ReaderLearningPracticeModel.needsAttention(id, language);
+  ReaderLearningPracticeModel.setNeedsAttention(id, language, active);
+  if(typeof toast === 'function') toast(active ? 'Marked Needs attention.' : 'Needs attention removed.');
+  renderReaderWordPage();
+  return active;
+}
 function addReaderWordToStudySet(setId, info = readerState.wordPageInfo || {}){
   const entry = readerVocabularyLearningEntry(info);
   if(!entry || !setId || !ReaderStudySetsModel) return null;
   const result = ReaderStudySetsModel.addVocabularyItemToStudySet(setId, entry);
-  if(typeof toast === 'function') toast(result.added ? 'Added to Study Set.' : 'Already in that Study Set.');
+  if(typeof toast === 'function') toast(result.added ? 'Added to Custom Deck.' : 'Already in that Custom Deck.');
   renderReaderWordPage();
   return result;
 }
@@ -714,7 +730,7 @@ function createReaderStudySetFromWord(title, info = readerState.wordPageInfo || 
     criteria: { kind: 'hand-picked' }
   });
   ReaderStudySetsModel.addVocabularyItemToStudySet(created.set.id, entry);
-  if(typeof toast === 'function') toast('Study Set created.');
+  if(typeof toast === 'function') toast('Custom Deck created.');
   renderReaderWordPage();
   return created.set;
 }
@@ -2853,16 +2869,23 @@ function renderReaderWordPage(){
   const root = $('#wordPageShell'); if(!root) return;
   const info = readerState.wordPageInfo || {};
   const hasWordInfo = Boolean(cleanReaderTokenValue(info.lemma || info.surface) || info.lexicalForm || info.root || info.hebrewLemma);
+  const fromPractice = info.returnToPractice && info.returnToPractice.sessionId;
+  const fromSearch = info.returnToSearch === true;
+  const backLabel = fromPractice ? 'Return to practice' : fromSearch ? 'Return to Vocabulary Search' : 'Back to Reader';
   root.innerHTML = `
     <section class="panel word-page-panel" aria-labelledby="wordPageTitle">
       <div class="word-page-top-actions">
-        <button class="btn btn-primary" type="button" data-word-page-back-to-reader="true">Back to Reader</button>
+        <button class="btn btn-primary" type="button" data-word-page-back-to-reader="true">${backLabel}</button>
       </div>
       ${hasWordInfo ? renderReaderWordPageContent(info) : `<header class="word-page-header"><h1 id="wordPageTitle" class="word-page-headword word-page-empty-title">Choose a word</h1></header><p class="word-page-empty">Open a word from the Reader to build this page.</p>`}
-      ${hasWordInfo ? `<section class="word-page-section word-page-navigation" aria-labelledby="wordPageNavigationHeading"><h2 id="wordPageNavigationHeading">Navigation</h2><button class="btn btn-primary" id="wordPageBackToReader" data-word-page-back-to-reader="true">Back to Reader</button></section>` : ''}
+      ${hasWordInfo ? `<section class="word-page-section word-page-navigation" aria-labelledby="wordPageNavigationHeading"><h2 id="wordPageNavigationHeading">Navigation</h2><button class="btn btn-primary" id="wordPageBackToReader" data-word-page-back-to-reader="true">${backLabel}</button></section>` : ''}
     </section>`;
   $$('[data-word-page-back-to-reader]', root).forEach(button => button.addEventListener('click', () => {
-    if(typeof showView === 'function') showView('readerView');
+    if(fromPractice && typeof showView === 'function'){
+      if(typeof learnState !== 'undefined') learnState.unifiedRevealed = true;
+      showView('learnView');
+    } else if(fromSearch && typeof showView === 'function') showView('globalSearchView');
+    else if(typeof showView === 'function') showView('readerView');
   }));
   $$('.reader-word-link', root).forEach(btn => btn.addEventListener('click', () => navigateReaderGrammarLink(btn.dataset.topicId)));
   $$('[data-word-learn-action]', root).forEach(btn => btn.addEventListener('click', () => {
@@ -2870,6 +2893,7 @@ function renderReaderWordPage(){
     if(btn.dataset.wordLearnAction === 'review') reviewReaderWordFromPage(info);
   }));
   $$('[data-word-save-toggle]', root).forEach(btn => btn.addEventListener('click', () => toggleReaderSavedWord(info)));
+  $$('[data-word-attention-toggle]', root).forEach(btn => btn.addEventListener('click', () => toggleReaderNeedsAttention(info)));
   $$('[data-word-study-set-add]', root).forEach(form => form.addEventListener('submit', event => { event.preventDefault(); addReaderWordToStudySet(new FormData(form).get('setId'), info); }));
   $$('[data-word-study-set-create]', root).forEach(form => form.addEventListener('submit', event => { event.preventDefault(); createReaderStudySetFromWord(new FormData(form).get('title'), info); }));
   attachReaderWordPageContextHandlers(root, info);
@@ -2958,6 +2982,7 @@ function renderReaderWordPopup(){
     if(btn.dataset.wordLearnAction === 'review') reviewReaderWordFromPage(info);
   }));
   $$('[data-word-save-toggle]', root).forEach(btn => btn.addEventListener('click', () => toggleReaderSavedWord(info)));
+  $$('[data-word-attention-toggle]', root).forEach(btn => btn.addEventListener('click', () => toggleReaderNeedsAttention(info)));
   $$('[data-word-study-set-add]', root).forEach(form => form.addEventListener('submit', event => { event.preventDefault(); addReaderWordToStudySet(new FormData(form).get('setId'), info); }));
   $$('[data-word-study-set-create]', root).forEach(form => form.addEventListener('submit', event => { event.preventDefault(); createReaderStudySetFromWord(new FormData(form).get('title'), info); }));
   attachReaderWordPageContextHandlers(root, info);

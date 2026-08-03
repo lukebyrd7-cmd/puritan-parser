@@ -1,11 +1,22 @@
 /* ---------- Data Loading ---------- */
 async function tryFetchJson(path){ return fetchSourceJson(path); }
+async function ensureSrsInChunks(items = []){
+  const prepared = []; let index = 0;
+  while(index < items.length){
+    const started = performance?.now?.() || Date.now();
+    do { prepared.push(ensureSRS(items[index++])); }
+    while(index < items.length && (performance?.now?.() || Date.now()) - started < 10);
+    if(index < items.length) await new Promise(resolve => setTimeout(resolve, 0));
+  }
+  return prepared;
+}
 async function loadData(){
   const sources = await loadVocabularySources();
   if(sources.greek && sources.hebrew){
-    state.data.greek = sources.greek.map(ensureSRS);
-    state.data.hebrew = sources.hebrew.map(ensureSRS);
+    state.data.greek = await ensureSrsInChunks(sources.greek);
+    state.data.hebrew = await ensureSrsInChunks(sources.hebrew);
     applyStoredVocab('greek'); applyStoredVocab('hebrew');
+    state.dataRevision = Math.max(0, Number(state.dataRevision) || 0) + 1;
     return;
   }
   ['greek','hebrew'].forEach(lang=>{
@@ -19,14 +30,19 @@ async function loadData(){
       state.data[lang] = stored.length ? stored.map(it=>ensureSRS(createWordEntry(Object.assign({lang}, it)))) : sample.map(it=>ensureSRS(createWordEntry(Object.assign({lang}, it))));
     }
   });
+  state.dataRevision = Math.max(0, Number(state.dataRevision) || 0) + 1;
 }
 
 /* ---------- Export ---------- */
 function exportData(){
   const data = {
+    schemaVersion: 2,
     greek: state.data.greek,
     hebrew: state.data.hebrew,
     vocabularyLearning: typeof VocabularyLearning !== 'undefined' ? VocabularyLearning.loadStore() : undefined,
+    customDecks: typeof PuritanStudySets !== 'undefined' ? PuritanStudySets.loadStore() : undefined,
+    studySets: typeof PuritanStudySets !== 'undefined' ? PuritanStudySets.loadStore() : undefined,
+    learningPractice: typeof LearningPractice !== 'undefined' ? LearningPractice.exportState() : undefined,
     learnReviewTargets: typeof learnReviewTargets === 'function' ? learnReviewTargets() : undefined,
     practiceSrsPreference: typeof learnPracticeSrsPreference === 'function' ? learnPracticeSrsPreference() : undefined,
     exported: new Date().toISOString()
@@ -49,7 +65,9 @@ async function importDataFile(file){
       return ensureSRS(createWordEntry(Object.assign({}, item, { lang, source: item.source || 'Imported' })));
     });
     const learningImported = payload?.vocabularyLearning && typeof VocabularyLearning !== 'undefined';
-    if(!valid.length && !learningImported){
+    const practiceImported = payload?.learningPractice && typeof LearningPractice !== 'undefined';
+    const decksImported = (payload?.customDecks || payload?.studySets) && typeof PuritanStudySets !== 'undefined';
+    if(!valid.length && !learningImported && !practiceImported && !decksImported){
       if(preview){ preview.textContent = invalid.length ? `No valid entries found. First error: row ${invalid[0].index+1} ${invalid[0].errors.join(', ')}` : 'No entries found.'; preview.classList.remove('hidden'); }
       toast('Import failed.','danger');
       return;
@@ -61,7 +79,10 @@ async function importDataFile(file){
       state.data[lang] = Array.from(map.values());
       saveVocab(lang);
     });
+    state.dataRevision = Math.max(0, Number(state.dataRevision) || 0) + 1;
     if(learningImported) VocabularyLearning.saveStore(VocabularyLearning.normalizeStore(payload.vocabularyLearning));
+    if(decksImported) PuritanStudySets.saveStore(PuritanStudySets.normalizeStore(payload.customDecks || payload.studySets));
+    if(practiceImported) LearningPractice.importState(payload.learningPractice);
     if(payload?.learnReviewTargets && typeof saveLearnReviewTargets === 'function') saveLearnReviewTargets(payload.learnReviewTargets);
     if(payload?.practiceSrsPreference && typeof setLearnPracticeSrsPreference === 'function') setLearnPracticeSrsPreference(payload.practiceSrsPreference);
     updatePosOptions();
@@ -69,7 +90,7 @@ async function importDataFile(file){
     renderList();
     updateDueBadge();
     if(preview){
-      preview.textContent = `Imported ${valid.length} entr${valid.length===1?'y':'ies'}${learningImported ? ' and vocabulary learning history' : ''}${invalid.length ? `; skipped ${invalid.length} invalid row${invalid.length===1?'':'s'}` : ''}.`;
+      preview.textContent = `Imported ${valid.length} entr${valid.length===1?'y':'ies'}${learningImported ? ' and vocabulary learning history' : ''}${decksImported ? ' and Custom Decks' : ''}${practiceImported ? ' and practice settings' : ''}${invalid.length ? `; skipped ${invalid.length} invalid row${invalid.length===1?'':'s'}` : ''}.`;
       preview.classList.remove('hidden');
     }
     toast('Import complete.','success');

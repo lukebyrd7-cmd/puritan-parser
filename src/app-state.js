@@ -33,9 +33,11 @@ const DEFAULTS = {
 let state = {
   lang: 'greek',
   data: { greek: [], hebrew: [] },
+  dataRevision: 0,
   filtered: [],
   prefs: { ...DEFAULTS },
-  filters: { query: '', minFreq: 1, maxFreq: 9999, dueOnly: false, pos: 'all' },
+  filters: { query: '', minFreq: 1, maxFreq: 9999, dueOnly: false, attentionOnly: false, pos: 'all', status: 'all' },
+  listRenderLimit: LIST_RENDER_LIMIT,
   parsingFilters: { family: 'all', details: {} },
   session: { queue: [], idx: 0, mode: 'due', flipped: false, reviewed: 0, forgotten: 0, total: 0, missedWords: [] },
   dashboard: { streak: 0, lastStudied: '', recent: [], heatmap: {} },
