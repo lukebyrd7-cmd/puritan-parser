@@ -62,3 +62,12 @@ test('old data without primaryGloss still validates and displays legacy gloss', 
   assert.equal(ParserCore.validateVocabItem(oldItem, 0).errors.length, 0);
   assert.equal(GlossModel.getDisplayGloss(oldItem), 'word');
 });
+
+test('lexical gloss presentation groups concise senses without rewriting source data', () => {
+  const source = { primaryGloss: 'word, message', alternateGlosses: ['matter', 'message', 'account'] };
+  const presented = GlossModel.presentLexicalGlosses(source, { primaryLimit: 3 });
+  assert.equal(presented.primaryText, 'word; message; matter');
+  assert.deepEqual(presented.additional, ['account']);
+  assert.deepEqual(source.alternateGlosses, ['matter', 'message', 'account']);
+  assert.equal(GlossModel.presentLexicalGlosses({}, { missingLabel: 'Gloss unavailable' }).primaryText, 'Gloss unavailable');
+});

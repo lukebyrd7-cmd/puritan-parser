@@ -33,6 +33,8 @@ test('decodes padded MorphGNT reader parse codes', () => {
 test('decodes Greek participle parse codes', () => {
   const parsed = decodeParse('V-PAP-NSM', 'greek');
   assert.equal(parsed.summary, 'Verb, present, active, participle, nominative, singular, masculine');
+  const padded = decodeParse('V- -PAPNSM-', 'greek');
+  assert.equal(padded.summary, 'Verb, present, active, participle, nominative, singular, masculine');
 });
 
 test('decodes Hebrew verb parse codes', () => {
