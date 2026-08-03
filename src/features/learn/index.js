@@ -71,7 +71,7 @@ const LearnAreas = [
   }
 ];
 
-const learnState = { page: 'home', history: [], customFrequencyErrors: {}, activeVocabularyPath: '', activeReviewPage: '', currentVocabularyWordId: '', focusedReviewWordId: '', reviewReveal: false, lastReviewResult: null, progressCache: {}, progressLoading: {}, recognitionSession: null, parsingRecognitionSession: null, parsingDrafts: {}, practiceSession: null, maintenanceSession: null, maintenanceError: '', studySetFormError: '', studySetWordPickerQuery: '', studySetDraft: null, selectedRecognitionTargets: {}, unifiedRevealed: false, unifiedSubmitting: false, practicePreparing: {}, profileDrafts: {}, profileError: '', dashboardRevision: -1, dashboardSummary: null, dashboardPending: false, dashboardVocabularyStore: null, glossMaps: { greek: null, hebrew: null }, glossMapPromises: {} };
+const learnState = { page: 'home', history: [], customFrequencyErrors: {}, activeVocabularyPath: '', activeReviewPage: '', currentVocabularyWordId: '', focusedReviewWordId: '', reviewReveal: false, lastReviewResult: null, progressCache: {}, progressLoading: {}, recognitionSession: null, parsingRecognitionSession: null, parsingDrafts: {}, practiceSession: null, maintenanceSession: null, maintenanceError: '', studySetFormError: '', studySetWordPickerQuery: '', studySetDraft: null, selectedRecognitionTargets: {}, unifiedRevealed: false, unifiedSubmitting: false, practicePreparing: {}, practicePreparationGeneration: 0, vocabularyEntryCache: {}, vocabularyEntryPromises: {}, profileDrafts: {}, profileError: '', dashboardRevision: -1, dashboardSummary: null, dashboardPending: false, dashboardVocabularyStore: null, glossMaps: { greek: null, hebrew: null }, glossMapPromises: {} };
 const learnPerformanceState = { active: false, navigationStart: 0, milestones: {}, syncFunctions: [], longTasks: [], observer: null };
 function learnPerformanceEnabled(){
   return typeof window !== 'undefined' && typeof performance !== 'undefined' && typeof location !== 'undefined' && ['localhost','127.0.0.1'].includes(location.hostname);
@@ -101,6 +101,7 @@ function beginLearnPerformanceNavigation(source = 'internal'){
       publishLearnPerformanceSnapshot();
     });
     learnPerformanceState.observer.observe({ type: 'longtask', buffered: false });
+    window.PuritanLifecycleDiagnostics?.observer?.('learn', true);
   }
   return true;
 }
@@ -132,6 +133,10 @@ function learnPerformanceSnapshot(){
 }
 function prepareLearnPerformanceMeasurement(options = {}){
   if(!learnPerformanceEnabled()) return false;
+  learnPerformanceState.observer?.disconnect?.();
+  learnPerformanceState.observer = null;
+  learnPerformanceState.active = false;
+  window.PuritanLifecycleDiagnostics?.observer?.('learn', false);
   if(options.invalidateDashboard){
     learnState.dashboardRevision = -1;
     learnState.dashboardSummary = null;
@@ -227,7 +232,7 @@ function learnStorage(){
   if(typeof activeStorageAdapter !== 'undefined' && activeStorageAdapter) return activeStorageAdapter;
   if(typeof localStorage !== 'undefined') return {
     get: key => localStorage.getItem(key),
-    set: (key, value) => localStorage.setItem(key, value),
+    set: (key, value) => { if(typeof window !== 'undefined') window.PuritanLifecycleDiagnostics?.write?.(); localStorage.setItem(key, value); },
     remove: key => localStorage.removeItem(key)
   };
   return null;
@@ -384,6 +389,7 @@ function ensureLearnRecognitionData(){
 function setLearnPage(page, options = {}){
   const next = normalizeLegacyLearnPracticePage(page || 'home');
   const changed = learnState.page !== next;
+  if(changed) learnState.practicePreparationGeneration += 1;
   if(!options.skipHistory && changed) learnState.history.push(learnState.page);
   learnState.page = next;
   if(changed && options.skipBrowserHistory !== true && typeof window !== 'undefined' && window.location?.pathname === '/learn') window.history?.pushState?.({ learnPage: next }, '', '/learn');
@@ -489,7 +495,7 @@ function learnBreadcrumbs(page = learnState.page){
   }
   if(areaId === 'vocabulary' && childId === 'customize'){
     const source = fourthId;
-    const label = source === 'book' ? 'Practice by book' : source === 'frequency' ? 'Practice by frequency' : source === 'weak' ? 'Practice weak words' : source === 'custom-deck' ? 'Custom Deck practice' : `Customize ${learnLanguageTitle(thirdId)} practice`;
+    const label = source === 'book' ? 'Practice by book' : source === 'frequency' ? 'Practice by frequency' : source === 'weak' ? 'Practice weak words' : source === 'custom-deck' ? 'Custom Deck practice' : `Customize ${learnLanguageTitle(thirdId)} daily practice`;
     crumbs.push({ label, page });
     return crumbs;
   }
@@ -707,8 +713,28 @@ function renderQuietFrequencyChoices(language, basePage){
 }
 function learnVocabularyEntries(language){
   const list = (typeof state !== 'undefined' && state.data?.[language]) ? state.data[language] : [];
+  const cached = learnState.vocabularyEntryCache[language];
+  if(cached?.source === list) return cached.entries;
   if(typeof getStudyEntries === 'function') return getStudyEntries(list, 'lemma');
   return list;
+}
+async function prepareLearnVocabularyEntries(language){
+  const normalized = language === 'hebrew' ? 'hebrew' : 'greek';
+  const list = (typeof state !== 'undefined' && state.data?.[normalized]) ? state.data[normalized] : [];
+  const cached = learnState.vocabularyEntryCache[normalized];
+  if(cached?.source === list) return cached.entries;
+  const pending = learnState.vocabularyEntryPromises[normalized];
+  if(pending?.source === list) return pending.promise;
+  const promise = (typeof getStudyEntriesAsync === 'function' ? getStudyEntriesAsync(list, 'lemma', { budgetMs: 8 }) : Promise.resolve(learnVocabularyEntries(normalized)))
+    .then(entries => {
+      if(((typeof state !== 'undefined' && state.data?.[normalized]) || []) === list) learnState.vocabularyEntryCache[normalized] = { source: list, entries };
+      return entries;
+    })
+    .finally(() => {
+      if(learnState.vocabularyEntryPromises[normalized]?.promise === promise) delete learnState.vocabularyEntryPromises[normalized];
+    });
+  learnState.vocabularyEntryPromises[normalized] = { source: list, promise };
+  return promise;
 }
 async function ensureLearnVocabularyGlossMap(language){
   const normalized = language === 'hebrew' ? 'hebrew' : 'greek';
@@ -1331,10 +1357,10 @@ function learnProfile(language){
 function learnActivePracticeSession(language){
   return LearningPracticeModel?.activeSession?.(language, learnStorage()) || null;
 }
-function learnProfileEntries(profile){
+function learnProfileEntries(profile, options = {}){
   const language = profile.language;
-  const entries = learnVocabularyEntries(language);
-  const store = learnVocabularyStore();
+  const entries = options.entries || learnVocabularyEntries(language);
+  const store = options.store || learnVocabularyStore();
   if(profile.source === 'custom-deck') return learnStudySetEntries(learnStudySet(profile.sourceId));
   if(profile.source === 'frequency'){
     const range = learnFrequencyRange(profile.sourceId);
@@ -1368,7 +1394,7 @@ function learnProfileEntries(profile){
     return status === VocabularyLearningModel.STATUS.KNOWN || status === VocabularyLearningModel.STATUS.KNOWN_SELF_REPORTED;
   });
 }
-function learnProfileValid(profile){
+function learnProfileValid(profile, options = {}){
   if(!profile || !['greek','hebrew'].includes(profile.language)) return { valid: false, error: 'Choose a language.' };
   if(!Array.isArray(profile.selectedGrades) || !profile.selectedGrades.length) return { valid: false, error: 'Choose at least one mastery grade.' };
   if(profile.source === 'custom-deck' && !profile.sourceId) return { valid: false, error: 'Choose a Custom Deck.' };
@@ -1381,6 +1407,8 @@ function learnProfileValid(profile){
   if(profile.source === 'frequency' && !learnFrequencyRange(profile.sourceId).valid) return { valid: false, error: 'Choose a valid frequency range.' };
   if(profile.unlimited && profile.introduceNewCount > 0) return { valid: false, error: 'Choose a finite session size when introducing New words.' };
   if(!profile.unlimited && profile.introduceNewCount > Math.floor(profile.size * .25)) return { valid: false, error: `New words may be at most 25% of this session (${Math.floor(profile.size * .25)}).` };
+  if(options.daily && profile.dailyAmountMode === 'unlimited' && profile.introduceNewCount > 0) return { valid: false, error: 'Choose a finite daily amount when introducing New words.' };
+  if(options.daily && profile.dailyAmountMode === 'set' && profile.introduceNewCount > Math.floor(profile.dailyAmount * .25)) return { valid: false, error: `New words may be at most 25% of this daily amount (${Math.floor(profile.dailyAmount * .25)}).` };
   return { valid: true, error: '' };
 }
 function dailyPracticeDashboardSummary(language, snapshot = {}){
@@ -1423,9 +1451,12 @@ function dashboardSummariesForRender(){
   const sessions = LearningPracticeModel.loadSessions(learnStorage());
   if(!learnState.dashboardPending){
     learnState.dashboardPending = true;
-    const compute = () => setTimeout(() => {
+    const compute = () => setTimeout(async () => {
       markLearnPerformanceMilestone('deferred-summary-start');
-      try { measureLearnSynchronous('dailyPracticeDashboardSummaries', dailyPracticeDashboardSummaries); }
+      try {
+        await Promise.all(['greek','hebrew'].map(prepareLearnVocabularyEntries));
+        measureLearnSynchronous('dailyPracticeDashboardSummaries', dailyPracticeDashboardSummaries);
+      }
       finally {
         markLearnPerformanceMilestone('deferred-summary-complete');
         learnState.dashboardPending = false;
@@ -1448,7 +1479,12 @@ function learnDailyPreview(summary){
   if(summary.due) parts.push(`${summary.due} scheduled ${summary.due === 1 ? 'review' : 'reviews'}`);
   if(summary.readyLearning) parts.push(`${summary.readyLearning} ready Learning ${summary.readyLearning === 1 ? 'word' : 'words'}`);
   const prefix = parts.length ? `${parts.join(' and ')}, then ` : '';
-  return `${prefix}Balanced rotation toward your ${summary.daily.target}-word goal.`;
+  const amount = summary.profile.dailyAmountMode === 'unlimited'
+    ? 'Continue with a bounded queue until you stop.'
+    : summary.profile.dailyAmountMode === 'set'
+      ? `Practice ${summary.profile.dailyAmount} additional ${summary.profile.dailyAmount === 1 ? 'word' : 'words'}.`
+      : `Balanced rotation toward your ${summary.daily.target}-word goal.`;
+  return `${prefix}${amount}`;
 }
 function activePracticeLabel(summary){
   if(summary.active) return summary.active.position ? `Resume ${learnLanguageTitle(summary.language)} practice` : `Continue ${learnLanguageTitle(summary.language)} practice`;
@@ -1468,7 +1504,8 @@ function startDailyPractice(language, options = {}){
     return active;
   }
   const profile = LearningPracticeModel.normalizeProfile(options.profile || learnProfile(language), language);
-  const validity = learnProfileValid(profile);
+  const focused = options.focused === true;
+  const validity = learnProfileValid(profile, { daily: !focused });
   if(!validity.valid){
     learnState.profileError = validity.error;
     learnState.profileDrafts[language] = profile;
@@ -1477,17 +1514,20 @@ function startDailyPractice(language, options = {}){
   }
   const daily = learnDailyPracticeSummary(language);
   const returnPage = options.returnPage || (learnState.page.startsWith('vocabulary:daily:') ? 'home' : learnState.page);
-  const focused = options.focused === true;
+  const allEntries = options.entries || learnVocabularyEntries(language);
+  const vocabularyStore = options.store || learnVocabularyStore();
+  const profileEntries = learnProfileEntries(profile, { entries: allEntries, store: vocabularyStore });
+  const dueEntries = VocabularyLearningModel.dueEntries(allEntries, vocabularyStore);
   const focusedNewEntries = ['weak','needs-attention'].includes(profile.source)
-    ? (profile.newWordSource === 'all' ? learnVocabularyEntries(language) : learnProfileEntries(learnProfile(language)))
-    : learnProfileEntries(profile);
+    ? (profile.newWordSource === 'all' ? allEntries : learnProfileEntries(learnProfile(language), { entries: allEntries, store: vocabularyStore }))
+    : profileEntries;
   const session = focused
     ? LearningPracticeModel.assembleFocusedSession({
         language,
         profile,
-        entries: learnProfileEntries(profile),
+        entries: profileEntries,
         newEntries: focusedNewEntries,
-        store: learnVocabularyStore(),
+        store: vocabularyStore,
         model: VocabularyLearningModel,
         glossMap: learnState.glossMaps[language],
         attention: LearningPracticeModel.loadAttention(learnStorage()),
@@ -1498,13 +1538,16 @@ function startDailyPractice(language, options = {}){
     : LearningPracticeModel.assembleSession({
         language,
         profile,
-        entries: learnVocabularyEntries(language),
-        maintenanceEntries: learnProfileEntries(profile),
-        newEntries: ['all-known','weak','needs-attention'].includes(profile.source) ? learnVocabularyEntries(language) : learnProfileEntries(profile),
-        store: learnVocabularyStore(),
+        entries: allEntries,
+        dueEntries,
+        maintenanceEntries: profileEntries,
+        newEntries: ['all-known','weak','needs-attention'].includes(profile.source) ? allEntries : profileEntries,
+        store: vocabularyStore,
         model: VocabularyLearningModel,
         glossMap: learnState.glossMaps[language],
         target: options.extra ? daily.combined + profile.size : learnReviewTarget(language),
+        dailyAmountMode: options.extra ? 'set' : profile.dailyAmountMode,
+        dailyAmount: options.extra ? profile.size : profile.dailyAmount,
         todayIds: daily.combinedIds,
         attention: LearningPracticeModel.loadAttention(learnStorage()),
         returnPage,
@@ -1519,23 +1562,43 @@ function startDailyPractice(language, options = {}){
   return session;
 }
 async function prepareDailyPractice(button, language, options = {}){
-  if(learnState.practicePreparing[language]) return null;
-  learnState.practicePreparing[language] = true;
+  const normalized = language === 'hebrew' ? 'hebrew' : 'greek';
+  if(learnState.practicePreparing[normalized]) return learnState.practicePreparing[normalized];
+  const generation = ++learnState.practicePreparationGeneration;
+  const startingPage = learnState.page;
   const original = button?.textContent || '';
-  if(button){ button.disabled = true; button.textContent = 'Preparing practice…'; }
+  if(button){ button.disabled = true; button.textContent = `Preparing ${learnLanguageTitle(normalized)} practice…`; }
   beginLearnPerformanceNavigation('continue-practice');
-  await new Promise(resolve => typeof requestAnimationFrame === 'function' ? requestAnimationFrame(() => resolve()) : setTimeout(resolve, 0));
-  markLearnPerformanceMilestone('visible-acknowledgment');
-  try {
-    await ensureLearnVocabularyGlossMap(language);
-    const session = measureLearnSynchronous(`assemblePractice:${language}`, () => startDailyPractice(language, options));
+  if(typeof window !== 'undefined') window.PuritanLifecycleDiagnostics?.job?.(`practice:${normalized}`, 1);
+  const pending = (async () => {
+    await new Promise(resolve => typeof requestAnimationFrame === 'function' ? requestAnimationFrame(() => resolve()) : setTimeout(resolve, 0));
+    markLearnPerformanceMilestone('visible-acknowledgment');
+    const root = $('#learnShell');
+    if(root && learnState.page === startingPage){
+      root.innerHTML = `<section class="panel learn-panel"><h1>${escHtml(learnLanguageTitle(normalized))} daily practice</h1><p class="progress-empty" role="status">Preparing ${escHtml(learnLanguageTitle(normalized))} practice…</p></section>`;
+      markLearnPerformanceMilestone('preparation-shell');
+    }
+    if(learnActivePracticeSession(normalized)){
+      if(generation !== learnState.practicePreparationGeneration || learnState.page !== startingPage) return null;
+      const resumed = startDailyPractice(normalized, options);
+      markLearnPerformanceMilestone('session-shell');
+      requestAnimationFrame?.(() => markLearnPerformanceMilestone('first-card'));
+      return resumed;
+    }
+    const [entries] = await Promise.all([prepareLearnVocabularyEntries(normalized), ensureLearnVocabularyGlossMap(normalized)]);
+    if(generation !== learnState.practicePreparationGeneration || learnState.page !== startingPage || (typeof state !== 'undefined' && state.currentView && state.currentView !== 'learnView')) return null;
+    const store = learnVocabularyStore();
+    const session = measureLearnSynchronous(`assemblePractice:${normalized}`, () => startDailyPractice(normalized, { ...options, entries, store }));
     markLearnPerformanceMilestone('session-shell');
     requestAnimationFrame?.(() => markLearnPerformanceMilestone('first-card'));
     return session;
-  } finally {
-    learnState.practicePreparing[language] = false;
+  })().finally(() => {
+    if(typeof window !== 'undefined') window.PuritanLifecycleDiagnostics?.job?.(`practice:${normalized}`, -1);
+    if(learnState.practicePreparing[normalized] === pending) delete learnState.practicePreparing[normalized];
     if(button?.isConnected){ button.disabled = false; button.textContent = original; }
-  }
+  });
+  learnState.practicePreparing[normalized] = pending;
+  return pending;
 }
 function saveAndExitDailyPractice(language){
   const session = learnActivePracticeSession(language) || LearningPracticeModel.loadSessions(learnStorage()).sessions[language];
@@ -1732,7 +1795,7 @@ function renderPracticeCustomize(language){
     ensureLearnManifest(language);
     if(draft.sourceId) ensureBookProgress(language, draft.sourceId);
   }
-  const validity = learnProfileValid(draft);
+  const validity = learnProfileValid(draft, { daily: !focused });
   const sourceControl = focused ? '' : `<label>Vocabulary scope<select class="input" name="source"><option value="all-known" ${draft.source === 'all-known' ? 'selected' : ''}>All vocabulary</option><option value="book" ${draft.source === 'book' ? 'selected' : ''}>One biblical book</option><option value="frequency" ${draft.source === 'frequency' ? 'selected' : ''}>Frequency range</option><option value="needs-attention" ${draft.source === 'needs-attention' ? 'selected' : ''}>Needs attention</option><option value="custom-deck" ${draft.source === 'custom-deck' ? 'selected' : ''}>Custom Deck</option></select></label>`;
   const chosenBook = draft.sourceId ? learnBook(language, draft.sourceId) : null;
   const detailControl = draft.source === 'book'
@@ -1744,7 +1807,7 @@ function renderPracticeCustomize(language){
         : '';
   const strategyControl = draft.source === 'weak' ? '<p class="small muted">Draws from low mastery, recent difficulty, Hard or Again answers, and words marked Needs attention.</p>' : `<label>Selection order<select class="input" name="strategy"><option value="balanced" ${draft.strategy === 'balanced' ? 'selected' : ''}>Balanced rotation</option><option value="reinforcement" ${draft.strategy === 'reinforcement' ? 'selected' : ''}>Words needing reinforcement</option><option value="random" ${draft.strategy === 'random' ? 'selected' : ''}>Random order</option></select></label>`;
   const gradesControl = draft.source === 'weak' ? '' : `<fieldset><legend>Mastery grades</legend><div class="learn-maintenance-grade-options">${LearningPracticeModel.GRADES.map(grade => `<label><input type="checkbox" name="selectedGrades" value="${grade}" ${draft.selectedGrades.includes(grade) ? 'checked' : ''}> ${grade} — ${escHtml(VocabularyMasteryModel.GRADE_META[grade].label)}</label>`).join('')}</div></fieldset>`;
-  const sizeControl = focused ? `<fieldset class="learn-session-size"><legend>Session size</legend><label><input type="radio" name="sizeMode" value="finite" ${draft.unlimited ? '' : 'checked'}> Number of words</label><input class="input" type="number" name="size" min="1" max="200" value="${draft.size}" ${draft.unlimited ? 'disabled' : ''}><label><input type="radio" name="sizeMode" value="unlimited" ${draft.unlimited ? 'checked' : ''}> Continue until I stop</label></fieldset>` : '';
+  const sizeControl = focused ? `<fieldset class="learn-session-size"><legend>Session size</legend><label><input type="radio" name="sizeMode" value="finite" ${draft.unlimited ? '' : 'checked'}> Number of words</label><input class="input" type="number" name="size" min="1" max="200" value="${draft.size}" ${draft.unlimited ? 'disabled' : ''}><label><input type="radio" name="sizeMode" value="unlimited" ${draft.unlimited ? 'checked' : ''}> Continue until I stop</label></fieldset>` : `<fieldset class="learn-session-size"><legend>Daily practice amount</legend><label><input type="radio" name="dailyAmountMode" value="goal" ${draft.dailyAmountMode === 'goal' ? 'checked' : ''}> Finish today’s goal <span class="small muted">(recommended)</span></label><label><input type="radio" name="dailyAmountMode" value="set" ${draft.dailyAmountMode === 'set' ? 'checked' : ''}> Practice a set number</label><input class="input" type="number" name="dailyAmount" min="1" max="200" value="${draft.dailyAmount}" ${draft.dailyAmountMode === 'set' ? '' : 'disabled'}><p class="small muted">Scheduled reviews are always included in addition to this number.</p><label><input type="radio" name="dailyAmountMode" value="unlimited" ${draft.dailyAmountMode === 'unlimited' ? 'checked' : ''}> Continue until I stop</label></fieldset>`;
   const statusControl = focused ? `<fieldset><legend>Word status</legend><div class="learn-maintenance-grade-options">${[['known','Known'],['learning','Learning'],['new','New']].map(([value,label]) => `<label><input type="checkbox" name="statusFilters" value="${value}" ${draft.statusFilters.includes(value) ? 'checked' : ''}> ${label}</label>`).join('')}</div></fieldset>` : '';
   const customNew = ![0,1,2,3,5].includes(draft.introduceNewCount);
   const dailyNewScope = practiceContext(learnProfile(language));
@@ -1752,7 +1815,7 @@ function renderPracticeCustomize(language){
   const newWordControl = `<label>Introduce new words<select class="input" name="introduceNewChoice">${[[0,'None'],[1,'1 new word'],[2,'2 new words'],[3,'3 new words'],[5,'5 new words']].map(([value,label]) => `<option value="${value}" ${draft.introduceNewCount === value ? 'selected' : ''}>${label}</option>`).join('')}<option value="custom" ${customNew ? 'selected' : ''}>Custom number</option></select></label>${customNew ? `<label>Custom number<input class="input" name="introduceNewCustom" type="number" min="0" max="50" value="${draft.introduceNewCount}"></label>` : ''}<p class="small muted">Adds the highest-frequency New words that match this session’s scope. A word becomes Learning after your first rating.</p>${newWordSourceNote}`;
   const context = practiceContext(draft);
   const heading = focused ? context.title : `Customize ${learnLanguageTitle(language)} daily practice`;
-  return `<section class="panel learn-panel" aria-labelledby="learnCustomizeTitle">${renderLearnHeader(heading, focused ? 'Choose how this focused session should work.' : 'The daily target remains your completion goal.', 'learnCustomizeTitle')}
+  return `<section class="panel learn-panel" aria-labelledby="learnCustomizeTitle">${renderLearnHeader(heading, focused ? 'Choose how this focused session should work.' : 'Choose how much daily practice to prepare.', 'learnCustomizeTitle')}
     <form class="word-page-section learn-profile-form" data-learn-save-profile="${escHtml(language)}" data-practice-mode="${focused ? 'focused' : 'daily'}" novalidate>
       ${sourceControl}${detailControl}${strategyControl}
       <label>Card direction<select class="input" name="promptDirection"><option value="reading" ${draft.promptDirection === 'reading' ? 'selected' : ''}>${escHtml(learnLanguageTitle(language))} first</option><option value="reverse" ${draft.promptDirection === 'reverse' ? 'selected' : ''}>English first</option><option value="mixed" ${draft.promptDirection === 'mixed' ? 'selected' : ''}>Mixed directions</option></select></label><p class="small muted">${draft.promptDirection === 'reading' ? `See the ${escHtml(learnLanguageTitle(language))} word and recall its English meaning.` : draft.promptDirection === 'reverse' ? `See the English gloss and recall the ${escHtml(learnLanguageTitle(language))} word.` : 'Practice both directions in the same session.'}</p>
@@ -1780,11 +1843,16 @@ function practiceProfileFromForm(form, options = {}){
   if(options.clearScopeDetail) sourceId = '';
   const focused = form.dataset.practiceMode === 'focused';
   const unlimited = focused && data.get('sizeMode') === 'unlimited';
+  const dailyAmountMode = focused ? previous.dailyAmountMode : (data.get('dailyAmountMode') || previous.dailyAmountMode || 'goal');
+  const dailyAmountRaw = String(data.get('dailyAmount') || previous.dailyAmount || '').trim();
   const sizeRaw = String(data.get('size') || '').trim();
   if(focused && !unlimited && (!/^\d+$/.test(sizeRaw) || Number(sizeRaw) < 1 || Number(sizeRaw) > 200)) error = error || 'Enter a session size from 1 to 200.';
+  if(!focused && dailyAmountMode === 'set' && (!/^\d+$/.test(dailyAmountRaw) || Number(dailyAmountRaw) < 1 || Number(dailyAmountRaw) > 200)) error = error || 'Enter a daily practice amount from 1 to 200.';
   const introduceChoice = data.get('introduceNewChoice') || '0';
   const introduceNewCount = introduceChoice === 'custom' ? Number(data.get('introduceNewCustom')) : Number(introduceChoice);
-  if(!focused && introduceNewCount > Math.floor(learnReviewTarget(language) * .25)) error = error || `New words may be at most 25% of today’s ${learnReviewTarget(language)}-word target.`;
+  const dailyAmountLimit = dailyAmountMode === 'set' ? Number(dailyAmountRaw) : learnReviewTarget(language);
+  if(!focused && dailyAmountMode === 'unlimited' && introduceNewCount > 0) error = error || 'Choose a finite daily amount when introducing New words.';
+  if(!focused && dailyAmountMode !== 'unlimited' && introduceNewCount > Math.floor(dailyAmountLimit * .25)) error = error || `New words may be at most 25% of this daily amount (${Math.floor(dailyAmountLimit * .25)}).`;
   const passageScope = data.get('passageScope') || previous.passageScope || 'book';
   const bookChanged = source === 'book' && sourceId !== previous.sourceId;
   const profile = LearningPracticeModel.normalizeProfile({
@@ -1796,6 +1864,8 @@ function practiceProfileFromForm(form, options = {}){
     selectedGrades: source === 'weak' ? LearningPracticeModel.GRADES.slice() : data.getAll('selectedGrades'),
     size: sizeRaw || previous.size,
     unlimited,
+    dailyAmountMode,
+    dailyAmount: dailyAmountRaw || previous.dailyAmount,
     promptDirection: data.get('promptDirection') || previous.promptDirection
     ,passageScope
     ,chapter: passageScope === 'chapter' && !bookChanged ? Number(data.get('chapter') || previous.chapter) : 0
@@ -3294,7 +3364,7 @@ function wireLearn(){
       const language = form.dataset.learnSaveProfile;
       const { profile, error, focused } = practiceProfileFromForm(form);
       learnState.profileDrafts[language] = profile;
-      const validity = error ? { valid: false, error } : learnProfileValid(profile);
+      const validity = error ? { valid: false, error } : learnProfileValid(profile, { daily: !focused });
       if(!validity.valid){ learnState.profileError = validity.error; renderLearn(); return; }
       if(profile.source === 'book' && !learnState.progressCache[bookProgressKey(language, profile.sourceId)]){
         ensureBookProgress(language, profile.sourceId);
@@ -3314,12 +3384,12 @@ function wireLearn(){
       renderLearn();
     });
     form.addEventListener('input', event => {
-      if(!['frequencyMinimum','frequencyMaximum','size'].includes(event.target?.name)) return;
+      if(!['frequencyMinimum','frequencyMaximum','size','dailyAmount'].includes(event.target?.name)) return;
       const language = form.dataset.learnSaveProfile;
       const { profile, error } = practiceProfileFromForm(form);
       learnState.profileDrafts[language] = profile;
       learnState.profileError = error;
-      const validity = error ? { valid: false, error } : learnProfileValid(profile);
+      const validity = error ? { valid: false, error } : learnProfileValid(profile, { daily: form.dataset.practiceMode !== 'focused' });
       const submit = form.querySelector('button[type="submit"]');
       if(submit){ submit.disabled = !validity.valid; submit.setAttribute('aria-disabled', String(!validity.valid)); }
       const message = form.querySelector('.learn-inline-validation');
@@ -3477,6 +3547,7 @@ function renderLearn(){
   }
   root.innerHTML = measureLearnSynchronous('renderLearnPage', renderLearnPage);
   measureLearnSynchronous('wireLearn', wireLearn);
+  if(typeof window !== 'undefined') window.PuritanLifecycleDiagnostics?.render?.('learn', root.querySelectorAll('button, input, select, textarea, form').length + (root.onkeydown ? 1 : 0));
   if(root.querySelector('[data-learn-start-daily]:not([disabled])')) markLearnPerformanceMilestone('primary-buttons-interactive');
   if(typeof requestAnimationFrame === 'function') requestAnimationFrame(() => markLearnPerformanceMilestone('shell-visible'));
   else markLearnPerformanceMilestone('shell-visible');
@@ -3486,8 +3557,8 @@ if(typeof window !== 'undefined') Object.assign(window, { LearnAreas, LearnRevie
 if(typeof module !== 'undefined') module.exports = { LearnAreas, LearnFrequencyThresholds, LearnReviewTargetDefaults, LearnReviewTargetPresets, LearnReviewTargetStorageKey, LearnPracticeSrsPreferenceStorageKey, learnState, learnArea, learnChild, learnPageTitle, learnBreadcrumbs, learnReviewTargets, learnReviewTarget, saveLearnReviewTargets, setLearnReviewTarget, learnPracticeSrsPreference, setLearnPracticeSrsPreference, learnReviewQueueSummary, parseLearnCustomFrequency, setLearnCustomFrequency, resetLearn, learnBookList, learnPathForPage, setLearnPage, backLearnPage, wireLearn, renderLearnPage, startLearnVocabularyPath, learnCurrentVocabularyWord, markLearnPathKnown, learnStudySets, learnStudySet, createLearnStudySet, createStudySetFromCurrentScope, addVocabularyToLearnStudySet, addSelectedVocabularyToLearnStudySet, createStudySetWithVocabulary, deleteLearnStudySet, markLearnStudySetKnown, reviewLearnVocabularyWord, revealLearnReview, gradeLearnReview, ensureLearnPracticeSession, revealLearnPractice, gradeLearnPractice, recognitionTargetsForLearn, selectedRecognitionTargetIds, toggleRecognitionSelection, clearRecognitionSelection, startRecognitionSession, startSelectedRecognitionSession, revealRecognitionAnswer, gradeRecognitionAnswer, openLearnReference };
 if(typeof window !== 'undefined') Object.assign(window, { LearnMaintenanceSessionSizeMax, learnDailyPracticeSummary, parseMaintenanceSessionSize, startLearnMaintenanceSession, revealLearnMaintenance, gradeLearnMaintenance, stopLearnMaintenance, resetLearnMaintenance, chooseLearnMaintenanceFocus, selectAllLearnMaintenanceGrades, renderMaintenancePracticePage });
 if(typeof module !== 'undefined') Object.assign(module.exports, { LearnMaintenanceSessionSizeMax, learnDailyPracticeSummary, parseMaintenanceSessionSize, startLearnMaintenanceSession, revealLearnMaintenance, gradeLearnMaintenance, stopLearnMaintenance, resetLearnMaintenance, chooseLearnMaintenanceFocus, selectAllLearnMaintenanceGrades, renderMaintenancePracticePage });
-if(typeof window !== 'undefined') Object.assign(window, { learnProfile, dailyPracticeDashboardSummary, startDailyPractice, discardDailyPractice, revealUnifiedPractice, gradeUnifiedPractice, startDifficultRecap, toggleUnifiedAttention, renderDailyPracticePage, renderPracticeCustomize });
-if(typeof module !== 'undefined') Object.assign(module.exports, { learnProfile, dailyPracticeDashboardSummary, startDailyPractice, discardDailyPractice, revealUnifiedPractice, gradeUnifiedPractice, startDifficultRecap, toggleUnifiedAttention, renderDailyPracticePage, renderPracticeCustomize, renderConfidenceControls });
+if(typeof window !== 'undefined') Object.assign(window, { learnProfile, dailyPracticeDashboardSummary, startDailyPractice, prepareDailyPractice, prepareLearnVocabularyEntries, discardDailyPractice, revealUnifiedPractice, gradeUnifiedPractice, startDifficultRecap, toggleUnifiedAttention, renderDailyPracticePage, renderPracticeCustomize });
+if(typeof module !== 'undefined') Object.assign(module.exports, { learnProfile, dailyPracticeDashboardSummary, startDailyPractice, prepareDailyPractice, prepareLearnVocabularyEntries, discardDailyPractice, revealUnifiedPractice, gradeUnifiedPractice, startDifficultRecap, toggleUnifiedAttention, renderDailyPracticePage, renderPracticeCustomize, renderConfidenceControls });
 if(typeof window !== 'undefined' && learnPerformanceEnabled()) window.PuritanLearnPerformance = { begin: beginLearnPerformanceNavigation, prepare: prepareLearnPerformanceMeasurement, snapshot: learnPerformanceSnapshot };
 if(typeof window !== 'undefined') Object.assign(window, { beginLearnPerformanceNavigation, prepareLearnPerformanceMeasurement });
 if(typeof module !== 'undefined') Object.assign(module.exports, { normalizeLegacyLearnPracticePage, beginLearnPerformanceNavigation, learnPerformanceSnapshot });

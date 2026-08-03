@@ -4,7 +4,7 @@
   if(typeof module === 'object' && module.exports) module.exports = api;
   root.LearningPractice = api;
 })(typeof globalThis !== 'undefined' ? globalThis : this, function(root){
-  const VERSION = 2;
+  const VERSION = 3;
   const PROFILE_KEY = 'pp_learning_practice_profiles';
   const SESSION_KEY = 'pp_learning_practice_sessions';
   const ATTEMPT_KEY = 'pp_learning_attempts';
@@ -22,6 +22,7 @@
   const SESSION_EXPIRY_MS = 7 * 24 * 60 * 60 * 1000;
   const STATUS_FILTERS = ['known', 'learning', 'new'];
   const PASSAGE_SCOPES = ['book', 'chapter'];
+  const DAILY_AMOUNT_MODES = ['goal', 'set', 'unlimited'];
 
   function clean(value){ return typeof value === 'string' ? value.trim() : ''; }
   function nowISO(){ return new Date().toISOString(); }
@@ -76,6 +77,8 @@
       selectedGrades: GRADES.slice(),
       size: 20,
       unlimited: false,
+      dailyAmountMode: 'goal',
+      dailyAmount: 20,
       promptDirection: 'reading',
       passageScope: 'book',
       chapter: 0,
@@ -100,6 +103,8 @@
       selectedGrades: selected.length ? selected : fallback.selectedGrades,
       size: Number.isFinite(rawSize) ? Math.min(200, Math.max(1, Math.floor(rawSize))) : fallback.size,
       unlimited: input.unlimited === true,
+      dailyAmountMode: DAILY_AMOUNT_MODES.includes(input.dailyAmountMode) ? input.dailyAmountMode : fallback.dailyAmountMode,
+      dailyAmount: Number.isFinite(Number(input.dailyAmount)) ? Math.min(200, Math.max(1, Math.floor(Number(input.dailyAmount)))) : fallback.dailyAmount,
       promptDirection: DIRECTIONS.includes(input.promptDirection) ? input.promptDirection : fallback.promptDirection,
       passageScope: PASSAGE_SCOPES.includes(input.passageScope) ? input.passageScope : fallback.passageScope,
       chapter: input.passageScope === 'chapter' && Number.isInteger(Number(input.chapter)) && Number(input.chapter) > 0 ? Number(input.chapter) : 0,
@@ -115,7 +120,12 @@
     const source = payload && typeof payload === 'object' ? payload : {};
     return { schemaVersion: VERSION, revision: Math.max(0, Number(source.revision) || 0), profiles: Object.fromEntries(LANGUAGES.map(language => [language, normalizeProfile(source.profiles?.[language] || {}, language)])) };
   }
-  function loadProfiles(adapter){ return normalizeProfiles(readJson(PROFILE_KEY, null, adapter)); }
+  function loadProfiles(adapter){
+    const source = readJson(PROFILE_KEY, null, adapter);
+    const normalized = normalizeProfiles(source);
+    if(source && source.schemaVersion !== VERSION) writeJson(PROFILE_KEY, normalized, adapter);
+    return normalized;
+  }
   function saveProfile(profile, adapter){
     const store = loadProfiles(adapter);
     const normalized = normalizeProfile(profile, profile.language);
@@ -132,7 +142,8 @@
     const strategy = { balanced: 'Balanced rotation', reinforcement: 'Words needing reinforcement', random: 'Random order' }[value.strategy];
     const language = value.language === 'hebrew' ? 'Hebrew' : 'Greek';
     const direction = { reading: `${language} first`, reverse: 'English first', mixed: 'Mixed directions' }[value.promptDirection];
-    return `${source} · ${strategy} · ${direction} · ${value.unlimited ? 'Continue until stopped' : `${value.size} words`}`;
+    const amount = value.dailyAmountMode === 'unlimited' ? 'Continue until stopped' : value.dailyAmountMode === 'set' ? `${value.dailyAmount} words plus due reviews` : 'Finish today’s goal';
+    return `${source} · ${strategy} · ${direction} · ${amount}`;
   }
 
   function usableGloss(value){
@@ -373,7 +384,7 @@
     const phase = ['scheduled','learning','new','maintenance','recap','complete'].includes(input.phase) ? input.phase : (cards[0]?.phase || 'maintenance');
     const position = Math.min(cards.length, Math.max(0, Number(input.position) || 0));
     const inferredComplete = (phase === 'complete' || cards.length === 0) && !cards.slice(position).some(card => !card.answered);
-    return { schemaVersion: VERSION, sessionId: clean(input.sessionId) || uuid(), language, sessionType: input.sessionType === 'focused' ? 'focused' : 'daily', source: clean(input.source) || 'all-known', sourceId: clean(input.sourceId), strategy: STRATEGIES.includes(input.strategy) ? input.strategy : 'balanced', selectedGrades: Array.isArray(input.selectedGrades) ? GRADES.filter(grade => input.selectedGrades.includes(grade)) : GRADES.slice(), promptDirection: DIRECTIONS.includes(input.promptDirection) ? input.promptDirection : 'reading', phase, cards, position, submittedEventIds: Array.isArray(input.submittedEventIds) ? [...new Set(input.submittedEventIds.map(clean).filter(Boolean))] : [], difficultIds: Array.isArray(input.difficultIds) ? [...new Set(input.difficultIds.map(clean).filter(Boolean))] : [], introducedWordIds: Array.isArray(input.introducedWordIds) ? [...new Set(input.introducedWordIds.map(clean).filter(Boolean))] : [], requestedNewCount: Math.max(0, Number(input.requestedNewCount) || 0), diagnostics: input.diagnostics && typeof input.diagnostics === 'object' ? clone(input.diagnostics) : { total: cards.length, studyable: cards.length, skipped: 0, reasons: {} }, revealedCardId: clean(input.revealedCardId), counts: { scheduled: Math.max(0, Number(input.counts?.scheduled) || 0), learning: Math.max(0, Number(input.counts?.learning) || 0), new: Math.max(0, Number(input.counts?.new) || 0), maintenance: Math.max(0, Number(input.counts?.maintenance) || 0), recap: Math.max(0, Number(input.counts?.recap) || 0) }, startingDailyCount: Math.max(0, Number(input.startingDailyCount) || 0), target: Math.max(0, Number(input.target) || 0), unlimited: input.unlimited === true, remainingCandidateIds: Array.isArray(input.remainingCandidateIds) ? [...new Set(input.remainingCandidateIds.map(clean).filter(Boolean))] : [], returnPage: clean(input.returnPage), contextTitle: clean(input.contextTitle), contextDetail: clean(input.contextDetail), limitedByPool: input.limitedByPool === true, recapStarted: input.recapStarted === true, createdAt: clean(input.createdAt) || nowISO(), updatedAt: clean(input.updatedAt) || nowISO(), completedAt: clean(input.completedAt) || (inferredComplete ? clean(input.updatedAt) || nowISO() : '') };
+    return { schemaVersion: VERSION, sessionId: clean(input.sessionId) || uuid(), language, sessionType: input.sessionType === 'focused' ? 'focused' : 'daily', source: clean(input.source) || 'all-known', sourceId: clean(input.sourceId), strategy: STRATEGIES.includes(input.strategy) ? input.strategy : 'balanced', selectedGrades: Array.isArray(input.selectedGrades) ? GRADES.filter(grade => input.selectedGrades.includes(grade)) : GRADES.slice(), promptDirection: DIRECTIONS.includes(input.promptDirection) ? input.promptDirection : 'reading', dailyAmountMode: DAILY_AMOUNT_MODES.includes(input.dailyAmountMode) ? input.dailyAmountMode : 'goal', dailyAmount: Math.min(200, Math.max(1, Math.floor(Number(input.dailyAmount) || 20))), phase, cards, position, submittedEventIds: Array.isArray(input.submittedEventIds) ? [...new Set(input.submittedEventIds.map(clean).filter(Boolean))] : [], difficultIds: Array.isArray(input.difficultIds) ? [...new Set(input.difficultIds.map(clean).filter(Boolean))] : [], introducedWordIds: Array.isArray(input.introducedWordIds) ? [...new Set(input.introducedWordIds.map(clean).filter(Boolean))] : [], requestedNewCount: Math.max(0, Number(input.requestedNewCount) || 0), diagnostics: input.diagnostics && typeof input.diagnostics === 'object' ? clone(input.diagnostics) : { total: cards.length, studyable: cards.length, skipped: 0, reasons: {} }, revealedCardId: clean(input.revealedCardId), counts: { scheduled: Math.max(0, Number(input.counts?.scheduled) || 0), learning: Math.max(0, Number(input.counts?.learning) || 0), new: Math.max(0, Number(input.counts?.new) || 0), maintenance: Math.max(0, Number(input.counts?.maintenance) || 0), recap: Math.max(0, Number(input.counts?.recap) || 0) }, startingDailyCount: Math.max(0, Number(input.startingDailyCount) || 0), target: Math.max(0, Number(input.target) || 0), unlimited: input.unlimited === true, remainingCandidateIds: Array.isArray(input.remainingCandidateIds) ? [...new Set(input.remainingCandidateIds.map(clean).filter(Boolean))] : [], returnPage: clean(input.returnPage), contextTitle: clean(input.contextTitle), contextDetail: clean(input.contextDetail), limitedByPool: input.limitedByPool === true, recapStarted: input.recapStarted === true, createdAt: clean(input.createdAt) || nowISO(), updatedAt: clean(input.updatedAt) || nowISO(), completedAt: clean(input.completedAt) || (inferredComplete ? clean(input.updatedAt) || nowISO() : '') };
   }
   function loadSessions(adapter){
     const source = readJson(SESSION_KEY, null, adapter); const sessions = source?.sessions || {};
@@ -388,7 +399,8 @@
     const language = options.language === 'hebrew' ? 'hebrew' : 'greek';
     const profile = normalizeProfile(options.profile || {}, language); const model = options.model;
     const store = options.store || { records: {} }; const date = options.dateISO || todayISO();
-    const validatedAll = filterStudyableEntries(options.entries, language, { model, glossMap: options.glossMap });
+    const canUseSuppliedPools = Array.isArray(options.dueEntries) && Array.isArray(options.maintenanceEntries);
+    const validatedAll = canUseSuppliedPools ? { entries: [], diagnostics: { total: 0, studyable: 0, skipped: 0, reasons: {} } } : filterStudyableEntries(options.entries, language, { model, glossMap: options.glossMap });
     const allEntries = validatedAll.entries;
     const suppliedDue = options.dueEntries ? filterStudyableEntries(options.dueEntries, language, { model, glossMap: options.glossMap }).entries : null;
     const ready = (suppliedDue || model.dueEntries(allEntries, store, date)).filter(entry => entry.lang === language);
@@ -401,25 +413,32 @@
     const dueIds = new Set(ready.map(model.lemmaId));
     const todayIds = options.todayIds instanceof Set ? options.todayIds : new Set(options.todayIds || []);
     const scheduledUnique = new Set([...dueIds, ...learning.map(model.lemmaId)]);
-    const remaining = Math.max(0, Math.max(0, Number(options.target) || profile.size) - new Set([...todayIds, ...scheduledUnique]).size);
+    const amountMode = DAILY_AMOUNT_MODES.includes(options.dailyAmountMode) ? options.dailyAmountMode : profile.dailyAmountMode;
+    const dailyAmount = Math.min(200, Math.max(1, Math.floor(Number(options.dailyAmount) || profile.dailyAmount)));
+    const goalRemaining = Math.max(0, Math.max(0, Number(options.target) || profile.size) - new Set([...todayIds, ...scheduledUnique]).size);
+    const remaining = amountMode === 'unlimited' ? 'unlimited' : amountMode === 'set' ? dailyAmount : goalRemaining;
     let eligible = Array.isArray(options.maintenanceEntries)
       ? filterStudyableEntries(options.maintenanceEntries, language, { model, glossMap: options.glossMap }).entries
       : allEntries;
-    const newScopeEntries = options.newEntries
+    const newScopeEntries = profile.introduceNewCount > 0 && options.newEntries
       ? filterStudyableEntries(options.newEntries, language, { model, glossMap: options.glossMap }).entries
-      : eligible.slice();
+      : profile.introduceNewCount > 0 ? eligible.slice() : [];
     eligible = eligible.filter(entry => !scheduledUnique.has(model.lemmaId(entry)) && !todayIds.has(model.lemmaId(entry)));
-    const built = buildSelectedSession(eligible, store, model, { strategy: profile.strategy, selectedGrades: profile.selectedGrades, size: remaining || 1, dateISO: date, attention: options.attention, eligibleIds: options.eligibleIds, seed: options.seed });
-    const newLimit = Math.min(profile.introduceNewCount, Math.floor(Math.max(0, Number(options.target) || profile.size) * .25), remaining);
+    const built = buildSelectedSession(eligible, store, model, { strategy: profile.strategy, selectedGrades: profile.selectedGrades, size: remaining === 'unlimited' ? 'unlimited' : (remaining || 1), dateISO: date, attention: options.attention, eligibleIds: options.eligibleIds, seed: options.seed });
+    const finiteRemaining = remaining === 'unlimited' ? 0 : remaining;
+    const newLimit = Math.min(profile.introduceNewCount, Math.floor((amountMode === 'set' ? dailyAmount : Math.max(0, Number(options.target) || profile.size)) * .25), finiteRemaining);
     const newCandidates = newScopeEntries.filter(entry => model.learningStatus(store, entry, date) === model.STATUS.NOT_LEARNED && !scheduledUnique.has(model.lemmaId(entry)) && !todayIds.has(model.lemmaId(entry)))
       .sort((a,b) => (Number(b.scopeFrequency) || Number(b.freq) || 0) - (Number(a.scopeFrequency) || Number(a.freq) || 0) || clean(model.lemmaId(a)).localeCompare(clean(model.lemmaId(b))));
     const introduced = newCandidates.slice(0, newLimit);
     const introducedIds = new Set(introduced.map(model.lemmaId));
-    const maintenance = remaining ? built.entries.filter(entry => !introducedIds.has(model.lemmaId(entry))).slice(0, Math.max(0, remaining - introduced.length)) : [];
+    const maintenance = remaining ? built.entries.filter(entry => !introducedIds.has(model.lemmaId(entry))).slice(0, remaining === 'unlimited' ? undefined : Math.max(0, remaining - introduced.length)) : [];
     const sessionId = uuid();
     const ordered = [...due.map(entry => ({ entry, phase: 'scheduled' })), ...learning.map(entry => ({ entry, phase: 'learning' })), ...introduced.map(entry => ({ entry, phase: 'new' })), ...maintenance.map(entry => ({ entry, phase: 'maintenance' }))];
     const cards = ordered.map(({entry, phase}, index) => { const id = model.lemmaId(entry); return makeCard(id, directionFor(profile.promptDirection, sessionId, id, index), phase, index); });
-    return normalizeSession({ sessionId, language, sessionType: 'daily', source: profile.source, sourceId: profile.sourceId, strategy: profile.strategy, selectedGrades: profile.selectedGrades, promptDirection: profile.promptDirection, phase: cards[0]?.phase || 'complete', cards, position: 0, startingDailyCount: todayIds.size, target: Number(options.target) || profile.size, introducedWordIds: introduced.map(model.lemmaId), requestedNewCount: profile.introduceNewCount, diagnostics: validatedAll.diagnostics, returnPage: options.returnPage, contextTitle: options.contextTitle, contextDetail: options.contextDetail, limitedByPool: remaining > maintenance.length + introduced.length, createdAt: nowISO() });
+    const selectedIds = new Set(ordered.map(({ entry }) => model.lemmaId(entry)));
+    const remainingCandidateIds = amountMode === 'unlimited' ? built.candidates.map(candidate => candidate.id).filter(id => !selectedIds.has(id)) : [];
+    const target = amountMode === 'goal' ? Number(options.target) || profile.size : amountMode === 'set' ? scheduledUnique.size + dailyAmount : 0;
+    return normalizeSession({ sessionId, language, sessionType: 'daily', source: profile.source, sourceId: profile.sourceId, strategy: profile.strategy, selectedGrades: profile.selectedGrades, promptDirection: profile.promptDirection, dailyAmountMode: amountMode, dailyAmount, phase: cards[0]?.phase || 'complete', cards, position: 0, startingDailyCount: todayIds.size, target, unlimited: amountMode === 'unlimited', remainingCandidateIds, introducedWordIds: introduced.map(model.lemmaId), requestedNewCount: profile.introduceNewCount, diagnostics: validatedAll.diagnostics, returnPage: options.returnPage, contextTitle: options.contextTitle, contextDetail: options.contextDetail, limitedByPool: amountMode !== 'unlimited' && finiteRemaining > maintenance.length + introduced.length, createdAt: nowISO() });
   }
   function assembleFocusedSession(options = {}){
     const language = options.language === 'hebrew' ? 'hebrew' : 'greek';
@@ -511,5 +530,5 @@
     bumpRevision(adapter); return exportState(adapter);
   }
 
-  return { VERSION, PROFILE_KEY, SESSION_KEY, ATTEMPT_KEY, ATTENTION_KEY, MAINTENANCE_SRS_KEY, LEGACY_SRS_KEY, REVISION_KEY, LANGUAGES, CONFIDENCES, DIRECTIONS, STRATEGIES, GRADES, STATUS_FILTERS, PASSAGE_SCOPES, MAX_ATTEMPTS, SESSION_EXPIRY_MS, uuid, stableHash, bumpRevision, revision, defaultProfile, normalizeProfile, normalizeProfiles, loadProfiles, saveProfile, profileSummary, validateVocabularyCard, filterStudyableEntries, normalizeMaintenancePreference, loadMaintenancePreference, setMaintenancePreference, normalizeAttention, loadAttention, needsAttention, setNeedsAttention, confidenceOf, confidenceResult, nextInterval, applyConfidence, appendEvidenceOnly, eventAlreadyRecorded, appendAttempt, candidateCompare, buildBalancedSession, buildSelectedSession, directionFor, normalizeSession, loadSessions, activeSession, saveSession, discardSession, sessionExpired, assembleSession, assembleFocusedSession, currentCard, advanceSession, buildRecap, recordAnswer, exportState, importState };
+  return { VERSION, PROFILE_KEY, SESSION_KEY, ATTEMPT_KEY, ATTENTION_KEY, MAINTENANCE_SRS_KEY, LEGACY_SRS_KEY, REVISION_KEY, LANGUAGES, CONFIDENCES, DIRECTIONS, STRATEGIES, GRADES, STATUS_FILTERS, PASSAGE_SCOPES, DAILY_AMOUNT_MODES, MAX_ATTEMPTS, SESSION_EXPIRY_MS, uuid, stableHash, bumpRevision, revision, defaultProfile, normalizeProfile, normalizeProfiles, loadProfiles, saveProfile, profileSummary, validateVocabularyCard, filterStudyableEntries, normalizeMaintenancePreference, loadMaintenancePreference, setMaintenancePreference, normalizeAttention, loadAttention, needsAttention, setNeedsAttention, confidenceOf, confidenceResult, nextInterval, applyConfidence, appendEvidenceOnly, eventAlreadyRecorded, appendAttempt, candidateCompare, buildBalancedSession, buildSelectedSession, directionFor, normalizeSession, loadSessions, activeSession, saveSession, discardSession, sessionExpired, assembleSession, assembleFocusedSession, currentCard, advanceSession, buildRecap, recordAnswer, exportState, importState };
 });

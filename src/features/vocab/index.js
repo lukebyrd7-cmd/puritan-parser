@@ -7,6 +7,42 @@ function displayHeadwordForEntry(entry){
 /* ---------- View Controller ---------- */
 const featureViewLoadPromises = new Map();
 const FeatureViewLoadTimeoutMs = 10000;
+const lifecycleDiagnostics = (() => {
+  const enabled = typeof window !== 'undefined' && typeof performance !== 'undefined' && ['localhost','127.0.0.1'].includes(location.hostname);
+  const state = { route: '', mounts: 0, unmounts: 0, renders: {}, listenerBindings: {}, activeObservers: {}, activeTimers: 0, activeJobs: {}, storageWrites: 0, longTasks: [], clickResponses: [] };
+  const snapshot = () => ({ ...state, renders: { ...state.renders }, listenerBindings: { ...state.listenerBindings }, activeObservers: { ...state.activeObservers }, activeJobs: { ...state.activeJobs }, longTasks: state.longTasks.slice(), clickResponses: state.clickResponses.slice(), memory: performance.memory ? { usedJSHeapSize: performance.memory.usedJSHeapSize, totalJSHeapSize: performance.memory.totalJSHeapSize } : null });
+  const publish = () => { if(enabled && document?.documentElement) document.documentElement.dataset.puritanLifecycle = JSON.stringify(snapshot()); };
+  if(enabled && typeof PerformanceObserver === 'function' && PerformanceObserver.supportedEntryTypes?.includes('longtask')){
+    const observer = new PerformanceObserver(list => {
+      state.longTasks.push(...list.getEntries().map(entry => ({ route: state.route, duration: entry.duration, startTime: entry.startTime })).slice(-100));
+      state.longTasks = state.longTasks.slice(-100);
+      publish();
+    });
+    observer.observe({ type: 'longtask', buffered: false });
+    state.activeObservers.lifecycle = 1;
+  }
+  if(enabled && typeof document !== 'undefined') document.addEventListener('click', () => {
+    const route = state.route; const started = performance.now(); state.activeTimers += 1;
+    requestAnimationFrame(() => {
+      state.activeTimers = Math.max(0, state.activeTimers - 1);
+      state.clickResponses.push({ route, duration: performance.now() - started });
+      state.clickResponses = state.clickResponses.slice(-100);
+      publish();
+    });
+  }, true);
+  const api = {
+    enabled,
+    route(next){ if(!enabled || state.route === next) return; if(state.route) state.unmounts += 1; state.route = next; state.mounts += 1; publish(); },
+    render(name, listenerCount){ if(!enabled) return; state.renders[name] = (state.renders[name] || 0) + 1; if(Number.isFinite(listenerCount)) state.listenerBindings[name] = listenerCount; publish(); },
+    observer(name, active){ if(enabled){ state.activeObservers[name] = active ? 1 : 0; publish(); } },
+    job(name, delta){ if(enabled){ state.activeJobs[name] = Math.max(0, (state.activeJobs[name] || 0) + delta); publish(); } },
+    write(){ if(enabled){ state.storageWrites += 1; publish(); } },
+    snapshot,
+    reset(){ if(!enabled) return; state.mounts = 0; state.unmounts = 0; state.renders = {}; state.listenerBindings = {}; state.storageWrites = 0; state.longTasks = []; state.clickResponses = []; publish(); }
+  };
+  if(typeof window !== 'undefined') window.PuritanLifecycleDiagnostics = api;
+  return api;
+})();
 
 function featureViewStatus(target){
   return target?.querySelector?.(':scope > .feature-load-status') || null;
@@ -65,7 +101,9 @@ function showView(viewId, options = {}){
   viewId = normalizeViewId(viewId);
   if(viewId === 'globalSearchView' && typeof performance !== 'undefined' && typeof window !== 'undefined') window.__puritanSearchNavigationStart = performance.now();
   const previousView = state.currentView;
+  lifecycleDiagnostics.route(viewId);
   if(previousView === 'learnView' && viewId !== 'learnView' && typeof prepareLearnPerformanceMeasurement === 'function') prepareLearnPerformanceMeasurement({ invalidateDashboard: true });
+  if(previousView === 'globalSearchView' && viewId !== 'globalSearchView' && typeof disposeGlobalSearch === 'function') disposeGlobalSearch();
   const moduleLoader = typeof window !== 'undefined' ? window.PuritanModuleLoader : null;
   if(!options.featureReady && moduleLoader && !moduleLoader.isViewReady(viewId)){
     const target = document.getElementById(viewId);

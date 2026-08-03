@@ -51,6 +51,26 @@ test('profile drafts do not persist and a successful save changes one language o
   assert.equal(LearningPractice.loadProfiles(adapter).profiles.hebrew.source, 'all-known');
 });
 
+test('legacy daily profiles migrate idempotently to independent finish-goal amounts', () => {
+  const adapter = memory({
+    [LearningPractice.PROFILE_KEY]: JSON.stringify({ schemaVersion: 2, revision: 4, profiles: {
+      greek: { language: 'greek', size: 12, unlimited: true },
+      hebrew: { language: 'hebrew', size: 35 }
+    } })
+  });
+  const first = LearningPractice.loadProfiles(adapter);
+  const second = LearningPractice.loadProfiles(adapter);
+  assert.deepEqual(first, second);
+  assert.equal(first.schemaVersion, 3);
+  assert.deepEqual(
+    [first.profiles.greek.dailyAmountMode, first.profiles.hebrew.dailyAmountMode],
+    ['goal', 'goal']
+  );
+  LearningPractice.saveProfile({ ...first.profiles.greek, dailyAmountMode: 'set', dailyAmount: 17 }, adapter);
+  const saved = LearningPractice.loadProfiles(adapter).profiles;
+  assert.deepEqual([saved.greek.dailyAmountMode, saved.greek.dailyAmount, saved.hebrew.dailyAmountMode], ['set', 17, 'goal']);
+});
+
 test('maintenance preference migration defaults missing, malformed, and legacy auto-default to On', () => {
   for(const initial of [{}, { [LearningPractice.MAINTENANCE_SRS_KEY]: '{bad' }, { [LearningPractice.LEGACY_SRS_KEY]: 'practice-only' }]){
     const adapter = memory(initial);
@@ -134,6 +154,32 @@ test('daily assembly puts all scheduled work before learning and maintenance eve
   ]);
   const session = LearningPractice.assembleSession({ language: 'greek', profile: LearningPractice.defaultProfile('greek'), entries: all, maintenanceEntries: known, store: current, model: VocabularyLearning, target: 2, todayIds: new Set(), dateISO: DATE });
   assert.deepEqual(session.cards.map(card => card.phase), ['scheduled','scheduled','scheduled','learning']);
+});
+
+test('daily set amounts add exact non-due work after mandatory due reviews', () => {
+  const due = ['due-1','due-2'].map(name => entry(name));
+  const known = Array.from({ length: 8 }, (_, index) => entry(`known-${index}`));
+  const current = store([...due.map(word => record(word, { due: DATE })), ...known.map(word => record(word))]);
+  const profile = { ...LearningPractice.defaultProfile('greek'), dailyAmountMode: 'set', dailyAmount: 5 };
+  const session = LearningPractice.assembleSession({ language: 'greek', profile, entries: [...due, ...known], maintenanceEntries: known, store: current, model: VocabularyLearning, target: 20, todayIds: new Set(), dateISO: DATE });
+  assert.deepEqual(session.cards.map(card => card.phase), ['scheduled','scheduled','maintenance','maintenance','maintenance','maintenance','maintenance']);
+  assert.equal(session.dailyAmountMode, 'set');
+  assert.equal(session.dailyAmount, 5);
+});
+
+test('daily continue-until-stopped uses bounded lazy batches and remains resumable', () => {
+  const due = entry('due');
+  const known = Array.from({ length: 205 }, (_, index) => entry(`daily-${index}`));
+  const current = store([record(due, { due: DATE }), ...known.map(word => record(word))]);
+  const profile = { ...LearningPractice.defaultProfile('greek'), dailyAmountMode: 'unlimited' };
+  let session = LearningPractice.assembleSession({ language: 'greek', profile, entries: [due, ...known], maintenanceEntries: known, store: current, model: VocabularyLearning, dateISO: DATE });
+  assert.equal(session.cards.length, 101);
+  assert.equal(session.cards[0].phase, 'scheduled');
+  assert.equal(session.remainingCandidateIds.length, 105);
+  assert.equal(session.unlimited, true);
+  for(let index = 0; index < 101; index++) session = LearningPractice.advanceSession(session, { eventId: `daily-event-${index}`, confidence: 'good' });
+  assert.equal(session.cards.length, 201);
+  assert.equal(session.completedAt, '');
 });
 
 test('zero due enters maintenance and no eligible maintenance completes honestly', () => {

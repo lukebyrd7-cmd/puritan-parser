@@ -129,6 +129,9 @@ test('daily and focused practice setup render only context-valid dependent contr
   learn.learnState.profileDrafts = { greek: { ...LearningPractice.defaultProfile('greek'), source: 'all-known', sourceId: '' } };
   let html = renderPage('vocabulary:customize:greek');
   assert.match(html, /Vocabulary scope/);
+  assert.match(renderedText(html), /Customize Greek daily practice.*Daily practice amount.*Finish today’s goal.*recommended.*Practice a set number.*Continue until I stop/);
+  assert.match(html, /name="dailyAmount"[^>]*min="1"[^>]*max="200"[^>]*disabled/);
+  assert.equal(learn.learnBreadcrumbs('vocabulary:customize:greek').at(-1).label, 'Customize Greek daily practice');
   assert.doesNotMatch(html, /data-dependent-field=/);
 
   learn.learnState.profileDrafts.greek = { ...LearningPractice.defaultProfile('greek'), source: 'book', sourceId: '' };
@@ -157,6 +160,33 @@ test('daily and focused practice setup render only context-valid dependent contr
   assert.match(renderedText(html), /recent difficulty, Hard or Again answers, and words marked Needs attention/);
   assert.doesNotMatch(html, /name="source"|name="strategy"|name="selectedGrades"/);
   assert.match(html, /Continue until I stop/);
+});
+
+test('language vocabulary preparation deduplicates concurrent jobs and isolates caches', async () => {
+  const originalAsync = global.getStudyEntriesAsync;
+  let builds = 0;
+  global.getStudyEntriesAsync = async entries => { builds += 1; await new Promise(resolve => setImmediate(resolve)); return entries.slice(); };
+  learn.learnState.vocabularyEntryCache = {};
+  learn.learnState.vocabularyEntryPromises = {};
+  const first = learn.prepareLearnVocabularyEntries('hebrew');
+  const second = learn.prepareLearnVocabularyEntries('hebrew');
+  const [firstEntries, secondEntries] = await Promise.all([first, second]);
+  assert.equal(builds, 1);
+  assert.equal(firstEntries, secondEntries);
+  await learn.prepareLearnVocabularyEntries('greek');
+  assert.equal(builds, 2);
+  assert.notEqual(learn.learnState.vocabularyEntryCache.greek.entries, learn.learnState.vocabularyEntryCache.hebrew.entries);
+  global.getStudyEntriesAsync = originalAsync;
+});
+
+test('twenty repeated Learn route renders keep profile state and storage stable', () => {
+  const writesBefore = storage.size;
+  const profileSnapshot = JSON.stringify(LearningPractice.loadProfiles().profiles);
+  for(let cycle = 0; cycle < 20; cycle += 1){
+    renderPage(cycle % 2 ? 'home' : 'vocabulary:customize:greek');
+    assert.equal(JSON.stringify(LearningPractice.loadProfiles().profiles), profileSnapshot);
+  }
+  assert.equal(storage.size, writesBefore);
 });
 
 test('recognition parsing setup is language-specific and separated from vocabulary filters', () => {

@@ -328,8 +328,10 @@ test('Global Search reuses corpus work, refreshes user decoration separately, an
   await search.prepareGlobalSearchIndex();
   const baseline = search.globalSearchIndexDebug();
   const writesBeforeReadOnlyWork = storageWriteCount;
-  await Promise.all([search.prepareGlobalSearchIndex(), search.prepareGlobalSearchIndex()]);
-  search.searchGlobalVocabulary({ query: 'logos', language: 'greek', sort: 'frequency' });
+  for(let cycle = 0; cycle < 20; cycle += 1){
+    await Promise.all([search.prepareGlobalSearchIndex(), search.prepareGlobalSearchIndex()]);
+    search.searchGlobalVocabulary({ query: cycle % 2 ? 'word' : 'logos', language: cycle % 2 ? 'all' : 'greek', sort: 'frequency' });
+  }
   assert.equal(storageWriteCount, writesBeforeReadOnlyWork);
   assert.equal(search.globalSearchIndexDebug().preparationCount, baseline.preparationCount);
 

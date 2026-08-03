@@ -297,6 +297,7 @@
     const preparationKey = `${corpusKey}|${userKey}`;
     if(indexPreparationPromise && indexPreparationKey === preparationKey) return indexPreparationPromise;
     indexPreparationKey = preparationKey; indexPreparationCount += 1;
+    root.PuritanLifecycleDiagnostics?.job?.('search:index', 1);
     indexPreparationPromise = (async () => {
       if(corpusKey !== cachedCorpusSignature){
         corpusBuildCount += 1;
@@ -317,7 +318,7 @@
         cachedDecorationSignature = currentUserKey;
       }
       return cachedEntries;
-    })().finally(() => { indexPreparationPromise = null; indexPreparationKey = ''; });
+    })().finally(() => { indexPreparationPromise = null; indexPreparationKey = ''; root.PuritanLifecycleDiagnostics?.job?.('search:index', -1); });
     return indexPreparationPromise;
   }
   function globalSearchIndexDebug(){ return { preparationCount: indexPreparationCount, corpusBuildCount, decorationBuildCount, corpusSignature: cachedCorpusSignature, decorationSignature: cachedDecorationSignature, preparing: Boolean(indexPreparationPromise), entries: cachedEntries.length }; }
@@ -501,6 +502,7 @@
       rootEl.dataset.searchPerformance = JSON.stringify({ shellInteractive: start - navigationStart, controlsInteractive: start - navigationStart, indexReady: 0, indexDuration: 0, queryDuration: 0, renderDuration: 0, loadMoreDuration: 0, firstResultRender: 0, longTasks: [] });
       observeSearchLongTasks(rootEl, navigationStart);
       startSearchPreparation(rootEl, generation, navigationStart);
+      root.PuritanLifecycleDiagnostics?.render?.('search', rootEl.querySelectorAll?.('button, input, select, textarea, form')?.length || 0);
       return rootEl.innerHTML;
     }
     const partsOfSpeech = [...new Set(cachedEntries.map(item => item.partOfSpeech).filter(Boolean))].sort();
@@ -543,6 +545,7 @@
       <div id="globalSearchActions"></div>
     </section>`;
     wireGlobalSearch(rootEl);
+    root.PuritanLifecycleDiagnostics?.render?.('search', rootEl.querySelectorAll?.('button, input, select, textarea, form')?.length || 0);
     const shellInteractive = now() - navigationStart;
     rootEl.dataset.searchPerformance = JSON.stringify({ shellInteractive, controlsInteractive: shellInteractive, indexReady: 0, indexDuration: 0, queryDuration: 0, renderDuration: 0, loadMoreDuration: 0, firstResultRender: 0, longTasks: [] });
     observeSearchLongTasks(rootEl, navigationStart);
@@ -629,6 +632,14 @@
       rootEl.dataset.searchPerformance = JSON.stringify(snapshot);
     });
     searchLongTaskObserver.observe({ type: 'longtask', buffered: false });
+    root.PuritanLifecycleDiagnostics?.observer?.('search', true);
+  }
+  function disposeGlobalSearch(){
+    searchRenderGeneration += 1;
+    scopeRequestGeneration += 1;
+    searchLongTaskObserver?.disconnect?.();
+    searchLongTaskObserver = null;
+    root.PuritanLifecycleDiagnostics?.observer?.('search', false);
   }
   function populateSearchDerivedFilters(rootEl, index){
     const select = query('#globalSearchPartOfSpeech', rootEl);
@@ -742,6 +753,7 @@
     displayHeadword,
     normalizeText,
     transliterateGreek,
-    isNumericLemma
+    isNumericLemma,
+    disposeGlobalSearch
   };
 });

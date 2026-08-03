@@ -1,13 +1,13 @@
 // Service worker for the static Puritan Parser app.
 // Keep this file next to index.html so root-scoped registration covers every route.
-const CACHE = 'puritan-parser-v94-v1.8.1-unified-learning-practice';
+const CACHE = 'puritan-parser-v95-v1.8.1-unified-learning-practice';
 const FILES = [
   './',
   './index.html',
   './styles.css',
-  './styles.css?v=v1.8.1-unified-learning-practice-verified-5',
+  './styles.css?v=v1.8.1-unified-learning-practice-verified-6',
   './src/main.js',
-  './src/main.js?v=v1.8.1-unified-learning-practice-verified-5',
+  './src/main.js?v=v1.8.1-unified-learning-practice-verified-6',
   './src/core/parser-core.js',
   './src/core/hebrew-search.js',
   './src/core/migrations/migrations.js',

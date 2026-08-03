@@ -49,12 +49,14 @@ test('finite focused sessions replace invalid cards and preserve the requested s
 
 test('profile migration adds safe chapter, status, and New-word defaults while retaining direction values', () => {
   const migrated = LearningPractice.normalizeProfile({ schemaVersion: 1, language: 'hebrew', source: 'book', sourceId: 'genesis', promptDirection: 'mixed' });
-  assert.equal(migrated.schemaVersion, 2);
+  assert.equal(migrated.schemaVersion, 3);
   assert.equal(migrated.passageScope, 'book');
   assert.equal(migrated.chapter, 0);
   assert.deepEqual(migrated.statusFilters, ['known', 'learning']);
   assert.equal(migrated.introduceNewCount, 0);
   assert.equal(migrated.promptDirection, 'mixed');
+  assert.equal(migrated.dailyAmountMode, 'goal');
+  assert.equal(migrated.dailyAmount, 20);
   assert.equal(LearningPractice.normalizeProfile({ ...migrated, passageScope: 'chapter', chapter: -4 }).chapter, 0);
 });
 
