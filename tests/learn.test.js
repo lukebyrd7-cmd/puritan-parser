@@ -102,14 +102,55 @@ test('Learn home prioritizes independent daily practice, parsing, focused source
   storage.delete(learn.LearnActivePathsStorageKey || 'pp_learn_active_paths');
   const html = renderPage('home');
   const text = renderedText(html);
-  ['Today’s Practice', 'Greek practice', 'Hebrew practice', 'Parsing Practice', 'Practice by book', 'Practice by frequency', 'Practice weak words', 'Custom Decks', 'Vocabulary tools'].forEach(label => assert.match(text, new RegExp(label.replace(/[()]/g, '\\$&'))));
+  ['Today’s Practice', 'Start learning Greek vocabulary', 'Start learning Hebrew vocabulary', 'Parsing Practice', 'Practice by book', 'Practice by frequency', 'Practice weak words', 'Custom Decks', 'Vocabulary tools'].forEach(label => assert.match(text, new RegExp(label.replace(/[()]/g, '\\$&'))));
   const order = ['Today’s Practice', 'Parsing Practice', 'Focused vocabulary practice', 'Vocabulary tools'].map(label => text.indexOf(label));
   assert.deepEqual(order, [...order].sort((a, b) => a - b));
-  assert.match(html, /data-learn-start-daily="greek"/);
-  assert.match(html, /data-learn-start-daily="hebrew"/);
+  assert.match(html, /data-learn-start-first-use="greek"/);
+  assert.match(html, /data-learn-start-first-use="hebrew"/);
   assert.doesNotMatch(text, /Review Mixed|generic practice option simply called/);
   assert.doesNotMatch(html, /id="learnBackBtn"/);
   assert.doesNotMatch(html, /alert\(/);
+});
+
+test('first-use starter session chooses five highest-frequency studyable New words and resumes without introducing on reveal', () => {
+  [VocabularyLearning.STORAGE_KEY, LearningPractice.SESSION_KEY, LearningPractice.REVISION_KEY].forEach(key => storage.delete(key));
+  const previous = global.state.data.greek;
+  global.state.data.greek = [
+    { id: 'lemma:greek:a', lang: 'greek', lemma: 'alpha', word: 'alpha', primaryGloss: 'one', freq: 10 },
+    { id: 'lemma:greek:b', lang: 'greek', lemma: 'beta', word: 'beta', primaryGloss: 'two', freq: 60 },
+    { id: 'lemma:greek:c', lang: 'greek', lemma: 'gamma', word: 'gamma', primaryGloss: 'three', freq: 50 },
+    { id: 'lemma:greek:d', lang: 'greek', lemma: 'delta', word: 'delta', primaryGloss: 'four', freq: 40 },
+    { id: 'lemma:greek:e', lang: 'greek', lemma: 'epsilon', word: 'epsilon', primaryGloss: 'five', freq: 30 },
+    { id: 'lemma:greek:f', lang: 'greek', lemma: 'zeta', word: 'zeta', primaryGloss: 'six', freq: 20 },
+    { id: 'lemma:greek:bad', lang: 'greek', lemma: '1234', word: '1234', primaryGloss: '', freq: 999 }
+  ];
+  const session = learn.startFirstUsePractice('greek', { entries: global.state.data.greek, store: VocabularyLearning.normalizeStore() });
+  assert.deepEqual(session.cards.map(card => card.vocabularyId), ['lemma:greek:b','lemma:greek:c','lemma:greek:d','lemma:greek:e','lemma:greek:f']);
+  assert.equal(session.cards.every(card => card.phase === 'new' && card.direction === 'reading'), true);
+  learn.revealUnifiedPractice();
+  assert.equal(VocabularyLearning.loadStore().records['lemma:greek:b'], undefined);
+  const resumed = learn.startFirstUsePractice('greek');
+  assert.equal(resumed.sessionId, session.sessionId);
+  learn.gradeUnifiedPractice('good');
+  assert.equal(VocabularyLearning.loadStore().records['lemma:greek:b'].status, 'Reviewing');
+  global.state.data.greek = previous;
+  LearningPractice.discardSession('greek');
+  storage.delete(VocabularyLearning.STORAGE_KEY);
+});
+
+test('revealed practice cards show ordinary lexical glosses immediately and keep English-first answers hidden', () => {
+  const entry = { lang: 'greek', studyForm: 'angelos', primaryGloss: 'angel', alternateGlosses: ['messenger'] };
+  const reading = learn.renderUnifiedVocabularyCard(entry, { cardId: 'c1', direction: 'reading' }, true);
+  assert.match(renderedText(reading), /angel; messenger/);
+  assert.doesNotMatch(reading, /More glosses/);
+  assert.match(reading, /data-learn-full-gloss="true" hidden/);
+  const reverseHidden = learn.renderUnifiedVocabularyCard(entry, { cardId: 'c2', direction: 'reverse' }, false);
+  assert.match(renderedText(reverseHidden), /angel/);
+  assert.doesNotMatch(reverseHidden, /angelos/);
+  const disclosure = { hidden: true };
+  const answer = { scrollHeight: 90, clientHeight: 50, classList: { toggle(){} }, closest: () => ({ querySelector: () => disclosure }) };
+  assert.equal(learn.syncUnifiedGlossOverflow({ querySelectorAll: () => [answer] }), 1);
+  assert.equal(disclosure.hidden, false);
 });
 
 test('Parsing Practice presents equivalent Greek and Hebrew choices and stacks on mobile', () => {

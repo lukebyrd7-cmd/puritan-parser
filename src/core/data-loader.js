@@ -36,7 +36,7 @@ async function loadData(){
 /* ---------- Export ---------- */
 function exportData(){
   const data = {
-    schemaVersion: 2,
+    schemaVersion: 3,
     greek: state.data.greek,
     hebrew: state.data.hebrew,
     vocabularyLearning: typeof VocabularyLearning !== 'undefined' ? VocabularyLearning.loadStore() : undefined,
@@ -45,6 +45,8 @@ function exportData(){
     learningPractice: typeof LearningPractice !== 'undefined' ? LearningPractice.exportState() : undefined,
     learnReviewTargets: typeof learnReviewTargets === 'function' ? learnReviewTargets() : undefined,
     practiceSrsPreference: typeof learnPracticeSrsPreference === 'function' ? learnPracticeSrsPreference() : undefined,
+    readerLocation: typeof PuritanReaderPreferences !== 'undefined' ? PuritanReaderPreferences.readLocationRecord() : undefined,
+    readerSettings: typeof readStorageJson === 'function' ? readStorageJson('pp_reader_adaptive_settings', null) : undefined,
     exported: new Date().toISOString()
   };
   const blob = new Blob([JSON.stringify(data,null,2)], {type:'application/json'});
@@ -67,7 +69,8 @@ async function importDataFile(file){
     const learningImported = payload?.vocabularyLearning && typeof VocabularyLearning !== 'undefined';
     const practiceImported = payload?.learningPractice && typeof LearningPractice !== 'undefined';
     const decksImported = (payload?.customDecks || payload?.studySets) && typeof PuritanStudySets !== 'undefined';
-    if(!valid.length && !learningImported && !practiceImported && !decksImported){
+    const readerLocationImported = (payload?.readerLocation || payload?.pp_reader_location) && typeof PuritanReaderPreferences !== 'undefined';
+    if(!valid.length && !learningImported && !practiceImported && !decksImported && !readerLocationImported){
       if(preview){ preview.textContent = invalid.length ? `No valid entries found. First error: row ${invalid[0].index+1} ${invalid[0].errors.join(', ')}` : 'No entries found.'; preview.classList.remove('hidden'); }
       toast('Import failed.','danger');
       return;
@@ -85,12 +88,14 @@ async function importDataFile(file){
     if(practiceImported) LearningPractice.importState(payload.learningPractice);
     if(payload?.learnReviewTargets && typeof saveLearnReviewTargets === 'function') saveLearnReviewTargets(payload.learnReviewTargets);
     if(payload?.practiceSrsPreference && typeof setLearnPracticeSrsPreference === 'function') setLearnPracticeSrsPreference(payload.practiceSrsPreference);
+    if(readerLocationImported) PuritanReaderPreferences.importLocation(payload.readerLocation || payload.pp_reader_location);
+    if(payload?.readerSettings && typeof writeStorageJson === 'function') writeStorageJson('pp_reader_adaptive_settings', payload.readerSettings);
     updatePosOptions();
     updateParsingFilterOptions();
     renderList();
     updateDueBadge();
     if(preview){
-      preview.textContent = `Imported ${valid.length} entr${valid.length===1?'y':'ies'}${learningImported ? ' and vocabulary learning history' : ''}${decksImported ? ' and Custom Decks' : ''}${practiceImported ? ' and practice settings' : ''}${invalid.length ? `; skipped ${invalid.length} invalid row${invalid.length===1?'':'s'}` : ''}.`;
+      preview.textContent = `Imported ${valid.length} entr${valid.length===1?'y':'ies'}${learningImported ? ' and vocabulary learning history' : ''}${decksImported ? ' and Custom Decks' : ''}${practiceImported ? ' and practice settings' : ''}${readerLocationImported ? ' and Reader locations' : ''}${invalid.length ? `; skipped ${invalid.length} invalid row${invalid.length===1?'':'s'}` : ''}.`;
       preview.classList.remove('hidden');
     }
     toast('Import complete.','success');

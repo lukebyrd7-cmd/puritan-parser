@@ -61,7 +61,9 @@ function clearUserStorage(){
     'pp_learning_attempts',
     'pp_needs_attention',
     'pp_learn_maintenance_srs',
-    'pp_learning_data_revision'
+    'pp_learning_data_revision',
+    'pp_reader_location',
+    'pp_reader_adaptive_settings'
   ].forEach(removeStorageKey);
 }
 function getLastLanguage(){ return activeStorageAdapter.get(StorageKeys.lastLang); }

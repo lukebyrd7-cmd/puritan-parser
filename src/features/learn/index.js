@@ -872,6 +872,10 @@ function getLearnCurrentPathWord(path){
   return next;
 }
 function learnNormalizedGlosses(entry = {}){
+  if(typeof presentLexicalGlosses === 'function'){
+    const presentation = presentLexicalGlosses(entry, { primaryLimit: 1, missingLabel: '(missing gloss)' });
+    return { primary: presentation.primary[0] || presentation.missingLabel, alternates: presentation.all.slice(1), all: presentation.all };
+  }
   const rawPrimary = typeof getDisplayGloss === 'function' ? getDisplayGloss(entry) : (entry.customGloss || entry.primaryGloss || entry.gloss || '');
   const values = typeof normalizeAlternateGlosses === 'function'
     ? normalizeAlternateGlosses(entry.alternateGlosses)
@@ -1427,7 +1431,14 @@ function dailyPracticeDashboardSummary(language, snapshot = {}){
   const savedSession = snapshot.sessions?.sessions?.[language];
   const active = savedSession && !LearningPracticeModel.sessionExpired(savedSession) && !savedSession.completedAt ? savedSession : null;
   const remaining = active ? active.cards.filter(card => !card.answered).length : 0;
-  return { language, profile, due: due.length, readyLearning, daily, active, remaining };
+  const statusCounts = vocabularyEntries.reduce((counts, entry) => {
+    const status = VocabularyLearningModel.learningStatus(store, entry);
+    if(status === VocabularyLearningModel.STATUS.KNOWN || status === VocabularyLearningModel.STATUS.KNOWN_SELF_REPORTED) counts.known += 1;
+    if(status === VocabularyLearningModel.STATUS.LEARNING || status === VocabularyLearningModel.STATUS.REVIEWING) counts.learning += 1;
+    return counts;
+  }, { known: 0, learning: 0 });
+  const firstUse = statusCounts.known === 0 && statusCounts.learning === 0 && due.length === 0 && !active;
+  return { language, profile, due: due.length, readyLearning, daily, active, remaining, statusCounts, firstUse };
 }
 function dailyPracticeDashboardSummaries(){
   const revision = `${LearningPracticeModel.revision(learnStorage())}:${todayISO()}`;
@@ -1561,6 +1572,65 @@ function startDailyPractice(language, options = {}){
   setLearnPage(`vocabulary:daily:${language}`);
   return session;
 }
+function startFirstUsePractice(language, options = {}){
+  const normalized = language === 'hebrew' ? 'hebrew' : 'greek';
+  const active = learnActivePracticeSession(normalized);
+  if(active){
+    learnState.unifiedRevealed = active.revealedCardId === LearningPracticeModel.currentCard(active)?.cardId;
+    setLearnPage(`vocabulary:daily:${normalized}`);
+    return active;
+  }
+  const store = options.store || learnVocabularyStore();
+  const pool = LearningPracticeModel.filterStudyableEntries(options.entries || learnVocabularyEntries(normalized), normalized, {
+    model: VocabularyLearningModel,
+    glossMap: learnState.glossMaps[normalized]
+  });
+  const selected = pool.entries
+    .filter(entry => VocabularyLearningModel.learningStatus(store, entry) === VocabularyLearningModel.STATUS.NOT_LEARNED)
+    .sort((a, b) => (Number(b.freq) || 0) - (Number(a.freq) || 0) || learnWordId(a).localeCompare(learnWordId(b)))
+    .slice(0, 5);
+  const sessionId = LearningPracticeModel.uuid();
+  const session = LearningPracticeModel.normalizeSession({
+    sessionId,
+    language: normalized,
+    sessionType: 'focused',
+    source: 'first-use',
+    strategy: 'reinforcement',
+    promptDirection: 'reading',
+    phase: selected.length ? 'new' : 'complete',
+    cards: selected.map((entry, index) => ({
+      cardId: LearningPracticeModel.uuid(),
+      eventId: LearningPracticeModel.uuid(),
+      vocabularyId: learnWordId(entry),
+      direction: 'reading',
+      phase: 'new',
+      index,
+      answered: false
+    })),
+    introducedWordIds: selected.map(learnWordId),
+    requestedNewCount: 5,
+    target: selected.length,
+    returnPage: 'home',
+    contextTitle: `${learnLanguageTitle(normalized)} starter session`,
+    contextDetail: selected.length < 5 ? `${selected.length} studyable New ${selected.length === 1 ? 'word' : 'words'} available` : 'Five common New words'
+  });
+  LearningPracticeModel.saveSession(session, learnStorage());
+  learnState.unifiedRevealed = false;
+  setLearnPage(`vocabulary:daily:${normalized}`);
+  return session;
+}
+async function prepareFirstUsePractice(button, language){
+  const normalized = language === 'hebrew' ? 'hebrew' : 'greek';
+  if(learnActivePracticeSession(normalized)) return startFirstUsePractice(normalized);
+  const original = button?.textContent || '';
+  if(button){ button.disabled = true; button.textContent = `Preparing ${learnLanguageTitle(normalized)} words…`; }
+  try {
+    const [entries] = await Promise.all([prepareLearnVocabularyEntries(normalized), ensureLearnVocabularyGlossMap(normalized)]);
+    return startFirstUsePractice(normalized, { entries, store: learnVocabularyStore() });
+  } finally {
+    if(button?.isConnected){ button.disabled = false; button.textContent = original; }
+  }
+}
 async function prepareDailyPractice(button, language, options = {}){
   const normalized = language === 'hebrew' ? 'hebrew' : 'greek';
   if(learnState.practicePreparing[normalized]) return learnState.practicePreparing[normalized];
@@ -1692,7 +1762,7 @@ function renderUnifiedVocabularyCard(entry, card, revealed){
   const glosses = learnNormalizedGlosses(entry);
   const reverse = card.direction === 'reverse';
   const prompt = reverse ? glosses.primary : entry.studyForm;
-  const answer = reverse ? entry.studyForm : glosses.primary;
+  const answer = reverse ? entry.studyForm : (glosses.all?.length ? glosses.all.join('; ') : [glosses.primary, ...glosses.alternates].join('; '));
   const language = entry.lang === 'hebrew' ? 'he' : 'grc';
   const direction = entry.lang === 'hebrew' ? 'rtl' : 'ltr';
   const languageName = entry.lang === 'hebrew' ? 'Hebrew' : 'Greek';
@@ -1704,10 +1774,22 @@ function renderUnifiedVocabularyCard(entry, card, revealed){
       ${reverse && entry.pos ? `<p class="small muted">${escHtml(entry.pos)}</p>` : ''}
     </div>
     <div class="learn-unified-answer" ${revealed ? '' : 'aria-hidden="true"'}>
-      ${revealed ? `<span class="small muted">Answer</span><div class="learn-unified-word learn-unified-answer-text" ${reverse ? `lang="${language}" dir="${direction}"` : ''}>${escHtml(answer)}</div>${glosses.alternates.length ? `<details><summary>More glosses</summary><p>${glosses.alternates.map(escHtml).join(' · ')}</p></details>` : ''}<button class="btn btn-ghost btn-sm" type="button" data-learn-open-word-page="${escHtml(card.cardId)}">Open Word Page</button>` : ''}
+      ${revealed ? `<span class="small muted">Answer</span><div class="learn-unified-word learn-unified-answer-text" ${reverse ? `lang="${language}" dir="${direction}"` : 'data-learn-gloss-answer="true"'}>${escHtml(answer)}</div>${!reverse ? `<details class="learn-full-gloss-list" data-learn-full-gloss="true" hidden><summary>Show full gloss list</summary><p>${escHtml(answer)}</p></details>` : ''}<button class="btn btn-ghost btn-sm" type="button" data-learn-open-word-page="${escHtml(card.cardId)}">Open Word Page</button>` : ''}
     </div>
     <button class="btn btn-ghost btn-sm learn-attention-toggle" type="button" data-learn-attention-id="${escHtml(learnWordId(entry))}" data-language="${escHtml(entry.lang)}" aria-pressed="${flagged}">${flagged ? 'Remove Needs attention' : 'Needs attention'}</button>
   </article>`;
+}
+function syncUnifiedGlossOverflow(root){
+  const answers = Array.from(root?.querySelectorAll?.('[data-learn-gloss-answer]') || []);
+  let overflowCount = 0;
+  answers.forEach(answer => {
+    const disclosure = answer.closest?.('.learn-unified-answer')?.querySelector?.('[data-learn-full-gloss]');
+    const overflow = Number(answer.scrollHeight) > Number(answer.clientHeight) + 1;
+    answer.classList?.toggle?.('learn-gloss-overflow', overflow);
+    if(disclosure) disclosure.hidden = !overflow;
+    if(overflow) overflowCount += 1;
+  });
+  return overflowCount;
 }
 function renderConfidenceControls(attribute){
   return `<div class="learn-confidence-grid" role="group" aria-label="Rate recall confidence">
@@ -1984,6 +2066,13 @@ function renderLearnHome(){
     const title = learnLanguageTitle(summary.language);
     const narrowed = summary.profile.source !== 'all-known';
     const percent = Math.min(100, Math.round((summary.daily.combined / Math.max(1, summary.daily.target)) * 100));
+    if(summary.firstUse && !summary.loading) return `<article class="learn-today-card learn-first-use" data-learn-today-language="${escHtml(summary.language)}">
+      <div class="learn-today-card-heading"><div><span class="small muted">First steps</span><h2>Start learning ${escHtml(title)} vocabulary</h2></div></div>
+      <p>You are not tracking any ${escHtml(title)} words yet. Begin with a few common words, or choose vocabulary from a book, chapter, frequency range, or Custom Deck.</p>
+      <div class="learn-today-actions"><button class="btn btn-primary" type="button" data-learn-start-first-use="${escHtml(summary.language)}">Start with common ${escHtml(title)} words</button></div>
+      <div class="learn-compact-actions"><button class="btn btn-ghost btn-sm" type="button" data-learn-page="vocabulary:customize-source:book">Choose a book or chapter</button><button class="btn btn-ghost btn-sm" type="button" data-learn-page="vocabulary:customize-source:frequency">Practice by frequency</button><button class="btn btn-ghost btn-sm" type="button" data-learn-open-view="globalSearchView">Vocabulary Search</button><button class="btn btn-ghost btn-sm" type="button" data-learn-open-settings-import="true">Import progress</button></div>
+      <dl class="learn-first-use-status"><div><dt>New</dt><dd>Not introduced yet.</dd></div><div><dt>Learning</dt><dd>Actively being learned and scheduled.</dd></div><div><dt>Known</dt><dd>Established vocabulary being maintained.</dd></div></dl>
+    </article>`;
     return `<article class="learn-today-card" data-learn-today-language="${escHtml(summary.language)}">
       <div class="learn-today-card-heading"><div><span class="small muted">Today’s ${escHtml(title)}</span><h2>${escHtml(title)} practice</h2></div><strong>${summary.daily.combined} of ${summary.daily.target}</strong></div>
       <div class="learn-today-progress" role="progressbar" aria-label="${escHtml(title)} daily vocabulary progress" aria-valuemin="0" aria-valuemax="${summary.daily.target}" aria-valuenow="${summary.daily.combined}"><span style="width:${percent}%"></span></div>
@@ -3343,8 +3432,16 @@ function renderLearnPage(){
 }
 function wireLearn(){
   const root = $('#learnShell'); if(!root) return;
+  const measureGlossOverflow = () => syncUnifiedGlossOverflow(root);
+  if(typeof window !== 'undefined' && window.requestAnimationFrame) window.requestAnimationFrame(measureGlossOverflow);
+  else measureGlossOverflow();
   $$('[data-learn-page]', root).forEach(control => control.addEventListener('click', () => setLearnPage(control.dataset.learnPage)));
   $$('[data-learn-start-daily]', root).forEach(button => button.addEventListener('click', () => prepareDailyPractice(button, button.dataset.learnStartDaily)));
+  $$('[data-learn-start-first-use]', root).forEach(button => button.addEventListener('click', () => prepareFirstUsePractice(button, button.dataset.learnStartFirstUse)));
+  $$('[data-learn-open-settings-import]', root).forEach(button => button.addEventListener('click', () => {
+    if(typeof showView === 'function') showView('settingsView');
+    setTimeout(() => document.querySelector?.('#importData')?.focus?.(), 0);
+  }));
   $$('[data-learn-discard-daily]', root).forEach(button => button.addEventListener('click', () => discardDailyPractice(button.dataset.learnDiscardDaily)));
   $$('[data-learn-cancel-profile]', root).forEach(button => button.addEventListener('click', () => {
     delete learnState.profileDrafts[button.dataset.learnCancelProfile];
@@ -3557,8 +3654,8 @@ if(typeof window !== 'undefined') Object.assign(window, { LearnAreas, LearnRevie
 if(typeof module !== 'undefined') module.exports = { LearnAreas, LearnFrequencyThresholds, LearnReviewTargetDefaults, LearnReviewTargetPresets, LearnReviewTargetStorageKey, LearnPracticeSrsPreferenceStorageKey, learnState, learnArea, learnChild, learnPageTitle, learnBreadcrumbs, learnReviewTargets, learnReviewTarget, saveLearnReviewTargets, setLearnReviewTarget, learnPracticeSrsPreference, setLearnPracticeSrsPreference, learnReviewQueueSummary, parseLearnCustomFrequency, setLearnCustomFrequency, resetLearn, learnBookList, learnPathForPage, setLearnPage, backLearnPage, wireLearn, renderLearnPage, startLearnVocabularyPath, learnCurrentVocabularyWord, markLearnPathKnown, learnStudySets, learnStudySet, createLearnStudySet, createStudySetFromCurrentScope, addVocabularyToLearnStudySet, addSelectedVocabularyToLearnStudySet, createStudySetWithVocabulary, deleteLearnStudySet, markLearnStudySetKnown, reviewLearnVocabularyWord, revealLearnReview, gradeLearnReview, ensureLearnPracticeSession, revealLearnPractice, gradeLearnPractice, recognitionTargetsForLearn, selectedRecognitionTargetIds, toggleRecognitionSelection, clearRecognitionSelection, startRecognitionSession, startSelectedRecognitionSession, revealRecognitionAnswer, gradeRecognitionAnswer, openLearnReference };
 if(typeof window !== 'undefined') Object.assign(window, { LearnMaintenanceSessionSizeMax, learnDailyPracticeSummary, parseMaintenanceSessionSize, startLearnMaintenanceSession, revealLearnMaintenance, gradeLearnMaintenance, stopLearnMaintenance, resetLearnMaintenance, chooseLearnMaintenanceFocus, selectAllLearnMaintenanceGrades, renderMaintenancePracticePage });
 if(typeof module !== 'undefined') Object.assign(module.exports, { LearnMaintenanceSessionSizeMax, learnDailyPracticeSummary, parseMaintenanceSessionSize, startLearnMaintenanceSession, revealLearnMaintenance, gradeLearnMaintenance, stopLearnMaintenance, resetLearnMaintenance, chooseLearnMaintenanceFocus, selectAllLearnMaintenanceGrades, renderMaintenancePracticePage });
-if(typeof window !== 'undefined') Object.assign(window, { learnProfile, dailyPracticeDashboardSummary, startDailyPractice, prepareDailyPractice, prepareLearnVocabularyEntries, discardDailyPractice, revealUnifiedPractice, gradeUnifiedPractice, startDifficultRecap, toggleUnifiedAttention, renderDailyPracticePage, renderPracticeCustomize });
-if(typeof module !== 'undefined') Object.assign(module.exports, { learnProfile, dailyPracticeDashboardSummary, startDailyPractice, prepareDailyPractice, prepareLearnVocabularyEntries, discardDailyPractice, revealUnifiedPractice, gradeUnifiedPractice, startDifficultRecap, toggleUnifiedAttention, renderDailyPracticePage, renderPracticeCustomize, renderConfidenceControls });
+if(typeof window !== 'undefined') Object.assign(window, { learnProfile, dailyPracticeDashboardSummary, startDailyPractice, startFirstUsePractice, prepareFirstUsePractice, prepareDailyPractice, prepareLearnVocabularyEntries, discardDailyPractice, revealUnifiedPractice, gradeUnifiedPractice, startDifficultRecap, toggleUnifiedAttention, renderDailyPracticePage, renderPracticeCustomize });
+if(typeof module !== 'undefined') Object.assign(module.exports, { learnProfile, dailyPracticeDashboardSummary, startDailyPractice, startFirstUsePractice, prepareFirstUsePractice, prepareDailyPractice, prepareLearnVocabularyEntries, discardDailyPractice, revealUnifiedPractice, gradeUnifiedPractice, startDifficultRecap, toggleUnifiedAttention, renderDailyPracticePage, renderPracticeCustomize, renderConfidenceControls, learnNormalizedGlosses, renderUnifiedVocabularyCard, syncUnifiedGlossOverflow });
 if(typeof window !== 'undefined' && learnPerformanceEnabled()) window.PuritanLearnPerformance = { begin: beginLearnPerformanceNavigation, prepare: prepareLearnPerformanceMeasurement, snapshot: learnPerformanceSnapshot };
 if(typeof window !== 'undefined') Object.assign(window, { beginLearnPerformanceNavigation, prepareLearnPerformanceMeasurement });
 if(typeof module !== 'undefined') Object.assign(module.exports, { normalizeLegacyLearnPracticePage, beginLearnPerformanceNavigation, learnPerformanceSnapshot });

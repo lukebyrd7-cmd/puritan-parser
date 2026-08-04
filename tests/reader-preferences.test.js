@@ -33,15 +33,34 @@ test('Reader mode writes reuse pp_reader_location without losing the saved place
   const preferences = loadPreferences(store);
   assert.equal(preferences.writeMode('continuous'), 'continuous');
   assert.deepEqual(JSON.parse(store.get('pp_reader_location')), {
-    language: 'hebrew',
-    book: 'psalms',
-    chapter: 23,
-    mode: 'continuous',
-    verse: '4',
-    anchorOffset: 72,
-    scrollTop: 900
+    schemaVersion: 2,
+    activeLanguage: 'hebrew',
+    locations: {
+      greek: { language: 'greek', book: 'matthew', chapter: 1, verse: '', mode: 'continuous', anchorOffset: 0, scrollTop: 0, scrollY: 0, updatedAt: '' },
+      hebrew: { language: 'hebrew', book: 'psalms', chapter: 23, verse: '4', mode: 'continuous', anchorOffset: 72, scrollTop: 900, scrollY: 0, updatedAt: JSON.parse(store.get('pp_reader_location')).locations.hebrew.updatedAt }
+    }
   });
   assert.equal(store.size, 1);
+});
+
+test('legacy Reader location migrates idempotently and keeps independent Greek and Hebrew places', () => {
+  const store = new Map([['pp_reader_location', JSON.stringify({ language: 'hebrew', book: 'genesis', chapter: 14, verse: '8', mode: 'chapter', scrollTop: 430 })]]);
+  const preferences = loadPreferences(store);
+  assert.deepEqual(preferences.readLanguageLocation('hebrew'), { language: 'hebrew', book: 'genesis', chapter: 14, verse: '8', mode: 'chapter', anchorOffset: 0, scrollTop: 430, scrollY: 0, updatedAt: '' });
+  assert.equal(preferences.readLanguageLocation('greek').book, 'matthew');
+  preferences.writeLanguageLocation({ language: 'greek', book: 'mark', chapter: 3, verse: '5', mode: 'continuous', scrollTop: 220 });
+  assert.equal(preferences.readLanguageLocation('hebrew').chapter, 14);
+  assert.equal(preferences.readLanguageLocation('greek').chapter, 3);
+  assert.deepEqual(preferences.normalizeLocationRecord(preferences.readLocationRecord()), preferences.readLocationRecord());
+});
+
+test('legacy one-language import preserves the other valid Reader location', () => {
+  const store = new Map();
+  const preferences = loadPreferences(store);
+  preferences.writeLanguageLocation({ language: 'hebrew', book: 'genesis', chapter: 14 });
+  preferences.importLocation({ language: 'greek', book: 'mark', chapter: 3, mode: 'chapter' });
+  assert.equal(preferences.readLanguageLocation('greek').book, 'mark');
+  assert.equal(preferences.readLanguageLocation('hebrew').chapter, 14);
 });
 
 test('Hebrew display defaults safely and persists in the existing Reader settings record', () => {

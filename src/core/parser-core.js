@@ -210,7 +210,11 @@
       const voice = GREEK_COMPACT_VOICES[paddedMorphGnt[3].toLowerCase()];
       const mood = GREEK_COMPACT_MOODS[paddedMorphGnt[4].toLowerCase()] || (paddedMorphGnt[4].toLowerCase() === 'd' ? 'imperative' : undefined);
       const png = paddedMorphGnt[1] && paddedMorphGnt[1] !== '-' && paddedMorphGnt[5] && paddedMorphGnt[5] !== '-' ? expandPersonNumberGender(`${paddedMorphGnt[1]}${paddedMorphGnt[5].toLowerCase()}`) : null;
-      const details = [tense, voice, mood, png].filter(Boolean);
+      const participleCode = mood === 'participle'
+        ? raw.replace(/^V-\s*[123-][A-Z-]{3}-?/i, '').replace(/-/g, '').slice(0, 3)
+        : '';
+      const participleForm = participleCode ? decodeNominal(`N-${participleCode}`, 'participle').details.join(', ') : null;
+      const details = [tense, voice, mood, png || participleForm].filter(Boolean);
       return { family: 'verb', label: 'Verb', details, summary: ['Verb'].concat(details).join(', ') };
     }
     const bits = raw.toLowerCase().split('-').filter(Boolean);

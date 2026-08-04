@@ -507,6 +507,38 @@ test('stale scheduled restoration cannot overwrite the latest canonical verse', 
   global.$ = previousDollar;
 });
 
+test('Reader resize schedules restoration from the canonical continuous-reading anchor', () => {
+  const previousDocument = global.document;
+  const previousWindow = global.window;
+  const previousDollar = global.$;
+  const frames = [];
+  global.window = {
+    requestAnimationFrame(callback){ frames.push(callback); return frames.length; },
+    cancelAnimationFrame(){},
+    matchMedia: () => ({ matches: false })
+  };
+  global.$ = () => null;
+  global.document = {
+    getElementById: () => null,
+    querySelector: selector => selector === '.reader-text' ? {
+      clientHeight: 600,
+      getBoundingClientRect: () => ({ top: 0, height: 600 }),
+      querySelectorAll: () => [{ dataset: { chapter: '2' }, getBoundingClientRect: () => ({ top: 0 }) }]
+    } : null
+  };
+  Object.assign(reader.readerState(), { mode: 'continuous', chapter: 3, anchorVerse: '7', anchorOffset: 84, loading: false, activeToken: null });
+
+  reader.handleReaderResize();
+
+  assert.equal(reader.readerRestorationState().state, 'waiting-for-layout');
+  assert.equal(frames.length, 1);
+  assert.equal(reader.detectReaderCurrentChapter(), 3);
+  reader.cancelReaderRestoration();
+  global.document = previousDocument;
+  global.window = previousWindow;
+  global.$ = previousDollar;
+});
+
 test('Reader restoration makes at most one measured correction after layout shift', () => {
   storageHarness();
   const previousDocument = global.document;
@@ -907,6 +939,19 @@ test('Greek morphology display expands parsing details without dense abbreviatio
 
   const html = reader.renderReaderMorphology({ language: 'greek', parse: 'N- ----DSF-' });
   assert.match(renderedText(html), /Morphology Case dative Number singular Gender feminine/);
+
+  const participle = reader.readerMorphologyFields({ language: 'greek', parse: 'V-PAP-NSM' });
+  assert.deepEqual(participle, [
+    { label: 'Tense', value: 'present' },
+    { label: 'Voice', value: 'active' },
+    { label: 'Mood', value: 'participle' },
+    { label: 'Case', value: 'nominative' },
+    { label: 'Number', value: 'singular' },
+    { label: 'Gender', value: 'masculine' }
+  ]);
+  assert.deepEqual(reader.readerMorphologyFields({ language: 'greek', parse: 'V- -PAPNSM-' }), participle);
+  assert.equal(participle.some(field => field.label === 'Person'), false);
+  assert.equal(reader.readerMorphologyFields({ language: 'greek', parse: 'V-AAN' }).some(field => ['Person','Case','Gender','Number'].includes(field.label)), false);
 });
 
 test('Word Page grammar display summarizes Greek nouns and verbs with secondary parse codes', () => {
@@ -1031,7 +1076,7 @@ test('Hebrew Reader popup shows readable form details without numeric lemma head
   });
 
   assert.match(popupHtml, /Form Details/);
-  assert.match(renderedText(popupHtml), /Lemma \/ Root דָּבָר/);
+  assert.match(renderedText(popupHtml), /Lemma דָּבָר/);
   assert.match(renderedText(popupHtml), /Noun — masculine plural construct with your \/ you \(2nd person masculine singular\) suffix/);
   assert.match(renderedText(popupHtml), /Suffix Pronoun your \/ you/);
   assert.doesNotMatch(popupHtml, /<strong>1697<\/strong>/);
@@ -1193,6 +1238,24 @@ test('Reader context changes clear selected word details across languages', asyn
   assert.equal(reader.readerState().activeToken.info.language, 'hebrew');
   await reader.setReaderLocation({ language: 'greek', book: 'john', chapter: 1 });
   assert.equal(reader.readerState().activeToken, null);
+  delete global.state;
+});
+
+test('continuous chapter detection does not strand an adjacent-chapter word lookup in its loading state', async () => {
+  storageHarness();
+  reader.saveReaderSettings({ ...reader.ReaderDefaultSettings, wordDetailsDisplay: 'overlay' });
+  readerLayoutHarness();
+  global.state = { data: { greek: [{ lang: 'greek', word: 'λόγος', lemma: 'λόγος', primaryGloss: 'word', gloss: 'word', freq: 1 }] } };
+  await reader.setReaderLocation({ language: 'greek', book: 'john', chapter: 2 });
+  const lookup = reader.openReaderTokenPopup({
+    dataset: { language: 'greek', surface: 'λόγος', lemma: 'λόγος', parse: 'N-NSM', book: 'john', bookName: 'John', chapter: '1', verse: '1' },
+    focus(){}
+  });
+  reader.readerState().chapter = 1;
+  await lookup;
+  assert.equal(reader.readerState().activeToken.loading, false);
+  assert.equal(reader.readerState().activeToken.info.primaryGloss, 'word');
+  reader.closeReaderWordPopup();
   delete global.state;
 });
 
@@ -1426,12 +1489,12 @@ test('Word Page learning section reflects shared vocabulary learning state', () 
 
   const info = { language: 'greek', lemma: 'λόγος', surface: 'λόγος' };
   let html = reader.renderReaderWordLearning(info);
-  assert.match(renderedText(html), /Learning ○ Not Learned Learn This Word/);
+  assert.match(renderedText(html), /Learning ○ New C — Developing Add to Learning Mark as Known/);
   assert.match(html, /data-word-learn-action="learn"/);
 
   assert.equal(reader.introduceReaderWordFromPage(info), true);
   html = reader.renderReaderWordLearning(info);
-  assert.match(renderedText(html), /Learning ◐ Learning Review This Word/);
+  assert.match(renderedText(html), /Learning ◐ Learning C — Developing Review This Word Mark as Known/);
   assert.match(html, /data-word-learn-action="review"/);
 
   let store = VocabularyLearning.loadStore();
@@ -1440,7 +1503,7 @@ test('Word Page learning section reflects shared vocabulary learning state', () 
   store = VocabularyLearning.reviewEntry(store, global.state.data.greek[0], 'recognized', '2026-06-30');
   VocabularyLearning.saveStore(store);
   html = reader.renderReaderWordLearning(info);
-  assert.match(renderedText(html), /Learning ● Known Known Review Again/);
+  assert.match(renderedText(html), /Learning ● Known.*Return to Learning/);
 
   delete global.localStorage;
   delete global.todayISO;
@@ -2528,7 +2591,7 @@ test('Hebrew token lookup and popup display Jonah gloss, lemma, frequency, refer
   global.$$ = (selector, scope) => scope?.querySelectorAll ? scope.querySelectorAll(selector) : [];
   await reader.setReaderLocation({ language: 'hebrew', book: 'jonah', chapter: 1 });
   await reader.openReaderTokenPopup({
-    dataset: { surface: 'וַֽיְהִי֙', lemma: '1961', parse: 'HC/Vqw3ms', book: 'jonah', bookName: 'Jonah', chapter: '1', verse: '1' },
+    dataset: { surface: 'וַֽיְהִי֙', lemma: '1961', parse: 'HC/Vqw3ms', qereKetiv: 'none', book: 'jonah', bookName: 'Jonah', chapter: '1', verse: '1' },
     focus(){}
   });
   assert.match(popupHtml, /reader-word-popup/);
@@ -2537,10 +2600,11 @@ test('Hebrew token lookup and popup display Jonah gloss, lemma, frequency, refer
   assert.doesNotMatch(popupHtml, /<strong>1961<\/strong>/);
   assert.match(popupHtml, /Frequency[\s\S]*\d+×/);
   assert.match(popupHtml, /Reference[\s\S]*Jonah 1:1/);
-  assert.match(popupHtml, /Verb — qal wayyiqtol 3rd person masculine singular/);
+  assert.match(popupHtml, /Verb — Qal wayyiqtol, 3rd person masculine singular/);
   assert.match(popupHtml, /Form Details/);
   assert.match(popupHtml, /data-topic-id="hebrew-verbs"/);
   assert.match(popupHtml, /Parse: HC\/Vqw3ms/);
+  assert.doesNotMatch(popupHtml, /Qere \/ ketiv|· none/);
   reader.closeReaderWordPopup();
   delete global.PuritanReferenceLibrary;
 });
@@ -2636,7 +2700,7 @@ test('Hebrew Word Pages and Read in Context work for expanded-corpus books', asy
     focus(){}
   });
   assert.match(popupHtml, /Genesis 1:1/);
-  assert.match(popupHtml, /Verb — qal perfect 3rd person masculine singular/);
+  assert.match(popupHtml, /Verb — Qal perfect, 3rd person masculine singular/);
   actionHandler();
   assert.equal(shownView, 'wordPageView');
   assert.match(wordPageHtml, /<dt>Current Reference<\/dt><dd>Genesis 1:1<\/dd>/);

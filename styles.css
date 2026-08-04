@@ -40,6 +40,7 @@
 .learn-today-counts div{display:flex;flex-direction:column;gap:2px}.learn-today-counts dt{font-size:.75rem;color:var(--muted)}.learn-today-counts dd{margin:0;font-weight:700}
 .learn-daily-preview{margin:0;line-height:1.45}.learn-narrowed-profile{border-left:3px solid var(--accent);padding-left:8px}
 .learn-today-actions{display:flex;gap:8px;align-items:center;margin-top:auto;flex-wrap:wrap}.learn-today-actions .btn-primary{min-height:44px;flex:1}
+.learn-first-use>p{margin:0;line-height:1.5}.learn-first-use-status{display:grid;gap:5px;margin:0;padding-top:8px;border-top:1px solid var(--border)}.learn-first-use-status div{display:grid;grid-template-columns:70px 1fr;gap:8px}.learn-first-use-status dt{font-weight:750}.learn-first-use-status dd{margin:0;color:var(--muted)}
 .learn-parsing-practice{display:grid;gap:14px;border:1px solid color-mix(in srgb,var(--border) 82%,var(--accent) 18%);border-radius:12px;padding:18px;background:color-mix(in srgb,var(--surface) 97%,var(--accent) 3%)}.learn-parsing-heading h2{margin:0 0 4px}.learn-parsing-heading p{margin:0;color:var(--muted)}
 .learn-parsing-choice-grid{display:grid;grid-template-columns:repeat(2,minmax(0,280px));gap:12px}.learn-parsing-choice{min-height:76px;padding:13px 15px;border:1px solid var(--border);border-radius:10px;background:var(--surface);color:var(--text);text-align:left;display:grid;align-content:center;gap:4px;cursor:pointer}.learn-parsing-choice:hover,.learn-parsing-choice:focus-visible{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-glow);outline:2px solid transparent}.learn-parsing-choice strong{font-size:1rem}.learn-parsing-choice span{color:var(--muted);font-size:.86rem;line-height:1.35}
 .learn-active-practice{width:min(100%,720px);margin:0 auto;display:grid;grid-template-rows:auto auto auto auto auto;gap:12px;padding:18px}
@@ -49,7 +50,7 @@
 .learn-unified-card.is-revealed{grid-template-rows:auto auto;gap:16px}
 .learn-unified-prompt,.learn-unified-answer{display:flex;flex-direction:column;justify-content:center;align-items:center;min-height:0;gap:6px}.learn-unified-answer:empty{display:none}
 .learn-unified-word{font-size:clamp(2rem,7vh,var(--fc-word-size,54px));line-height:1.12;overflow-wrap:anywhere}.learn-unified-answer-text{font-size:clamp(1.45rem,4.5vh,2.5rem);display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
-.learn-unified-card details{font-size:.85rem}.learn-attention-toggle{position:absolute;right:8px;top:8px}
+.learn-unified-card details{font-size:.85rem}.learn-full-gloss-list p{margin:6px 0 0;line-height:1.4}.learn-attention-toggle{position:absolute;right:8px;top:8px}
 .learn-unified-controls{min-height:48px;display:flex;align-items:center;justify-content:center}.learn-unified-reveal{width:auto;min-width:190px;min-height:46px;padding:10px 28px}
 .learn-save-exit{justify-self:start;align-self:start;width:auto}
 .learn-confidence-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;width:100%}.learn-confidence{min-height:52px;border:1px solid var(--border);background:var(--surface);color:var(--text);border-radius:9px;font-weight:700;display:flex;align-items:center;justify-content:center;gap:7px;cursor:pointer}.learn-confidence:hover,.learn-confidence:focus-visible{border-color:var(--accent);outline:2px solid transparent;box-shadow:0 0 0 3px var(--accent-glow)}.learn-confidence kbd{font-size:.7rem;color:var(--muted)}
@@ -2310,6 +2311,16 @@ button:focus-visible, input:focus-visible, select:focus-visible {
   font-weight: 800;
   line-height: 1.25;
 }
+.reader-word-reference { margin: 0 0 10px; color: var(--muted); font-size: 13px; }
+.reader-word-more-glosses { margin-top: 6px; color: var(--muted); font-size: 13px; }
+.reader-word-more-glosses p { margin: 5px 0 0; line-height: 1.4; }
+.reader-word-technical { margin-top: 10px; color: var(--muted); font-size: 12px; }
+.reader-word-learning-compact { margin-top: 14px; padding: 12px 0 0; border: 0; border-top: 1px solid var(--border); box-shadow: none; }
+.reader-word-learning-compact h2 { margin: 0 0 8px; font-size: 14px; }
+.reader-word-learning-compact .word-page-learning-row { gap: 7px; }
+.word-page-lexical-gloss { margin: -6px 0 18px; padding-bottom: 16px; border-bottom: 1px solid var(--border); }
+.word-page-lexical-gloss > p { margin: 0; font-family: var(--font-serif); font-size: 26px; font-weight: 700; line-height: 1.25; }
+.word-page-lexical-gloss details { margin-top: 7px; color: var(--muted); font-size: 13px; }
 .reader-word-meaning {
   margin: 9px 0 0;
   color: var(--text);
@@ -2374,6 +2385,7 @@ button:focus-visible, input:focus-visible, select:focus-visible {
   color: var(--text);
   text-align: right;
 }
+.reader-word-structure-label { margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--border); }
 .reader-word-label {
   margin-bottom: 7px;
   color: var(--muted);
