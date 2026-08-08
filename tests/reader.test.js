@@ -1398,6 +1398,7 @@ test('side-panel layout classes and mounts are fully synchronized on close and m
 
 test('clicking a reader token opens and closes the popup', async () => {
   let popupHtml = '';
+  let restoredFocusOptions = null;
   const root = {
     set innerHTML(value){ popupHtml = value; },
     get innerHTML(){ return popupHtml; },
@@ -1407,10 +1408,11 @@ test('clicking a reader token opens and closes the popup', async () => {
   global.$ = (selector, scope) => scope?.querySelector ? scope.querySelector(selector) : (selector === '#readerWordPopupRoot' ? root : null);
   global.$$ = () => [];
   global.state = { data: { greek: [{ lang: 'greek', word: 'λόγος', lemma: 'λόγος', primaryGloss: 'word', alternateGlosses: [], gloss: 'word', freq: 1 }] } };
-  await reader.openReaderTokenPopup({
+  const trigger = {
     dataset: { surface: 'λόγος', lemma: 'λόγος', parse: 'N-NSM', book: 'john', bookName: 'John', chapter: '1', verse: '1' },
-    focus(){}
-  });
+    focus(options){ restoredFocusOptions = options; }
+  };
+  await reader.openReaderTokenPopup(trigger);
   assert.match(popupHtml, /reader-word-popup/);
   assert.match(popupHtml, /λόγος/);
   assert.match(popupHtml, /word/);
@@ -1425,6 +1427,7 @@ test('clicking a reader token opens and closes the popup', async () => {
   assert.doesNotMatch(popupHtml, /<dt>Meaning<\/dt>/);
   reader.closeReaderWordPopup();
   assert.equal(popupHtml, '');
+  assert.deepEqual(restoredFocusOptions, { preventScroll: true });
   delete global.state;
 });
 
@@ -2060,14 +2063,49 @@ test('Reader keeps one dedicated vertical scroll root across the 640px breakpoin
 
 test('Reader Word Details owns its scroll area and clears mobile safe areas', () => {
   const css = fs.readFileSync(path.join(process.cwd(), 'styles.css'), 'utf8');
-  assert.match(css, /\.reader-word-popup\s*\{[\s\S]*?display: flex;[\s\S]*?flex-direction: column;[\s\S]*?overflow: hidden;/);
-  assert.match(css, /\.reader-word-popup-body\s*\{[^}]*min-height:0;[^}]*overflow-y:auto;[^}]*overscroll-behavior:contain;[^}]*-webkit-overflow-scrolling:touch;/);
+  const source = fs.readFileSync(path.join(process.cwd(), 'src/features/reader/index.js'), 'utf8');
+  assert.equal((css.match(/\.reader-word-panel\s*\{/g) || []).length, 1);
+  assert.equal((css.match(/\.reader-word-panel-body\s*\{/g) || []).length, 1);
+  assert.match(css, /\.reader-content-layout-side \.reader-word-panel-slot\s*\{[^}]*height: 100%;[^}]*min-height: 0;/);
+  assert.match(css, /\.reader-word-panel\s*\{[^}]*position: relative;[^}]*display: flex;[^}]*flex-direction: column;[^}]*height: 100%;[^}]*max-height: 100%;[^}]*min-height: 0;[^}]*overflow: hidden;/);
+  assert.match(css, /\.reader-word-panel-header\s*\{[^}]*flex: 0 0 auto;/);
+  assert.match(css, /\.reader-word-panel-body\s*\{[^}]*flex: 1 1 auto;[^}]*min-height: 0;[^}]*overflow-y: auto;[^}]*padding:[^}]*32px[^}]*env\(safe-area-inset-bottom\)[^}]*overscroll-behavior: contain;[^}]*scroll-padding-bottom:/);
+  assert.match(css, /\.reader-word-panel-actions\s*\{[^}]*flex: 0 0 auto;/);
+  assert.match(css, /\.reader-word-popup\s*\{[\s\S]*?display: flex;[\s\S]*?flex-direction: column;[\s\S]*?min-height: 0;[\s\S]*?overflow: hidden;/);
+  assert.match(css, /\.reader-word-popup-body\s*\{[^}]*flex:1 1 auto;[^}]*min-height:0;[^}]*overflow-y:auto;[^}]*overscroll-behavior:contain;[^}]*-webkit-overflow-scrolling:touch;/);
   assert.match(css, /\.reader-word-popup-actions\s*\{[^}]*env\(safe-area-inset-bottom\)/);
   assert.match(css, /height: min\(88dvh, 720px\)/);
   assert.match(css, /max-height: calc\(100dvh - max\(8px, env\(safe-area-inset-top\)\)\)/);
-  assert.match(css, /\.reader-word-panel-body\s*\{[\s\S]*?overflow-y: auto;[\s\S]*?env\(safe-area-inset-bottom\)/);
+  assert.match(source, /reader-word-panel-body" tabindex="0"/);
+  assert.match(source, /reader-word-popup-body" tabindex="0"/);
   assert.match(css, /\.app:has\(#readerView:not\(\.hidden\)\) > footer \{ display: none; \}/);
   assert.doesNotMatch(css, /\.app:has\(#readerView:not\(\.hidden\)\) footer \{ display: none; \}/);
+});
+
+test('Reader Word Details keyboard scrolling stays inside its single scroll root', () => {
+  const scroller = { scrollTop: 100, scrollHeight: 1000, clientHeight: 300 };
+  const frame = { matches: () => false, querySelector: () => scroller };
+  let prevented = 0;
+  let stopped = 0;
+  const event = key => ({
+    key,
+    currentTarget: frame,
+    target: { closest: () => null },
+    preventDefault: () => { prevented += 1; },
+    stopPropagation: () => { stopped += 1; }
+  });
+  assert.equal(reader.handleReaderWordDetailsScrollKeydown(event('PageDown')), true);
+  assert.equal(scroller.scrollTop, 355);
+  assert.equal(reader.handleReaderWordDetailsScrollKeydown(event('End')), true);
+  assert.equal(scroller.scrollTop, 700);
+  assert.equal(reader.handleReaderWordDetailsScrollKeydown(event('ArrowDown')), true);
+  assert.equal(scroller.scrollTop, 700);
+  assert.equal(reader.handleReaderWordDetailsScrollKeydown(event('Home')), true);
+  assert.equal(scroller.scrollTop, 0);
+  assert.equal(reader.handleReaderWordDetailsScrollKeydown(event('Escape')), false);
+  assert.equal(prevented, 4);
+  assert.equal(stopped, 4);
+  assert.equal(reader.handleReaderWordDetailsScrollKeydown({ ...event('PageDown'), target: { closest: () => ({}) } }), false);
 });
 
 test('continuous Reader handles book boundaries without crossing books', async () => {
