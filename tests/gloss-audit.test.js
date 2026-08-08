@@ -35,6 +35,9 @@ test('canonical audit merges compact sources and reports the supported unavailab
   assert.equal(reports.hebrew.missingPrimaryGloss.length, 0);
   assert.deepEqual(reports.hebrew.unavailableGlosses, ['hb-28058']);
   assert.equal(reports.hebrew.lemmaCoverage.lemmasWithGlosses, 9151);
+  assert.equal(reports.greek.articleOnlyPresentationDuplicates.length, 0);
+  assert.equal(reports.hebrew.articleOnlyPresentationDuplicates.length, 508);
+  assert.deepEqual(reports.hebrew.sourceNotationLeakage, ["120: ruddy i", "3433: ' i", "3433+: ' i"]);
   assert.deepEqual(validationErrors(reports), []);
 });
 

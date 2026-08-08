@@ -163,7 +163,13 @@
     const mapped = glossMap && (glossMap[clean(entry?.lemma)] || glossMap[clean(entry?.id)]);
     const primary = [entry?.customGloss, entry?.primaryGloss, entry?.gloss, mapped?.primaryGloss, typeof mapped === 'string' ? mapped : ''].map(clean).find(usableGloss) || '';
     const alternates = [...(Array.isArray(entry?.alternateGlosses) ? entry.alternateGlosses : []), ...(Array.isArray(mapped?.alternateGlosses) ? mapped.alternateGlosses : [])].map(clean).filter(value => usableGloss(value) && value !== primary);
-    return { primary, alternates: [...new Set(alternates)] };
+    return {
+      primary,
+      alternates: [...new Set(alternates)],
+      source: clean(entry?.glossSource || mapped?.glossSource),
+      license: clean(entry?.glossLicense || mapped?.glossLicense),
+      attribution: clean(entry?.glossAttribution || mapped?.glossAttribution)
+    };
   }
   function validateVocabularyCard(entry, expectedLanguage, options = {}){
     const language = expectedLanguage === 'hebrew' ? 'hebrew' : 'greek';
@@ -177,7 +183,7 @@
     if(!studyForm) return { valid: false, reason: 'missing-study-form', id };
     const glosses = glossData(entry, options.glossMap);
     if(!glosses.primary) return { valid: false, reason: 'missing-gloss', id };
-    return { valid: true, id, entry: { ...entry, studyForm, primaryGloss: glosses.primary, gloss: glosses.primary, alternateGlosses: glosses.alternates } };
+    return { valid: true, id, entry: { ...entry, studyForm, primaryGloss: glosses.primary, gloss: glosses.primary, alternateGlosses: glosses.alternates, glossSource: glosses.source || entry.glossSource, glossLicense: glosses.license || entry.glossLicense, glossAttribution: glosses.attribution || entry.glossAttribution } };
   }
   function filterStudyableEntries(entries, language, options = {}){
     const diagnostics = { total: 0, studyable: 0, skipped: 0, reasons: {} };
@@ -307,15 +313,25 @@
 
   function eventTime(event = {}){ return clean(event.timestamp || event.date); }
   function candidateFor(entry, store, model, attentionStore, date = todayISO()){
-    const id = model.lemmaId(entry); const record = store?.records?.[id] || {};
+    const id = model.lemmaId(entry);
+    const storedRecord = store?.records?.[id];
+    const flagged = Boolean(attentionStore?.items?.[id]);
+    if(!storedRecord){
+      const grade = { letter: 'C', recentMisses: 0 };
+      return { id, entry, record: {}, grade, last: '', category: flagged ? 'reinforcement' : 'developing', boost: flagged ? 2 : 1, newlyKnown: true };
+    }
+    const record = storedRecord;
     const grade = root.VocabularyMastery?.masteryGrade?.(record, date) || { letter: 'C', recentMisses: 0 };
     const events = (record.history || []).filter(event => event?.result === 'recognized' || event?.result === 'missed');
-    const last = events.map(eventTime).filter(Boolean).sort().at(-1) || '';
+    const last = events.reduce((latest, event) => {
+      const timestamp = eventTime(event);
+      return timestamp > latest ? timestamp : latest;
+    }, '');
     const recent = events.slice(-5);
     const hard = recent.filter(event => confidenceOf(event.confidence || event.result) === 'hard').length;
     const again = recent.filter(event => confidenceOf(event.confidence || event.result) === 'again').length;
-    const flagged = Boolean(attentionStore?.items?.[id]);
-    const newlyKnown = clean(record.introducedAt) >= shiftDays(date, -14) || (Number(record.successCount) || 0) <= 3;
+    const introducedAt = clean(record.introducedAt);
+    const newlyKnown = (introducedAt ? introducedAt >= shiftDays(date, -14) : false) || (Number(record.successCount) || 0) <= 3;
     const category = grade.letter === 'F' || grade.letter === 'D' || again || hard >= 2 || flagged ? 'reinforcement' : (grade.letter === 'C' || newlyKnown ? 'developing' : 'established');
     const boost = Math.min(6, (grade.letter === 'F' ? 4 : grade.letter === 'D' ? 3 : grade.letter === 'C' ? 1 : 0) + Math.min(2, again) + Math.min(1, hard) + (flagged ? 1 : 0));
     return { id, entry, record, grade, last, category, boost, newlyKnown };
@@ -427,7 +443,7 @@
     const built = buildSelectedSession(eligible, store, model, { strategy: profile.strategy, selectedGrades: profile.selectedGrades, size: remaining === 'unlimited' ? 'unlimited' : (remaining || 1), dateISO: date, attention: options.attention, eligibleIds: options.eligibleIds, seed: options.seed });
     const finiteRemaining = remaining === 'unlimited' ? 0 : remaining;
     const newLimit = Math.min(profile.introduceNewCount, Math.floor((amountMode === 'set' ? dailyAmount : Math.max(0, Number(options.target) || profile.size)) * .25), finiteRemaining);
-    const newCandidates = newScopeEntries.filter(entry => model.learningStatus(store, entry, date) === model.STATUS.NOT_LEARNED && !scheduledUnique.has(model.lemmaId(entry)) && !todayIds.has(model.lemmaId(entry)))
+    const newCandidates = newScopeEntries.filter(entry => model.learningStatusForRecord(store.records?.[model.lemmaId(entry)] || null, date) === model.STATUS.NOT_LEARNED && !scheduledUnique.has(model.lemmaId(entry)) && !todayIds.has(model.lemmaId(entry)))
       .sort((a,b) => (Number(b.scopeFrequency) || Number(b.freq) || 0) - (Number(a.scopeFrequency) || Number(a.freq) || 0) || clean(model.lemmaId(a)).localeCompare(clean(model.lemmaId(b))));
     const introduced = newCandidates.slice(0, newLimit);
     const introducedIds = new Set(introduced.map(model.lemmaId));
@@ -448,7 +464,7 @@
     const validated = filterStudyableEntries(options.entries, language, { model, glossMap: options.glossMap });
     const entries = validated.entries;
     const statusFilters = new Set(profile.statusFilters);
-    const statusKey = entry => { const status = model.learningStatus(store, entry); return status === model.STATUS.NOT_LEARNED ? 'new' : (status === model.STATUS.LEARNING || status === model.STATUS.REVIEWING ? 'learning' : 'known'); };
+    const statusKey = entry => { const status = model.learningStatusForRecord(store.records?.[model.lemmaId(entry)] || null); return status === model.STATUS.NOT_LEARNED ? 'new' : (status === model.STATUS.LEARNING || status === model.STATUS.REVIEWING ? 'learning' : 'known'); };
     const newSource = options.newEntries ? filterStudyableEntries(options.newEntries, language, { model, glossMap: options.glossMap }).entries : entries;
     const newPool = newSource.filter(entry => statusKey(entry) === 'new').sort((a,b) => (Number(b.scopeFrequency) || Number(b.freq) || 0) - (Number(a.scopeFrequency) || Number(a.freq) || 0) || clean(model.lemmaId(a)).localeCompare(clean(model.lemmaId(b))));
     const size = profile.unlimited ? 'unlimited' : profile.size;

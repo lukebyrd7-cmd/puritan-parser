@@ -1,13 +1,13 @@
 // Service worker for the static Puritan Parser app.
 // Keep this file next to index.html so root-scoped registration covers every route.
-const CACHE = 'puritan-parser-v97-v1.9-unified-glosses-data-trust';
+const CACHE = 'puritan-parser-v101-v1.9-unified-glosses-data-trust';
 const FILES = [
   './',
   './index.html',
   './styles.css',
-  './styles.css?v=v1.9-unified-glosses-data-trust-1',
+  './styles.css?v=v1.9-unified-glosses-data-trust-5',
   './src/main.js',
-  './src/main.js?v=v1.9-unified-glosses-data-trust-1',
+  './src/main.js?v=v1.9-unified-glosses-data-trust-5',
   './src/core/parser-core.js',
   './src/core/hebrew-search.js',
   './src/core/migrations/migrations.js',

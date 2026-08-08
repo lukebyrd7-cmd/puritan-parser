@@ -584,9 +584,48 @@ function readerEffectiveSettings(settings = getActiveReaderSettings(), language 
   if(settings.display !== 'interlinear' || readerInterlinearAvailable(data, language)) return settings;
   return { ...settings, display: 'original' };
 }
+function readerSegmentPartOfSpeech(segment = {}){
+  const sourceClass = cleanReaderTokenValue(segment.class).toLowerCase();
+  const byClass = { noun: 'Noun', verb: 'Verb', adj: 'Adjective', pron: 'Pronoun', prep: 'Preposition', cj: 'Conjunction', art: 'Article', adv: 'Adverb', ij: 'Interjection' };
+  if(byClass[sourceClass]) return byClass[sourceClass];
+  const morphology = cleanReaderTokenValue(segment.morphology).replace(/^H/i, '');
+  if(/^N/i.test(morphology)) return 'Noun';
+  if(/^V/i.test(morphology)) return 'Verb';
+  if(/^A/i.test(morphology)) return 'Adjective';
+  if(/^P/i.test(morphology)) return 'Pronoun';
+  if(/^R/i.test(morphology)) return 'Preposition';
+  if(/^C/i.test(morphology)) return 'Conjunction';
+  if(/^T[d]?/i.test(morphology)) return 'Article';
+  return '';
+}
+function readerHebrewLexicalStructure(token = {}){
+  const segments = Array.isArray(token.segments) ? token.segments.filter(segment => cleanReaderTokenValue(segment?.surface) || cleanReaderTokenValue(segment?.lemma)) : [];
+  if(!segments.length) return { lexicalLemma: '', lexicalMorphology: '', lexicalPartOfSpeech: '', prefixSegments: [], suffixSegments: [] };
+  const contentParts = new Set(['Noun', 'Verb', 'Adjective', 'Pronoun', 'Adverb', 'Interjection']);
+  const contentIndexes = segments.map((segment, index) => ({ index, pos: readerSegmentPartOfSpeech(segment), morphology: cleanReaderTokenValue(segment?.morphology) })).filter(item => contentParts.has(item.pos) && !/^Sp/i.test(item.morphology));
+  const nonSuffixIndexes = segments.map((segment, index) => ({ segment, index })).filter(item => !/^Sp/i.test(cleanReaderTokenValue(item.segment?.morphology)));
+  const lexicalIndex = contentIndexes.at(-1)?.index ?? nonSuffixIndexes[0]?.index ?? 0;
+  const lexicalSegment = segments[lexicalIndex] || {};
+  return {
+    lexicalLemma: cleanReaderTokenValue(lexicalSegment.lemma),
+    lexicalMorphology: cleanReaderTokenValue(lexicalSegment.morphology),
+    lexicalPartOfSpeech: readerSegmentPartOfSpeech(lexicalSegment),
+    prefixSegments: segments.slice(0, lexicalIndex),
+    suffixSegments: segments.slice(lexicalIndex + 1)
+  };
+}
 function normalizeReaderToken(token = {}, language = readerState.language){
   const surface = cleanReaderTokenValue(token.surface || token.word || token.text || token.form);
   const lemma = cleanReaderTokenValue(token.lemma || token.strong || token.strongs || token.root || token.lexicalForm || surface);
+  const segments = Array.isArray(token.segments) ? token.segments.map(segment => ({
+    surface: cleanReaderTokenValue(segment?.surface),
+    lemma: cleanReaderTokenValue(segment?.lemma),
+    morphology: cleanReaderTokenValue(segment?.morphology),
+    gloss: cleanReaderTokenValue(segment?.gloss),
+    class: cleanReaderTokenValue(segment?.class),
+    sourceRowId: cleanReaderTokenValue(segment?.sourceRowId)
+  })) : [];
+  const lexicalStructure = language === 'hebrew' ? readerHebrewLexicalStructure({ ...token, segments }) : {};
   return {
     ...token,
     language,
@@ -606,7 +645,13 @@ function normalizeReaderToken(token = {}, language = readerState.language){
     sourceRowIds: Array.isArray(token.sourceRowIds) ? token.sourceRowIds.map(cleanReaderTokenValue).filter(Boolean) : [],
     qereKetiv: normalizeReaderQereKetiv(token.qereKetiv),
     maqqefAfter: Boolean(token.maqqefAfter),
-    punctuationAfter: cleanReaderTokenValue(token.punctuationAfter)
+    punctuationAfter: cleanReaderTokenValue(token.punctuationAfter),
+    segments,
+    lexicalLemma: cleanReaderTokenValue(token.lexicalLemma || lexicalStructure.lexicalLemma),
+    lexicalMorphology: cleanReaderTokenValue(token.lexicalMorphology || lexicalStructure.lexicalMorphology),
+    lexicalPartOfSpeech: cleanReaderTokenValue(token.lexicalPartOfSpeech || lexicalStructure.lexicalPartOfSpeech),
+    prefixSegments: Array.isArray(token.prefixSegments) ? token.prefixSegments : (lexicalStructure.prefixSegments || []),
+    suffixSegments: Array.isArray(token.suffixSegments) ? token.suffixSegments : (lexicalStructure.suffixSegments || [])
   };
 }
 function readerTokenInterlinearHint(token = {}, language = readerState.language){
@@ -657,7 +702,13 @@ function readerTokenInfo(token = {}, language = readerState.language){
     lexicalForm: normalized.lexicalForm,
     hebrewLemma: normalized.hebrewLemma,
     root: normalized.root,
-    stem: normalized.stem
+    stem: normalized.stem,
+    segments: normalized.segments,
+    lexicalLemma: normalized.lexicalLemma,
+    lexicalMorphology: normalized.lexicalMorphology,
+    lexicalPartOfSpeech: normalized.lexicalPartOfSpeech,
+    prefixSegments: normalized.prefixSegments,
+    suffixSegments: normalized.suffixSegments
   };
 }
 function readerTokenQualifiesForAssistance(token = {}, settings = getActiveReaderSettings(), language = readerState.language){
@@ -872,8 +923,8 @@ async function lookupReaderWordInfo(token = {}, reference = {}, language = reade
     surface: normalized.surface,
     lemma,
     sourceLemma: normalized.sourceLemma,
-    lexicalForm: normalized.lexicalForm || bestHebrewDisplay,
-    hebrewLemma: normalized.hebrewLemma || bestHebrewDisplay,
+    lexicalForm: normalized.lexicalLemma || normalized.lexicalForm || bestHebrewDisplay,
+    hebrewLemma: normalized.lexicalLemma || normalized.hebrewLemma || bestHebrewDisplay,
     root: normalized.root || bestHebrewDisplay,
     stem: normalized.stem,
     primaryGloss,
@@ -886,6 +937,11 @@ async function lookupReaderWordInfo(token = {}, reference = {}, language = reade
     occurrenceGloss: language === 'hebrew' && normalized.glossStatus === 'source' ? cleanReaderTokenValue(normalized.interlinearGloss) : '',
     parse: normalized.parse,
     parseExplanation: explainReaderParse(normalized.parse, language),
+    lexicalMorphology: normalized.lexicalMorphology,
+    lexicalPartOfSpeech: normalized.lexicalPartOfSpeech,
+    segments: normalized.segments,
+    prefixSegments: normalized.prefixSegments,
+    suffixSegments: normalized.suffixSegments,
     frequency: bestFrequency || indexFrequency || '',
     reference: readerReferenceLabel(reference),
     book: reference.book,
@@ -927,6 +983,8 @@ function readerGrammarLinksForInfo(info = {}){
     .map(([label, topicId]) => ({ label, topicId }));
 }
 function readerPartOfSpeechForInfo(info = {}){
+  const lexicalPartOfSpeech = cleanReaderTokenValue(info.lexicalPartOfSpeech);
+  if(lexicalPartOfSpeech) return lexicalPartOfSpeech;
   const parseExplanation = cleanReaderTokenValue(info.parseExplanation);
   const rawParse = cleanReaderTokenValue(info.parse);
   if(parseExplanation && parseExplanation !== rawParse) return parseExplanation.split(/[—-]/)[0].trim();
@@ -1013,9 +1071,10 @@ function readerSourceLemmaBase(sourceLemma = ''){
 function readerDisplayLemma(info = {}){
   const language = info.language || readerState.language || 'greek';
   const candidates = [
-    info.lemma,
+    info.lexicalLemma,
     info.lexicalForm,
     info.hebrewLemma,
+    info.lemma,
     info.root,
     readerSourceLemmaBase(info.sourceLemma)
   ].map(cleanReaderTokenValue).filter(Boolean);
@@ -1089,7 +1148,8 @@ function hebrewMorphologyFields(info = {}){
   const suffix = parseHebrewSuffix(raw);
   const suffixPronoun = hebrewSuffixPronoun(raw);
   const verb = raw.match(/(?:^H?V|\/V)([a-z0-9]+)/i)?.[1] || (/^V-/i.test(raw) ? raw.split('-').slice(1) : null);
-  const nominal = raw.match(/^H[NA]([a-z]+)/i)?.[1] || (/^[NA]-/i.test(raw) ? raw.split('-')[1] : '');
+  const sourceNominal = raw.match(/(?:^H?|\/)([NA])([a-z]+)/i);
+  const nominal = sourceNominal?.[2] || (/^[NA]-/i.test(raw) ? raw.split('-')[1] : '');
   const stems = { q: 'Qal', n: 'Niphal', p: 'Piel', h: 'Hiphil', t: 'Hithpael' };
   const forms = { p: 'perfect', q: 'wayyiqtol', w: 'wayyiqtol', i: 'imperfect', v: 'imperative', r: 'participle', s: 'participle', a: 'infinitive absolute', c: 'infinitive construct' };
   const genders = { m: 'masculine', f: 'feminine', c: 'common' };
@@ -1114,7 +1174,7 @@ function hebrewMorphologyFields(info = {}){
     add('Number', numbers[png.match(/[spd]/)?.[0]]);
   } else if(nominal){
     const lower = nominal.toLowerCase();
-    const isOshb = /^H[NA]/i.test(raw);
+    const isOshb = Boolean(sourceNominal);
     add('Gender', genders[isOshb ? (lower[1] || lower[0]) : lower[0]]);
     add('Number', numbers[isOshb ? (lower[2] || lower[1]) : lower[1]]);
     add('State', states[isOshb ? lower[3] : lower[2]]);
@@ -1425,6 +1485,24 @@ async function loadReaderInterlinearChapter(book = readerState.book, chapter = r
   readerInterlinearPromises.set(key, pending);
   return pending;
 }
+async function resolveReaderTokenLexicalSegments(token = {}, reference = {}, language = readerState.language){
+  if(language !== 'hebrew' || (Array.isArray(token.segments) && token.segments.length)) return token;
+  const tokenId = cleanReaderTokenValue(token.tokenId || token.id);
+  const book = cleanReaderTokenValue(reference.book);
+  const chapter = Number(reference.chapter);
+  if(!tokenId || !book || !chapter) return token;
+  try {
+    const interlinear = await loadReaderInterlinearChapter(book, chapter);
+    const sourceToken = (interlinear.verses || [])
+      .flatMap(verse => verse.tokens || [])
+      .find(item => cleanReaderTokenValue(item.id || item.tokenId) === tokenId);
+    if(!Array.isArray(sourceToken?.segments) || !sourceToken.segments.length) return token;
+    return { ...token, segments: sourceToken.segments };
+  } catch(error) {
+    console.warn('Reader lexical segment lookup failed.', error);
+    return token;
+  }
+}
 function attachReaderInterlinearChapter(readerData = {}, interlinearData = {}){
   if(readerData.book !== interlinearData.book || Number(readerData.chapter) !== Number(interlinearData.chapter)) {
     throw new Error('Hebrew interlinear chapter identity does not match the Reader chapter.');
@@ -1452,6 +1530,7 @@ function attachReaderInterlinearChapter(readerData = {}, interlinearData = {}){
           sourceRowIds: record.sourceRowIds,
           qereKetiv: record.qereKetiv,
           variantTokenIds: record.variantTokenIds,
+          segments: record.segments,
           maqqefAfter: record.maqqefAfter,
           punctuationAfter: record.punctuationAfter
         };
@@ -2832,7 +2911,10 @@ async function openReaderTokenPopup(button){
     return null;
   }
   const selectedLanguage = ReaderConfig[button?.dataset?.language] ? button.dataset.language : (ReaderConfig[readerState.language] ? readerState.language : 'greek');
+  const sourceToken = readerChapterTokens(readerState.chapterData || {}).find(item => cleanReaderTokenValue(item.tokenId) === cleanReaderTokenValue(button.dataset.tokenId)) || {};
   const token = {
+    ...sourceToken,
+    tokenId: button.dataset.tokenId || sourceToken.tokenId || sourceToken.id || '',
     surface: button.dataset.surface || '',
     lemma: button.dataset.lemma || '',
     parse: button.dataset.parse || '',
@@ -2862,7 +2944,8 @@ async function openReaderTokenPopup(button){
   readerState.wordDetailsView = 'quick';
   readerState.activeToken = { loading: true, requestId, selectionKey, info: loadingInfo };
   renderReaderWordPopup();
-  const info = await lookupReaderWordInfo(token, reference, selectedLanguage);
+  const lexicalToken = await resolveReaderTokenLexicalSegments(token, reference, selectedLanguage);
+  const info = await lookupReaderWordInfo(lexicalToken, reference, selectedLanguage);
   if(requestId !== readerWordLookupRequestId) return null;
   if(!readerState.activeToken || readerState.activeToken.selectionKey !== selectionKey) return null;
   readerState.activeToken = { loading: false, requestId, selectionKey, info: { ...info, language: selectedLanguage } };
@@ -2892,11 +2975,6 @@ function openReaderBookProgress(){
 function openReaderWordPage(){
   const info = readerState.activeToken?.info || readerState.wordPageInfo;
   if(info?.lemma || info?.surface) readerState.wordPageInfo = { ...info };
-  if(readerState.activeToken && readerState.wordDetailsEffectiveMode === 'side' && $('#readerWordPanelRoot')){
-    readerState.wordDetailsView = 'full';
-    renderReaderWordPopup();
-    return true;
-  }
   closeReaderWordPopup({ goBack: false });
   renderReaderWordPage();
   if(typeof showView === 'function') showView('wordPageView');
@@ -3098,7 +3176,6 @@ function renderReaderQuickDetailsHtml(active, info, meta){
         ${formDetailsHtml}
         ${learningHtml}
         ${grammarHtml}
-        <button class="reader-word-page-action btn btn-ghost btn-sm" type="button">Edit glosses</button>
         ${rawParse ? `<details class="reader-word-technical"><summary>Technical details</summary><div class="reader-word-parse-code">Parse: ${escHtml(rawParse)}</div></details>` : ''}`;
 }
 function renderReaderWordPopup(){
@@ -3124,7 +3201,7 @@ function renderReaderWordPopup(){
       : `<section class="reader-word-panel" role="region" aria-labelledby="readerWordDetailsTitle">
           <header class="reader-word-panel-header"><div><div class="reader-word-label">Word details</div></div><button class="reader-word-close" type="button" aria-label="Close word details">Close</button></header>
           <div class="reader-word-panel-body">${renderReaderQuickDetailsHtml(active, info, meta)}</div>
-          <div class="reader-word-panel-actions"><button class="reader-word-page-action btn btn-primary" type="button" aria-label="Open Word Page">Open full details</button><button class="btn btn-ghost btn-sm" type="button" data-reader-word-standalone>Open as full page</button></div>
+          <div class="reader-word-panel-actions"><button class="reader-word-page-action btn btn-primary" type="button">Open Word Page</button></div>
         </section>`;
   } else if(overlayRoot){
     if(panelRoot) panelRoot.innerHTML = '';
@@ -3132,9 +3209,9 @@ function renderReaderWordPopup(){
     overlayRoot.innerHTML = `
     <div class="reader-word-overlay" data-reader-popup-overlay>
       <section class="reader-word-popup" role="dialog" aria-modal="true" aria-labelledby="readerWordDetailsTitle">
-        <button class="reader-word-close" type="button" aria-label="Close word popup">Close</button>
-        ${renderReaderQuickDetailsHtml(active, info, meta)}
-        <button class="reader-word-page-action btn btn-primary" type="button" aria-label="Open Word Page">Open full details</button>
+        <header class="reader-word-popup-header"><div class="reader-word-label">Word details</div><button class="reader-word-close" type="button" aria-label="Close word popup">Close</button></header>
+        <div class="reader-word-popup-body">${renderReaderQuickDetailsHtml(active, info, meta)}</div>
+        <footer class="reader-word-popup-actions"><button class="reader-word-page-action btn btn-primary" type="button">Open Word Page</button></footer>
       </section>
     </div>`;
   }
@@ -3208,5 +3285,6 @@ async function initReader(){
 }
 if(typeof window !== 'undefined') Object.assign(window, { ReaderConfig, ReaderTranslationOptions, ReaderDefaultSettings, ReaderWordDetailsLayout, readerState, readerChapterCache, readerInterlinearChapterCache, readerTranslationLoadCounts, readerInterlinearLoadCounts, readerManifestCache, readerLoadCounts, getReaderChapterPath, getReaderInterlinearChapterPath, getReaderLanguageMeta, loadReaderManifest, loadReaderChapter, loadReaderInterlinearChapter, loadReaderTranslationChapter, ensureReaderTranslationLoaded, setReaderLocation, getAdjacentReaderLocation, navigateReaderAdjacent, handleReaderChapterKeydown, handleReaderTouchStart, handleReaderTouchEnd, renderReader, renderReaderChapter, renderReaderVerse, renderReaderTokens, initReader, runReaderSearch, loadReaderLocation, saveReaderLocation, loadReaderSettings, saveReaderSettings, getActiveReaderSettings, updateReaderSetting, openReaderSettingsPanel, closeReaderSettingsPanel, openReaderSearch, closeReaderSearch, readerTokenQualifiesForAssistance, renderReaderSettingsPanel, renderReaderTranslationToggle, normalizeReaderWordDetailsDisplay, resolveReaderWordDetailsMode, currentReaderWordDetailsMode, syncReaderWordDetailsLayout, resetReaderWordDetailsState, parseReaderReference, openReaderTokenPopup, closeReaderWordPopup, openReaderWordPage, openReaderWordStandalonePage, openReaderWordPageFromInfo, renderReaderWordPage, renderReaderWordPageContent, lookupReaderWordInfo, prepareReaderVocabularyIndex, explainReaderParse, readerDisplayLemma, readerPrimaryHeadword, readerGrammarLinksForInfo, readerPartOfSpeechForInfo, readerMorphologyFields, renderReaderMorphology, renderReaderGrammar, renderReaderWordIdentity, renderReaderWordOccurrence, getReaderLemmaOccurrences, openReaderContextOccurrence, openReaderBookProgress, renderReaderWordLearning, renderReaderWordSaved, renderReaderWordStudySets, readerLearningStatusForInfo, readerLearningDetailsForInfo, introduceReaderWordFromPage, setReaderWordLearningStatus, reviewReaderWordFromPage, toggleReaderSavedWord, addReaderWordToStudySet, createReaderStudySetFromWord });
 if(typeof module !== 'undefined') module.exports = { ReaderConfig, ReaderTranslationOptions, ReaderDefaultSettings, readerState: () => readerState, readerChapterCache, readerInterlinearChapterCache, readerInterlinearLoadCounts, readerTranslationChapterCache, readerTranslationLoadCounts, readerManifestCache, readerLoadCounts, getReaderChapterPath, getReaderInterlinearChapterPath, getReaderLanguageMeta, loadReaderManifest, normalizeReaderManifest, getReaderBookChapters, loadReaderChapter, decodeReaderInterlinearChapter, attachReaderInterlinearChapter, loadReaderInterlinearChapter, loadReaderTranslationChapter, ensureReaderTranslationLoaded, setReaderLocation, getAdjacentReaderLocation, navigateReaderAdjacent, handleReaderChapterKeydown, handleReaderTouchStart, handleReaderTouchEnd, renderReader, renderReaderChapter, renderReaderVerse, renderReaderTokens, runReaderSearch, loadReaderLocation, saveReaderLocation, loadReaderSettings, saveReaderSettings, getActiveReaderSettings, sanitizeReaderSettings, updateReaderSetting, openReaderSettingsPanel, closeReaderSettingsPanel, openReaderSearch, closeReaderSearch, handleReaderPopupKeydown, handleReaderDocumentClick, readerAssistanceThreshold, readerTokenFrequency, readerTokenQualifiesForAssistance, renderReaderSettingsPanel, renderReaderTranslationToggle, normalizeReaderWordDetailsDisplay, resolveReaderWordDetailsMode, currentReaderWordDetailsMode, syncReaderWordDetailsLayout, resetReaderWordDetailsState, readerChapterHasEnglish, readerChapterHasReliableInterlinearGlossData, readerTranslationVerseEnglish, parseReaderReference, normalizeReaderText, lookupReaderWordInfo, prepareReaderVocabularyIndex, explainReaderParse, readerDisplayLemma, readerPrimaryHeadword, readerGrammarLinksForInfo, readerParseKind, readerPartOfSpeechForInfo, readerMorphologyFields, renderReaderMorphology, renderReaderGrammar, renderReaderWordIdentity, renderReaderWordOccurrence, openReaderTokenPopup, closeReaderWordPopup, openReaderWordPage, openReaderWordStandalonePage, openReaderWordPageFromInfo, renderReaderWordPage, loadReaderSearchIndex, representativeReaderOccurrences, getReaderLemmaOccurrences, readerOccurrenceSnippet, renderReaderWordPageContext, renderReaderWordPageContextContent, attachReaderWordPageContextHandlers, openReaderContextOccurrence, openReaderBookProgress, renderReaderWordLearning, renderReaderWordSaved, renderReaderWordStudySets, readerLearningStatusForInfo, readerLearningDetailsForInfo, introduceReaderWordFromPage, setReaderWordLearningStatus, reviewReaderWordFromPage, toggleReaderSavedWord, addReaderWordToStudySet, createReaderStudySetFromWord };
+if(typeof module !== 'undefined') Object.assign(module.exports, { readerSegmentPartOfSpeech, readerHebrewLexicalStructure, resolveReaderTokenLexicalSegments, normalizeReaderToken, readerVocabularyLearningEntry, renderReaderPopupFormDetails });
 if(typeof window !== 'undefined') Object.assign(window, { setReaderMode, setReaderModePreference, toggleReaderTextVisibility, loadReaderContinuousWindow, loadReaderContinuousAdjacent, captureReaderAnchor, restoreReaderPlace, persistReaderPlaceNow, suspendReader, updateReaderCurrentChapter, scheduleReaderContinuousPrefetch });
 if(typeof module !== 'undefined') Object.assign(module.exports, { normalizeReaderMode, readerContinuousChapterNumbers, loadReaderPassage, loadReaderContinuousWindow, loadReaderContinuousAdjacent, readerContinuousPrefetchChapters, scheduleReaderContinuousPrefetch, readerContinuousBoundaryState, readerContinuousBoundaryForPane, readerContinuousInsertionNeedsAnchorRestore, readerMomentumScrollDirection, setReaderMode, setReaderModePreference, toggleReaderTextVisibility, applyReaderTextModeToRenderedPassages, captureReaderAnchor, restoreReaderPlace, scheduleReaderPlaceRestore, cancelReaderRestoration, readerRestorationState: () => ({ state: readerRestoreState, correctionCount: readerRestoreCorrectionCount, generation: readerRestoreRequestId }), handleReaderMomentumInput, handleReaderTouchStart, handleReaderPointerInput, handleReaderResize, persistReaderPlaceNow, suspendReader, updateReaderCurrentChapter, detectReaderCurrentChapter, refreshReaderTranslations, renderReaderPassages, setReaderBrowserScrollRestoration, prepareReaderPassageHtml, insertReaderContinuousPassage, setReaderBoundaryLoading });

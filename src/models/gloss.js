@@ -27,12 +27,38 @@
   function splitGlossValue(value){
     return nonEmpty(value).split(/[,;|\u2022]/).map(nonEmpty).filter(Boolean);
   }
+  function hasStrongHebrewNotationSource(word = {}, options = {}){
+    if(options.sourceNotation === 'strongs-ie') return true;
+    return /Strong(?:'|’)?s Hebrew Dictionary/i.test(nonEmpty(word.glossSource));
+  }
+  function stripStrongIeArtifact(value, word = {}, options = {}){
+    const sense = nonEmpty(value);
+    if(!sense || !hasStrongHebrewNotationSource(word, options) || !/\s+i$/.test(sense)) return sense;
+    const stripped = sense.replace(/\s+i$/, '').trim();
+    return /^[\s'"“”‘’()[\]{}.,:;!?-]*$/.test(stripped) ? '' : stripped;
+  }
+  function sourceNotationLeakage(values = [], word = {}, options = {}){
+    if(!hasStrongHebrewNotationSource(word, options)) return [];
+    return values.flatMap(splitGlossValue).filter(value => stripStrongIeArtifact(value, word, options) !== value);
+  }
+  function articleDuplicateSenses(values = []){
+    const senses = values.flatMap(splitGlossValue);
+    const keys = new Set(senses.map(value => value.toLocaleLowerCase()));
+    return senses.filter(value => {
+      const match = value.match(/^(?:a|an|the)\s+(.+)$/i);
+      return Boolean(match && keys.has(match[1].toLocaleLowerCase()));
+    });
+  }
   function presentLexicalGlosses(word = {}, options = {}){
     const missingLabel = nonEmpty(options.missingLabel) || 'Gloss unavailable';
-    const values = [
+    const rawValues = [
       ...splitGlossValue(options.primaryGloss || word.customGloss || word.primaryGloss || word.gloss),
       ...normalizeAlternateGlosses(options.alternateGlosses ?? word.alternateGlosses).flatMap(splitGlossValue)
     ];
+    const articleDuplicates = new Set(articleDuplicateSenses(rawValues).map(value => value.toLocaleLowerCase()));
+    const values = rawValues
+      .map(value => stripStrongIeArtifact(value, word, options))
+      .filter(value => value && !articleDuplicates.has(value.toLocaleLowerCase()));
     const seen = new Set();
     const glosses = values.filter(value => {
       const key = value.toLowerCase();
@@ -99,5 +125,5 @@
     ].map(value => nonEmpty(value)).filter(Boolean).join(' ').toLowerCase();
   }
   function hasAnyGloss(word = {}){ return getDisplayGloss(word) !== '(missing gloss)'; }
-  return { createGlossFields, getSourceGloss, getDisplayGloss, glossSearchText, normalizeAlternateGlosses, presentLexicalGlosses, setGlossCorrections, vocabularyId, resolveLexicalGloss, hasAnyGloss };
+  return { createGlossFields, getSourceGloss, getDisplayGloss, glossSearchText, normalizeAlternateGlosses, presentLexicalGlosses, articleDuplicateSenses, stripStrongIeArtifact, sourceNotationLeakage, setGlossCorrections, vocabularyId, resolveLexicalGloss, hasAnyGloss };
 });

@@ -1411,7 +1411,7 @@ function learnProfileEntries(profile, options = {}){
     return entries.filter(entry => attention.items[learnWordId(entry)]);
   }
   return entries.filter(entry => {
-    const status = VocabularyLearningModel.learningStatus(store, entry);
+    const status = VocabularyLearningModel.learningStatusForRecord(store.records?.[learnWordId(entry)] || null);
     return status === VocabularyLearningModel.STATUS.KNOWN || status === VocabularyLearningModel.STATUS.KNOWN_SELF_REPORTED;
   });
 }
@@ -1603,7 +1603,7 @@ function startFirstUsePractice(language, options = {}){
     glossMap: learnState.glossMaps[normalized]
   });
   const selected = pool.entries
-    .filter(entry => VocabularyLearningModel.learningStatus(store, entry) === VocabularyLearningModel.STATUS.NOT_LEARNED)
+    .filter(entry => VocabularyLearningModel.learningStatusForRecord(store.records?.[learnWordId(entry)] || null) === VocabularyLearningModel.STATUS.NOT_LEARNED)
     .sort((a, b) => (Number(b.freq) || 0) - (Number(a.freq) || 0) || learnWordId(a).localeCompare(learnWordId(b)))
     .slice(0, 5);
   const sessionId = LearningPracticeModel.uuid();
@@ -1639,11 +1639,24 @@ function startFirstUsePractice(language, options = {}){
 async function prepareFirstUsePractice(button, language){
   const normalized = language === 'hebrew' ? 'hebrew' : 'greek';
   if(learnActivePracticeSession(normalized)) return startFirstUsePractice(normalized);
+  const startingPage = learnState.page;
   const original = button?.textContent || '';
   if(button){ button.disabled = true; button.textContent = `Preparing ${learnLanguageTitle(normalized)} words…`; }
+  beginLearnPerformanceNavigation('starter-practice');
   try {
+    await new Promise(resolve => typeof requestAnimationFrame === 'function' ? requestAnimationFrame(() => resolve()) : setTimeout(resolve, 0));
+    markLearnPerformanceMilestone('visible-acknowledgment');
+    const root = $('#learnShell');
+    if(root && learnState.page === startingPage){
+      root.innerHTML = `<section class="panel learn-panel"><h1>${escHtml(learnLanguageTitle(normalized))} starter session</h1><p class="progress-empty" role="status">Preparing common ${escHtml(learnLanguageTitle(normalized))} words…</p></section>`;
+      markLearnPerformanceMilestone('preparation-shell');
+    }
     const [entries] = await Promise.all([prepareLearnVocabularyEntries(normalized), ensureLearnVocabularyGlossMap(normalized)]);
-    return startFirstUsePractice(normalized, { entries, store: learnVocabularyStore() });
+    if(learnState.page !== startingPage) return null;
+    const session = measureLearnSynchronous(`assembleStarter:${normalized}`, () => startFirstUsePractice(normalized, { entries, store: learnVocabularyStore() }));
+    markLearnPerformanceMilestone('session-shell');
+    requestAnimationFrame?.(() => markLearnPerformanceMilestone('first-card'));
+    return session;
   } finally {
     if(button?.isConnected){ button.disabled = false; button.textContent = original; }
   }

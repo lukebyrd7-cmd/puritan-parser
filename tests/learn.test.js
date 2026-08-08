@@ -112,6 +112,14 @@ test('Learn home prioritizes independent daily practice, parsing, focused source
   assert.doesNotMatch(html, /alert\(/);
 });
 
+test('practice startup acknowledges immediately and does not rebuild global search', () => {
+  const source = fs.readFileSync('src/features/learn/index.js', 'utf8');
+  assert.match(source, /`Preparing \$\{learnLanguageTitle\(normalized\)\} practice…`/);
+  assert.match(source, /requestAnimationFrame/);
+  assert.match(source, /learningStatusForRecord\(store\.records\?\.\[learnWordId\(entry\)\] \|\| null\)/);
+  assert.doesNotMatch(source, /PuritanGlobalSearch|buildCorpusIndex|rebuildSearch/i);
+});
+
 test('first-use starter session chooses five highest-frequency studyable New words and resumes without introducing on reveal', () => {
   [VocabularyLearning.STORAGE_KEY, LearningPractice.SESSION_KEY, LearningPractice.REVISION_KEY].forEach(key => storage.delete(key));
   const previous = global.state.data.greek;

@@ -17,6 +17,7 @@
     "translation:oeb:generate": "node scripts/generate-oeb-translation-data.js",
     "translation:web:generate": "node scripts/generate-web-translation-data.js",
     "reader:audit": "node scripts/audit-reader-data.js",
+    "reader:lexical-identity:audit": "node scripts/audit-reader-lexical-identity.js",
     "reader:update": "npm run data:download && npm run reader:generate && npm run reader:audit && npm test"
   },
   "devDependencies": {

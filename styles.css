@@ -2248,9 +2248,11 @@ button:focus-visible, input:focus-visible, select:focus-visible {
 .reader-word-panel-header h2 { margin: 0; font: 700 16px/1.2 var(--font-serif); color: var(--text); }
 .reader-word-panel-body {
   min-height: 0;
-  overflow: auto;
-  padding: 12px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 12px 12px calc(20px + env(safe-area-inset-bottom));
   overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
 }
 .reader-word-panel-actions {
   display: flex;
@@ -2278,14 +2280,21 @@ button:focus-visible, input:focus-visible, select:focus-visible {
 .reader-word-popup {
   width: min(390px, 100%);
   max-height: min(82dvh, 560px);
-  overflow: auto;
+  overflow: hidden;
   position: relative;
+  display: flex;
+  flex-direction: column;
   background: var(--card);
   border: 1px solid var(--border-strong);
   border-radius: 12px;
   box-shadow: var(--shadow-lg);
-  padding: 16px;
+  padding: 0;
 }
+.reader-word-popup-header { display:flex;align-items:center;justify-content:space-between;gap:10px;flex:0 0 auto;padding:12px 14px 9px;border-bottom:1px solid var(--border);background:var(--card) }
+.reader-word-popup-header .reader-word-close { position:static;flex:0 0 auto }
+.reader-word-popup-body { min-height:0;overflow-y:auto;overflow-x:hidden;padding:14px 16px 20px;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;scroll-padding-bottom:24px }
+.reader-word-popup-actions { flex:0 0 auto;padding:10px 14px calc(10px + env(safe-area-inset-bottom));border-top:1px solid var(--border);background:var(--card) }
+.reader-word-popup-actions .reader-word-page-action { width:100%;margin:0 }
 .reader-word-close {
   position: absolute;
   top: 10px;
@@ -2441,7 +2450,7 @@ button:focus-visible, input:focus-visible, select:focus-visible {
   .app:has(#readerView:not(.hidden)) .app-name { font-size: 18px; }
   .app:has(#readerView:not(.hidden)) .app-sub { display: none; }
   .app:has(#readerView:not(.hidden)) .topbar { padding: 6px 8px; }
-  .app:has(#readerView:not(.hidden)) footer { display: none; }
+  .app:has(#readerView:not(.hidden)) > footer { display: none; }
   .reader-shell {
     display: grid;
     grid-template-rows: auto auto minmax(0, 1fr);
@@ -2586,9 +2595,11 @@ button:focus-visible, input:focus-visible, select:focus-visible {
 .reader-word-panel-header h2 { margin: 0; font: 700 16px/1.2 var(--font-serif); color: var(--text); }
 .reader-word-panel-body {
   min-height: 0;
-  overflow: auto;
-  padding: 12px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 12px 12px calc(20px + env(safe-area-inset-bottom));
   overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
 }
 .reader-word-panel-actions {
   display: flex;
@@ -2606,11 +2617,13 @@ button:focus-visible, input:focus-visible, select:focus-visible {
 .reader-word-overlay { align-items: flex-end; padding: 0; }
   .reader-word-popup {
     width: 100%;
-    max-height: 72dvh;
+    height: min(88dvh, 720px);
+    max-height: calc(100dvh - max(8px, env(safe-area-inset-top)));
     border-radius: 14px 14px 0 0;
     border-width: 1px 0 0;
-    padding: 14px 14px calc(14px + env(safe-area-inset-bottom));
+    padding: 0;
   }
+  .reader-word-popup-body { padding: 12px 14px 24px; }
   .reader-word-surface { font-size: 36px; }
   .reader-word-gloss { font-size: 18px; }
 }

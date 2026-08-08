@@ -96,7 +96,7 @@
   }
   function displayGloss(entry = {}){
     const mapped = hebrewGlosses?.[clean(entry.lemma)];
-    const lexicalEntry = { ...entry, primaryGloss: entry.primaryGloss || mapped?.primaryGloss || '', alternateGlosses: [...alternateGlosses(entry), ...(mapped?.alternateGlosses || [])] };
+    const lexicalEntry = { ...entry, primaryGloss: entry.primaryGloss || mapped?.primaryGloss || '', alternateGlosses: [...alternateGlosses(entry), ...(mapped?.alternateGlosses || [])], glossSource: entry.glossSource || mapped?.glossSource || '' };
     const candidates = [entry.customGloss, lexicalEntry.primaryGloss, entry.gloss];
     if(typeof root.getDisplayGloss === 'function') candidates.push(root.getDisplayGloss(entry));
     const resolved = root.PuritanPersonalGlosses?.resolve?.(lexicalEntry, { primaryLimit: 3 });
@@ -212,7 +212,7 @@
     const transliterationText = lang === 'greek' ? [headword, entry.lemma, entry.lexicalForm, entry.word, entry.normalized].map(transliterateGreek).filter(Boolean).join(' ') : hebrewLatin;
     const lemma = lemmaForWordPage({ ...entry, lang });
     const mapped = hebrewGlosses?.[clean(entry.lemma)];
-    const lexicalEntry = { ...entry, primaryGloss: entry.primaryGloss || mapped?.primaryGloss || '', alternateGlosses: [...alternateGlosses(entry), ...(mapped?.alternateGlosses || [])] };
+    const lexicalEntry = { ...entry, primaryGloss: entry.primaryGloss || mapped?.primaryGloss || '', alternateGlosses: [...alternateGlosses(entry), ...(mapped?.alternateGlosses || [])], glossSource: entry.glossSource || mapped?.glossSource || '' };
     const resolution = root.PuritanPersonalGlosses?.resolve?.(lexicalEntry, { primaryLimit: 3 });
     const personalGlosses = root.PuritanPersonalGlosses?.recordFor?.(entry)?.glosses || [];
     return {

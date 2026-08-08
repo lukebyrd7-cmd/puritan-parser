@@ -192,6 +192,27 @@ test('zero due enters maintenance and no eligible maintenance completes honestly
   assert.equal(LearningPractice.activeSession(empty), null);
 });
 
+test('large new-word pools use bounded direct status checks instead of whole-store learningStatus calls', () => {
+  const words = Array.from({ length: 10000 }, (_, index) => entry(`new-${index}`, 'greek', 10000 - index));
+  const directModel = {
+    ...VocabularyLearning,
+    learningStatus(){ throw new Error('whole-store status lookup must not run during session assembly'); }
+  };
+  const session = LearningPractice.assembleSession({
+    language: 'greek',
+    profile: { ...LearningPractice.defaultProfile('greek'), introduceNewCount: 5 },
+    entries: words,
+    newEntries: words,
+    maintenanceEntries: [],
+    store: store([]),
+    model: directModel,
+    target: 20,
+    dateISO: DATE
+  });
+  assert.equal(session.cards.length, 5);
+  assert.ok(session.cards.every(card => card.phase === 'new'));
+});
+
 test('focused finite and continue-until-stopped sessions use only the selected pool and remain resumable', () => {
   const words = Array.from({ length: 205 }, (_, index) => entry(`focused-${index}`));
   const current = store(words.map(word => record(word)));

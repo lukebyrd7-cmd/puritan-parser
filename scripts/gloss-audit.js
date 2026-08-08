@@ -1,5 +1,6 @@
 const fs = require('node:fs');
 const path = require('node:path');
+const GlossModel = require('../src/models/gloss');
 
 const ROOT = path.resolve(__dirname, '..');
 const DEFAULT_VOCAB_PATH = path.join(ROOT, 'vocab_all.json');
@@ -38,11 +39,15 @@ function createLangReport(lang, entries, options = {}) {
     suspiciouslyLongPrimaryGlosses: [],
     unusuallyLargeAlternateGlosses: [],
     suspiciousFormatting: [],
+    articleOnlyPresentationDuplicates: [],
+    sourceNotationLeakage: [],
     coveragePercent: 0,
     entriesWithGlosses: 0,
     lemmaCoverage: { totalLemmas: 0, lemmasWithGlosses: 0, coveragePercent: 0 },
     frequencyBands: []
   };
+  const articleOnlyRecords = new Map();
+  const notationRecords = new Map();
 
   entries.forEach((entry, index) => {
     const label = entry && entry.id ? entry.id : `${lang}[${index}]`;
@@ -88,7 +93,17 @@ function createLangReport(lang, entries, options = {}) {
     if (entry && typeof entry.gloss === 'string' && hasSuspiciousFormatting(entry.gloss)) {
       report.suspiciousFormatting.push(`${label}.gloss`);
     }
+    if (entry) {
+      const sourceValues = [entry.primaryGloss, ...(Array.isArray(entry.alternateGlosses) ? entry.alternateGlosses : [])];
+      const sourceId = String(entry.lemma || entry.id || label);
+      const articleDuplicates = GlossModel.articleDuplicateSenses(sourceValues);
+      if (articleDuplicates.length && !articleOnlyRecords.has(sourceId)) articleOnlyRecords.set(sourceId, `${sourceId}: ${articleDuplicates.join('; ')}`);
+      const notationLeakage = GlossModel.sourceNotationLeakage(sourceValues, entry);
+      if (notationLeakage.length && !notationRecords.has(sourceId)) notationRecords.set(sourceId, `${sourceId}: ${notationLeakage.join('; ')}`);
+    }
   });
+  report.articleOnlyPresentationDuplicates = [...articleOnlyRecords.values()].sort((a, b) => a.localeCompare(b, 'en', { numeric: true }));
+  report.sourceNotationLeakage = [...notationRecords.values()].sort((a, b) => a.localeCompare(b, 'en', { numeric: true }));
 
   report.entriesWithGlosses = report.totalEntries - report.missingPrimaryGloss.length - report.unavailableGlosses.length;
   report.coveragePercent = report.totalEntries ? Number(((report.entriesWithGlosses / report.totalEntries) * 100).toFixed(3)) : 100;
@@ -172,6 +187,8 @@ function formatReport(reports) {
     lines.push(`* suspiciously long primaryGlosses: ${report.suspiciouslyLongPrimaryGlosses.length}${formatSamples(report.suspiciouslyLongPrimaryGlosses)}`);
     lines.push(`* unusually large alternateGloss arrays: ${report.unusuallyLargeAlternateGlosses.length}${formatSamples(report.unusuallyLargeAlternateGlosses)}`);
     lines.push(`* suspicious formatting: ${report.suspiciousFormatting.length}${formatSamples(report.suspiciousFormatting)}`);
+    lines.push(`* article-only presentation duplicates: ${report.articleOnlyPresentationDuplicates.length}${formatSamples(report.articleOnlyPresentationDuplicates)}`);
+    lines.push(`* source-notation leakage: ${report.sourceNotationLeakage.length}${formatSamples(report.sourceNotationLeakage)}`);
     lines.push('');
   });
   const errors = validationErrors(reports);
