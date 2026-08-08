@@ -1,6 +1,6 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const { auditGlosses, formatReport, validationErrors } = require('../scripts/gloss-audit');
+const { auditGlosses, formatReport, validationErrors, materializeCanonicalGlosses, readUnavailable } = require('../scripts/gloss-audit');
 
 test('gloss audit reports Greek and Hebrew counts', () => {
   const reports = auditGlosses([
@@ -26,6 +26,19 @@ test('gloss audit reports Greek and Hebrew counts', () => {
   assert.match(text, /\* lemma coverage: 2\/3 \(66\.67%\)/);
   assert.match(text, /\* coverage by frequency band:/);
   assert.match(text, /\* duplicate IDs: 0/);
+});
+
+test('canonical audit merges compact sources and reports the supported unavailable Hebrew record', () => {
+  const canonical = materializeCanonicalGlosses(require('../vocab_all.json'));
+  const reports = auditGlosses(canonical, { unavailable: readUnavailable() });
+  assert.equal(reports.greek.missingPrimaryGloss.length, 0);
+  assert.equal(reports.hebrew.missingPrimaryGloss.length, 0);
+  assert.deepEqual(reports.hebrew.unavailableGlosses, ['hb-28058']);
+  assert.equal(reports.hebrew.lemmaCoverage.lemmasWithGlosses, 9151);
+  assert.equal(reports.greek.articleOnlyPresentationDuplicates.length, 0);
+  assert.equal(reports.hebrew.articleOnlyPresentationDuplicates.length, 508);
+  assert.deepEqual(reports.hebrew.sourceNotationLeakage, ["120: ruddy i", "3433: ' i", "3433+: ' i"]);
+  assert.deepEqual(validationErrors(reports), []);
 });
 
 test('gloss audit fails validation errors and keeps warnings non-fatal', () => {

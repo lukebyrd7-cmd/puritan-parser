@@ -1,13 +1,13 @@
 // Service worker for the static Puritan Parser app.
 // Keep this file next to index.html so root-scoped registration covers every route.
-const CACHE = 'puritan-parser-v96-v1.8.2-reader-details-persistence';
+const CACHE = 'puritan-parser-v104-v1.9-unified-glosses-data-trust';
 const FILES = [
   './',
   './index.html',
   './styles.css',
-  './styles.css?v=v1.8.2-reader-details-persistence-1',
+  './styles.css?v=v1.9-unified-glosses-data-trust-8',
   './src/main.js',
-  './src/main.js?v=v1.8.2-reader-details-persistence-1',
+  './src/main.js?v=v1.9-unified-glosses-data-trust-8',
   './src/core/parser-core.js',
   './src/core/hebrew-search.js',
   './src/core/migrations/migrations.js',
@@ -17,6 +17,7 @@ const FILES = [
   './src/ui/toast.js',
   './src/models/word-entry.js',
   './src/models/gloss.js',
+  './src/models/personal-glosses.js',
   './src/models/user-progress.js',
   './src/models/parse-data.js',
   './src/models/review-history.js',
@@ -65,6 +66,8 @@ const FILES = [
   './src/features/settings/events.js',
   './src/bootstrap.js',
   './data/metadata/content-manifest.json',
+  './data/glosses/corrections.json',
+  './data/glosses/unavailable-glosses.json',
   './data/translations/oeb/manifest.json',
   './data/translations/web/manifest.json',
   './logo.png',

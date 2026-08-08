@@ -12,6 +12,7 @@ const PURITAN_PARSER_CORE_SCRIPTS = [
   'src/ui/toast.js',
   'src/models/word-entry.js',
   'src/models/gloss.js',
+  'src/models/personal-glosses.js',
   'src/models/user-progress.js',
   'src/models/parse-data.js',
   'src/models/review-history.js',
@@ -72,7 +73,7 @@ const PURITAN_PARSER_SCRIPTS = [
   ...Object.values(PURITAN_PARSER_FEATURE_SCRIPTS).flat(),
   'src/bootstrap.js'
 ];
-const PURITAN_PARSER_ASSET_VERSION = 'v1.8.2-reader-details-persistence-1';
+const PURITAN_PARSER_ASSET_VERSION = 'v1.9-unified-glosses-data-trust-8';
 const PURITAN_SCRIPT_LOAD_TIMEOUT_MS = 9000;
 
 const puritanLoadedScripts = new Map();

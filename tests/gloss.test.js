@@ -71,3 +71,21 @@ test('lexical gloss presentation groups concise senses without rewriting source 
   assert.deepEqual(source.alternateGlosses, ['matter', 'message', 'account']);
   assert.equal(GlossModel.presentLexicalGlosses({}, { missingLabel: 'Gloss unavailable' }).primaryText, 'Gloss unavailable');
 });
+
+test('learner-facing presentation removes article-only duplicates without changing fixed phrases', () => {
+  const source = { primaryGloss: 'a family', alternateGlosses: ['family', 'kind', 'the powers that be'] };
+  const presented = GlossModel.presentLexicalGlosses(source);
+  assert.deepEqual(presented.all, ['family', 'kind', 'the powers that be']);
+  assert.equal(source.primaryGloss, 'a family');
+  assert.deepEqual(source.alternateGlosses, ['family', 'kind', 'the powers that be']);
+});
+
+test('verified Strong’s i.e. fragments are removed without stripping pronouns or Roman numerals', () => {
+  const source = { lang: 'hebrew', glossSource: 'Strong’s Hebrew Dictionary (1890) consulted', primaryGloss: 'ruddy i', alternateGlosses: ["' i", 'another'] };
+  assert.deepEqual(GlossModel.presentLexicalGlosses(source).all, ['ruddy', 'another']);
+  assert.equal(GlossModel.stripStrongIeArtifact('and I', source), 'and I');
+  assert.equal(GlossModel.stripStrongIeArtifact('the father of Jeroboam I', source), 'the father of Jeroboam I');
+  assert.equal(GlossModel.stripStrongIeArtifact('I', source), 'I');
+  assert.equal(GlossModel.stripStrongIeArtifact('i', source), 'i');
+  assert.equal(source.primaryGloss, 'ruddy i');
+});

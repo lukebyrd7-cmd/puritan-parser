@@ -185,7 +185,7 @@ test('Mobile Reader compact layout keeps all core controls accessible and quiets
   const css = fs.readFileSync(path.join(process.cwd(), 'styles.css'), 'utf8');
   const mobileReaderCss = css.match(/@media \(max-width: 640px\) \{[\s\S]*?\.reader-word-overlay/)?.[0] || '';
   assert.match(mobileReaderCss, /\.reader-control-actions\s*\{[\s\S]*display: flex/);
-  assert.match(mobileReaderCss, /\.app:has\(#readerView:not\(\.hidden\)\) footer\s*\{[\s\S]*display: none/);
+  assert.match(mobileReaderCss, /\.app:has\(#readerView:not\(\.hidden\)\) > footer\s*\{[\s\S]*display: none/);
   assert.match(mobileReaderCss, /\.reader-nav-btn\s*\{[\s\S]*width: 32px/);
   assert.match(mobileReaderCss, /\.reader-nav-label\s*\{[\s\S]*display: none/);
   assert.match(mobileReaderCss, /\.reader-reference\s*\{[\s\S]*display: none/);
@@ -996,6 +996,71 @@ test('Hebrew morphology display uses existing prefix, suffix, stem, and conjugat
   ]);
 });
 
+test('Hebrew complex forms keep affixes subordinate to the trusted lexical segment', async () => {
+  const segment = (surface, lemma, morphology, sourceClass) => ({ surface, lemma, morphology, class: sourceClass });
+  const cases = [
+    { label: 'preposition + noun', parse: 'HR/Ncfpc', sourceLemma: 'l/4940', segments: [segment('לְ', 'לְ', 'R', 'prep'), segment('מִשְׁפְּחֹת', 'מִשְׁפָּחָה', 'Ncfpc', 'noun')], pos: 'Noun' },
+    { label: 'conjunction + noun', parse: 'HC/Ncmsa', sourceLemma: 'c/1697', segments: [segment('וְ', 'וְ', 'C', 'cj'), segment('דָּבָר', 'דָּבָר', 'Ncmsa', 'noun')], pos: 'Noun' },
+    { label: 'article + noun', parse: 'HTd/Ncmsa', sourceLemma: 'd/4196', segments: [segment('הַ', 'הַ', 'Td', 'art'), segment('מִּזְבֵּחַ', 'מִזְבֵּחַ', 'Ncmsa', 'noun')], pos: 'Noun' },
+    { label: 'noun + pronominal suffix', parse: 'HNcmsc/Sp3ms', sourceLemma: '7998', segments: [segment('שְׁלָלֵ', 'שָׁלָל', 'Ncmsc', 'noun'), segment('ו', 'הוּא', 'Sp3ms', 'pron')], pos: 'Noun' },
+    { label: 'preposition + noun + suffix', parse: 'HR/Ncmsc/Sp2fs', sourceLemma: 'b/7130', segments: [segment('בְּ', 'בְּ', 'R', 'prep'), segment('קִרְבֵּ', 'קֶרֶב', 'Ncmsc', 'noun'), segment('ךְ', 'הוּא', 'Sp2fs', 'pron')], pos: 'Noun' },
+    { label: 'conjunction + verb', parse: 'HC/Vqq3cp', sourceLemma: 'c/5307', segments: [segment('וְ', 'וְ', 'C', 'cj'), segment('נָפְלוּ', 'נָפַל', 'Vqq3cp', 'verb')], pos: 'Verb' }
+  ];
+  for(const fixture of cases){
+    const resolved = reader.readerHebrewLexicalStructure(fixture);
+    assert.equal(resolved.lexicalPartOfSpeech, fixture.pos, fixture.label);
+    assert.equal(resolved.lexicalLemma, fixture.segments.at(-1).morphology.startsWith('Sp') ? fixture.segments.at(-2).lemma : fixture.segments.at(-1).lemma, fixture.label);
+  }
+
+  global.state = { data: { hebrew: [
+    { id: 'hb-family-1', lang: 'hebrew', lemma: '4940', word: 'מִשְפַּחַת', parse: 'N-FSC', pos: 'noun', freq: 81 },
+    { id: 'hb-family-2', lang: 'hebrew', lemma: '4940', word: 'לְמִשְפְּחֹתָם', parse: 'N-FPC', pos: 'noun', freq: 74 }
+  ] } };
+  const family = cases[0];
+  const info = await reader.lookupReaderWordInfo({
+    surface: 'לְמִשְׁפְּחֹתָם', lemma: '4940', ...family, parse: 'HR/Ncfpc/Sp3mp',
+    segments: [...family.segments, segment('ם', 'הוּא', 'Sp3mp', 'pron')]
+  }, { bookName: 'Numbers', chapter: 1, verse: 20 }, 'hebrew');
+  assert.equal(info.surface, 'לְמִשְׁפְּחֹתָם');
+  assert.equal(info.lemma, '4940');
+  assert.equal(reader.readerDisplayLemma(info), 'מִשְׁפָּחָה');
+  assert.equal(reader.readerPartOfSpeechForInfo(info), 'Noun');
+  assert.equal(info.frequency, 155);
+  assert.equal(info.primaryGloss, 'a family');
+  assert.ok(info.alternateGlosses.includes('family'));
+  const entry = reader.readerVocabularyLearningEntry(info);
+  assert.equal(VocabularyLearning.lemmaId(entry), 'lemma:hebrew:4940');
+  const structure = renderedText(reader.renderReaderPopupFormDetails(info));
+  assert.match(structure, /Noun — feminine plural construct with their \/ them/);
+  assert.match(structure, /Prefix Preposition ל/);
+  assert.match(structure, /Lexical base מִשְׁפָּחָה/);
+  assert.match(structure, /Suffix Pronoun their \/ them/);
+  assert.doesNotMatch(structure, /^Form Details Preposition/);
+  delete global.state;
+});
+
+test('Standard Hebrew Reader tokens load trusted lexical segments on demand for Word Details', async () => {
+  const token = await reader.resolveReaderTokenLexicalSegments({
+    tokenId: 'numbers.1.20.7',
+    surface: 'לְמִשְׁפְּחֹתָם',
+    lemma: '4940',
+    parse: 'HR/Ncfpc/Sp3mp'
+  }, { book: 'numbers', chapter: 1, verse: 20 }, 'hebrew');
+  const lexical = reader.readerHebrewLexicalStructure(token);
+  assert.ok(token.segments.length >= 3);
+  assert.equal(lexical.lexicalLemma, 'מִשְׁפָּחָה');
+  assert.equal(lexical.lexicalPartOfSpeech, 'Noun');
+  assert.equal(lexical.prefixSegments[0].morphology, 'R');
+  assert.match(lexical.suffixSegments.at(-1).morphology, /^Sp3mp$/);
+});
+
+test('Greek lexical identity remains unchanged because Greek tokens have no Hebrew segment precedence', () => {
+  const token = reader.normalizeReaderToken({ surface: 'λόγον', lemma: 'λόγος', parse: 'N-ASM' }, 'greek');
+  assert.equal(token.lemma, 'λόγος');
+  assert.equal(token.lexicalPartOfSpeech, '');
+  assert.equal(reader.readerPartOfSpeechForInfo({ ...token, parseExplanation: 'Noun — accusative singular masculine' }), 'Noun');
+});
+
 test('Word Page grammar display summarizes Hebrew nouns and verbs without duplicate suffix rows', () => {
   const nounHtml = reader.renderReaderGrammar({
     language: 'hebrew',
@@ -1079,6 +1144,8 @@ test('Hebrew Reader popup shows readable form details without numeric lemma head
   assert.match(renderedText(popupHtml), /Lemma דָּבָר/);
   assert.match(renderedText(popupHtml), /Noun — masculine plural construct with your \/ you \(2nd person masculine singular\) suffix/);
   assert.match(renderedText(popupHtml), /Suffix Pronoun your \/ you/);
+  assert.match(popupHtml, />Open Word Page<\/button>/);
+  assert.equal((popupHtml.match(/Open Word Page/g) || []).length, 1);
   assert.doesNotMatch(popupHtml, /<strong>1697<\/strong>/);
   assert.doesNotMatch(popupHtml, /undefined|null/);
   reader.closeReaderWordPopup();
@@ -1331,6 +1398,7 @@ test('side-panel layout classes and mounts are fully synchronized on close and m
 
 test('clicking a reader token opens and closes the popup', async () => {
   let popupHtml = '';
+  let restoredFocusOptions = null;
   const root = {
     set innerHTML(value){ popupHtml = value; },
     get innerHTML(){ return popupHtml; },
@@ -1340,20 +1408,26 @@ test('clicking a reader token opens and closes the popup', async () => {
   global.$ = (selector, scope) => scope?.querySelector ? scope.querySelector(selector) : (selector === '#readerWordPopupRoot' ? root : null);
   global.$$ = () => [];
   global.state = { data: { greek: [{ lang: 'greek', word: 'λόγος', lemma: 'λόγος', primaryGloss: 'word', alternateGlosses: [], gloss: 'word', freq: 1 }] } };
-  await reader.openReaderTokenPopup({
+  const trigger = {
     dataset: { surface: 'λόγος', lemma: 'λόγος', parse: 'N-NSM', book: 'john', bookName: 'John', chapter: '1', verse: '1' },
-    focus(){}
-  });
+    focus(options){ restoredFocusOptions = options; }
+  };
+  await reader.openReaderTokenPopup(trigger);
   assert.match(popupHtml, /reader-word-popup/);
   assert.match(popupHtml, /λόγος/);
   assert.match(popupHtml, /word/);
   assert.match(popupHtml, /Noun — nominative singular masculine/);
   assert.match(popupHtml, /Parse: N-NSM/);
-  assert.match(popupHtml, /Open Word Page/);
+  assert.match(popupHtml, /reader-word-popup-body/);
+  assert.match(popupHtml, /reader-word-popup-actions/);
+  assert.match(popupHtml, />Open Word Page<\/button>/);
+  assert.equal((popupHtml.match(/Open Word Page/g) || []).length, 1);
+  assert.doesNotMatch(popupHtml, /Edit glosses|Open full details|Open as full page/);
   assert.doesNotMatch(popupHtml, /<dt>Parsing<\/dt>/);
   assert.doesNotMatch(popupHtml, /<dt>Meaning<\/dt>/);
   reader.closeReaderWordPopup();
   assert.equal(popupHtml, '');
+  assert.deepEqual(restoredFocusOptions, { preventScroll: true });
   delete global.state;
 });
 
@@ -1985,6 +2059,53 @@ test('Reader keeps one dedicated vertical scroll root across the 640px breakpoin
   assert.match(source, /root: pane/);
   assert.match(html, /viewport-fit=cover/);
   assert.match(css, /padding: calc\(6px \+ env\(safe-area-inset-top\)\) max\(8px, env\(safe-area-inset-right\)\)/);
+});
+
+test('Reader Word Details owns its scroll area and clears mobile safe areas', () => {
+  const css = fs.readFileSync(path.join(process.cwd(), 'styles.css'), 'utf8');
+  const source = fs.readFileSync(path.join(process.cwd(), 'src/features/reader/index.js'), 'utf8');
+  assert.equal((css.match(/\.reader-word-panel\s*\{/g) || []).length, 1);
+  assert.equal((css.match(/\.reader-word-panel-body\s*\{/g) || []).length, 1);
+  assert.match(css, /\.reader-content-layout-side \.reader-word-panel-slot\s*\{[^}]*height: 100%;[^}]*min-height: 0;/);
+  assert.match(css, /\.reader-word-panel\s*\{[^}]*position: relative;[^}]*display: flex;[^}]*flex-direction: column;[^}]*height: 100%;[^}]*max-height: 100%;[^}]*min-height: 0;[^}]*overflow: hidden;/);
+  assert.match(css, /\.reader-word-panel-header\s*\{[^}]*flex: 0 0 auto;/);
+  assert.match(css, /\.reader-word-panel-body\s*\{[^}]*flex: 1 1 auto;[^}]*min-height: 0;[^}]*overflow-y: auto;[^}]*padding:[^}]*32px[^}]*env\(safe-area-inset-bottom\)[^}]*overscroll-behavior: contain;[^}]*scroll-padding-bottom:/);
+  assert.match(css, /\.reader-word-panel-actions\s*\{[^}]*flex: 0 0 auto;/);
+  assert.match(css, /\.reader-word-popup\s*\{[\s\S]*?display: flex;[\s\S]*?flex-direction: column;[\s\S]*?min-height: 0;[\s\S]*?overflow: hidden;/);
+  assert.match(css, /\.reader-word-popup-body\s*\{[^}]*flex:1 1 auto;[^}]*min-height:0;[^}]*overflow-y:auto;[^}]*overscroll-behavior:contain;[^}]*-webkit-overflow-scrolling:touch;/);
+  assert.match(css, /\.reader-word-popup-actions\s*\{[^}]*env\(safe-area-inset-bottom\)/);
+  assert.match(css, /height: min\(88dvh, 720px\)/);
+  assert.match(css, /max-height: calc\(100dvh - max\(8px, env\(safe-area-inset-top\)\)\)/);
+  assert.match(source, /reader-word-panel-body" tabindex="0"/);
+  assert.match(source, /reader-word-popup-body" tabindex="0"/);
+  assert.match(css, /\.app:has\(#readerView:not\(\.hidden\)\) > footer \{ display: none; \}/);
+  assert.doesNotMatch(css, /\.app:has\(#readerView:not\(\.hidden\)\) footer \{ display: none; \}/);
+});
+
+test('Reader Word Details keyboard scrolling stays inside its single scroll root', () => {
+  const scroller = { scrollTop: 100, scrollHeight: 1000, clientHeight: 300 };
+  const frame = { matches: () => false, querySelector: () => scroller };
+  let prevented = 0;
+  let stopped = 0;
+  const event = key => ({
+    key,
+    currentTarget: frame,
+    target: { closest: () => null },
+    preventDefault: () => { prevented += 1; },
+    stopPropagation: () => { stopped += 1; }
+  });
+  assert.equal(reader.handleReaderWordDetailsScrollKeydown(event('PageDown')), true);
+  assert.equal(scroller.scrollTop, 355);
+  assert.equal(reader.handleReaderWordDetailsScrollKeydown(event('End')), true);
+  assert.equal(scroller.scrollTop, 700);
+  assert.equal(reader.handleReaderWordDetailsScrollKeydown(event('ArrowDown')), true);
+  assert.equal(scroller.scrollTop, 700);
+  assert.equal(reader.handleReaderWordDetailsScrollKeydown(event('Home')), true);
+  assert.equal(scroller.scrollTop, 0);
+  assert.equal(reader.handleReaderWordDetailsScrollKeydown(event('Escape')), false);
+  assert.equal(prevented, 4);
+  assert.equal(stopped, 4);
+  assert.equal(reader.handleReaderWordDetailsScrollKeydown({ ...event('PageDown'), target: { closest: () => ({}) } }), false);
 });
 
 test('continuous Reader handles book boundaries without crossing books', async () => {

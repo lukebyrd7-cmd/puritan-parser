@@ -11,6 +11,10 @@ async function ensureSrsInChunks(items = []){
   return prepared;
 }
 async function loadData(){
+  try {
+    const response = await fetch('/data/glosses/corrections.json');
+    if(response.ok && typeof GlossModel !== 'undefined') GlossModel.setGlossCorrections(await response.json());
+  } catch(error) { console.warn('Gloss correction manifest unavailable; source glosses remain active.', error); }
   const sources = await loadVocabularySources();
   if(sources.greek && sources.hebrew){
     state.data.greek = await ensureSrsInChunks(sources.greek);
@@ -36,13 +40,14 @@ async function loadData(){
 /* ---------- Export ---------- */
 function exportData(){
   const data = {
-    schemaVersion: 3,
+    schemaVersion: 4,
     greek: state.data.greek,
     hebrew: state.data.hebrew,
     vocabularyLearning: typeof VocabularyLearning !== 'undefined' ? VocabularyLearning.loadStore() : undefined,
     customDecks: typeof PuritanStudySets !== 'undefined' ? PuritanStudySets.loadStore() : undefined,
     studySets: typeof PuritanStudySets !== 'undefined' ? PuritanStudySets.loadStore() : undefined,
     learningPractice: typeof LearningPractice !== 'undefined' ? LearningPractice.exportState() : undefined,
+    personalGlosses: typeof PuritanPersonalGlosses !== 'undefined' ? PuritanPersonalGlosses.exportState() : undefined,
     learnReviewTargets: typeof learnReviewTargets === 'function' ? learnReviewTargets() : undefined,
     practiceSrsPreference: typeof learnPracticeSrsPreference === 'function' ? learnPracticeSrsPreference() : undefined,
     readerLocation: typeof PuritanReaderPreferences !== 'undefined' ? PuritanReaderPreferences.readLocationRecord() : undefined,
@@ -68,9 +73,10 @@ async function importDataFile(file){
     });
     const learningImported = payload?.vocabularyLearning && typeof VocabularyLearning !== 'undefined';
     const practiceImported = payload?.learningPractice && typeof LearningPractice !== 'undefined';
+    const personalGlossesImported = payload?.personalGlosses && typeof PuritanPersonalGlosses !== 'undefined';
     const decksImported = (payload?.customDecks || payload?.studySets) && typeof PuritanStudySets !== 'undefined';
     const readerLocationImported = (payload?.readerLocation || payload?.pp_reader_location) && typeof PuritanReaderPreferences !== 'undefined';
-    if(!valid.length && !learningImported && !practiceImported && !decksImported && !readerLocationImported){
+    if(!valid.length && !learningImported && !practiceImported && !decksImported && !readerLocationImported && !personalGlossesImported){
       if(preview){ preview.textContent = invalid.length ? `No valid entries found. First error: row ${invalid[0].index+1} ${invalid[0].errors.join(', ')}` : 'No entries found.'; preview.classList.remove('hidden'); }
       toast('Import failed.','danger');
       return;
@@ -86,6 +92,10 @@ async function importDataFile(file){
     if(learningImported) VocabularyLearning.saveStore(VocabularyLearning.normalizeStore(payload.vocabularyLearning));
     if(decksImported) PuritanStudySets.saveStore(PuritanStudySets.normalizeStore(payload.customDecks || payload.studySets));
     if(practiceImported) LearningPractice.importState(payload.learningPractice);
+    if(personalGlossesImported){
+      const knownIds = new Set(['greek','hebrew'].flatMap(lang => (typeof getStudyEntries === 'function' ? getStudyEntries(state.data[lang] || [], 'lemma') : state.data[lang] || []).map(entry => PuritanPersonalGlosses.vocabularyId(entry))));
+      PuritanPersonalGlosses.importState(payload.personalGlosses, { knownIds });
+    }
     if(payload?.learnReviewTargets && typeof saveLearnReviewTargets === 'function') saveLearnReviewTargets(payload.learnReviewTargets);
     if(payload?.practiceSrsPreference && typeof setLearnPracticeSrsPreference === 'function') setLearnPracticeSrsPreference(payload.practiceSrsPreference);
     if(readerLocationImported) PuritanReaderPreferences.importLocation(payload.readerLocation || payload.pp_reader_location);
@@ -95,7 +105,7 @@ async function importDataFile(file){
     renderList();
     updateDueBadge();
     if(preview){
-      preview.textContent = `Imported ${valid.length} entr${valid.length===1?'y':'ies'}${learningImported ? ' and vocabulary learning history' : ''}${decksImported ? ' and Custom Decks' : ''}${practiceImported ? ' and practice settings' : ''}${readerLocationImported ? ' and Reader locations' : ''}${invalid.length ? `; skipped ${invalid.length} invalid row${invalid.length===1?'':'s'}` : ''}.`;
+      preview.textContent = `Imported ${valid.length} entr${valid.length===1?'y':'ies'}${learningImported ? ' and vocabulary learning history' : ''}${decksImported ? ' and Custom Decks' : ''}${practiceImported ? ' and practice settings' : ''}${personalGlossesImported ? ' and personal glosses' : ''}${readerLocationImported ? ' and Reader locations' : ''}${invalid.length ? `; skipped ${invalid.length} invalid row${invalid.length===1?'':'s'}` : ''}.`;
       preview.classList.remove('hidden');
     }
     toast('Import complete.','success');
