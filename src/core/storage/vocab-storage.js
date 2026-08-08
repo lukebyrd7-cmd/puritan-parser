@@ -77,6 +77,9 @@ function applyStoredVocab(lang){
       const target = saved.id ? byId.get(saved.id) : null;
       if(target){
         ['ease','interval','repetitions','due','history','parsing','vocab','customGloss'].forEach(key=>{ if(saved[key] !== undefined) target[key] = saved[key]; });
+        if(saved.customGloss && typeof PuritanPersonalGlosses !== 'undefined' && !PuritanPersonalGlosses.recordFor(target)){
+          PuritanPersonalGlosses.setRecord(target, { mode: 'replace', glosses: saved.customGloss });
+        }
       } else if(saved.source==='Imported' && saved.word && saved.gloss){
         state.data[lang].push(ensureSRS(createWordEntry(Object.assign({lang, source:'Imported'}, saved))));
       }

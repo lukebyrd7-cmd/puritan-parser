@@ -878,6 +878,12 @@ async function lookupReaderWordInfo(token = {}, reference = {}, language = reade
     stem: normalized.stem,
     primaryGloss,
     alternateGlosses: alternateGlosses.filter(gloss => gloss !== primaryGloss),
+    customGloss: cleanReaderTokenValue(vocabMatches.find(entry => entry.customGloss)?.customGloss),
+    glossSource: cleanReaderTokenValue(sourceGloss?.glossSource || vocabMatches.find(entry => entry.glossSource)?.glossSource),
+    glossSourceUrl: cleanReaderTokenValue(sourceGloss?.glossSourceUrl || vocabMatches.find(entry => entry.glossSourceUrl)?.glossSourceUrl),
+    glossLicense: cleanReaderTokenValue(sourceGloss?.glossLicense || vocabMatches.find(entry => entry.glossLicense)?.glossLicense),
+    glossAttribution: cleanReaderTokenValue(sourceGloss?.glossAttribution || vocabMatches.find(entry => entry.glossAttribution)?.glossAttribution),
+    occurrenceGloss: language === 'hebrew' && normalized.glossStatus === 'source' ? cleanReaderTokenValue(normalized.interlinearGloss) : '',
     parse: normalized.parse,
     parseExplanation: explainReaderParse(normalized.parse, language),
     frequency: bestFrequency || indexFrequency || '',
@@ -1227,10 +1233,40 @@ function renderReaderWordOccurrence(info = {}, context = {}){
           <dl class="word-page-grammar-details">
             ${readerWordPageMeta('Current Reference', info.reference)}
             ${readerWordPageMeta('Strong’s ID', strongId)}
+            ${readerWordPageMeta('Contextual occurrence gloss', info.occurrenceGloss)}
             ${fields.map(field => readerWordPageMeta(field.label, field.value)).join('')}
           </dl>
           ${parse && summary ? `<p class="word-page-parse-code">Parse code: ${escHtml(parse)}</p>` : ''}
         </section>`;
+}
+function readerGlossResolution(info = {}){
+  const resolved = typeof PuritanPersonalGlosses !== 'undefined' ? PuritanPersonalGlosses.resolve(info, { primaryLimit: 3, missingLabel: 'Gloss unavailable' }) : null;
+  return resolved || ReaderGlossModel?.resolveLexicalGloss?.(info, { primaryLimit: 3, missingLabel: 'Gloss unavailable' }) || {
+    standard: { all: [], compact: 'Gloss unavailable' }, personal: { mode: 'standard', glosses: [], active: false },
+    effective: ReaderGlossModel?.presentLexicalGlosses?.(info, { primaryLimit: 3 }) || { primaryText: 'Gloss unavailable', additional: [] }
+  };
+}
+function renderPersonalGlossEditor(info = {}, suffix = ''){
+  if(typeof PuritanPersonalGlosses === 'undefined') return '';
+  const resolved = readerGlossResolution(info);
+  const personal = PuritanPersonalGlosses.recordFor(info) || { mode: 'standard', glosses: [] };
+  return `<section class="word-page-section word-page-personal-glosses" aria-labelledby="wordPagePersonalGlossHeading${suffix}"><h2 id="wordPagePersonalGlossHeading${suffix}">My glosses</h2><p class="small muted">Standard: ${escHtml(resolved.standard.compact)}</p><form data-personal-gloss-form="true"><fieldset><legend>Study answer</legend>${[['standard','Standard glosses'],['add','Add my glosses'],['replace','Use my glosses']].map(([value,label]) => `<label><input type="radio" name="mode" value="${value}" ${personal.mode === value ? 'checked' : ''}> ${label}</label>`).join('')}</fieldset><label>Personal glosses <input class="input" name="glosses" value="${escReaderAttr(personal.glosses.join('; '))}" placeholder="Separate concise senses with semicolons"></label><p class="small muted">Add my glosses keeps both. Use my glosses changes the study answer while preserving the standard glosses.</p><p class="small">Effective preview: <strong>${escHtml(resolved.effective.compact)}</strong></p><p class="learn-inline-validation" data-personal-gloss-error hidden></p><div class="word-page-inline-actions"><button class="btn btn-primary btn-sm" type="submit">Save</button><button class="btn btn-ghost btn-sm" type="reset">Cancel</button><button class="btn btn-ghost btn-sm" type="button" data-personal-gloss-restore>Restore standard glosses</button></div></form></section>`;
+}
+function issueReportForWord(info = {}, category = 'Other', note = ''){
+  const resolved = readerGlossResolution(info);
+  return { schemaVersion: 1, appVersion: typeof PURITAN_PARSER_ASSET_VERSION === 'string' ? PURITAN_PARSER_ASSET_VERSION : 'local', category, language: info.language || readerState.language, vocabularyId: typeof PuritanPersonalGlosses !== 'undefined' ? PuritanPersonalGlosses.vocabularyId(info) : '', lemma: info.lemma || '', occurrenceForm: info.surface || '', passageReference: info.reference || '', standardGloss: resolved.standard.compact, effectiveGloss: resolved.effective.compact, personalGlossMode: resolved.personal.mode, morphologyCode: info.parse || '', displayedParsing: info.parseExplanation || '', correctionManifestId: resolved.correction?.id || '', sourceReferences: [info.glossSource, info.glossLicense, resolved.correction?.sourceReference].filter(Boolean), userNote: cleanReaderTokenValue(note) };
+}
+function renderIssueReport(){
+  return `<section class="word-page-section"><details><summary>Report a data issue</summary><form data-word-issue-form="true"><label>Issue type<select class="input" name="category">${['Gloss appears incorrect','Gloss is missing','Parsing appears incorrect','Lemma appears incorrect','Word structure appears incorrect','Other'].map(value => `<option>${value}</option>`).join('')}</select></label><label>Note<textarea class="input" name="note" rows="3" placeholder="Describe what you noticed"></textarea></label><p class="small muted">The report stays on this device unless you choose to copy or download it.</p><div class="word-page-inline-actions"><button class="btn btn-ghost btn-sm" type="button" data-word-issue-copy>Copy report</button><button class="btn btn-ghost btn-sm" type="button" data-word-issue-download>Download JSON</button></div></form></details></section>`;
+}
+function attachPersonalGlossAndIssueHandlers(root, info){
+  const form = $('[data-personal-gloss-form]', root);
+  form?.addEventListener('submit', event => { event.preventDefault(); const data = new FormData(form); const error = $('[data-personal-gloss-error]', form); try { PuritanPersonalGlosses.setRecord(info, { mode: data.get('mode'), glosses: data.get('glosses') }); renderReaderWordPage(); if(readerState.activeToken) renderReaderWordPopup(); } catch(problem){ if(error){ error.hidden = false; error.textContent = problem.message; } } });
+  $('[data-personal-gloss-restore]', root)?.addEventListener('click', () => { PuritanPersonalGlosses.restore(info); renderReaderWordPage(); if(readerState.activeToken) renderReaderWordPopup(); });
+  const issueForm = $('[data-word-issue-form]', root);
+  const report = () => issueReportForWord(info, new FormData(issueForm).get('category'), new FormData(issueForm).get('note'));
+  $('[data-word-issue-copy]', root)?.addEventListener('click', async () => { await navigator.clipboard?.writeText?.(JSON.stringify(report(), null, 2)); if(typeof toast === 'function') toast('Issue report copied.'); });
+  $('[data-word-issue-download]', root)?.addEventListener('click', () => { const url = URL.createObjectURL(new Blob([JSON.stringify(report(), null, 2)], { type: 'application/json' })); const link = document.createElement('a'); link.href = url; link.download = 'puritan-parser-data-issue.json'; link.click(); URL.revokeObjectURL(url); });
 }
 function readerFormDetailFields(info = {}){
   const language = info.language || readerState.language || 'greek';
@@ -2003,7 +2039,7 @@ function renderReaderTokens(tokens, reference = {}, settings = getActiveReaderSe
     const accessibleLabel = assisted
       ? `${normalized.surface || `token ${index + 1}`}${interlinear && accessibleGloss ? `: ${accessibleGloss}` : ''}. Show word details`
       : `${normalized.surface || `token ${index + 1}`} hidden by Reader settings`;
-    const button = `<button class="${classes.join(' ')}" id="readerToken-${escReaderAttr(tokenId)}" type="button" lang="${escReaderAttr(meta.htmlLang)}" dir="${escReaderAttr(meta.dir)}" data-token-id="${escReaderAttr(tokenId)}" data-reader-assisted="${assisted ? 'true' : 'false'}" data-language="${escReaderAttr(meta.language)}" data-surface="${escReaderAttr(normalized.surface || '')}" data-lemma="${escReaderAttr(normalized.lemma || '')}" data-parse="${escReaderAttr(normalized.parse || '')}" data-source-lemma="${escReaderAttr(normalized.sourceLemma || '')}" data-primary-gloss="${escReaderAttr(normalized.primaryGloss || '')}" data-gloss="${escReaderAttr(normalized.gloss || '')}" data-root="${escReaderAttr(normalized.root || '')}" data-hebrew-lemma="${escReaderAttr(normalized.hebrewLemma || '')}" data-stem="${escReaderAttr(normalized.stem || '')}" data-lexical-form="${escReaderAttr(normalized.lexicalForm || '')}" data-qere-ketiv="${escReaderAttr(normalized.qereKetiv || '')}" data-book="${escReaderAttr(reference.book || '')}" data-book-name="${escReaderAttr(reference.bookName || '')}" data-chapter="${escReaderAttr(reference.chapter || '')}" data-verse="${escReaderAttr(reference.verse || '')}" aria-label="${escReaderAttr(accessibleLabel)}"><span class="reader-token-surface" lang="${escReaderAttr(meta.htmlLang)}" dir="${escReaderAttr(meta.dir)}">${escHtml(normalized.surface)}</span>${interlinear ? `<span class="reader-token-gloss${missingGloss ? ' reader-token-gloss-missing' : ''}" lang="en" dir="ltr">${escHtml(glossText || ' ')}</span>${details ? `<span class="reader-token-details" lang="en" dir="ltr">${escHtml(details)}</span>` : ''}` : ''}${assisted && settings.indicator === 'footnote' ? '<sup class="reader-token-marker">•</sup>' : ''}</button>`;
+    const button = `<button class="${classes.join(' ')}" id="readerToken-${escReaderAttr(tokenId)}" type="button" lang="${escReaderAttr(meta.htmlLang)}" dir="${escReaderAttr(meta.dir)}" data-token-id="${escReaderAttr(tokenId)}" data-reader-assisted="${assisted ? 'true' : 'false'}" data-language="${escReaderAttr(meta.language)}" data-surface="${escReaderAttr(normalized.surface || '')}" data-lemma="${escReaderAttr(normalized.lemma || '')}" data-parse="${escReaderAttr(normalized.parse || '')}" data-source-lemma="${escReaderAttr(normalized.sourceLemma || '')}" data-primary-gloss="${escReaderAttr(normalized.primaryGloss || '')}" data-gloss="${escReaderAttr(normalized.gloss || '')}" data-occurrence-gloss="${escReaderAttr(normalized.interlinearGloss || '')}" data-gloss-status="${escReaderAttr(normalized.glossStatus || '')}" data-root="${escReaderAttr(normalized.root || '')}" data-hebrew-lemma="${escReaderAttr(normalized.hebrewLemma || '')}" data-stem="${escReaderAttr(normalized.stem || '')}" data-lexical-form="${escReaderAttr(normalized.lexicalForm || '')}" data-qere-ketiv="${escReaderAttr(normalized.qereKetiv || '')}" data-book="${escReaderAttr(reference.book || '')}" data-book-name="${escReaderAttr(reference.bookName || '')}" data-chapter="${escReaderAttr(reference.chapter || '')}" data-verse="${escReaderAttr(reference.verse || '')}" aria-label="${escReaderAttr(accessibleLabel)}"><span class="reader-token-surface" lang="${escReaderAttr(meta.htmlLang)}" dir="${escReaderAttr(meta.dir)}">${escHtml(normalized.surface)}</span>${interlinear ? `<span class="reader-token-gloss${missingGloss ? ' reader-token-gloss-missing' : ''}" lang="en" dir="ltr">${escHtml(glossText || ' ')}</span>${details ? `<span class="reader-token-details" lang="en" dir="ltr">${escHtml(details)}</span>` : ''}` : ''}${assisted && settings.indicator === 'footnote' ? '<sup class="reader-token-marker">•</sup>' : ''}</button>`;
     if(!interlinear || language !== 'hebrew') return button;
     const punctuation = `${normalized.maqqefAfter ? '־' : ''}${normalized.punctuationAfter || ''}`;
     return `<span class="reader-interlinear-unit" dir="rtl">${button}${punctuation ? `<span class="reader-token-punctuation" lang="he" dir="rtl" aria-hidden="true">${escHtml(punctuation)}</span>` : ''}</span>`;
@@ -2803,6 +2839,8 @@ async function openReaderTokenPopup(button){
     sourceLemma: button.dataset.sourceLemma || '',
     primaryGloss: button.dataset.primaryGloss || '',
     gloss: button.dataset.gloss || '',
+    interlinearGloss: button.dataset.occurrenceGloss || '',
+    glossStatus: button.dataset.glossStatus || '',
     root: button.dataset.root || '',
     hebrewLemma: button.dataset.hebrewLemma || '',
     stem: button.dataset.stem || '',
@@ -2952,7 +2990,8 @@ function renderReaderWordPageContent(info = readerState.wordPageInfo || {}, opti
   const headword = readerPrimaryHeadword(info);
   const strongId = readerStrongId(info);
   const partOfSpeech = readerPartOfSpeechForInfo(info);
-  const glosses = ReaderGlossModel?.presentLexicalGlosses?.(info, { primaryLimit: 3 }) || { primaryText: info.primaryGloss || 'Gloss unavailable', additional: info.alternateGlosses || [] };
+  const resolution = readerGlossResolution(info);
+  const glosses = resolution.effective;
   const links = readerGrammarLinksForInfo(info);
   const suffix = options.panel ? 'Panel' : '';
   const referenceItems = [
@@ -2971,11 +3010,16 @@ function renderReaderWordPageContent(info = readerState.wordPageInfo || {}, opti
         ${partOfSpeech ? `<div class="word-page-pos">${escHtml(partOfSpeech)}</div>` : ''}
       </header>
       <section class="word-page-lexical-gloss" aria-label="Lexical gloss"><p>${escHtml(glosses.primaryText)}</p>${glosses.additional?.length ? `<details><summary>More glosses (${glosses.additional.length})</summary><p>${escHtml(glosses.additional.join('; '))}</p></details>` : ''}</section>
+      ${resolution.correction?.valid ? '<p class="word-page-gloss-status">Puritan Parser correction applied</p>' : ''}
+      ${resolution.personal.active ? `<p class="word-page-gloss-status">${resolution.personal.mode === 'replace' ? 'Using my glosses' : 'Includes my glosses'}</p>` : ''}
       ${renderReaderWordIdentity(info, { displayLemma, partOfSpeech, headword })}
       ${renderReaderWordOccurrence(info, { displayLemma, partOfSpeech, strongId })}
       ${renderReaderWordLearning(info)}
       ${renderReaderWordSaved(info)}
       ${renderReaderWordStudySets(info)}
+      ${renderPersonalGlossEditor(info, suffix)}
+      <section class="word-page-section"><details><summary>Sources and data</summary><dl class="word-page-meta">${readerWordPageMeta('Standard gloss source', info.glossSource || 'Puritan Parser lexical gloss data')}${readerWordPageMeta('License', info.glossLicense)}${readerWordPageMeta('Attribution', info.glossAttribution)}${readerWordPageMeta('Occurrence gloss source', info.occurrenceGloss ? 'MACULA Hebrew WLC / Cherith' : '')}${readerWordPageMeta('Puritan Parser correction', resolution.correction?.valid ? `${resolution.correction.reason} — ${resolution.correction.sourceReference}` : '')}${readerWordPageMeta('Personal gloss status', resolution.personal.active ? 'Stored locally' : '')}</dl></details></section>
+      ${renderIssueReport(info, suffix)}
       ${referenceHtml}
       ${renderReaderWordPageContext([], true)}` : `<p class="word-page-empty">Open a word from the Reader to build this page.</p>`}`;
 }
@@ -3012,6 +3056,7 @@ function renderReaderWordPage(){
   $$('[data-word-study-set-add]', root).forEach(form => form.addEventListener('submit', event => { event.preventDefault(); addReaderWordToStudySet(new FormData(form).get('setId'), info); }));
   $$('[data-word-study-set-create]', root).forEach(form => form.addEventListener('submit', event => { event.preventDefault(); createReaderStudySetFromWord(new FormData(form).get('title'), info); }));
   attachReaderWordPageContextHandlers(root, info);
+  attachPersonalGlossAndIssueHandlers(root, info);
   const lookupLemma = cleanReaderTokenValue(info.lemma || info.surface);
   if(lookupLemma) updateReaderWordPageContext(lookupLemma, info.language || readerState.language, 6, info);
 }
@@ -3027,7 +3072,8 @@ function renderReaderQuickDetailsHtml(active, info, meta){
   const hasDecodedParse = parseExplanation && parseExplanation !== rawParse;
   const displayLemma = readerDisplayLemma(info);
   const formDetailsHtml = renderReaderPopupFormDetails(info);
-  const glosses = ReaderGlossModel?.presentLexicalGlosses?.(info, { primaryLimit: 3 }) || { primaryText: info.primaryGloss || 'Gloss unavailable', additional: info.alternateGlosses || [] };
+  const resolution = readerGlossResolution(info);
+  const glosses = resolution.effective;
   const partOfSpeech = readerPartOfSpeechForInfo(info);
   const grammarSummary = readerGrammarSummary(info, partOfSpeech);
   const learningHtml = renderReaderWordLearning(info, { compact: true });
@@ -3041,6 +3087,7 @@ function renderReaderQuickDetailsHtml(active, info, meta){
         <p class="reader-word-reference">${escHtml(info.reference || '')}${info.qereKetiv ? ` · ${escHtml(info.qereKetiv)}` : ''}</p>
         <div class="reader-word-gloss">${escHtml(active.loading ? 'Loading…' : glosses.primaryText)}</div>
         ${glosses.additional?.length ? `<details class="reader-word-more-glosses"><summary>More glosses (${glosses.additional.length})</summary><p>${escHtml(glosses.additional.join('; '))}</p></details>` : ''}
+        ${resolution.personal.active ? `<span class="learn-personal-gloss-indicator">${resolution.personal.mode === 'replace' ? 'Using my glosses' : 'Includes my glosses'}</span>` : ''}
         <div class="reader-word-meta">
           ${readerPopupMeta('Lemma', displayLemma)}
           ${readerPopupMeta('Part of speech', partOfSpeech)}
@@ -3051,6 +3098,7 @@ function renderReaderQuickDetailsHtml(active, info, meta){
         ${formDetailsHtml}
         ${learningHtml}
         ${grammarHtml}
+        <button class="reader-word-page-action btn btn-ghost btn-sm" type="button">Edit glosses</button>
         ${rawParse ? `<details class="reader-word-technical"><summary>Technical details</summary><div class="reader-word-parse-code">Parse: ${escHtml(rawParse)}</div></details>` : ''}`;
 }
 function renderReaderWordPopup(){
@@ -3108,6 +3156,7 @@ function renderReaderWordPopup(){
   $$('[data-word-study-set-add]', root).forEach(form => form.addEventListener('submit', event => { event.preventDefault(); addReaderWordToStudySet(new FormData(form).get('setId'), info); }));
   $$('[data-word-study-set-create]', root).forEach(form => form.addEventListener('submit', event => { event.preventDefault(); createReaderStudySetFromWord(new FormData(form).get('title'), info); }));
   attachReaderWordPageContextHandlers(root, info);
+  attachPersonalGlossAndIssueHandlers(root, info);
   if(readerState.wordDetailsView === 'full') updateReaderWordPageContext(info.lemma || info.surface, info.language || readerState.language, 6, info);
   if(effectiveMode !== 'side') $('.reader-word-close', root)?.focus?.();
 }

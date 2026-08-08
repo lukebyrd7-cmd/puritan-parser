@@ -1,10 +1,11 @@
 /* ---------- Gloss model helpers ---------- */
 (function(root, factory){
-  const api = factory();
+  const api = factory(root);
   if (typeof module === 'object' && module.exports) module.exports = api;
   root.GlossModel = api;
   Object.keys(api).forEach(key => { root[key] = root[key] || api[key]; });
-})(typeof globalThis !== 'undefined' ? globalThis : this, function(){
+})(typeof globalThis !== 'undefined' ? globalThis : this, function(root){
+  let correctionMap = new Map();
   function nonEmpty(value){ return typeof value === 'string' && value.trim() ? value.trim() : ''; }
   function normalizeAlternateGlosses(value){
     if (Array.isArray(value)) return value.map(nonEmpty).filter(Boolean);
@@ -23,7 +24,6 @@
     };
   }
   function getSourceGloss(word = {}){ return nonEmpty(word.primaryGloss) || nonEmpty(word.gloss) || ''; }
-  function getDisplayGloss(word = {}){ return nonEmpty(word.customGloss) || getSourceGloss(word) || '(missing gloss)'; }
   function splitGlossValue(value){
     return nonEmpty(value).split(/[,;|\u2022]/).map(nonEmpty).filter(Boolean);
   }
@@ -51,12 +51,53 @@
       missingLabel
     };
   }
+  function setGlossCorrections(manifest = {}){
+    const next = new Map();
+    (Array.isArray(manifest.corrections) ? manifest.corrections : []).forEach(item => {
+      if(item?.vocabularyId && !next.has(item.vocabularyId)) next.set(item.vocabularyId, item);
+    });
+    correctionMap = next;
+    return correctionMap;
+  }
+  function vocabularyId(word = {}){
+    if(nonEmpty(word.vocabularyId || word.id).startsWith('lemma:')) return nonEmpty(word.vocabularyId || word.id);
+    const lang = nonEmpty(word.language || word.lang).toLowerCase() === 'hebrew' ? 'hebrew' : 'greek';
+    const lemma = nonEmpty(word.lemma || word.lexicalForm || word.word);
+    return lemma ? `lemma:${lang}:${lemma}` : nonEmpty(word.vocabularyId || word.id);
+  }
+  function correctedStandard(word = {}, standard){
+    const correction = correctionMap.get(vocabularyId(word));
+    if(!correction) return { presentation: standard, correction: null };
+    const expected = nonEmpty(correction.expectedSourceValue);
+    if(expected && expected !== standard.compact) return { presentation: standard, correction: { ...correction, valid: false } };
+    const presentation = presentLexicalGlosses({}, { primaryGloss: (correction.correctedPrimary || []).join('; '), alternateGlosses: correction.correctedAdditional || [], missingLabel: standard.missingLabel });
+    return { presentation, correction: { ...correction, valid: presentation.available } };
+  }
+  function resolveLexicalGloss(word = {}, options = {}){
+    const sourceStandard = presentLexicalGlosses({ ...word, customGloss: '' }, { ...options, primaryGloss: options.standardPrimary, alternateGlosses: options.standardAdditional });
+    const corrected = correctedStandard(word, sourceStandard);
+    const standard = corrected.presentation;
+    const personal = options.personal && typeof options.personal === 'object' ? options.personal : null;
+    const personalGlosses = presentLexicalGlosses({}, { primaryGloss: personal?.glosses?.join('; '), alternateGlosses: [], primaryLimit: Number.MAX_SAFE_INTEGER }).all;
+    const mode = ['standard','add','replace'].includes(personal?.mode) ? personal.mode : 'standard';
+    const values = mode === 'replace' && personalGlosses.length
+      ? personalGlosses
+      : mode === 'add' ? [...standard.all, ...personalGlosses] : standard.all;
+    const effective = presentLexicalGlosses({}, { primaryGloss: values.join('; '), alternateGlosses: [], primaryLimit: options.primaryLimit || 3, missingLabel: standard.missingLabel });
+    return { standard, sourceStandard, correction: corrected.correction, personal: { mode, glosses: personalGlosses, active: mode !== 'standard' && personalGlosses.length > 0 }, effective };
+  }
+  function getDisplayGloss(word = {}, options = {}){
+    const legacyPersonal = nonEmpty(word.customGloss) ? { mode: 'replace', glosses: [word.customGloss] } : null;
+    const storedPersonal = options.personal === undefined ? root.PuritanPersonalGlosses?.recordFor?.(word) : options.personal;
+    return resolveLexicalGloss(word, { missingLabel: '(missing gloss)', ...options, personal: storedPersonal || legacyPersonal }).effective.compact || '(missing gloss)';
+  }
   function glossSearchText(word = {}){
+    const personal = root.PuritanPersonalGlosses?.recordFor?.(word)?.glosses || [];
     return [
       word.word, word.lemma, word.lexicalForm, word.transliteration, word.primaryGloss,
-      ...normalizeAlternateGlosses(word.alternateGlosses), word.gloss, word.customGloss
+      ...normalizeAlternateGlosses(word.alternateGlosses), word.gloss, word.customGloss, ...personal
     ].map(value => nonEmpty(value)).filter(Boolean).join(' ').toLowerCase();
   }
   function hasAnyGloss(word = {}){ return getDisplayGloss(word) !== '(missing gloss)'; }
-  return { createGlossFields, getSourceGloss, getDisplayGloss, glossSearchText, normalizeAlternateGlosses, presentLexicalGlosses, hasAnyGloss };
+  return { createGlossFields, getSourceGloss, getDisplayGloss, glossSearchText, normalizeAlternateGlosses, presentLexicalGlosses, setGlossCorrections, vocabularyId, resolveLexicalGloss, hasAnyGloss };
 });

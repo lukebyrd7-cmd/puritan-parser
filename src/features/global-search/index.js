@@ -96,9 +96,11 @@
   }
   function displayGloss(entry = {}){
     const mapped = hebrewGlosses?.[clean(entry.lemma)];
-    const candidates = [entry.customGloss, entry.primaryGloss, entry.gloss, mapped?.primaryGloss];
+    const lexicalEntry = { ...entry, primaryGloss: entry.primaryGloss || mapped?.primaryGloss || '', alternateGlosses: [...alternateGlosses(entry), ...(mapped?.alternateGlosses || [])] };
+    const candidates = [entry.customGloss, lexicalEntry.primaryGloss, entry.gloss];
     if(typeof root.getDisplayGloss === 'function') candidates.push(root.getDisplayGloss(entry));
-    return clean(candidates.find(usableGloss));
+    const resolved = root.PuritanPersonalGlosses?.resolve?.(lexicalEntry, { primaryLimit: 3 });
+    return clean(resolved?.effective?.compact || candidates.find(usableGloss));
   }
   function headwordCandidates(entry = {}){
     return [entry.studyForm, entry.lexicalForm, entry.hebrewLemma, entry.root, entry.representativeForm, entry.word, entry.lemma, entry.normalized, ...(Array.isArray(entry.forms) ? entry.forms : [])].map(clean).filter(Boolean);
@@ -124,7 +126,7 @@
       const list = Array.isArray(state.data?.[language]) ? state.data[language] : [];
       return `${language}:${list.length}:${list[0]?.id || list[0]?.lemma || ''}:${list.at?.(-1)?.id || list[list.length - 1]?.lemma || ''}`;
     }).join('|');
-    return `data:${Math.max(0, Number(state.dataRevision) || 0)}|${vocabulary}|hebrewGlosses:${hebrewGlosses ? 1 : 0}`;
+    return `data:${Math.max(0, Number(state.dataRevision) || 0)}|${vocabulary}|hebrewGlosses:${hebrewGlosses ? 1 : 0}|personal:${storedValue(root.PuritanPersonalGlosses?.STORAGE_KEY || 'pp_personal_glosses')}`;
   }
   function storedValue(key){ try { return root.localStorage?.getItem?.(key) || ''; } catch(e) { return ''; } }
   function decorationSignature(){
@@ -209,16 +211,22 @@
     const hebrewLatin = [...new Set(hebrewCanonical.flatMap(value => [value, value.replace(/kh/g, 'ch'), value.replace(/kh/g, 'k'), value.replace(/\bv/g, 'w')]))].join(' ');
     const transliterationText = lang === 'greek' ? [headword, entry.lemma, entry.lexicalForm, entry.word, entry.normalized].map(transliterateGreek).filter(Boolean).join(' ') : hebrewLatin;
     const lemma = lemmaForWordPage({ ...entry, lang });
+    const mapped = hebrewGlosses?.[clean(entry.lemma)];
+    const lexicalEntry = { ...entry, primaryGloss: entry.primaryGloss || mapped?.primaryGloss || '', alternateGlosses: [...alternateGlosses(entry), ...(mapped?.alternateGlosses || [])] };
+    const resolution = root.PuritanPersonalGlosses?.resolve?.(lexicalEntry, { primaryLimit: 3 });
+    const personalGlosses = root.PuritanPersonalGlosses?.recordFor?.(entry)?.glosses || [];
     return {
       id, entry, language: lang, headword, lemma, gloss,
       alternateGlosses: alternateGlosses(entry),
+      standardGlosses: resolution?.standard?.all || [lexicalEntry.primaryGloss, ...lexicalEntry.alternateGlosses].filter(Boolean),
+      personalGlosses,
       frequency: Number(entry.freq) || 0,
       partOfSpeech: partOfSpeech({ ...entry, lang }),
       searchText: `${searchTextForEntry({ ...entry, lang }, headword, gloss)} ${hebrewNormalized} ${hebrewLatin}`.trim(),
       normalizedHeadword: normalizeText(headword),
       normalizedLemma: normalizeText(lemma),
       normalizedGloss: normalizeText(gloss),
-      latinSearchText: [gloss, entry.primaryGloss, entry.gloss, entry.customGloss, ...alternateGlosses(entry), transliterationText].map(normalizeText).filter(Boolean).join(' '),
+      latinSearchText: [gloss, entry.primaryGloss, entry.gloss, entry.customGloss, ...personalGlosses, ...alternateGlosses(entry), transliterationText].map(normalizeText).filter(Boolean).join(' '),
       transliterationText,
       transliterationWords: ` ${transliterationText} `,
       hebrewSearchTerms: null
@@ -368,7 +376,8 @@
       if(options.bookId && !scopeFrequency) continue;
       const score = q ? scoreResult(item, query) : (options.bookId ? scopeFrequency : item.frequency);
       if(q && !score) continue;
-      results.push(q || options.bookId ? { ...item, scopeFrequency, score } : item);
+      const personalMatch = Boolean(q && item.personalGlosses?.some(gloss => normalizeText(gloss).includes(q)));
+      results.push(q || options.bookId ? { ...item, scopeFrequency, score, personalMatch } : item);
     }
     if(q || options.bookId || sort === 'frequency') results.sort((a, b) => sort === 'frequency'
       ? (b.frequency - a.frequency) || (b.score || 0) - (a.score || 0) || a.headword.localeCompare(b.headword)
@@ -392,6 +401,7 @@
         ${item.masteryGrade ? `<span>Mastery ${escapeHtml(item.masteryGrade)}</span>` : ''}
         ${item.needsAttention ? '<span>Needs attention</span>' : ''}
         ${item.deckCount ? `<span>${item.deckCount} Custom ${item.deckCount === 1 ? 'Deck' : 'Decks'}</span>` : ''}
+        ${item.personalMatch ? '<span>Matched personal gloss</span>' : item.personalGlosses?.length ? '<span>Personal gloss active</span>' : ''}
       </span>
       <span class="global-search-result-actions"><button class="btn btn-ghost btn-sm" type="button" data-global-search-open="${escapeAttr(item.id)}">Open Word Page</button><button class="btn btn-ghost btn-sm" type="button" data-global-search-practice="${escapeAttr(item.id)}">Practice this word</button><button class="btn btn-ghost btn-sm" type="button" data-global-search-attention="${escapeAttr(item.id)}" aria-pressed="${item.needsAttention}">${item.needsAttention ? 'Remove Needs attention' : 'Needs attention'}</button>${decks.length ? `<label class="global-search-deck-action"><span class="visually-hidden">Custom Deck</span><select class="input" data-global-search-deck="${escapeAttr(item.id)}"><option value="">Add to Custom Deck…</option>${decks.map(deck => `<option value="${escapeAttr(deck.id)}">${escapeHtml(deck.title)}${item.deckIds.includes(deck.id) ? ' (already added)' : ''}</option>`).join('')}</select></label>` : ''}</span>
     </article>`;
@@ -706,14 +716,15 @@
     if(!item) return false;
     const info = {
       language: item.language,
+      id: item.id,
       surface: '',
       lemma: item.lemma,
       lexicalForm: item.entry?.lexicalForm || item.lemma,
       hebrewLemma: item.entry?.hebrewLemma,
       root: item.entry?.root,
       parse: item.entry?.parse || '',
-      primaryGloss: item.gloss,
-      alternateGlosses: item.alternateGlosses,
+      primaryGloss: item.standardGlosses?.[0] || item.gloss,
+      alternateGlosses: item.standardGlosses?.slice(1) || item.alternateGlosses,
       frequency: item.frequency,
       globalSearchResult: true,
       returnToSearch: true

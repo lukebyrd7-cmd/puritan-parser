@@ -12,6 +12,7 @@ function openWordModal(item){
   const displayHeadword = displayHeadwordForEntry(item) || '—';
   $('#modalWord').textContent = displayHeadword;
   const displayGloss = typeof getDisplayGloss === 'function' ? getDisplayGloss(item) : (item.gloss||'—');
+  const personalRecord = typeof PuritanPersonalGlosses !== 'undefined' ? PuritanPersonalGlosses.recordFor(item) : null;
   $('#modalGloss').textContent = displayGloss;
   const decoded = parseSummary(item);
   const alternates = typeof normalizeAlternateGlosses === 'function' ? normalizeAlternateGlosses(item.alternateGlosses) : (Array.isArray(item.alternateGlosses) ? item.alternateGlosses : []);
@@ -21,7 +22,7 @@ function openWordModal(item){
     ['Word form', item.word || '—'],
     ['Primary gloss', item.primaryGloss || item.gloss || '—'],
     ['Alternate glosses', alternates.length ? alternates.join('; ') : '—'],
-    ['Custom gloss', item.customGloss || storageItem.customGloss || '—'],
+    ['Personal glosses', personalRecord?.glosses?.join('; ') || item.customGloss || storageItem.customGloss || '—'],
     ['Gloss source', item.glossSource || '—'],
     ['Gloss license', item.glossLicense || '—'],
     ['Gloss attribution', item.glossAttribution || '—']
@@ -56,22 +57,23 @@ function openWordModal(item){
   }
 
   const customInput = $('#customGlossInput');
-  if(customInput) customInput.value = item.customGloss || storageItem.customGloss || '';
+  if(customInput) customInput.value = personalRecord?.glosses?.join('; ') || item.customGloss || storageItem.customGloss || '';
   $('#saveCustomGlossBtn').onclick = ()=>{
-    storageItem.customGloss = (customInput?.value || '').trim();
-    item.customGloss = storageItem.customGloss;
-    saveVocab(item.lang||state.lang);
+    if(typeof PuritanPersonalGlosses !== 'undefined') {
+      try { PuritanPersonalGlosses.setRecord(item, { mode: 'replace', glosses: customInput?.value || '' }); }
+      catch(error){ toast(error.message, 'danger'); return; }
+    }
+    else { storageItem.customGloss = (customInput?.value || '').trim(); item.customGloss = storageItem.customGloss; saveVocab(item.lang||state.lang); }
     openWordModal(item);
     renderList();
-    toast('Custom gloss saved.','success');
+    toast('Personal gloss saved.','success');
   };
   $('#clearCustomGlossBtn').onclick = ()=>{
-    delete storageItem.customGloss;
-    delete item.customGloss;
-    saveVocab(item.lang||state.lang);
+    if(typeof PuritanPersonalGlosses !== 'undefined') PuritanPersonalGlosses.restore(item);
+    else { delete storageItem.customGloss; delete item.customGloss; saveVocab(item.lang||state.lang); }
     openWordModal(item);
     renderList();
-    toast('Custom gloss cleared.','success');
+    toast('Standard glosses restored.','success');
   };
 
   // Reset button

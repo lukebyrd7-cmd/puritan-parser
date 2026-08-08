@@ -24,7 +24,7 @@
 <link rel="apple-touch-icon" href="/logo.png">
 <link rel="icon" href="/logo.png">
 <link rel="manifest" href="/manifest.json">
-<link rel="stylesheet" href="/styles.css?v=v1.8.2-reader-details-persistence-1">
+<link rel="stylesheet" href="/styles.css?v=v1.9-unified-glosses-data-trust-1">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="Puritan Parser">
@@ -59,11 +59,11 @@
       <div class="modal-gloss" id="modalGloss">—</div>
       <div id="modalRows"></div>
       <div class="modal-custom-gloss" style="margin-top:14px">
-        <label class="small muted" for="customGlossInput">Custom gloss</label>
+        <label class="small muted" for="customGlossInput">Personal glosses</label>
         <div style="display:flex;gap:8px;margin-top:6px;flex-wrap:wrap">
-          <input class="input" id="customGlossInput" placeholder="Add your own memory gloss…" style="flex:1;min-width:180px" />
-          <button class="btn btn-primary btn-sm" id="saveCustomGlossBtn">Save custom gloss</button>
-          <button class="btn btn-ghost btn-sm" id="clearCustomGlossBtn">Clear custom gloss</button>
+          <input class="input" id="customGlossInput" placeholder="Separate concise senses with semicolons" style="flex:1;min-width:180px" />
+          <button class="btn btn-primary btn-sm" id="saveCustomGlossBtn">Use my glosses</button>
+          <button class="btn btn-ghost btn-sm" id="clearCustomGlossBtn">Restore standard glosses</button>
         </div>
       </div>
       <div class="modal-history" id="modalHistory"></div>
@@ -663,6 +663,6 @@
     });
   })();
   </script>
-  <script src="/src/main.js?v=v1.8.2-reader-details-persistence-1" onerror="PuritanStartupUI.fail()"></script>
+  <script src="/src/main.js?v=v1.9-unified-glosses-data-trust-1" onerror="PuritanStartupUI.fail()"></script>
 </body>
 </html>

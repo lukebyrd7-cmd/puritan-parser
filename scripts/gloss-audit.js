@@ -3,6 +3,7 @@ const path = require('node:path');
 
 const ROOT = path.resolve(__dirname, '..');
 const DEFAULT_VOCAB_PATH = path.join(ROOT, 'vocab_all.json');
+const DEFAULT_UNAVAILABLE_PATH = path.join(ROOT, 'data', 'glosses', 'unavailable-glosses.json');
 const LANGS = ['greek', 'hebrew'];
 const LONG_PRIMARY_GLOSS_LIMIT = 40;
 const LARGE_ALTERNATE_GLOSSES_LIMIT = 12;
@@ -22,13 +23,14 @@ function hasSuspiciousFormatting(value) {
   return typeof value === 'string' && (/^\s|\s$/.test(value) || /\s{2,}/.test(value) || /[;,|]$/.test(value));
 }
 
-function createLangReport(lang, entries) {
+function createLangReport(lang, entries, options = {}) {
   const ids = new Map();
   const report = {
     lang,
     totalEntries: entries.length,
     missingGloss: [],
     missingPrimaryGloss: [],
+    unavailableGlosses: [],
     withAlternateGlosses: [],
     blankIds: [],
     duplicateIds: [],
@@ -52,8 +54,12 @@ function createLangReport(lang, entries) {
       ids.set(entry.id, seen);
     }
 
-    if (!entry || isBlank(entry.gloss)) report.missingGloss.push(label);
-    if (!entry || isBlank(entry.primaryGloss)) report.missingPrimaryGloss.push(label);
+    const unavailable = entry && options.unavailable?.get(entry.id);
+    const matchesUnavailable = unavailable && unavailable.language === lang && unavailable.lemma === entry.lemma;
+    if (!entry || isBlank(entry.gloss)) (matchesUnavailable ? report.unavailableGlosses : report.missingGloss).push(label);
+    if (!entry || isBlank(entry.primaryGloss)) {
+      if (!matchesUnavailable) report.missingPrimaryGloss.push(label);
+    }
 
     if (entry && Object.prototype.hasOwnProperty.call(entry, 'alternateGlosses')) {
       if (!Array.isArray(entry.alternateGlosses)) {
@@ -84,8 +90,8 @@ function createLangReport(lang, entries) {
     }
   });
 
-  report.entriesWithGlosses = report.totalEntries - report.missingPrimaryGloss.length;
-  report.coveragePercent = report.totalEntries ? Number(((report.entriesWithGlosses / report.totalEntries) * 100).toFixed(2)) : 100;
+  report.entriesWithGlosses = report.totalEntries - report.missingPrimaryGloss.length - report.unavailableGlosses.length;
+  report.coveragePercent = report.totalEntries ? Number(((report.entriesWithGlosses / report.totalEntries) * 100).toFixed(3)) : 100;
 
   const lemmas = new Map();
   entries.forEach(entry => {
@@ -121,10 +127,10 @@ function createLangReport(lang, entries) {
   return report;
 }
 
-function auditGlosses(entries) {
+function auditGlosses(entries, options = {}) {
   const reports = {};
   LANGS.forEach(lang => {
-    reports[lang] = createLangReport(lang, entries.filter(entry => entry && entry.lang === lang));
+    reports[lang] = createLangReport(lang, entries.filter(entry => entry && entry.lang === lang), options);
   });
   return reports;
 }
@@ -154,9 +160,10 @@ function formatReport(reports) {
     lines.push(`${name}:`);
     lines.push(`* total entries: ${report.totalEntries}`);
     lines.push(`* missing gloss: ${report.missingGloss.length}${formatSamples(report.missingGloss)}`);
-    lines.push(`* entries with primaryGloss: ${report.totalEntries - report.missingPrimaryGloss.length}`);
+    lines.push(`* explicitly unavailable gloss: ${report.unavailableGlosses.length}${formatSamples(report.unavailableGlosses)}`);
+    lines.push(`* entries with primaryGloss: ${report.entriesWithGlosses}`);
     lines.push(`* missing primaryGloss: ${report.missingPrimaryGloss.length}${formatSamples(report.missingPrimaryGloss)}`);
-    lines.push(`* primaryGloss coverage: ${report.coveragePercent.toFixed(2)}%`);
+    lines.push(`* primaryGloss coverage: ${report.coveragePercent.toFixed(3)}%`);
     lines.push(`* lemma coverage: ${report.lemmaCoverage.lemmasWithGlosses}/${report.lemmaCoverage.totalLemmas} (${report.lemmaCoverage.coveragePercent.toFixed(2)}%)`);
     lines.push(`* coverage by frequency band: ${report.frequencyBands.map(band => `${band.band}: ${band.lemmasWithGlosses}/${band.totalLemmas} (${band.coveragePercent.toFixed(2)}%)`).join('; ')}`);
     lines.push(`* entries with alternateGlosses: ${report.withAlternateGlosses.length}`);
@@ -175,12 +182,24 @@ function formatReport(reports) {
 function readVocab(file = DEFAULT_VOCAB_PATH) {
   return JSON.parse(fs.readFileSync(file, 'utf8'));
 }
+function materializeCanonicalGlosses(entries) {
+  const { loadGlossSources } = require('./build-expanded-vocab');
+  const sources = loadGlossSources();
+  return entries.map(entry => {
+    const fields = sources.get(`${entry.lang}\u0001${entry.lemma}`);
+    return fields ? { ...entry, ...fields } : { ...entry };
+  });
+}
+function readUnavailable(file = DEFAULT_UNAVAILABLE_PATH){
+  const payload = JSON.parse(fs.readFileSync(file, 'utf8'));
+  return new Map((payload.records || []).map(record => [record.vocabularyId, record]));
+}
 
 function runCli(argv = process.argv.slice(2)) {
   const json = argv.includes('--json');
   const noFail = argv.includes('--no-fail');
   const fileArg = argv.find(arg => !arg.startsWith('--'));
-  const reports = auditGlosses(readVocab(fileArg || DEFAULT_VOCAB_PATH));
+  const reports = auditGlosses(materializeCanonicalGlosses(readVocab(fileArg || DEFAULT_VOCAB_PATH)), { unavailable: readUnavailable() });
   process.stdout.write(json ? `${JSON.stringify(reports, null, 2)}\n` : `${formatReport(reports)}\n`);
   const errors = validationErrors(reports);
   return !noFail && errors.length ? 1 : 0;
@@ -196,5 +215,7 @@ module.exports = {
   validationErrors,
   runCli,
   LONG_PRIMARY_GLOSS_LIMIT,
-  LARGE_ALTERNATE_GLOSSES_LIMIT
+  LARGE_ALTERNATE_GLOSSES_LIMIT,
+  materializeCanonicalGlosses,
+  readUnavailable
 };

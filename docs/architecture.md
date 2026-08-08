@@ -603,7 +603,7 @@ Gloss data now has two layers:
 
 Display code uses this fallback order: `customGloss`, then `primaryGloss`, then the legacy `gloss`, then `"(missing gloss)"`. Search indexes the word, lemma, transliteration when present, primary gloss, alternate glosses, legacy gloss, and custom gloss so that English searches continue to work across old and new data.
 
-Greek and Hebrew source glosses are maintained as build-time lemma-keyed files in `data/glosses/greek-glosses.json` and `data/glosses/hebrew-glosses.json`; runtime code consumes the merged `vocab_all.json` output rather than loading language-specific gloss modules. Large future gloss datasets should remain out of startup modules and the service-worker precache unless their source, license, attribution, and version/date are verified.
+Greek and Hebrew source glosses are maintained as lemma-keyed files in `data/glosses/greek-glosses.json` and `data/glosses/hebrew-glosses.json`. Runtime Reader and Hebrew practice paths may load these compact maps lazily; the gloss audit applies the exact source merge in memory so a stale generated vocabulary file cannot masquerade as missing canonical data. Personal glosses live separately in the versioned `pp_personal_glosses` store and are resolved at runtime by stable lemma vocabulary ID. Large future gloss datasets remain out of startup precache unless their source, license, attribution, and version/date are verified.
 
 Gloss attribution fields are optional source metadata: `glossSource`, `glossSourceUrl`, `glossLicense`, and `glossAttribution`. Cards and list rows should keep attribution quiet; the word detail modal or an about/data note is the right place to show source and license details.
 
