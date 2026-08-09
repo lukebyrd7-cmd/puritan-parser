@@ -32,8 +32,8 @@
   function isLearnerEnglishGloss(value){
     const clean = nonEmpty(value);
     if(!clean || containsGreekScript(clean) || containsHebrewScript(clean) || !/[A-Za-z]/.test(clean)) return false;
-    if(/^(?:lemma:|gk-|hb-|strong(?:'|’)?s?\s*[gh]?\d+|[a-z]{1,3}-\s*[0-9a-z-]+)$/i.test(clean)) return false;
-    return !/^[a-z]{1,3}-\s*(?:[-0-9a-z]+)$/i.test(clean);
+    if(/^(?:lemma:|gk-|hb-)/i.test(clean) || /^strong(?:'|’)?s?\s*[gh]?\d+$/i.test(clean)) return false;
+    return !/^(?:N|V|A|P|R|C|D|T|I|X|ADV|CONJ|PREP|PRON)-[-0-9A-Z]+$/.test(clean);
   }
   function hasStrongHebrewNotationSource(word = {}, options = {}){
     if(options.sourceNotation === 'strongs-ie') return true;

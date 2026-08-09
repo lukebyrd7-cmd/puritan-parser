@@ -2,6 +2,7 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 
 const VocabularyLearning = require('../src/models/vocabulary-learning');
+const GlossModel = require('../src/models/gloss');
 global.VocabularyMastery = require('../src/core/vocabulary-mastery');
 const LearningPractice = require('../src/core/learning-practice');
 
@@ -30,6 +31,15 @@ test('central card eligibility excludes numeric prompts, missing glosses, malfor
   assert.equal(result.diagnostics.skipped, 4);
   assert.equal(result.diagnostics.reasons['missing-study-form'], 1);
   assert.equal(result.diagnostics.reasons['missing-gloss'], 1);
+});
+
+test('central card eligibility rejects Greek and Hebrew script used as an English gloss', () => {
+  for(const [entry, language] of [[greek('ἀκρίς', 'ἀκρίς'), 'greek'], [hebrew(1117, 'דָּבָר', 'דָּבָר'), 'hebrew']]){
+    const result = LearningPractice.validateVocabularyCard(entry, language, { model: VocabularyLearning });
+    assert.equal(result.valid, false);
+    assert.equal(result.reason, 'missing-gloss');
+  }
+  assert.equal(GlossModel.isLearnerEnglishGloss('word'), true);
 });
 
 test('finite focused sessions replace invalid cards and preserve the requested size when possible', () => {

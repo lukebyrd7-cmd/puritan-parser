@@ -23,6 +23,7 @@
   const STATUS_FILTERS = ['known', 'learning', 'new'];
   const PASSAGE_SCOPES = ['book', 'chapter'];
   const DAILY_AMOUNT_MODES = ['goal', 'set', 'unlimited'];
+  const GlossApi = root.GlossModel || (typeof require === 'function' ? require('../models/gloss') : null);
 
   function clean(value){ return typeof value === 'string' ? value.trim() : ''; }
   function nowISO(){ return new Date().toISOString(); }
@@ -148,7 +149,8 @@
 
   function usableGloss(value){
     const gloss = clean(value);
-    return Boolean(gloss && !/^(?:\(?missing gloss\)?|unknown|n\/a|none|null|undefined|—|-)$/i.test(gloss));
+    if(!gloss || /^(?:\(?missing gloss\)?|unknown|n\/a|none|null|undefined|—|-)$/i.test(gloss)) return false;
+    return GlossApi?.isLearnerEnglishGloss ? GlossApi.isLearnerEnglishGloss(gloss) : /[A-Za-z]/.test(gloss);
   }
   function scriptForm(entry, language){
     const candidates = language === 'hebrew'
