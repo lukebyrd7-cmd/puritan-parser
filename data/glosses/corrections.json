@@ -168,6 +168,18 @@
       "sourceReference": "Strong’s Hebrew Dictionary (1890), H859; public-domain consultation supporting thou/thee/you.",
       "verificationTrigger": "VGBH audit entry 67; verification only, no definition imported.",
       "manifestVersion": "v1.9.1"
+    },
+    {
+      "id": "greek-airo-primary-remove",
+      "vocabularyId": "lemma:greek:αἴρω",
+      "language": "greek",
+      "expectedSourceValue": "take up; lift; remove",
+      "correctedPrimary": ["remove", "take up"],
+      "correctedAdditional": ["lift"],
+      "reason": "Put the common removal sense before the more literal lifting sense while retaining every existing approved Puritan Parser sense.",
+      "sourceReference": "Puritan Parser Greek lexical glosses (CC0-1.0), existing reviewed senses; MorphGNT SBLGNT frequency and occurrences establish learner priority without supplying semantic wording.",
+      "verificationTrigger": "Swanson DBL Greek entry 149; private verification only, no definition imported.",
+      "manifestVersion": "v1.9.2"
     }
   ]
 }

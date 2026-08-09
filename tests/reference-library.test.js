@@ -458,12 +458,12 @@ test('Reference Search results render immediately under the search controls with
 test('service worker cache version and app shell cache bust are bumped', () => {
   const sw = fs.readFileSync('sw.js', 'utf8');
   const html = fs.readFileSync('index.html', 'utf8');
-  assert.match(sw, /const CACHE = 'puritan-parser-v105-v1\.9\.1-hebrew-vocabulary-audit'/);
+  assert.match(sw, /const CACHE = 'puritan-parser-v106-v1\.9\.2-greek-vocabulary-audit'/);
   assert.doesNotMatch(sw, /puritan-parser-v39-v1\.4\.1/);
   assert.doesNotMatch(sw, /puritan-parser-v13-reader-startup/);
   assert.match(sw, /'\.\/src\/features\/reader\/index\.js'/);
   assert.match(sw, /'\.\/src\/features\/grammar\/handbook-data\.js'/);
   assert.match(sw, /caches\.delete\(k\)/);
   assert.match(sw, /self\.clients\.claim\(\)/);
-  assert.match(html, /src="\/src\/main\.js\?v=v1\.9\.1-hebrew-vocabulary-audit-1"/);
+  assert.match(html, /src="\/src\/main\.js\?v=v1\.9\.2-greek-vocabulary-audit-7"/);
 });

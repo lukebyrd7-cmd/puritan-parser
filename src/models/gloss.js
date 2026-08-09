@@ -27,6 +27,14 @@
   function splitGlossValue(value){
     return nonEmpty(value).split(/[,;|\u2022]/).map(nonEmpty).filter(Boolean);
   }
+  function containsGreekScript(value){ return /[\u0370-\u03ff\u1f00-\u1fff]/u.test(nonEmpty(value)); }
+  function containsHebrewScript(value){ return /[\u0590-\u05ff]/u.test(nonEmpty(value)); }
+  function isLearnerEnglishGloss(value){
+    const clean = nonEmpty(value);
+    if(!clean || containsGreekScript(clean) || containsHebrewScript(clean) || !/[A-Za-z]/.test(clean)) return false;
+    if(/^(?:lemma:|gk-|hb-|strong(?:'|’)?s?\s*[gh]?\d+|[a-z]{1,3}-\s*[0-9a-z-]+)$/i.test(clean)) return false;
+    return !/^[a-z]{1,3}-\s*(?:[-0-9a-z]+)$/i.test(clean);
+  }
   function hasStrongHebrewNotationSource(word = {}, options = {}){
     if(options.sourceNotation === 'strongs-ie') return true;
     return /Strong(?:'|’)?s Hebrew Dictionary/i.test(nonEmpty(word.glossSource));
@@ -58,7 +66,7 @@
     const articleDuplicates = new Set(articleDuplicateSenses(rawValues).map(value => value.toLocaleLowerCase()));
     const values = rawValues
       .map(value => stripStrongIeArtifact(value, word, options))
-      .filter(value => value && !articleDuplicates.has(value.toLocaleLowerCase()));
+      .filter(value => value && isLearnerEnglishGloss(value) && !articleDuplicates.has(value.toLocaleLowerCase()));
     const seen = new Set();
     const glosses = values.filter(value => {
       const key = value.toLowerCase();
@@ -126,5 +134,28 @@
     ].map(value => nonEmpty(value)).filter(Boolean).join(' ').toLowerCase();
   }
   function hasAnyGloss(word = {}){ return getDisplayGloss(word) !== '(missing gloss)'; }
-  return { createGlossFields, getSourceGloss, getDisplayGloss, glossSearchText, normalizeAlternateGlosses, presentLexicalGlosses, articleDuplicateSenses, stripStrongIeArtifact, sourceNotationLeakage, setGlossCorrections, vocabularyId, resolveLexicalGloss, hasAnyGloss };
+  function normalizeComparableSense(value){
+    return nonEmpty(value)
+      .toLocaleLowerCase('en')
+      .replace(/[’']/g, '')
+      .replace(/[^a-z0-9\s]/g, ' ')
+      .replace(/^(?:a|an|the)\s+/, '')
+      .replace(/\b([a-z]{3,})ies\b/g, '$1y')
+      .replace(/\b([a-z]{4,})(?:ches|shes|xes|zes)\b/g, '$1')
+      .replace(/\b([a-z]{4,})s\b/g, '$1')
+      .replace(/\s+/g, ' ')
+      .trim();
+  }
+  function contextualGlossAddsMeaning(lexical, contextual){
+    const contextualSenses = splitGlossValue(contextual).filter(isLearnerEnglishGloss);
+    if(!contextualSenses.length) return false;
+    const lexicalValues = Array.isArray(lexical)
+      ? lexical
+      : typeof lexical === 'object' && lexical
+        ? presentLexicalGlosses(lexical).all
+        : splitGlossValue(lexical);
+    const lexicalKeys = new Set(lexicalValues.map(normalizeComparableSense).filter(Boolean));
+    return contextualSenses.some(value => !lexicalKeys.has(normalizeComparableSense(value)));
+  }
+  return { createGlossFields, getSourceGloss, getDisplayGloss, glossSearchText, normalizeAlternateGlosses, presentLexicalGlosses, articleDuplicateSenses, stripStrongIeArtifact, sourceNotationLeakage, containsGreekScript, containsHebrewScript, isLearnerEnglishGloss, normalizeComparableSense, contextualGlossAddsMeaning, setGlossCorrections, vocabularyId, resolveLexicalGloss, hasAnyGloss };
 });

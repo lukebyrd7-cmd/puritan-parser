@@ -11,6 +11,7 @@
     "test": "node --test",
     "gloss:audit": "node scripts/gloss-audit.js",
     "vgbh:audit": "node scripts/vgbh-vocabulary-audit.js",
+    "greek:audit": "node scripts/swanson-greek-vocabulary-audit.js",
     "sources:validate": "node scripts/validate-source-ledger.js",
     "reader:generate": "node scripts/generate-reader-data.js",
     "hebrew:reader:generate": "node scripts/generate-hebrew-reader-data.js",

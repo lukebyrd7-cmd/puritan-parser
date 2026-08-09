@@ -2329,6 +2329,13 @@ button:focus-visible, input:focus-visible, select:focus-visible {
   font-weight: 800;
   line-height: 1.25;
 }
+.reader-contextual-gloss {
+  margin: 10px 0;
+  padding-left: 12px;
+  border-left: 2px solid var(--border);
+  color: var(--text-muted);
+}
+.reader-contextual-gloss p { margin: 3px 0 0; }
 .reader-word-reference { margin: 0 0 10px; color: var(--muted); font-size: 13px; }
 .reader-word-more-glosses { margin-top: 6px; color: var(--muted); font-size: 13px; }
 .reader-word-more-glosses p { margin: 5px 0 0; line-height: 1.4; }

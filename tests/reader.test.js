@@ -1516,7 +1516,7 @@ test('clicking Open Word Page closes the popup and opens a dynamic Word Page vie
   assert.match(wordPageHtml, /Usage Examples/);
   assert.doesNotMatch(wordPageHtml, /Word Page/);
   assert.equal(typeof backHandler, 'function');
-  backHandler();
+  await backHandler();
   assert.equal(shownView, 'readerView');
 
   await reader.openReaderTokenPopup({
@@ -1539,6 +1539,23 @@ test('clicking Open Word Page closes the popup and opens a dynamic Word Page vie
   delete global.state;
   delete global.toast;
   delete global.showView;
+});
+
+test('Word Page return restores the clicked Reader occurrence instead of a scroll-derived chapter', () => {
+  const state = reader.readerState();
+  const previous = { ...state };
+  Object.assign(state, {
+    language: 'greek', book: 'mark', chapter: 1, mode: 'continuous',
+    chapterData: { book: 'mark', chapter: 1 }, continuousChapters: [1, 2, 3],
+    wordPageReturnLocation: reader.readerWordPageReturnLocation({ language: 'greek', book: 'mark', chapter: 2, verse: '3' })
+  });
+  const restored = reader.applyReaderWordPageReturnLocation();
+  assert.deepEqual(restored, { language: 'greek', book: 'mark', chapter: 2, mode: 'continuous', verse: '3', anchorVerse: '3', anchorOffset: 0, scrollTop: 0 });
+  assert.equal(state.chapter, 1, 'the stale object is replaced instead of mutated');
+  assert.equal(reader.readerState().chapter, 2);
+  assert.equal(reader.readerState().focusVerse, '3');
+  assert.equal(reader.readerState().chapterData, null);
+  Object.assign(reader.readerState(), previous);
 });
 
 test('Hebrew Word Page primary headword never falls back to a raw numeric lemma', () => {
