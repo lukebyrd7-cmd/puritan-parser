@@ -170,7 +170,7 @@
   function getStudyEntryOriginals(entry){ return isLemmaStudyEntry(entry) ? (entry.originalEntries || []) : [entry].filter(Boolean); }
   function getStudyEntrySearchText(entry = {}){
     if(isLemmaStudyEntry(entry)){
-      return [displayHeadword(entry), entry.lemma, entry.lexicalForm, entry.primaryGloss, ...(entry.alternateGlosses||[]), ...(entry.forms||[]), entry.representativeForm, entry.pos]
+      return [displayHeadword(entry), entry.lemma, entry.lexicalForm, displayGloss(entry), entry.primaryGloss, ...(entry.alternateGlosses||[]), ...(entry.forms||[]), entry.representativeForm, entry.pos]
         .map(clean).filter(Boolean).join(' ').toLowerCase();
     }
     if(typeof root.glossSearchText === 'function') return root.glossSearchText(entry);

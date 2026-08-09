@@ -1,4 +1,173 @@
 {
   "schemaVersion": 1,
-  "corrections": []
+  "corrections": [
+    {
+      "id": "hebrew-h113-primary-lord",
+      "vocabularyId": "lemma:hebrew:113",
+      "language": "hebrew",
+      "expectedSourceValue": "sovereign; lord; master; owner; i",
+      "correctedPrimary": ["lord", "master"],
+      "correctedAdditional": ["owner", "sovereign"],
+      "reason": "Put the ordinary learner-facing title before a broader sovereignty term and remove verified source-notation leakage.",
+      "sourceReference": "Strong’s Hebrew Dictionary (1890), H113; public-domain consultation supporting lord/master/owner.",
+      "verificationTrigger": "VGBH audit entry 62; verification only, no definition imported.",
+      "manifestVersion": "v1.9.1"
+    },
+    {
+      "id": "hebrew-h120-primary-man",
+      "vocabularyId": "lemma:hebrew:120",
+      "language": "hebrew",
+      "expectedSourceValue": "ruddy; another; hypocrite; common sort; low",
+      "correctedPrimary": ["man", "mankind"],
+      "correctedAdditional": [],
+      "reason": "Use the central human-being sense and omit ruddy, which H120 inherits as a derivational gloss from the separate H119 red/ruddy verb rather than as an attested learner-facing sense of H120.",
+      "sourceReference": "Strong’s Hebrew Dictionary (1890), H120 (with H119 and H121 compared); public-domain consultation supporting human being/mankind while distinguishing the H119 red/ruddy verb and H121 proper name.",
+      "verificationTrigger": "VGBH audit entry 91; verification only, no definition imported.",
+      "manifestVersion": "v1.9.1"
+    },
+    {
+      "id": "hebrew-h1571-primary-also",
+      "vocabularyId": "lemma:hebrew:1571",
+      "language": "hebrew",
+      "expectedSourceValue": "assemblage; again; alike; also; as",
+      "correctedPrimary": ["also", "even"],
+      "correctedAdditional": ["again", "likewise"],
+      "reason": "Replace an etymological head with the particle’s ordinary learner-facing senses.",
+      "sourceReference": "Strong’s Hebrew Dictionary (1890), H1571; public-domain consultation supporting also/even/again/likewise.",
+      "verificationTrigger": "VGBH audit entry 63; verification only, no definition imported.",
+      "manifestVersion": "v1.9.1"
+    },
+    {
+      "id": "hebrew-h1696-primary-speak",
+      "vocabularyId": "lemma:hebrew:1696",
+      "language": "hebrew",
+      "expectedSourceValue": "arrange; answer; appoint; bid; command",
+      "correctedPrimary": ["speak"],
+      "correctedAdditional": ["say", "command"],
+      "reason": "Restore the verb’s common speech sense and omit the hypothetical source-derived arrange gloss from learner-facing presentation.",
+      "sourceReference": "Strong’s Hebrew Dictionary (1890), H1696; public-domain consultation supporting speak/say/command and identifying arrange as a proposed underlying sense.",
+      "verificationTrigger": "VGBH audit entry 37; verification only, no definition imported.",
+      "manifestVersion": "v1.9.1"
+    },
+    {
+      "id": "hebrew-h2009-primary-behold",
+      "vocabularyId": "lemma:hebrew:2009",
+      "language": "hebrew",
+      "expectedSourceValue": "lo!; behold; lo; see",
+      "correctedPrimary": ["behold"],
+      "correctedAdditional": ["see", "lo"],
+      "reason": "Prefer the recognizable learner-facing interjection over the archaic primary wording.",
+      "sourceReference": "Strong’s Hebrew Dictionary (1890), H2009; public-domain consultation supporting behold/lo/see.",
+      "verificationTrigger": "VGBH audit entry 43; verification only, no definition imported.",
+      "manifestVersion": "v1.9.1"
+    },
+    {
+      "id": "hebrew-h259-primary-one",
+      "vocabularyId": "lemma:hebrew:259",
+      "language": "hebrew",
+      "expectedSourceValue": "united; a; alike; alone; altogether",
+      "correctedPrimary": ["one"],
+      "correctedAdditional": ["united", "alone", "altogether"],
+      "reason": "Restore the cardinal number as the primary learner-facing sense.",
+      "sourceReference": "Strong’s Hebrew Dictionary (1890), H259; public-domain consultation supporting one/united/alone/together.",
+      "verificationTrigger": "VGBH audit entry 45; verification only, no definition imported.",
+      "manifestVersion": "v1.9.1"
+    },
+    {
+      "id": "hebrew-h310-primary-after",
+      "vocabularyId": "lemma:hebrew:310",
+      "language": "hebrew",
+      "expectedSourceValue": "the hind part; after; again; at; away from",
+      "correctedPrimary": ["after", "behind"],
+      "correctedAdditional": ["away from", "the hind part"],
+      "reason": "Put the common prepositional senses before the underlying spatial noun phrase.",
+      "sourceReference": "Strong’s Hebrew Dictionary (1890), H310; public-domain consultation supporting after/behind/hind part.",
+      "verificationTrigger": "VGBH audit entry 72; verification only, no definition imported.",
+      "manifestVersion": "v1.9.1"
+    },
+    {
+      "id": "hebrew-h3548-primary-priest",
+      "vocabularyId": "lemma:hebrew:3548",
+      "language": "hebrew",
+      "expectedSourceValue": "literally one officiating; chief ruler; own; priest; prince",
+      "correctedPrimary": ["priest"],
+      "correctedAdditional": ["chief ruler", "prince"],
+      "reason": "Put the lexical office before explanatory source wording.",
+      "sourceReference": "Strong’s Hebrew Dictionary (1890), H3548; public-domain consultation supporting priest/chief ruler/prince.",
+      "verificationTrigger": "VGBH audit entry 66; verification only, no definition imported.",
+      "manifestVersion": "v1.9.1"
+    },
+    {
+      "id": "hebrew-h3651-primary-so",
+      "vocabularyId": "lemma:hebrew:3651",
+      "language": "hebrew",
+      "expectedSourceValue": "set upright; after that; as",
+      "correctedPrimary": ["so"],
+      "correctedAdditional": ["after that"],
+      "reason": "Put the common adverbial sense first and omit the H3559-derived verbal gloss from learner-facing presentation.",
+      "sourceReference": "Strong’s Hebrew Dictionary (1890), H3651; public-domain consultation supporting so/thus/after that and identifying set upright as the underlying H3559-derived gloss.",
+      "verificationTrigger": "VGBH audit entry 69; verification only, no definition imported.",
+      "manifestVersion": "v1.9.1"
+    },
+    {
+      "id": "hebrew-h518-primary-if",
+      "vocabularyId": "lemma:hebrew:518",
+      "language": "hebrew",
+      "expectedSourceValue": "lo!; but; either; except; more",
+      "correctedPrimary": ["if", "whether"],
+      "correctedAdditional": ["but", "except", "either", "lo"],
+      "reason": "Restore the conditional particle’s central sense while retaining its less common interrogative and demonstrative uses as secondary senses.",
+      "sourceReference": "Strong’s Hebrew Dictionary (1890), H518; public-domain consultation supporting if/whether/but/except/either/lo.",
+      "verificationTrigger": "VGBH audit entry 42; verification only, no definition imported.",
+      "manifestVersion": "v1.9.1"
+    },
+    {
+      "id": "hebrew-h5973-primary-with",
+      "vocabularyId": "lemma:hebrew:5973",
+      "language": "hebrew",
+      "expectedSourceValue": "adverb or preposition; accompanying; against; and; as",
+      "correctedPrimary": ["with", "together with"],
+      "correctedAdditional": ["among", "accompanying", "against"],
+      "reason": "Replace grammatical/source prose with the preposition’s common learner-facing sense.",
+      "sourceReference": "Strong’s Hebrew Dictionary (1890), H5973; public-domain consultation supporting with/accompanying/among/against.",
+      "verificationTrigger": "VGBH audit entry 44; verification only, no definition imported.",
+      "manifestVersion": "v1.9.1"
+    },
+    {
+      "id": "hebrew-h8478-primary-under",
+      "vocabularyId": "lemma:hebrew:8478",
+      "language": "hebrew",
+      "expectedSourceValue": "the bottom; as; beneath; flat; in",
+      "correctedPrimary": ["under", "beneath"],
+      "correctedAdditional": ["instead of", "the bottom"],
+      "reason": "Put the common prepositional senses before the underlying spatial noun sense.",
+      "sourceReference": "Strong’s Hebrew Dictionary (1890), H8478; public-domain consultation supporting under/beneath/instead of/bottom.",
+      "verificationTrigger": "VGBH audit entry 95; verification only, no definition imported.",
+      "manifestVersion": "v1.9.1"
+    },
+    {
+      "id": "hebrew-h854-primary-with",
+      "vocabularyId": "lemma:hebrew:854",
+      "language": "hebrew",
+      "expectedSourceValue": "nearness; against; among; before; by",
+      "correctedPrimary": ["with"],
+      "correctedAdditional": ["among", "by", "near", "against", "before"],
+      "reason": "Put the ordinary prepositional sense before an abstract derivational gloss while preserving the H854 identity distinct from H853.",
+      "sourceReference": "Strong’s Hebrew Dictionary (1890), H854; public-domain consultation supporting with/by/among/near/against/before.",
+      "verificationTrigger": "VGBH audit entry 50; verification only, no definition imported.",
+      "manifestVersion": "v1.9.1"
+    },
+    {
+      "id": "hebrew-h859-primary-you",
+      "vocabularyId": "lemma:hebrew:859",
+      "language": "hebrew",
+      "expectedSourceValue": "thou and thee; thee; thou; ye; you",
+      "correctedPrimary": ["you"],
+      "correctedAdditional": ["thou", "thee"],
+      "reason": "Prefer current learner-facing English while retaining the older equivalents as additional senses.",
+      "sourceReference": "Strong’s Hebrew Dictionary (1890), H859; public-domain consultation supporting thou/thee/you.",
+      "verificationTrigger": "VGBH audit entry 67; verification only, no definition imported.",
+      "manifestVersion": "v1.9.1"
+    }
+  ]
 }
