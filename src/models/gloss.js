@@ -121,7 +121,8 @@
     const personal = root.PuritanPersonalGlosses?.recordFor?.(word)?.glosses || [];
     return [
       word.word, word.lemma, word.lexicalForm, word.transliteration, word.primaryGloss,
-      ...normalizeAlternateGlosses(word.alternateGlosses), word.gloss, word.customGloss, ...personal
+      ...normalizeAlternateGlosses(word.alternateGlosses), word.gloss, word.customGloss,
+      getDisplayGloss(word), ...personal
     ].map(value => nonEmpty(value)).filter(Boolean).join(' ').toLowerCase();
   }
   function hasAnyGloss(word = {}){ return getDisplayGloss(word) !== '(missing gloss)'; }

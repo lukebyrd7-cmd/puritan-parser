@@ -16,10 +16,11 @@ This ledger distinguishes imported fields, verification-only use, and Puritan Pa
 | Machen, *New Testament Greek for Beginners* | 1923 first edition, printed-page references in `docs/reference-sources.md` | Public-domain edition consulted | Paradigm forms and organization described in the Reference ledger | Reference data only; no lexical gloss import |
 | Gesenius-Kautzsch-Cowley, *Hebrew Grammar* | 1910 second English edition, exact pages in `docs/reference-sources.md` | Public-domain edition consulted | Paradigm forms and grammatical organization | Reference data only; no lexical gloss import |
 | Pratico and Van Pelt; Merkle and coauthors | Editions identified in `docs/reference-sources.md` | Consultation only; no copied dataset | Classroom terminology and organizational guidance | No imported fields |
+| Van Pelt, Miles V., and Gary D. Pratico, *The Vocabulary Guide to Biblical Hebrew and Aramaic* | Second Edition (Zondervan, 2019) | Private verification-only consultation; no redistribution claim | Lexical identity, frequency, gloss quality, homonym distinctions, and sense prioritization were audited; no definitions imported | No source transcription or derivative definition dataset is distributed; source-backed corrections use the separately approved PP sources recorded above |
 
 ## Corrections and unavailable records
 
-Source-backed semantic corrections belong in `data/glosses/corrections.json`. Each future correction must identify a stable vocabulary ID, expected source value, corrected senses, reason, supporting reference, and manifest version. No semantic corrections are introduced in the initial v1.9 manifest.
+Source-backed semantic corrections belong in `data/glosses/corrections.json`. Each correction identifies a stable vocabulary ID, expected source value, corrected senses, reason, supporting publishable reference, verification trigger, and manifest version. VGBH may trigger review, but it is never the sole support for distributed wording.
 
 `data/glosses/unavailable-glosses.json` is a separate, reviewable list of records that cannot responsibly receive a standard gloss. These records remain excluded from flashcard eligibility and visible in audit output.
 
