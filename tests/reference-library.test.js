@@ -465,5 +465,5 @@ test('service worker cache version and app shell cache bust are bumped', () => {
   assert.match(sw, /'\.\/src\/features\/grammar\/handbook-data\.js'/);
   assert.match(sw, /caches\.delete\(k\)/);
   assert.match(sw, /self\.clients\.claim\(\)/);
-  assert.match(html, /src="\/src\/main\.js\?v=v1\.9\.2-greek-vocabulary-audit-8"/);
+  assert.match(html, /src="\/src\/main\.js\?v=v1\.9\.2-greek-vocabulary-audit-9"/);
 });

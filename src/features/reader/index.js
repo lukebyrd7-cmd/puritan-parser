@@ -1300,6 +1300,7 @@ function renderReaderWordOccurrence(info = {}, context = {}){
           <dl class="word-page-grammar-details">
             ${readerWordPageMeta('Current Reference', info.reference)}
             ${readerWordPageMeta('Strong’s ID', strongId)}
+            ${language === 'hebrew' ? readerWordPageMeta('Contextual occurrence gloss', info.occurrenceGloss) : ''}
             ${fields.map(field => readerWordPageMeta(field.label, field.value)).join('')}
           </dl>
           ${parse && summary ? `<p class="word-page-parse-code">Parse code: ${escHtml(parse)}</p>` : ''}
@@ -1313,6 +1314,7 @@ function readerGlossResolution(info = {}){
   };
 }
 function readerContextualGloss(info = {}, resolution = readerGlossResolution(info)){
+  if((info.language || readerState.language || 'greek') !== 'greek') return '';
   const value = cleanReaderTokenValue(info.occurrenceGloss);
   if(!value || !ReaderGlossModel?.isLearnerEnglishGloss?.(value)) return '';
   return ReaderGlossModel.contextualGlossAddsMeaning?.(resolution.standard?.all || [], value) ? value : '';

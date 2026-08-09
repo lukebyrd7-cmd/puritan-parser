@@ -59,6 +59,42 @@ test('high-frequency manual review and Greek-in-English review gates are complet
   assert.equal(audit.summary.reader.affectedEnglishGlossTokens, 7896);
 });
 
+test('Greek English coverage classifies every unavailable canonical identity without inventing source support', () => {
+  const coverage = audit.summary.greekEnglishGlossCoverage;
+  assert.deepEqual({
+    total: coverage.totalIdentities,
+    initialCovered: coverage.initialTrustworthyEnglish,
+    initialUnavailable: coverage.initialUnavailable,
+    recovered: coverage.recoveredThisPass,
+    finalCovered: coverage.finalTrustworthyEnglish,
+    finalUnavailable: coverage.finalUnavailable
+  }, { total: 5478, initialCovered: 1779, initialUnavailable: 3699, recovered: 0, finalCovered: 1779, finalUnavailable: 3699 });
+  assert.deepEqual(coverage.unavailableByFrequency, {
+    frequency500Plus: 0, frequency100To499: 0, frequency50To99: 0, frequency25To49: 0,
+    frequency10To24: 40, frequency2To9: 1708, frequency1: 1951, frequency0OrVariantOnly: 0
+  });
+  assert.equal(coverage.unavailableCanonicalIdentities, 3699);
+  assert.equal(coverage.unavailableNoncanonicalIdentities, 0);
+  assert.equal(coverage.unavailableCanonicalReaderTokens, 7896);
+  assert.deepEqual({
+    total: coverage.studyRelevantCanonical.totalIdentities,
+    covered: coverage.studyRelevantCanonical.trustworthyEnglish,
+    unavailable: coverage.studyRelevantCanonical.unavailable,
+    percentage: coverage.studyRelevantCanonical.coveragePercentage
+  }, { total: 4915, covered: 1623, unavailable: 3292, percentage: 33.02 });
+  assert.deepEqual(coverage.approvedSourceDisposition, {
+    A_EXISTING_APPROVED_ENGLISH_NOT_WIRED: 0,
+    B_SAFE_APPROVED_ENGLISH_CAN_BE_ADDED: 0,
+    C_VERIFICATION_ONLY_SUPPORT: 3220,
+    D_PROPER_NAME_OR_SPECIAL_CASE: 407,
+    E_UNRESOLVED: 72
+  });
+  assert.equal(coverage.highFrequencyReleaseGate.unavailableAtLeast25, 0);
+  assert.equal(coverage.deterministicReviewAtLeast10.length, 40);
+  assert.equal(coverage.top100Unavailable.length, 100);
+  assert.ok(audit.ppEntries.filter(entry => entry.glossStatus === 'GREEK_IN_ENGLISH_FIELD').every(entry => entry.canonicalReaderOccurrences > 0 && entry.proposedAction));
+});
+
 test('English-gloss validation rejects Greek, Hebrew, identifiers, and morphology while accepting ordinary English', () => {
   for(const value of ['λόγος', 'דָּבָר', 'lemma:greek:λόγος', 'gk-01234', 'Strong G3056', 'N-NSM']) assert.equal(GlossModel.isLearnerEnglishGloss(value), false, value);
   for(const value of ['word', 'take away', 'Jesus', 'you (sg.)', 'non-Greek']) assert.equal(GlossModel.isLearnerEnglishGloss(value), true, value);
@@ -101,6 +137,15 @@ test('Reader labels retained contextual help In this verse and hides redundant o
   assert.doesNotMatch(html, /Contextual occurrence gloss/);
 });
 
+test('Greek contextual filtering does not suppress or relabel existing Hebrew occurrence glosses', () => {
+  const info = { language: 'hebrew', surface: 'דָּבָר', primaryGloss: 'word', occurrenceGloss: 'word', reference: 'Genesis 1:1' };
+  assert.equal(Reader.readerContextualGloss(info), '');
+  const html = Reader.renderReaderWordOccurrence(info);
+  assert.match(html, /Contextual occurrence gloss/);
+  assert.match(html, />word</);
+  assert.doesNotMatch(html, /In this verse/);
+});
+
 test('the Greek correction is stable-ID keyed, source guarded, and shared by canonical/personal resolution', () => {
   const correction = corrections.corrections.find(item => item.id === 'greek-airo-primary-remove');
   assert.ok(correction);
@@ -130,7 +175,7 @@ test('the runtime correction manifest is cache-busted with the startup asset ver
   const loader = fs.readFileSync(path.join(ROOT, 'src/core/data-loader.js'), 'utf8');
   const sw = fs.readFileSync(path.join(ROOT, 'sw.js'), 'utf8');
   assert.match(loader, /corrections\.json\$\{version\}/);
-  assert.match(sw, /corrections\.json\?v=v1\.9\.2-greek-vocabulary-audit-8/);
+  assert.match(sw, /corrections\.json\?v=v1\.9\.2-greek-vocabulary-audit-9/);
 });
 
 test('Search, Learn, flashcards, Reader, Word Page, Custom Deck, and Needs attention retain the shared resolver path', () => {

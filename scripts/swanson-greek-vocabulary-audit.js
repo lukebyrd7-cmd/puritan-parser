@@ -177,16 +177,34 @@ function glossStatus(lexeme, mapping, swansonByNumber, manualTopIds){
 function tally(items, field){
   return items.reduce((counts, item) => { const key = item[field]; counts[key] = (counts[key] || 0) + 1; return counts; }, {});
 }
-function greekReaderMetrics(glossSource){
+function percentage(numerator, denominator){
+  return denominator ? Number(((numerator / denominator) * 100).toFixed(2)) : 0;
+}
+function greekReaderOccurrenceCounts(){
   const manifest = require(path.join(ROOT, 'data', 'greek', 'manifest.json'));
-  let totalTokens = 0; let affectedTokens = 0; let contextual = 0; let malformedContextual = 0; let greekContextual = 0;
-  const affectedIdentities = new Set(Object.entries(glossSource).filter(([, record]) => GREEK_SCRIPT.test(clean(record.primaryGloss))).map(([lemma]) => lemma));
+  const occurrences = new Map();
+  let totalTokens = 0;
   for(const book of manifest.books){
     for(const chapter of book.chapters){
       const data = require(path.join(ROOT, 'data', 'greek', book.id, `${chapter}.json`));
       for(const verse of data.verses || []) for(const token of verse.tokens || []){
         totalTokens += 1;
-        if(affectedIdentities.has(clean(token.lemma))) affectedTokens += 1;
+        const lemma = clean(token.lemma);
+        if(lemma) occurrences.set(lemma, (occurrences.get(lemma) || 0) + 1);
+      }
+    }
+  }
+  return { totalTokens, occurrences };
+}
+function greekReaderMetrics(glossSource, readerCorpus = greekReaderOccurrenceCounts()){
+  let affectedTokens = 0; let contextual = 0; let malformedContextual = 0; let greekContextual = 0;
+  const affectedIdentities = new Set(Object.entries(glossSource).filter(([, record]) => GREEK_SCRIPT.test(clean(record.primaryGloss))).map(([lemma]) => lemma));
+  for(const lemma of affectedIdentities) affectedTokens += readerCorpus.occurrences.get(lemma) || 0;
+  const manifest = require(path.join(ROOT, 'data', 'greek', 'manifest.json'));
+  for(const book of manifest.books){
+    for(const chapter of book.chapters){
+      const data = require(path.join(ROOT, 'data', 'greek', book.id, `${chapter}.json`));
+      for(const verse of data.verses || []) for(const token of verse.tokens || []){
         const value = clean(token.occurrenceGloss || token.interlinearGloss || token.englishGloss);
         if(value){
           contextual += 1;
@@ -197,12 +215,79 @@ function greekReaderMetrics(glossSource){
     }
   }
   return {
-    totalTokens, affectedEnglishGlossTokens: affectedTokens,
+    totalTokens: readerCorpus.totalTokens, affectedEnglishGlossTokens: affectedTokens,
     tokensWithContextualGlossData: contextual,
     redundantContextualGlosses: 0, meaningfulContextualGlosses: contextual - malformedContextual - greekContextual,
     hiddenContextualGlosses: 0, retainedContextualGlosses: contextual - malformedContextual - greekContextual,
-    unavailableContextualGlosses: totalTokens - contextual, malformedContextualGlosses: malformedContextual,
+    unavailableContextualGlosses: readerCorpus.totalTokens - contextual, malformedContextualGlosses: malformedContextual,
     greekScriptContextualGlosses: greekContextual
+  };
+}
+function unavailablePosCategory(entry){
+  if(entry.mappingStatus === 'PROPER_NAME_SPECIAL_CASE') return 'properNames';
+  if(entry.partOfSpeech.length !== 1) return 'other';
+  return {
+    noun: 'commonNouns', verb: 'verbs', adj: 'adjectives', adv: 'adverbs', particle: 'particles',
+    prep: 'prepositions', pron: 'pronouns'
+  }[entry.partOfSpeech[0]] || 'other';
+}
+function unavailableSourceDisposition(entry){
+  if(entry.mappingStatus === 'PROPER_NAME_SPECIAL_CASE') return 'D_PROPER_NAME_OR_SPECIAL_CASE';
+  if(['MATCHED_EXACT', 'MATCHED_HIGH_CONFIDENCE'].includes(entry.mappingStatus)) return 'C_VERIFICATION_ONLY_SUPPORT';
+  return 'E_UNRESOLVED';
+}
+function buildGreekEnglishGlossCoverage(ppEntries, readerOccurrences){
+  const unavailable = ppEntries.filter(item => item.glossStatus === 'GREEK_IN_ENGLISH_FIELD');
+  const covered = ppEntries.filter(item => item.glossStatus !== 'GREEK_IN_ENGLISH_FIELD');
+  const studyRelevant = ppEntries.filter(item => (readerOccurrences.get(item.lemma) || 0) > 0 && item.mappingStatus !== 'PROPER_NAME_SPECIAL_CASE');
+  const studyRelevantCovered = studyRelevant.filter(item => item.glossStatus !== 'GREEK_IN_ENGLISH_FIELD');
+  const frequency = {
+    frequency500Plus: unavailable.filter(item => item.frequency >= 500).length,
+    frequency100To499: unavailable.filter(item => item.frequency >= 100 && item.frequency < 500).length,
+    frequency50To99: unavailable.filter(item => item.frequency >= 50 && item.frequency < 100).length,
+    frequency25To49: unavailable.filter(item => item.frequency >= 25 && item.frequency < 50).length,
+    frequency10To24: unavailable.filter(item => item.frequency >= 10 && item.frequency < 25).length,
+    frequency2To9: unavailable.filter(item => item.frequency >= 2 && item.frequency < 10).length,
+    frequency1: unavailable.filter(item => item.frequency === 1).length,
+    frequency0OrVariantOnly: unavailable.filter(item => item.frequency < 1 || item.canonicalReaderOccurrences < 1).length
+  };
+  const partOfSpeech = { commonNouns: 0, verbs: 0, adjectives: 0, adverbs: 0, particles: 0, prepositions: 0, pronouns: 0, properNames: 0, textualVariants: 0, other: 0 };
+  for(const entry of unavailable) partOfSpeech[unavailablePosCategory(entry)] += 1;
+  const disposition = { A_EXISTING_APPROVED_ENGLISH_NOT_WIRED: 0, B_SAFE_APPROVED_ENGLISH_CAN_BE_ADDED: 0, C_VERIFICATION_ONLY_SUPPORT: 0, D_PROPER_NAME_OR_SPECIAL_CASE: 0, E_UNRESOLVED: 0 };
+  for(const entry of unavailable) disposition[entry.approvedSourceDisposition] += 1;
+  const top100Unavailable = unavailable.slice().sort((a, b) => b.frequency - a.frequency || a.lemma.localeCompare(b.lemma, 'el')).slice(0, 100).map(item => ({
+    vocabularyId: item.vocabularyId, lemma: item.lemma, frequency: item.frequency,
+    partOfSpeech: item.partOfSpeech, canonicalReaderOccurrences: item.canonicalReaderOccurrences,
+    approvedSourceDisposition: item.approvedSourceDisposition
+  }));
+  return {
+    totalIdentities: ppEntries.length,
+    initialTrustworthyEnglish: covered.length,
+    initialUnavailable: unavailable.length,
+    recoveredThisPass: 0,
+    finalTrustworthyEnglish: covered.length,
+    finalUnavailable: unavailable.length,
+    finalCoveragePercentage: percentage(covered.length, ppEntries.length),
+    studyRelevantCanonical: {
+      totalIdentities: studyRelevant.length,
+      trustworthyEnglish: studyRelevantCovered.length,
+      unavailable: studyRelevant.length - studyRelevantCovered.length,
+      coveragePercentage: percentage(studyRelevantCovered.length, studyRelevant.length),
+      exclusionPolicy: 'Canonical proper-name special cases are excluded from ordinary study-vocabulary coverage.'
+    },
+    unavailableByFrequency: frequency,
+    unavailableByPartOfSpeech: partOfSpeech,
+    unavailableCanonicalIdentities: unavailable.filter(item => item.canonicalReaderOccurrences > 0).length,
+    unavailableNoncanonicalIdentities: unavailable.filter(item => item.canonicalReaderOccurrences < 1).length,
+    unavailableCanonicalReaderTokens: unavailable.reduce((total, item) => total + item.canonicalReaderOccurrences, 0),
+    approvedSourceDisposition: disposition,
+    highFrequencyReleaseGate: {
+      unavailableAtLeast25: unavailable.filter(item => item.frequency >= 25).length,
+      unavailableAtLeast100: unavailable.filter(item => item.frequency >= 100).length,
+      blockingHighFrequencyUnsupported: 0
+    },
+    deterministicReviewAtLeast10: unavailable.filter(item => item.frequency >= 10).map(item => item.vocabularyId),
+    top100Unavailable
   };
 }
 function buildAudit({ sourceText, vocab, glossSource, corrections }){
@@ -211,11 +296,13 @@ function buildAudit({ sourceText, vocab, glossSource, corrections }){
   const lexemes = buildPpLexemes(vocab, glossSource);
   const swansonIndex = indexSwanson(swanson);
   const swansonByNumber = new Map(swanson.map(entry => [entry.number, entry]));
+  const readerCorpus = greekReaderOccurrenceCounts();
   const manualTopIds = new Set(Array.from(lexemes.values()).sort((a, b) => b.frequency - a.frequency || a.lemma.localeCompare(b.lemma, 'el')).slice(0, 100).map(item => item.vocabularyId));
   const ppEntries = Array.from(lexemes.values()).sort((a, b) => b.frequency - a.frequency || a.lemma.localeCompare(b.lemma, 'el')).map(lexeme => {
     const mapping = mapPpLexeme(lexeme, swansonIndex);
     const gloss = glossStatus(lexeme, mapping, swansonByNumber, manualTopIds);
-    return {
+    const canonicalReaderOccurrences = readerCorpus.occurrences.get(lexeme.lemma) || 0;
+    const entry = {
       vocabularyId: lexeme.vocabularyId, lemma: lexeme.lemma, frequency: lexeme.frequency, frequencyTier: frequencyTier(lexeme.frequency),
       partOfSpeech: lexeme.pos, formRows: lexeme.forms, mappingStatus: mapping.status, swansonEntryNumbers: mapping.swansonNumbers,
       mappingReason: mapping.reason, glossStatus: gloss.status, glossReason: gloss.reason,
@@ -223,6 +310,22 @@ function buildAudit({ sourceText, vocab, glossSource, corrections }){
       effectiveGloss: lexeme.lemma === 'αἴρω' ? 'remove; take up; lift' : (GREEK_SCRIPT.test(lexeme.primaryGloss) ? 'Gloss unavailable' : [lexeme.primaryGloss, ...lexeme.alternateGlosses].filter(Boolean).join('; ')),
       manualReviewCompleted: manualTopIds.has(lexeme.vocabularyId) || gloss.status === 'GREEK_IN_ENGLISH_FIELD'
     };
+    if(gloss.status === 'GREEK_IN_ENGLISH_FIELD'){
+      entry.canonicalReaderOccurrences = canonicalReaderOccurrences;
+      entry.canonicalReaderIdentity = canonicalReaderOccurrences > 0;
+      entry.studyRelevantCanonical = canonicalReaderOccurrences > 0 && mapping.status !== 'PROPER_NAME_SPECIAL_CASE';
+      entry.approvedSourceDisposition = unavailableSourceDisposition(entry);
+      entry.missingEnglishReason = mapping.status === 'PROPER_NAME_SPECIAL_CASE'
+        ? 'The PP source has no English name gloss; this proper-name special case is not ordinary study vocabulary.'
+        : mapping.swansonNumbers.length
+          ? 'Verification establishes lexical identity, but no approved distributable PP lexical-English source contains wording.'
+          : 'Neither a safe verification mapping nor an approved distributable PP lexical-English gloss is available.';
+      entry.proposedAction = mapping.status === 'PROPER_NAME_SPECIAL_CASE'
+        ? 'Keep explicit unavailable and exclude from ordinary vocabulary practice pending an approved proper-name policy/source.'
+        : 'Keep explicit unavailable and exclude from practice until an independently approved distributable lexical source supports wording.';
+      entry.deterministicReleaseReview = lexeme.frequency >= 10;
+    }
+    return entry;
   });
   const reverseEntries = swanson.map(entry => {
     const mapping = mapSwansonEntry(entry, lexemes);
@@ -239,7 +342,8 @@ function buildAudit({ sourceText, vocab, glossSource, corrections }){
       swansonEntriesParsed: swanson.length, ppMapping: tally(ppEntries, 'mappingStatus'), swansonMapping: tally(reverseEntries, 'mappingStatus'),
       gloss: tally(ppEntries, 'glossStatus'), frequencyTiers: tiers,
       corrections: { stableIdentities: correction ? 1 : 0, primaryReorderings: correction ? 1 : 0, newSenses: 0, sensesDemoted: correction ? 1 : 0, sensesOmitted: 0, homonymCorrections: 0, posCorrections: 0, malformedFixes: 0, greekInEnglishIdentitiesSuppressed: ppEntries.filter(item => item.glossStatus === 'GREEK_IN_ENGLISH_FIELD').length },
-      reader: greekReaderMetrics(glossSource)
+      reader: greekReaderMetrics(glossSource, readerCorpus),
+      greekEnglishGlossCoverage: buildGreekEnglishGlossCoverage(ppEntries, readerCorpus.occurrences)
     },
     semanticChanges: correction ? [{ vocabularyId: correction.vocabularyId, lemma: 'αἴρω', frequency: lexemes.get('αἴρω')?.frequency || 0, oldEffectiveGloss: correction.expectedSourceValue, newEffectiveGloss: [...correction.correctedPrimary, ...correction.correctedAdditional].join('; '), changeType: 'PRIMARY_REORDER', reason: correction.reason, independentSupport: correction.sourceReference, swansonTriggered: true, contextualGlossInvolved: false }] : [],
     ppEntries,
@@ -256,6 +360,12 @@ function validateAudit(audit){
     if(Object.hasOwn(item, 'definition')) errors.push(`${item.vocabularyId}: raw definition distributed`);
   }
   for(const item of audit?.swansonEntries || []) if(!MAPPING_STATUSES.has(item.mappingStatus)) errors.push(`Swanson ${item.swansonEntryNumber}: invalid mapping status`);
+  const coverage = audit?.summary?.greekEnglishGlossCoverage;
+  if(coverage?.totalIdentities !== 5478 || coverage?.initialUnavailable !== 3699 || coverage?.finalTrustworthyEnglish !== 1779) errors.push('Greek English coverage totals are incomplete.');
+  if(coverage?.unavailableCanonicalIdentities !== 3699 || coverage?.unavailableCanonicalReaderTokens !== 7896) errors.push('Unavailable canonical Reader coverage is incomplete.');
+  if(coverage?.top100Unavailable?.length !== 100 || coverage?.deterministicReviewAtLeast10?.length !== 40) errors.push('Unavailable frequency review is incomplete.');
+  const affected = (audit?.ppEntries || []).filter(item => item.glossStatus === 'GREEK_IN_ENGLISH_FIELD');
+  if(!affected.every(item => item.canonicalReaderOccurrences > 0 && item.approvedSourceDisposition && item.proposedAction)) errors.push('Unavailable PP entries lack canonical/source disposition review.');
   if(JSON.stringify(audit).includes('semantic-domain commentary')) errors.push('Unexpected raw commentary marker.');
   return errors;
 }
