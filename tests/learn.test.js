@@ -161,6 +161,16 @@ test('revealed practice cards show ordinary lexical glosses immediately and keep
   assert.equal(disclosure.hidden, false);
 });
 
+test('English-first Hebrew practice uses the corrected effective gloss as its prompt', () => {
+  const entry = { id: 'lemma:hebrew:120', lang: 'hebrew', studyForm: 'אָדָם', primaryGloss: 'man', alternateGlosses: ['mankind'], pos: 'noun' };
+  const hidden = learn.renderUnifiedVocabularyCard(entry, { cardId: 'h120', direction: 'reverse' }, false);
+  const revealed = learn.renderUnifiedVocabularyCard(entry, { cardId: 'h120', direction: 'reverse' }, true);
+  assert.match(renderedText(hidden), /English → Hebrew.*man noun/);
+  assert.doesNotMatch(renderedText(hidden), /אָדָם|ruddy/);
+  assert.match(renderedText(revealed), /English → Hebrew.*man noun Answer אָדָם/);
+  assert.doesNotMatch(renderedText(revealed), /ruddy/);
+});
+
 test('Parsing Practice presents equivalent Greek and Hebrew choices and stacks on mobile', () => {
   const html = renderPage('home');
   const styles = require('node:fs').readFileSync('styles.css', 'utf8');

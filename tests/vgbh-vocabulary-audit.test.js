@@ -95,21 +95,46 @@ test('correction manifest is stable-ID keyed and independently source-supported'
 
 test('effective resolver applies reviewed ordering and preserves personal add/replace modes', () => {
   GlossModel.setGlossCorrections(corrections);
+  const expected = {
+    113: ['lord', 'master', 'owner', 'sovereign'],
+    120: ['man', 'mankind'],
+    1571: ['also', 'even', 'again', 'likewise'],
+    1696: ['speak', 'say', 'command'],
+    2009: ['behold', 'see', 'lo'],
+    259: ['one', 'united', 'alone', 'altogether'],
+    310: ['after', 'behind', 'away from', 'the hind part'],
+    3548: ['priest', 'chief ruler', 'prince'],
+    3651: ['so', 'after that'],
+    518: ['if', 'whether', 'but', 'except', 'either', 'lo'],
+    5973: ['with', 'together with', 'among', 'accompanying', 'against'],
+    8478: ['under', 'beneath', 'instead of', 'the bottom'],
+    854: ['with', 'among', 'by', 'near', 'against', 'before'],
+    859: ['you', 'thou', 'thee']
+  };
   for (const correction of corrections.corrections) {
     const lemma = correction.vocabularyId.replace(/^lemma:hebrew:/, '');
     const resolved = GlossModel.resolveLexicalGloss({ lang: 'hebrew', lemma, ...glossSource[lemma] }, { personal: null });
     assert.equal(resolved.correction?.valid, true, correction.id);
-    assert.deepEqual(resolved.standard.primary.slice(0, correction.correctedPrimary.length), correction.correctedPrimary, correction.id);
+    assert.deepEqual(resolved.standard.all, expected[lemma], correction.id);
   }
   const word = { lang: 'hebrew', lemma: '120', ...glossSource['120'] };
   const standard = GlossModel.resolveLexicalGloss(word, { personal: null });
   const additive = GlossModel.resolveLexicalGloss(word, { personal: { mode: 'add', glosses: ['my reminder'] } });
   const replacement = GlossModel.resolveLexicalGloss(word, { personal: { mode: 'replace', glosses: ['my gloss'] } });
-  assert.deepEqual(standard.standard.all, ['man', 'mankind', 'ruddy']);
-  assert.deepEqual(additive.effective.all, ['man', 'mankind', 'ruddy', 'my reminder']);
+  assert.deepEqual(standard.standard.all, ['man', 'mankind']);
+  assert.deepEqual(additive.effective.all, ['man', 'mankind', 'my reminder']);
   assert.deepEqual(replacement.effective.all, ['my gloss']);
   assert.match(GlossModel.glossSearchText(word), /man; mankind/);
   GlossModel.setGlossCorrections({ corrections: [] });
+});
+
+test('אָדָם keeps the human noun distinct from its red verb root and proper-name identity', () => {
+  assert.equal(glossSource['119'].primaryGloss, 'be red');
+  assert.equal(glossSource['120'].primaryGloss, 'ruddy i');
+  assert.equal(glossSource['121'].primaryGloss, 'adam');
+  assert.ok(vocab.some(entry => entry.lang === 'hebrew' && entry.lemma === '119' && entry.pos === 'verb'));
+  assert.ok(vocab.some(entry => entry.lang === 'hebrew' && entry.lemma === '120' && entry.pos === 'noun'));
+  assert.ok(vocab.some(entry => entry.lang === 'hebrew' && entry.lemma === '121' && entry.pos === 'noun'));
 });
 
 test('Search, Reader, Learn, and flashcards resolve learner-facing glosses through the shared model', () => {
