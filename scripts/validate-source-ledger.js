@@ -11,12 +11,14 @@ function validateSourceLedger(){
   const interlinear = json('data/hebrew-interlinear/source-manifest.json');
   const corrections = json('data/glosses/corrections.json');
   const unavailable = json('data/glosses/unavailable-glosses.json');
+  const strongs = json('data/metadata/open-scriptures-strongs-source.json');
+  const completion = json('data/glosses/v1.9.3-greek-reviewed-completions.json');
   const required = [
     'Puritan Parser Greek lexical glosses', 'Puritan Parser Hebrew lexical glosses',
     'MorphGNT SBLGNT Edition', 'Open Scriptures Hebrew Bible', 'MACULA Hebrew Linguistic Datasets',
     'Cherith Glosses', 'STEPBible Data', 'Open English Bible', 'World English Bible',
     'The Vocabulary Guide to Biblical Hebrew and Aramaic', 'verification-only',
-    'James Swanson', 'Dictionary of Biblical Languages with Semantic Domains',
+    'James Swanson', 'Dictionary of Biblical Languages with Semantic Domains', 'Open Scriptures Strong’s',
     '47db250bd55d0d8577f2a94fba114ef16c35b23c', 'b86d26cdb1f51729e73b5b4eb7f7ccadc5dfba39'
   ];
   required.forEach(value => { if(!ledger.includes(value)) errors.push(`ledger missing ${value}`); });
@@ -36,8 +38,9 @@ function validateSourceLedger(){
     if(!item.verificationTrigger || !/verification only/i.test(item.verificationTrigger)) errors.push(`${label}: verification-only trigger required`);
     if(/VGBH|Swanson/i.test(item.sourceReference) || !/(Strong|Puritan Parser|Open Scriptures|MorphGNT|MACULA|Cherith)/i.test(item.sourceReference)) errors.push(`${label}: approved publishable source support required`);
   });
-  const unavailableRecord = unavailable.records?.find(item => item.vocabularyId === 'hb-28058');
-  if(!unavailableRecord || unavailableRecord.lemma !== 'i' || unavailableRecord.frequency !== 1) errors.push('hb-28058 unavailable record mismatch');
+  if(!Array.isArray(unavailable.records) || unavailable.records.length) errors.push('v1.9.3 requires zero unavailable lexical identities');
+  if(strongs.commit !== '0acd2f251c2d35ff8db2dece4e0593979d3ac223' || strongs.digitalLicense !== 'CC BY-SA' || strongs.rawSourceDistributed !== false) errors.push('Open Scriptures Strong’s source gate mismatch');
+  if(completion.records?.length !== 769 || completion.records.some(item => !item.sourceEntry || item.finalStatus !== 'COVERED')) errors.push('Greek completion manifest incomplete');
   return errors;
 }
 

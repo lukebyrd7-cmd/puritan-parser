@@ -82,7 +82,8 @@ function createGlossFields(item = {}) {
     glossSource: nonEmpty(item.glossSource),
     glossSourceUrl: nonEmpty(item.glossSourceUrl),
     glossLicense: nonEmpty(item.glossLicense),
-    glossAttribution: nonEmpty(item.glossAttribution)
+    glossAttribution: nonEmpty(item.glossAttribution),
+    ordinaryPracticeEligible: item.ordinaryPracticeEligible !== false
   };
 }
 

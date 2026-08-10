@@ -42,6 +42,13 @@ test('central card eligibility rejects Greek and Hebrew script used as an Englis
   assert.equal(GlossModel.isLearnerEnglishGloss('word'), true);
 });
 
+test('covered proper names remain excluded from ordinary vocabulary practice', () => {
+  const entry = { ...greek('Ἀβραάμ', 'Abraham'), ordinaryPracticeEligible: false };
+  const result = LearningPractice.validateVocabularyCard(entry, 'greek', { model: VocabularyLearning });
+  assert.equal(result.valid, false);
+  assert.equal(result.reason, 'practice-excluded');
+});
+
 test('finite focused sessions replace invalid cards and preserve the requested size when possible', () => {
   const valid = [greek('λόγος'), greek('ἀγάπη'), greek('θεός'), greek('ἄνθρωπος')];
   const invalid = [greek('1234'), greek('γραφή', '(missing gloss)')];

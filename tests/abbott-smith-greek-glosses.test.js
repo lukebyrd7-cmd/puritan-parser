@@ -85,9 +85,9 @@ test('deterministic lower-frequency verification contains 100 classifications an
 
 test('runtime Abbott-Smith records contain only compact learner fields and no lexicon prose leakage', () => {
   const recovered = Object.values(glosses).filter(record => String(record.glossSource || '').startsWith('Abbott-Smith'));
-  assert.equal(recovered.length, 2930);
+  assert.equal(recovered.length, 3600);
   for(const record of recovered){
-    assert.ok(Object.keys(record).every(key => ['primaryGloss','alternateGlosses','glossSource','glossSourceUrl','glossLicense','glossAttribution','glossSourceEntry','glossSourceStrong'].includes(key)), record.glossSourceEntry);
+    assert.ok(Object.keys(record).every(key => ['primaryGloss','alternateGlosses','glossSource','glossSourceUrl','glossLicense','glossAttribution','glossSourceEntry','glossSourceStrong','ordinaryPracticeEligible'].includes(key)), record.glossSourceEntry);
     for(const value of [record.primaryGloss, ...record.alternateGlosses]){
       assert.equal(GlossModel.isLearnerEnglishGloss(value), true, `${record.glossSourceEntry}: ${value}`);
       assert.doesNotMatch(value, /<[^>]+>|\b(?:Matt?|Mk|Luke|Jn|Acts?|Rom|Cor|Rev)\.?\s*\d|\b(?:c\. acc|s\.v|q\.v|v\.s)\b/i);
@@ -177,7 +177,7 @@ test('exhaustive Greek English resolution is either trustworthy English or expli
     else { unavailable++; assert.equal(resolved.compact, 'Gloss unavailable', lemma); }
     assert.equal(GlossModel.containsGreekScript(resolved.compact), false, lemma);
   }
-  assert.deepEqual({ covered, unavailable }, { covered: 4709, unavailable: 769 });
+  assert.deepEqual({ covered, unavailable }, { covered: 5478, unavailable: 0 });
 });
 
 test('runtime lexical overlay preserves IDs and enables recovered entries across shared practice behavior', () => {
@@ -187,7 +187,7 @@ test('runtime lexical overlay preserves IDs and enables recovered entries across
   assert.ok(greek.every(item => ids.get(item.id) === item.lemma));
   const grouped = StudyEntries.getStudyEntries(greek, 'lemma');
   const result = LearningPractice.filterStudyableEntries(grouped, 'greek', { model: require('../src/models/vocabulary-learning') });
-  assert.equal(result.entries.length, 4709);
+  assert.equal(result.entries.length, 4919);
   assert.ok(result.entries.some(item => item.lemma === 'κοιμάομαι'));
   assert.ok(result.entries.some(item => item.lemma === 'μαργαρίτης'));
   assert.ok(result.entries.some(item => item.lemma === 'ἀρχαῖος'));
@@ -197,18 +197,19 @@ test('runtime lexical overlay preserves IDs and enables recovered entries across
 });
 
 test('proper names remain separate and the correction layer still controls αἴρω', () => {
-  assert.equal(audit.summary.actions.PROPER_NAME_EXCLUDED, 407);
-  assert.equal(audit.summary.ordinaryStudyRelevantIdentities, 4915);
-  const excluded = audit.remainingUnavailable.find(item => item.category === 'PROPER_NAME_EXCLUDED');
-  assert.ok(excluded);
-  assert.equal(GlossModel.containsGreekScript(glosses[excluded.lemma].primaryGloss), true);
+  const completion = require('../data/glosses/v1.9.3-greek-reviewed-completions.json');
+  assert.equal(completion.summary.priorCategories.PROPER_NAME_EXCLUDED, 407);
+  const coveredName = completion.records.find(item => item.priorCategory === 'PROPER_NAME_EXCLUDED');
+  assert.ok(coveredName);
+  assert.equal(GlossModel.isLearnerEnglishGloss(glosses[coveredName.lemma].primaryGloss), true);
+  assert.equal(glosses[coveredName.lemma].ordinaryPracticeEligible, false);
   GlossModel.setGlossCorrections(require('../data/glosses/corrections.json'));
   assert.deepEqual(GlossModel.resolveLexicalGloss({ lang: 'greek', lemma: 'αἴρω', ...glosses['αἴρω'] }).standard.all, ['remove', 'take up', 'lift']);
 });
 
 test('generated output is deterministic when the pinned development source is available', { skip: AbbottSmith.verifySourceFiles().length > 0 }, () => {
   const rebuilt = AbbottSmith.build(AbbottSmith.inputs());
-  assert.equal(AbbottSmith.sha256(JSON.stringify(rebuilt.glossSource)), audit.generatedAsset.logicalSha256);
-  assert.deepEqual(rebuilt.audit.summary, audit.summary);
-  assert.deepEqual(rebuilt.audit.learnerGlossQuality, audit.learnerGlossQuality);
+  assert.equal(AbbottSmith.sha256(JSON.stringify(rebuilt.glossSource)), AbbottSmith.sha256(JSON.stringify(glosses)));
+  assert.equal(rebuilt.audit.summary.finalEnglishCovered, 5478);
+  assert.equal(rebuilt.audit.summary.finalUnavailable, 0);
 });

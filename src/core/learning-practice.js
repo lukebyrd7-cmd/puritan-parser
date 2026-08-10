@@ -177,6 +177,7 @@
     const language = expectedLanguage === 'hebrew' ? 'hebrew' : 'greek';
     if(!entry || typeof entry !== 'object') return { valid: false, reason: 'malformed' };
     if(clean(entry.lang).toLowerCase() !== language) return { valid: false, reason: 'wrong-language' };
+    if(entry.ordinaryPracticeEligible === false) return { valid: false, reason: 'practice-excluded' };
     const model = options.model;
     const id = clean(model?.lemmaId?.(entry) || entry.id);
     if(!id) return { valid: false, reason: 'missing-id' };
