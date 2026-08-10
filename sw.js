@@ -1,13 +1,13 @@
 // Service worker for the static Puritan Parser app.
 // Keep this file next to index.html so root-scoped registration covers every route.
-const CACHE = 'puritan-parser-v106-v1.9.2-greek-vocabulary-audit';
+const CACHE = 'puritan-parser-v107-v1.9.2-abbott-smith';
 const FILES = [
   './',
   './index.html',
   './styles.css',
-  './styles.css?v=v1.9.2-greek-vocabulary-audit-9',
+  './styles.css?v=v1.9.2-greek-vocabulary-audit-10',
   './src/main.js',
-  './src/main.js?v=v1.9.2-greek-vocabulary-audit-9',
+  './src/main.js?v=v1.9.2-greek-vocabulary-audit-10',
   './src/core/parser-core.js',
   './src/core/hebrew-search.js',
   './src/core/migrations/migrations.js',
@@ -66,7 +66,7 @@ const FILES = [
   './src/features/settings/events.js',
   './src/bootstrap.js',
   './data/metadata/content-manifest.json',
-  './data/glosses/corrections.json?v=v1.9.2-greek-vocabulary-audit-9',
+  './data/glosses/corrections.json?v=v1.9.2-greek-vocabulary-audit-10',
   './data/glosses/unavailable-glosses.json',
   './data/translations/oeb/manifest.json',
   './data/translations/web/manifest.json',

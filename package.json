@@ -12,6 +12,8 @@
     "gloss:audit": "node scripts/gloss-audit.js",
     "vgbh:audit": "node scripts/vgbh-vocabulary-audit.js",
     "greek:audit": "node scripts/swanson-greek-vocabulary-audit.js",
+    "greek:abbott-smith:download": "node scripts/download-abbott-smith.js",
+    "greek:abbott-smith:build": "node scripts/abbott-smith-greek-glosses.js --write",
     "sources:validate": "node scripts/validate-source-ledger.js",
     "reader:generate": "node scripts/generate-reader-data.js",
     "hebrew:reader:generate": "node scripts/generate-hebrew-reader-data.js",

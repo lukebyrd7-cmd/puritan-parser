@@ -1,0 +1,40 @@
+{
+  "schemaVersion": 1,
+  "source": {
+    "author": "G. Abbott-Smith",
+    "title": "A Manual Greek Lexicon of the New Testament",
+    "printEdition": "New York: Charles Scribner's Sons, 1922",
+    "digitalProject": "translatable-exegetical-tools/Abbott-Smith",
+    "release": "1.1",
+    "releaseCommit": "64fd85d",
+    "projectUrl": "https://github.com/translatable-exegetical-tools/Abbott-Smith",
+    "releaseUrl": "https://github.com/translatable-exegetical-tools/Abbott-Smith/releases/tag/1.1",
+    "license": "Public domain",
+    "licenseEvidence": "The upstream README states that abbott-smith.tei.xml, including the marked-up version in the repository, is in the public domain.",
+    "licenseUrl": "https://github.com/translatable-exegetical-tools/Abbott-Smith#license"
+  },
+  "files": [
+    {
+      "path": "data/source/abbott-smith/abbott-smith.tei.xml",
+      "url": "https://raw.githubusercontent.com/translatable-exegetical-tools/Abbott-Smith/1.1/abbott-smith.tei.xml",
+      "sha256": "6bdeda42d25d5fa3c3b0a230a6cf9e753f1ec431d0ef3613054786b427dfe323",
+      "bytes": 5722229,
+      "distributed": false
+    },
+    {
+      "path": "data/source/abbott-smith/gnt2asLookups.js",
+      "url": "https://raw.githubusercontent.com/translatable-exegetical-tools/Abbott-Smith/1.1/gnt2asLookups.js",
+      "sha256": "072d60acc2dd17a49cbaa86a8e1f63f936470486c8953fbd5fb8c7d0551ccb7d",
+      "bytes": 223305,
+      "distributed": false
+    }
+  ],
+  "transformation": {
+    "command": "npm run greek:abbott-smith:build",
+    "runtimeAsset": "data/glosses/greek-glosses.json",
+    "audit": "audits/v1.9.2-abbott-smith-import.json",
+    "rules": "Development-time TEI parsing maps PP stable lemma identities through the pinned MorphGNT lookup, admits only unambiguous ordinary lexical entries, extracts concise text from TEI gloss elements, rejects prose/citations/grammar fragments, and applies a separately reviewed manifest for all formerly unavailable 10-24 occurrence identities.",
+    "rawSourceDistributed": false,
+    "swansonWordingDistributed": false
+  }
+}

@@ -124,8 +124,8 @@ test('v1.3.1 Reference charts have consistent rows, supported labels, and langua
 
 test('v1.3.1 app shell and service worker keep Reference assets reachable without stale versioning', () => {
   const sw = fs.readFileSync('sw.js', 'utf8');
-  assert.match(sw, /puritan-parser-v106-v1\.9\.2-greek-vocabulary-audit/, 'service-worker cache version is bumped for Greek vocabulary corrections');
-  assert.match(fs.readFileSync('index.html', 'utf8'), /src\/main\.js\?v=v1\.9\.2-greek-vocabulary-audit-9/, 'startup query string is bumped with the cache');
+  assert.match(sw, /puritan-parser-v107-v1\.9\.2-abbott-smith/, 'service-worker cache version is bumped for Abbott-Smith lexical coverage');
+  assert.match(fs.readFileSync('index.html', 'utf8'), /src\/main\.js\?v=v1\.9\.2-greek-vocabulary-audit-10/, 'startup query string is bumped with the cache');
   assert.match(sw, /\.\/src\/features\/grammar\/handbook-data\.js/);
   assert.match(sw, /\.\/src\/features\/grammar\/reference-data\.js/);
   assert.match(sw, /\.\/src\/features\/grammar\/index\.js/);

@@ -8,6 +8,15 @@ async function fetchSourceJson(path){
     return j;
   } catch(e){ return null; }
 }
+async function fetchSourceObject(path){
+  try {
+    const r = await fetch(path, {cache:'no-store'});
+    if(!r.ok) throw new Error('not ok');
+    const value = await r.json();
+    if(!value || Array.isArray(value) || typeof value !== 'object') throw new Error('not object');
+    return value;
+  } catch(e){ return null; }
+}
 function normalizeSourceWord(item, lang){ return createWordEntry(Object.assign({}, item, { lang })); }
 function yieldVocabularySource(){ return new Promise(resolve => setTimeout(resolve, 0)); }
 async function normalizeVocabularySource(items, language){
@@ -33,13 +42,30 @@ async function splitVocabularySource(items){
   }
   return sources;
 }
+function applyGreekLexicalSource(items, source){
+  if(!source) return items;
+  for(const item of items || []){
+    const record = source[item.lemma];
+    if(!record) continue;
+    item.gloss = [record.primaryGloss, ...(record.alternateGlosses || [])].filter(Boolean).join(', ');
+    item.primaryGloss = record.primaryGloss || '';
+    item.alternateGlosses = Array.isArray(record.alternateGlosses) ? record.alternateGlosses.slice() : [];
+    for(const field of ['glossSource','glossSourceUrl','glossLicense','glossAttribution','glossSourceEntry','glossSourceStrong']) if(record[field]) item[field] = record[field];
+  }
+  return items;
+}
 async function loadVocabularySources(){
-  const all = await fetchSourceJson(FILE_ALL);
-  if(all && all.length) return splitVocabularySource(all);
+  const [all, greekLexicalSource] = await Promise.all([fetchSourceJson(FILE_ALL), fetchSourceObject('/data/glosses/greek-glosses.json')]);
+  if(all && all.length){
+    const sources = await splitVocabularySource(all);
+    applyGreekLexicalSource(sources.greek, greekLexicalSource);
+    return sources;
+  }
   const gf = await fetchSourceJson(FILE_GREEK);
   const hf = await fetchSourceJson(FILE_HEBREW);
   return {
-    greek: gf && gf.length ? await normalizeVocabularySource(gf, 'greek') : null,
+    greek: gf && gf.length ? applyGreekLexicalSource(await normalizeVocabularySource(gf, 'greek'), greekLexicalSource) : null,
     hebrew: hf && hf.length ? await normalizeVocabularySource(hf, 'hebrew') : null
   };
 }
+if(typeof module !== 'undefined') module.exports = { fetchSourceJson, fetchSourceObject, normalizeSourceWord, normalizeVocabularySource, splitVocabularySource, applyGreekLexicalSource, loadVocabularySources };
