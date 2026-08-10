@@ -7,6 +7,7 @@ const MANIFEST_PATH = path.join(ROOT, 'data', 'metadata', 'abbott-smith-source.j
 const REVIEW_PATH = path.join(ROOT, 'data', 'glosses', 'abbott-smith-reviewed-high-frequency.json');
 const QUALITY_REVIEW_PATH = path.join(ROOT, 'data', 'glosses', 'abbott-smith-learner-quality-review.json');
 const VERIFICATION_PATH = path.join(ROOT, 'data', 'glosses', 'abbott-smith-swanson-verification.json');
+const COMPLETION_PATH = path.join(ROOT, 'data', 'glosses', 'v1.9.3-greek-reviewed-completions.json');
 const GLOSS_PATH = path.join(ROOT, 'data', 'glosses', 'greek-glosses.json');
 const AUDIT_PATH = path.join(ROOT, 'audits', 'v1.9.2-abbott-smith-import.json');
 const PP_AUDIT_PATH = path.join(ROOT, 'audits', 'v1.9.2-greek-vocabulary-audit.json');
@@ -180,7 +181,7 @@ function frequencyTiers(entries){
     return [label, { covered, total: tier.length, percentage: tier.length ? Number((covered / tier.length * 100).toFixed(2)) : 0, unavailable: tier.length - covered }];
   }));
 }
-function build({ xml, lookupSource, glossSource, vocab, previousAudit, priorImportAudit, review, qualityReview, verification = null }){
+function build({ xml, lookupSource, glossSource, vocab, previousAudit, priorImportAudit, review, qualityReview, verification = null, completion = null }){
   const entries = parseAbbottSmith(xml); const lookup = parseMorphGntLookup(lookupSource);
   const byHeadword = new Map();
   for(const entry of entries){ if(!byHeadword.has(entry.headword)) byHeadword.set(entry.headword, []); byHeadword.get(entry.headword).push(entry); }
@@ -198,12 +199,27 @@ function build({ xml, lookupSource, glossSource, vocab, previousAudit, priorImpo
     : (verification?.records || []).map(item => Array.isArray(item) ? { vocabularyId: item[0], classification: item[1] } : item);
   const verificationById = new Map(verificationRecords.map(item => [item.vocabularyId, item]));
   const oldByLemma = new Map(previousAudit.ppEntries.map(item => [item.lemma, item]));
+  const completionById = new Map((completion?.records || []).map(item => [item.vocabularyId, item]));
   const identityRows = Array.from(new Map(vocab.filter(item => item.lang === 'greek').map(item => [item.lemma, null])).keys()).map(lemma => {
     const old = oldByLemma.get(lemma); return { lemma, vocabularyId: `lemma:greek:${lemma}`, frequency: old.frequency, partOfSpeech: old.partOfSpeech || [], properName: old.mappingStatus === 'PROPER_NAME_SPECIAL_CASE' };
   }).sort((a,b) => b.frequency - a.frequency || a.lemma.localeCompare(b.lemma, 'el'));
   const output = {}; const decisions = [];
   for(const identity of identityRows){
     const current = glossSource[identity.lemma] || {};
+    const completed = completionById.get(identity.vocabularyId);
+    if(completed){
+      const strongs = require(path.join(ROOT, 'data', 'metadata', 'open-scriptures-strongs-source.json'));
+      output[identity.lemma] = {
+        primaryGloss: completed.primaryGloss, alternateGlosses: completed.alternateGlosses,
+        glossSource: completed.provenanceSourceKey === 'ABBOTT_SMITH' ? SOURCE_NAME : strongs.source,
+        glossSourceUrl: completed.provenanceSourceKey === 'ABBOTT_SMITH' ? require(MANIFEST_PATH).source.projectUrl : strongs.repository,
+        glossLicense: completed.provenanceSourceKey === 'ABBOTT_SMITH' ? 'Public domain' : strongs.digitalLicense,
+        glossAttribution: completed.provenanceSourceKey === 'ABBOTT_SMITH' ? 'G. Abbott-Smith; TEI transcription by the Abbott-Smith project' : 'James Strong; Open Scriptures digital edition',
+        glossSourceEntry: completed.sourceEntry, ordinaryPracticeEligible: completed.ordinaryPracticeEligible
+      };
+      decisions.push({ ...identity, covered: true, action: 'RECOVERED_V1_9_3_REVIEWED', reason: 'Reviewed completion manifest supported by approved distributable lexical sources.', abbottSmithIdentity: completed.provenanceSourceKey === 'ABBOTT_SMITH' ? completed.sourceEntry : '', strong: Number(String(completed.sourceEntry).replace(/^G/, '')) || null, initialLearnerGloss: '', extractedLearnerGloss: [completed.primaryGloss, ...completed.alternateGlosses].join('; '), qualityInitialFlags: [], qualityFinalFlags: [], automaticallyNormalized: false, manuallyCorrected: true, identityConfidence: completed.mappingConfidence, swansonVerification: completed.privateVerification });
+      continue;
+    }
     if(identity.lemma === 'ἄγνωστος'){
       const selected = (byHeadword.get('ἄγνωστος') || [])[0];
       if(!selected || !selected.glosses.some(value => clean(value).toLowerCase() === 'unknown')) throw new Error('lemma:greek:ἄγνωστος: Abbott-Smith no longer supports the literal English normalization');
@@ -345,7 +361,8 @@ function inputs(){
   return {
     xml: fs.readFileSync(paths['abbott-smith.tei.xml'], 'utf8'), lookupSource: fs.readFileSync(paths['gnt2asLookups.js'], 'utf8'),
     glossSource: require(GLOSS_PATH), vocab: require(path.join(ROOT, 'vocab_all.json')), previousAudit: require(PP_AUDIT_PATH), priorImportAudit: require(AUDIT_PATH),
-    review: require(REVIEW_PATH), qualityReview: require(QUALITY_REVIEW_PATH), verification: fs.existsSync(VERIFICATION_PATH) ? require(VERIFICATION_PATH) : null
+    review: require(REVIEW_PATH), qualityReview: require(QUALITY_REVIEW_PATH), verification: fs.existsSync(VERIFICATION_PATH) ? require(VERIFICATION_PATH) : null,
+    completion: fs.existsSync(COMPLETION_PATH) ? require(COMPLETION_PATH) : null
   };
 }
 function main(){
@@ -353,9 +370,9 @@ function main(){
   const result = build(inputs());
   if(process.argv.includes('--write')){
     fs.writeFileSync(GLOSS_PATH, `${JSON.stringify(result.glossSource, null, 2)}\n`);
-    fs.writeFileSync(AUDIT_PATH, `${JSON.stringify(result.audit, null, 2)}\n`);
-    console.log(`Wrote ${path.relative(ROOT, GLOSS_PATH)} and ${path.relative(ROOT, AUDIT_PATH)}; recovered ${result.audit.summary.newlyRecovered}.`);
+    if(!fs.existsSync(COMPLETION_PATH)) fs.writeFileSync(AUDIT_PATH, `${JSON.stringify(result.audit, null, 2)}\n`);
+    console.log(`Wrote ${path.relative(ROOT, GLOSS_PATH)}; covered ${result.audit.summary.finalEnglishCovered}/${result.audit.summary.totalIdentities}.`);
   } else console.log(JSON.stringify(result.audit.summary, null, 2));
 }
 if(require.main === module) main();
-module.exports = { QUALITY_CLASSIFICATIONS, clean, foldGreek, verifySourceFiles, parseAbbottSmith, parseMorphGntLookup, modernizeLearnerCandidate, learnerCandidates, automaticGloss, qualityFlags, stratifiedSample, build, inputs, sha256 };
+module.exports = { QUALITY_CLASSIFICATIONS, clean, foldGreek, verifySourceFiles, parseAbbottSmith, parseMorphGntLookup, modernizeLearnerCandidate, normalizeLearnerCandidate, learnerCandidates, automaticGloss, qualityFlags, stratifiedSample, build, inputs, sha256 };

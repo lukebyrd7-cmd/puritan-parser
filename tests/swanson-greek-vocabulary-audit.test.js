@@ -100,23 +100,18 @@ test('English-gloss validation rejects Greek, Hebrew, identifiers, and morpholog
   for(const value of ['word', 'take away', 'Jesus', 'you (sg.)', 'non-Greek']) assert.equal(GlossModel.isLearnerEnglishGloss(value), true, value);
 });
 
-test('all remaining unavailable Greek standard fields resolve explicitly with no Greek fallback', () => {
+test('the completed Greek standard fields contain learner-facing English with no Greek fallback', () => {
   const contaminated = Object.entries(greekGlosses).filter(([, record]) => GlossModel.containsGreekScript(record.primaryGloss));
-  assert.equal(contaminated.length, 769);
-  for(const [lemma, record] of contaminated){
-    const resolved = GlossModel.resolveLexicalGloss({ lang: 'greek', lemma, ...record }, { missingLabel: 'Gloss unavailable' });
-    assert.equal(resolved.standard.available, false, lemma);
-    assert.equal(resolved.standard.compact, 'Gloss unavailable', lemma);
-    assert.equal(GlossModel.containsGreekScript(resolved.standard.compact), false, lemma);
-  }
+  assert.deepEqual(contaminated, []);
+  assert.equal(Object.values(greekGlosses).filter(record => !GlossModel.isLearnerEnglishGloss(record.primaryGloss)).length, 0);
 });
 
-test('all remaining unavailable Greek identities are excluded at the shared practice eligibility boundary', () => {
+test('Greek proper names are excluded at the shared ordinary-practice eligibility boundary', () => {
   const vocab = require('../vocab_all.json').filter(entry => entry.lang === 'greek').map(entry => ({ ...entry, ...(greekGlosses[entry.lemma] || {}) }));
   const grouped = StudyEntries.getStudyEntries(vocab, 'lemma');
   const result = LearningPractice.filterStudyableEntries(grouped, 'greek', { model: VocabularyLearning });
-  assert.equal(result.entries.length, 4709);
-  assert.equal(result.diagnostics.reasons['missing-gloss'], 769);
+  assert.equal(result.entries.length, 4919);
+  assert.equal(result.diagnostics.reasons['practice-excluded'], 559);
   assert.equal(result.entries.some(entry => GlossModel.containsGreekScript(entry.primaryGloss)), false);
 });
 
@@ -175,7 +170,7 @@ test('the runtime correction manifest is cache-busted with the startup asset ver
   const loader = fs.readFileSync(path.join(ROOT, 'src/core/data-loader.js'), 'utf8');
   const sw = fs.readFileSync(path.join(ROOT, 'sw.js'), 'utf8');
   assert.match(loader, /corrections\.json\$\{version\}/);
-  assert.match(sw, /corrections\.json\?v=v1\.9\.2-greek-vocabulary-audit-10/);
+  assert.match(sw, /corrections\.json\?v=v1\.9\.3-bilingual-lexical-completion-1/);
 });
 
 test('Search, Learn, flashcards, Reader, Word Page, Custom Deck, and Needs attention retain the shared resolver path', () => {

@@ -59,7 +59,20 @@ test('the available private source parses all 1,903 entries and reproduces the c
     manualReview,
     sourceSha256: crypto.createHash('sha256').update(sourceText).digest('hex')
   });
-  assert.deepEqual(regenerated, audit);
+  assert.deepEqual(regenerated.summary, audit.summary);
+  assert.deepEqual(regenerated.source, audit.source);
+  let sanitizedGlossChanges = 0;
+  regenerated.entries.forEach((entry, index) => {
+    const historical = audit.entries[index];
+    const currentComparable = { ...entry }; const historicalComparable = { ...historical };
+    for(const field of ['ppCurrentGloss','ppSourceGloss']){ delete currentComparable[field]; delete historicalComparable[field]; }
+    assert.deepEqual(currentComparable, historicalComparable, `VGBH #${entry.vgbhNumber}`);
+    if(entry.ppCurrentGloss !== historical.ppCurrentGloss || entry.ppSourceGloss !== historical.ppSourceGloss){
+      sanitizedGlossChanges += 1;
+      assert.doesNotMatch(`${entry.ppCurrentGloss || ''}; ${entry.ppSourceGloss || ''}`, /\b(?:see also|see|compare|marg\. for)\s+H\d+/i);
+    }
+  });
+  assert.ok(sanitizedGlossChanges > 0);
 });
 
 test('stable-ID mapping keeps the two high-frequency אֵת homonyms distinct', () => {
@@ -132,7 +145,7 @@ test('effective resolver applies reviewed ordering and preserves personal add/re
 
 test('אָדָם keeps the human noun distinct from its red verb root and proper-name identity', () => {
   assert.equal(glossSource['119'].primaryGloss, 'be red');
-  assert.equal(glossSource['120'].primaryGloss, 'ruddy i');
+  assert.equal(glossSource['120'].primaryGloss, 'man');
   assert.equal(glossSource['121'].primaryGloss, 'adam');
   assert.ok(vocab.some(entry => entry.lang === 'hebrew' && entry.lemma === '119' && entry.pos === 'verb'));
   assert.ok(vocab.some(entry => entry.lang === 'hebrew' && entry.lemma === '120' && entry.pos === 'noun'));

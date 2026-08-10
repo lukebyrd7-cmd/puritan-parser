@@ -51,6 +51,7 @@ function applyGreekLexicalSource(items, source){
     item.primaryGloss = record.primaryGloss || '';
     item.alternateGlosses = Array.isArray(record.alternateGlosses) ? record.alternateGlosses.slice() : [];
     for(const field of ['glossSource','glossSourceUrl','glossLicense','glossAttribution','glossSourceEntry','glossSourceStrong']) if(record[field]) item[field] = record[field];
+    if(record.ordinaryPracticeEligible === false) item.ordinaryPracticeEligible = false;
   }
   return items;
 }

@@ -123,7 +123,7 @@ test('Hebrew gloss source covers every lemma with aggregate frequency 5 through 
 });
 
 
-test('Hebrew gloss source covers reviewed lemmas with aggregate frequency 1 through 4', () => {
+test('Hebrew gloss source covers every lemma with aggregate frequency 1 through 4', () => {
   const vocab = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'vocab_all.json'), 'utf8'));
   const glosses = loadHebrewGlossSource();
   const lemmaFreq = new Map();
@@ -136,5 +136,5 @@ test('Hebrew gloss source covers reviewed lemmas with aggregate frequency 1 thro
     .filter(([lemma]) => !glosses.has(`hebrew\u0001${lemma}`))
     .map(([lemma, freq]) => `${lemma} (${freq})`);
 
-  assert.deepEqual(missingFrequencyBand, ['i (1)']);
+  assert.deepEqual(missingFrequencyBand, []);
 });

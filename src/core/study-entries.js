@@ -85,6 +85,7 @@
       primaryGloss,
       alternateGlosses,
       gloss: primaryGloss,
+      ordinaryPracticeEligible: !originals.some(entry => entry?.ordinaryPracticeEligible === false),
       customGloss: clean(representative?.customGloss),
       freq,
       forms,
