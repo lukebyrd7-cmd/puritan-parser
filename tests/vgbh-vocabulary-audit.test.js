@@ -75,17 +75,19 @@ test('stable-ID mapping keeps the two high-frequency אֵת homonyms distinct', 
 test('manual review covers the top 100 and every applied correction', () => {
   assert.deepEqual(manualReview.reviewedEntryRanges, [[1, 100]]);
   assert.ok(audit.entries.slice(0, 100).every(entry => entry.manualReviewCompleted));
+  const hebrewCorrections = corrections.corrections.filter(correction => correction.language === 'hebrew');
   const corrected = audit.entries.filter(entry => entry.correctionId);
-  assert.equal(new Set(corrected.map(entry => entry.correctionId)).size, corrections.corrections.length);
-  for (const correction of corrections.corrections) {
+  assert.equal(new Set(corrected.map(entry => entry.correctionId)).size, hebrewCorrections.length);
+  for (const correction of hebrewCorrections) {
     const trigger = Number(correction.verificationTrigger.match(/entry (\d+)/)?.[1]);
     assert.equal(audit.entries[trigger - 1].manualReviewCompleted, true);
   }
 });
 
 test('correction manifest is stable-ID keyed and independently source-supported', () => {
-  assert.equal(corrections.corrections.length, 14);
-  for (const correction of corrections.corrections) {
+  const hebrewCorrections = corrections.corrections.filter(correction => correction.language === 'hebrew');
+  assert.equal(hebrewCorrections.length, 14);
+  for (const correction of hebrewCorrections) {
     assert.match(correction.vocabularyId, /^lemma:hebrew:\S+$/);
     assert.match(correction.sourceReference, /Strong’s Hebrew Dictionary \(1890\), H\d+/);
     assert.doesNotMatch(correction.sourceReference, /VGBH/i);
@@ -111,7 +113,7 @@ test('effective resolver applies reviewed ordering and preserves personal add/re
     854: ['with', 'among', 'by', 'near', 'against', 'before'],
     859: ['you', 'thou', 'thee']
   };
-  for (const correction of corrections.corrections) {
+  for (const correction of corrections.corrections.filter(item => item.language === 'hebrew')) {
     const lemma = correction.vocabularyId.replace(/^lemma:hebrew:/, '');
     const resolved = GlossModel.resolveLexicalGloss({ lang: 'hebrew', lemma, ...glossSource[lemma] }, { personal: null });
     assert.equal(resolved.correction?.valid, true, correction.id);

@@ -16,6 +16,7 @@ function validateSourceLedger(){
     'MorphGNT SBLGNT Edition', 'Open Scriptures Hebrew Bible', 'MACULA Hebrew Linguistic Datasets',
     'Cherith Glosses', 'STEPBible Data', 'Open English Bible', 'World English Bible',
     'The Vocabulary Guide to Biblical Hebrew and Aramaic', 'verification-only',
+    'James Swanson', 'Dictionary of Biblical Languages with Semantic Domains',
     '47db250bd55d0d8577f2a94fba114ef16c35b23c', 'b86d26cdb1f51729e73b5b4eb7f7ccadc5dfba39'
   ];
   required.forEach(value => { if(!ledger.includes(value)) errors.push(`ledger missing ${value}`); });
@@ -33,7 +34,7 @@ function validateSourceLedger(){
     ['vocabularyId','language','expectedSourceValue','reason','sourceReference','manifestVersion'].forEach(field => { if(!item[field]) errors.push(`${label}: missing ${field}`); });
     if(!Array.isArray(item.correctedPrimary) || !item.correctedPrimary.length) errors.push(`${label}: correctedPrimary required`);
     if(!item.verificationTrigger || !/verification only/i.test(item.verificationTrigger)) errors.push(`${label}: verification-only trigger required`);
-    if(/VGBH/i.test(item.sourceReference) || !/(Strong|Puritan Parser|Open Scriptures|MACULA|Cherith)/i.test(item.sourceReference)) errors.push(`${label}: approved publishable source support required`);
+    if(/VGBH|Swanson/i.test(item.sourceReference) || !/(Strong|Puritan Parser|Open Scriptures|MorphGNT|MACULA|Cherith)/i.test(item.sourceReference)) errors.push(`${label}: approved publishable source support required`);
   });
   const unavailableRecord = unavailable.records?.find(item => item.vocabularyId === 'hb-28058');
   if(!unavailableRecord || unavailableRecord.lemma !== 'i' || unavailableRecord.frequency !== 1) errors.push('hb-28058 unavailable record mismatch');

@@ -12,7 +12,8 @@ async function ensureSrsInChunks(items = []){
 }
 async function loadData(){
   try {
-    const response = await fetch('/data/glosses/corrections.json');
+    const version = typeof PURITAN_PARSER_ASSET_VERSION === 'string' ? `?v=${PURITAN_PARSER_ASSET_VERSION}` : '';
+    const response = await fetch(`/data/glosses/corrections.json${version}`);
     if(response.ok && typeof GlossModel !== 'undefined') GlossModel.setGlossCorrections(await response.json());
   } catch(error) { console.warn('Gloss correction manifest unavailable; source glosses remain active.', error); }
   const sources = await loadVocabularySources();
