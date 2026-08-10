@@ -6,6 +6,7 @@ const path = require('node:path');
 const ROOT = path.resolve(__dirname, '..');
 const manifest = require('../data/metadata/abbott-smith-source.json');
 const review = require('../data/glosses/abbott-smith-reviewed-high-frequency.json');
+const qualityReview = require('../data/glosses/abbott-smith-learner-quality-review.json');
 const verification = require('../data/glosses/abbott-smith-swanson-verification.json');
 const glosses = require('../data/glosses/greek-glosses.json');
 const audit = require('../audits/v1.9.2-abbott-smith-import.json');
@@ -35,6 +36,8 @@ test('TEI parser retains identity signals, senses, alternates, cross references,
   assert.equal(entries.length, 2);
   assert.deepEqual({ headword: entries[0].headword, normalized: entries[0].normalizedHeadword, strong: entries[0].strong, pos: entries[0].pos }, { headword: 'λόγος', normalized: 'λογος', strong: 3056, pos: 'noun' });
   assert.deepEqual(entries[0].glosses, ['word']);
+  assert.deepEqual(entries[0].lexicalGlosses, ['word']);
+  assert.deepEqual(entries[0].etymologyGlosses, []);
   assert.deepEqual(entries[0].alternateForms, ['λόγον']);
   assert.deepEqual(entries[0].crossReferences, ['λέγω']);
   assert.equal(entries[0].homonymCount, 2);
@@ -42,8 +45,17 @@ test('TEI parser retains identity signals, senses, alternates, cross references,
 
 test('learner extraction admits concise English and rejects prose, citations, and grammatical commentary', () => {
   assert.deepEqual(AbbottSmith.learnerCandidates({ glosses: ['to sleep', 'Mt 1:1', 'c. acc.', 'its wall had jasper built into it', 'fall asleep'] }), ['sleep', 'fall asleep']);
+  assert.deepEqual(AbbottSmith.learnerCandidates({ glosses: ["to defend one's self", 'to practise', 'upon', 'S. properly so-called'] }), ['defend oneself', 'practice']);
   assert.equal(AbbottSmith.automaticGloss({ glosses: ['word', 'message'] }).status, 'RECOVERED_AUTOMATIC');
   assert.equal(AbbottSmith.automaticGloss({ glosses: ['alpha', 'beta', 'gamma', 'delta', 'epsilon'] }).status, 'EXTRACTION_UNSAFE');
+});
+
+test('sense-level glosses outrank derivational gloss fragments', () => {
+  const fixture = `<entry n="φιμόω|G5392"><form><orth>φιμόω</orth></form><etym><gloss>a muzzle</gloss></etym><sense><gloss>to muzzle</gloss><gloss>to silence</gloss></sense></entry>`;
+  const [entry] = AbbottSmith.parseAbbottSmith(fixture);
+  assert.deepEqual(entry.etymologyGlosses, ['a muzzle']);
+  assert.deepEqual(entry.lexicalGlosses, ['to muzzle', 'to silence']);
+  assert.deepEqual(AbbottSmith.learnerCandidates(entry), ['muzzle', 'silence']);
 });
 
 test('all 40 high-frequency identities are stable-ID mapped, source-traceable, manually ordered, and recovered', () => {
@@ -79,9 +91,81 @@ test('runtime Abbott-Smith records contain only compact learner fields and no le
     for(const value of [record.primaryGloss, ...record.alternateGlosses]){
       assert.equal(GlossModel.isLearnerEnglishGloss(value), true, `${record.glossSourceEntry}: ${value}`);
       assert.doesNotMatch(value, /<[^>]+>|\b(?:Matt?|Mk|Luke|Jn|Acts?|Rom|Cor|Rev)\.?\s*\d|\b(?:c\. acc|s\.v|q\.v|v\.s)\b/i);
+      assert.doesNotMatch(value, /set at nought|put asunder|one['’]s self|\b(?:lit\.?|literally)\b|s\. properly|Strong['’]?s|\bG\d{2,}\b/i);
       assert.ok(value.length <= 56, value);
     }
   }
+});
+
+test('all 2,930 recoveries receive deterministic learner-quality classification and completed review', () => {
+  const quality = audit.learnerGlossQuality;
+  assert.equal(quality.totalRecoveredIdentities, 2930);
+  assert.deepEqual(quality.initialClassificationTotals, {
+    GOOD_LEARNER_GLOSS: 2719,
+    ARCHAIC_WORDING: 56,
+    ARCHAIC_SPELLING: 32,
+    LEXICOGRAPHICAL_PROSE: 9,
+    PRIMARY_ORDER_PROBLEM: 29,
+    OVERLY_LONG: 8,
+    REDUNDANT_SENSES: 37,
+    ROOT_OR_ETYMOLOGY_LANGUAGE: 89,
+    IDIOM_AS_LEXICAL: 13,
+    ODD_REFLEXIVE_WORDING: 1,
+    SOURCE_METADATA_LEAKAGE: 1,
+    PUNCTUATION_OR_FORMATTING: 14,
+    POSSIBLE_SEMANTIC_PROBLEM: 8,
+    NEEDS_HUMAN_REVIEW: 0
+  });
+  assert.deepEqual(quality.finalClassificationTotals, Object.fromEntries([
+    ['GOOD_LEARNER_GLOSS', 2930],
+    ...AbbottSmith.QUALITY_CLASSIFICATIONS.filter(value => value !== 'GOOD_LEARNER_GLOSS').map(value => [value, 0])
+  ]));
+  assert.equal(quality.automaticallyNormalizedIdentities, 113);
+  assert.equal(quality.manuallyCorrectedIdentities, 99);
+  assert.equal(quality.primarySensesReordered, 30);
+  assert.equal(quality.duplicateOrArchaicSensesRemoved, 82);
+  assert.equal(quality.identitiesReturnedToUnavailable, 0);
+  assert.equal(quality.allFlaggedManualReviewCompleted, true);
+  assert.equal(audit.learnerGlossQualityRecords.length, 2930);
+  assert.ok(audit.learnerGlossQualityRecords.every(item => item.manualReviewCompleted && item.finalClassifications.length === 1 && item.finalClassifications[0] === 'GOOD_LEARNER_GLOSS'));
+});
+
+test('stratified 2-9 and hapax samples each contain 100 manually reviewed identities across parts of speech', () => {
+  for(const [name, sample] of Object.entries(audit.learnerGlossQuality.samples)){
+    assert.equal(sample.length, 100, name);
+    assert.equal(new Set(sample.map(item => item.vocabularyId)).size, 100, name);
+    assert.ok(sample.every(item => item.manualReviewCompleted), name);
+    assert.ok(new Set(sample.flatMap(item => item.partOfSpeech)).size >= 5, name);
+    if(name === 'frequency2To9') assert.ok(sample.every(item => item.frequency >= 2 && item.frequency <= 9));
+    else assert.ok(sample.every(item => item.frequency === 1));
+  }
+  assert.equal(qualityReview.samples.frequency2To9.manualReviewCompleted, true);
+  assert.equal(qualityReview.samples.hapax.manualReviewCompleted, true);
+});
+
+test('known learner-quality cases retain meaning with modern concise presentation', () => {
+  const resolved = lemma => GlossModel.resolveLexicalGloss({ lang: 'greek', lemma, ...glosses[lemma] }).standard.all;
+  assert.deepEqual(resolved('ἐξουθενέω'), ['despise utterly', 'treat with contempt']);
+  assert.deepEqual(resolved('χωρίζω'), ['separate', 'divide']);
+  assert.deepEqual(resolved('ἀπολογέομαι'), ['defend oneself']);
+  assert.deepEqual(resolved('ὀνειδίζω'), ['reproach']);
+  assert.deepEqual(resolved('νομίζω'), ['consider', 'suppose', 'practice']);
+  assert.deepEqual(resolved('κοιμάομαι'), ['fall asleep', 'put to sleep']);
+  assert.deepEqual(resolved('κατέχω'), ['restrain', 'hold fast', 'possess']);
+  assert.deepEqual(resolved('ἀπολαμβάνω'), ['receive from', 'receive back', 'take aside']);
+  assert.deepEqual(resolved('σιωπάω'), ['be silent or still']);
+  assert.deepEqual(resolved('φιμόω'), ['muzzle', 'silence']);
+  assert.deepEqual(resolved('παραβάτης'), ['a transgressor']);
+  assert.deepEqual(resolved('χειραγωγός'), ['a guide', 'leading by the hand']);
+});
+
+test('Swanson remains a wording-free safety check with no proposed correction vetoed', () => {
+  const safety = audit.learnerGlossQuality.swansonSafetyChecks;
+  assert.equal(safety.identitiesChecked, 13);
+  assert.equal(safety.vetoes, 0);
+  assert.equal(safety.wordingCopied, false);
+  assert.equal(safety.results.length, 13);
+  assert.ok(safety.results.every(row => row.length === 2 && row[0].startsWith('lemma:greek:')));
 });
 
 test('exhaustive Greek English resolution is either trustworthy English or explicit unavailable', () => {
@@ -126,4 +210,5 @@ test('generated output is deterministic when the pinned development source is av
   const rebuilt = AbbottSmith.build(AbbottSmith.inputs());
   assert.equal(AbbottSmith.sha256(JSON.stringify(rebuilt.glossSource)), audit.generatedAsset.logicalSha256);
   assert.deepEqual(rebuilt.audit.summary, audit.summary);
+  assert.deepEqual(rebuilt.audit.learnerGlossQuality, audit.learnerGlossQuality);
 });

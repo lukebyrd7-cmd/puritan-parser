@@ -33,7 +33,8 @@
     "command": "npm run greek:abbott-smith:build",
     "runtimeAsset": "data/glosses/greek-glosses.json",
     "audit": "audits/v1.9.2-abbott-smith-import.json",
-    "rules": "Development-time TEI parsing maps PP stable lemma identities through the pinned MorphGNT lookup, admits only unambiguous ordinary lexical entries, extracts concise text from TEI gloss elements, rejects prose/citations/grammar fragments, and applies a separately reviewed manifest for all formerly unavailable 10-24 occurrence identities.",
+    "learnerQualityReview": "data/glosses/abbott-smith-learner-quality-review.json",
+    "rules": "Development-time TEI parsing maps PP stable lemma identities through the pinned MorphGNT lookup, admits only unambiguous ordinary lexical entries, prefers lexical-sense glosses over derivational gloss fragments, rejects prose/citations/grammar fragments, applies deterministic spelling and formatting normalization, and applies small reviewed manifests for high-frequency and learner-quality corrections.",
     "rawSourceDistributed": false,
     "swansonWordingDistributed": false
   }

@@ -1,6 +1,6 @@
 // Service worker for the static Puritan Parser app.
 // Keep this file next to index.html so root-scoped registration covers every route.
-const CACHE = 'puritan-parser-v107-v1.9.2-abbott-smith';
+const CACHE = 'puritan-parser-v108-v1.9.2-greek-gloss-quality';
 const FILES = [
   './',
   './index.html',
