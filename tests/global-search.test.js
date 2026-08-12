@@ -308,7 +308,7 @@ test('Global Search renders in the app shell without the optional global DOM hel
   assert.match(html, /id="globalSearchInput"/);
   assert.match(html, /Greek/);
   assert.match(html, /Hebrew/);
-  assert.equal(elements.get('globalSearchSummary').textContent, 'Preparing vocabulary search…');
+  assert.equal(elements.get('globalSearchSummary').textContent, 'Preparing search…');
   assert.ok(elements.get('globalSearchInput').listeners.input === undefined || typeof elements.get('globalSearchInput').focus !== 'undefined' || elements.get('globalSearchInput'));
 
   elements.get('globalSearchInput').value = 'love';

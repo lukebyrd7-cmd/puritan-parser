@@ -136,22 +136,29 @@ test('smoke: service worker precaches every startup module from src/main.js', ()
   const main = fs.readFileSync('src/main.js', 'utf8');
   const sw = fs.readFileSync('sw.js', 'utf8');
   const startupScripts = [...main.matchAll(/'(src\/[^']+\.js)'/g)].map(match => `./${match[1]}`);
-  const missing = startupScripts.filter(script => !sw.includes(`'${script}'`));
+  const missing = startupScripts.filter(script => !sw.includes(`'${script.slice(2)}'`));
   assert.deepEqual(missing, []);
+  assert.match(sw, /STARTUP_SCRIPT_PATHS\.map\(path => `\.\/\$\{path\}\?v=\$\{APP_VERSION\}`\)/);
 });
 
-test('smoke: service worker keeps large JSON out of the install precache', () => {
+test('smoke: service worker deterministically installs required runtime JSON in batches', () => {
   const sw = fs.readFileSync('sw.js', 'utf8');
-  assert.doesNotMatch(sw, /'\.\/vocab_all\.json'/);
+  assert.match(sw, /'\.\/vocab_all\.json'/);
+  assert.match(sw, /expandOfflineDataFiles/);
+  assert.match(sw, /chapterPaths\(interlinear, 'data\/hebrew-interlinear'\)/);
+  assert.match(sw, /translationChapterPaths\(oeb/);
+  assert.match(sw, /translationChapterPaths\(web/);
+  assert.match(sw, /CACHE_BATCH_SIZE = 24/);
   assert.match(sw, /url\.pathname\.endsWith\('\.json'\)/);
-  assert.match(sw, /cache\.put\(evt\.request, copy\)/);
+  assert.match(sw, /cacheFirst\(event\.request, \{ ignoreSearch: isCoreOfflineData/);
 });
 
 test('smoke: versioned startup assets cannot match an older query version', () => {
   const sw = fs.readFileSync('sw.js', 'utf8');
-  assert.match(sw, /const isVersionedStartupAsset = url\.searchParams\.has\('v'\)/);
-  assert.match(sw, /ignoreSearch: !isVersionedStartupAsset/);
-  assert.doesNotMatch(sw, /cache\.put\([^)]*(?:404|failed)/);
+  assert.match(sw, /const APP_VERSION = 'v1\.9\.4-pwa-offline-reliability-2'/);
+  assert.match(sw, /STARTUP_SCRIPT_PATHS\.map\(path => `\.\/\$\{path\}\?v=\$\{APP_VERSION\}`\)/);
+  assert.doesNotMatch(sw, /cacheFirst\(event\.request, \{ ignoreSearch: true \}\)/);
+  assert.match(sw, /if \(!response \|\| !response\.ok\) throw new Error/);
 });
 
 test('smoke: Vercel rewrites deep links to the app shell', () => {
@@ -168,15 +175,15 @@ test('smoke: nested hard refreshes resolve startup assets from the app root', ()
   const main = fs.readFileSync('src/main.js', 'utf8');
   const events = fs.readFileSync('src/features/settings/events.js', 'utf8');
   const sw = fs.readFileSync('sw.js', 'utf8');
-  assert.match(html, /href="\/styles\.css\?v=v1\.9\.3-bilingual-lexical-completion-1"/);
-  assert.match(html, /src="\/src\/main\.js\?v=v1\.9\.3-bilingual-lexical-completion-1"/);
+  assert.match(html, /href="\/styles\.css\?v=v1\.9\.4-pwa-offline-reliability-2"/);
+  assert.match(html, /src="\/src\/main\.js\?v=v1\.9\.4-pwa-offline-reliability-2"/);
   assert.match(main, /const rootPath = src\.startsWith\('\/'\) \? src : `\/\$\{src\}`/);
   assert.match(main, /script\.src = `\$\{rootPath\}\?v=\$\{PURITAN_PARSER_ASSET_VERSION\}`/);
-  assert.match(main, /PURITAN_PARSER_ASSET_VERSION = 'v1\.9\.3-bilingual-lexical-completion-1'/);
+  assert.match(main, /PURITAN_PARSER_ASSET_VERSION = 'v1\.9\.4-pwa-offline-reliability-2'/);
   assert.match(main, /PURITAN_SCRIPT_LOAD_TIMEOUT_MS = 9000/);
   assert.match(main, /puritanLoadedScripts\.delete\(src\)/);
   assert.match(main, /serviceWorker\.register\('\/sw\.js'\)/);
-  assert.match(sw, /'\.\/styles\.css\?v=v1\.9\.3-bilingual-lexical-completion-1'/);
-  assert.match(sw, /'\.\/src\/main\.js\?v=v1\.9\.3-bilingual-lexical-completion-1'/);
-  assert.match(sw, /ignoreSearch: !isVersionedStartupAsset/);
+  assert.match(sw, /`\.\/styles\.css\?v=\$\{APP_VERSION\}`/);
+  assert.match(sw, /STARTUP_SCRIPT_PATHS\.map\(path => `\.\/\$\{path\}\?v=\$\{APP_VERSION\}`\)/);
+  assert.match(sw, /event\.request\.mode === 'navigate'/);
 });

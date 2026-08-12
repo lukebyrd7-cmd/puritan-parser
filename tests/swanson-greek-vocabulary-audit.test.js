@@ -170,7 +170,7 @@ test('the runtime correction manifest is cache-busted with the startup asset ver
   const loader = fs.readFileSync(path.join(ROOT, 'src/core/data-loader.js'), 'utf8');
   const sw = fs.readFileSync(path.join(ROOT, 'sw.js'), 'utf8');
   assert.match(loader, /corrections\.json\$\{version\}/);
-  assert.match(sw, /corrections\.json\?v=v1\.9\.3-bilingual-lexical-completion-1/);
+  assert.match(sw, /corrections\.json\?v=\$\{APP_VERSION\}/);
 });
 
 test('Search, Learn, flashcards, Reader, Word Page, Custom Deck, and Needs attention retain the shared resolver path', () => {
