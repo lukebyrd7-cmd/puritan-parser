@@ -25,7 +25,11 @@ function startAppDataLoad(){
   appDataPromise = loadData().then(() => {
     appDataReady = true;
     refreshActiveViewAfterData();
+    window.PuritanRuntimePreparation?.scheduleWarmup?.();
     return state.data;
+  }).catch(error => {
+    appDataPromise = null;
+    throw error;
   });
   return appDataPromise;
 }

@@ -741,8 +741,9 @@ async function ensureLearnVocabularyGlossMap(language){
   if(normalized === 'greek') return null;
   if(learnState.glossMaps[normalized]) return learnState.glossMaps[normalized];
   if(!learnState.glossMapPromises[normalized]){
-    learnState.glossMapPromises[normalized] = fetch('/data/glosses/hebrew-glosses.json')
-      .then(response => { if(!response.ok) throw new Error(`Hebrew vocabulary glosses could not be loaded (${response.status}).`); return response.json(); })
+    learnState.glossMapPromises[normalized] = (typeof loadLexicalGlossMap === 'function'
+      ? loadLexicalGlossMap(normalized)
+      : fetch('/data/glosses/hebrew-glosses.json').then(response => { if(!response.ok) throw new Error(`Hebrew vocabulary glosses could not be loaded (${response.status}).`); return response.json(); }))
       .then(data => (learnState.glossMaps[normalized] = data));
   }
   return learnState.glossMapPromises[normalized];
@@ -1602,10 +1603,14 @@ function startFirstUsePractice(language, options = {}){
     model: VocabularyLearningModel,
     glossMap: learnState.glossMaps[normalized]
   });
-  const selected = pool.entries
-    .filter(entry => VocabularyLearningModel.learningStatusForRecord(store.records?.[learnWordId(entry)] || null) === VocabularyLearningModel.STATUS.NOT_LEARNED)
-    .sort((a, b) => (Number(b.freq) || 0) - (Number(a.freq) || 0) || learnWordId(a).localeCompare(learnWordId(b)))
-    .slice(0, 5);
+  const compareStarterEntries = (a, b) => (Number(b.freq) || 0) - (Number(a.freq) || 0) || learnWordId(a).localeCompare(learnWordId(b));
+  const selected = [];
+  for(const entry of pool.entries){
+    if(VocabularyLearningModel.learningStatusForRecord(store.records?.[learnWordId(entry)] || null) !== VocabularyLearningModel.STATUS.NOT_LEARNED) continue;
+    const insertAt = selected.findIndex(candidate => compareStarterEntries(entry, candidate) < 0);
+    if(insertAt < 0) selected.push(entry); else selected.splice(insertAt, 0, entry);
+    if(selected.length > 5) selected.pop();
+  }
   const sessionId = LearningPracticeModel.uuid();
   const session = LearningPracticeModel.normalizeSession({
     sessionId,

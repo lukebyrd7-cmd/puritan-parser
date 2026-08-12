@@ -151,12 +151,13 @@ test('WEB importer parses USFM book codes and strips word-level markup', () => {
   assert.deepEqual(webImport.validateBook(parsed), []);
 });
 
-test('service worker precaches translation provider manifests while JSON remains runtime cached', () => {
+test('service worker installs both translation providers for complete offline use', () => {
   const sw = fs.readFileSync('sw.js', 'utf8');
-  assert.match(sw, /puritan-parser-v109-v1\.9\.3-bilingual-lexical-completion/);
-  assert.match(sw, /\.\/src\/core\/translations\/translation-provider\.js/);
+  assert.match(sw, /v110-\$\{APP_VERSION\}/);
+  assert.match(sw, /'src\/core\/translations\/translation-provider\.js'/);
   assert.match(sw, /\.\/data\/translations\/oeb\/manifest\.json/);
   assert.match(sw, /\.\/data\/translations\/web\/manifest\.json/);
-  assert.match(sw, /url\.pathname\.endsWith\('\.json'\)/);
-  assert.match(sw, /cache\.put\(evt\.request, copy\)/);
+  assert.match(sw, /translationChapterPaths\(oeb/);
+  assert.match(sw, /translationChapterPaths\(web/);
+  assert.match(sw, /cacheFirst\(event\.request/);
 });

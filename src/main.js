@@ -40,6 +40,7 @@ const PURITAN_PARSER_CORE_SCRIPTS = [
   'src/ui/theme.js',
   'src/core/filters.js',
   'src/core/study-entries.js',
+  'src/core/runtime-preparation.js',
   'src/core/book-progress.js',
   'src/core/progress-service.js',
   'src/core/router.js',
@@ -73,7 +74,7 @@ const PURITAN_PARSER_SCRIPTS = [
   ...Object.values(PURITAN_PARSER_FEATURE_SCRIPTS).flat(),
   'src/bootstrap.js'
 ];
-const PURITAN_PARSER_ASSET_VERSION = 'v1.9.3-bilingual-lexical-completion-1';
+const PURITAN_PARSER_ASSET_VERSION = 'v1.9.4-pwa-offline-reliability-1';
 const PURITAN_SCRIPT_LOAD_TIMEOUT_MS = 9000;
 
 const puritanLoadedScripts = new Map();

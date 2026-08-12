@@ -22,6 +22,7 @@
   let indexPreparationCount = 0;
   let corpusBuildCount = 0;
   let decorationBuildCount = 0;
+  let lastPreparationPhases = {};
   let searchRenderGeneration = 0;
   let scopeRequestGeneration = 0;
   let hebrewGlosses = null;
@@ -298,7 +299,14 @@
     return cachedEntries;
   }
   async function prepareGlobalSearchIndex(){
+    const phaseStarted = now();
+    if(typeof root.isAppDataReady === 'function' && !root.isAppDataReady()){
+      if(typeof root.startAppDataLoad !== 'function') return [];
+      await root.startAppDataLoad();
+    }
+    const dataReadyAt = now();
     await ensureSearchGlosses();
+    const glossReadyAt = now();
     const corpusKey = corpusSignature();
     const userKey = decorationSignature();
     if(corpusKey === cachedCorpusSignature && userKey === cachedDecorationSignature) return cachedEntries;
@@ -307,13 +315,21 @@
     indexPreparationKey = preparationKey; indexPreparationCount += 1;
     root.PuritanLifecycleDiagnostics?.job?.('search:index', 1);
     indexPreparationPromise = (async () => {
+      let groupedAt = glossReadyAt;
+      let corpusMappedAt = glossReadyAt;
+      let sortedAt = glossReadyAt;
+      let tokenIndexAt = glossReadyAt;
       if(corpusKey !== cachedCorpusSignature){
         corpusBuildCount += 1;
         const grouped = [];
         for(const language of ['greek','hebrew']) grouped.push(...(await vocabularyForLanguageAsync(language)).filter(Boolean).map(entry => ({ entry, language })));
+        groupedAt = now();
         cachedCorpusEntries = await mapInChunks(grouped, item => corpusEntry(item.entry, item.language));
+        corpusMappedAt = now();
         cachedCorpusEntries.sort((a, b) => b.frequency - a.frequency || a.headword.localeCompare(b.headword));
+        sortedAt = now();
         await buildLatinTokenIndexAsync(cachedCorpusEntries);
+        tokenIndexAt = now();
         cachedCorpusSignature = corpusKey;
         cachedDecorationSignature = '';
       }
@@ -325,11 +341,22 @@
         cachedDecoratedById = new Map(cachedEntries.map(item => [item.id, item]));
         cachedDecorationSignature = currentUserKey;
       }
+      const completedAt = now();
+      lastPreparationPhases = {
+        vocabularyData: dataReadyAt - phaseStarted,
+        lexicalGlosses: glossReadyAt - dataReadyAt,
+        lemmaGrouping: groupedAt - glossReadyAt,
+        searchableFields: corpusMappedAt - groupedAt,
+        corpusSort: sortedAt - corpusMappedAt,
+        tokenIndex: tokenIndexAt - sortedAt,
+        userDecoration: completedAt - tokenIndexAt,
+        total: completedAt - phaseStarted
+      };
       return cachedEntries;
     })().finally(() => { indexPreparationPromise = null; indexPreparationKey = ''; root.PuritanLifecycleDiagnostics?.job?.('search:index', -1); });
     return indexPreparationPromise;
   }
-  function globalSearchIndexDebug(){ return { preparationCount: indexPreparationCount, corpusBuildCount, decorationBuildCount, corpusSignature: cachedCorpusSignature, decorationSignature: cachedDecorationSignature, preparing: Boolean(indexPreparationPromise), entries: cachedEntries.length }; }
+  function globalSearchIndexDebug(){ return { preparationCount: indexPreparationCount, corpusBuildCount, decorationBuildCount, corpusSignature: cachedCorpusSignature, decorationSignature: cachedDecorationSignature, preparing: Boolean(indexPreparationPromise), entries: cachedEntries.length, phases: { ...lastPreparationPhases } }; }
   function scoreResult(item, query){
     const q = normalizeText(query);
     const transliterationQuery = normalizeSearchQuery(query);
@@ -437,7 +464,7 @@
     if(!rootEl) return '';
     if(!searchIndexReady()){
       const summaryEl = query('#globalSearchSummary', rootEl); const resultsEl = query('#globalSearchResults', rootEl); const actionsEl = query('#globalSearchActions', rootEl);
-      if(summaryEl) summaryEl.textContent = 'Preparing vocabulary search…';
+      if(summaryEl){ summaryEl.textContent = 'Preparing search…'; summaryEl.setAttribute?.('role', 'status'); summaryEl.setAttribute?.('aria-live', 'polite'); }
       if(resultsEl) resultsEl.innerHTML = '';
       if(actionsEl) actionsEl.innerHTML = '';
       return rootEl.innerHTML;
@@ -708,7 +735,10 @@
   }
   async function ensureSearchGlosses(){
     if(hebrewGlosses || typeof root.fetch !== 'function' || !root.document || !root.location) return false;
-    if(!hebrewGlossPromise) hebrewGlossPromise = root.fetch('/data/glosses/hebrew-glosses.json').then(response => response.ok ? response.json() : null).then(data => (hebrewGlosses = data));
+    if(!hebrewGlossPromise) hebrewGlossPromise = (typeof root.loadLexicalGlossMap === 'function'
+      ? root.loadLexicalGlossMap('hebrew')
+      : root.fetch('/data/glosses/hebrew-glosses.json').then(response => response.ok ? response.json() : null))
+      .then(data => (hebrewGlosses = data));
     await hebrewGlossPromise;
     return Boolean(hebrewGlosses);
   }

@@ -1,4 +1,8 @@
 /* ---------- Vocabulary source data ---------- */
+const lexicalGlossMapCache = new Map();
+const lexicalGlossMapPromises = new Map();
+const lexicalGlossMapLoadCounts = { greek: 0, hebrew: 0 };
+
 async function fetchSourceJson(path){
   try {
     const r = await fetch(path, {cache:'no-store'});
@@ -7,6 +11,36 @@ async function fetchSourceJson(path){
     if(!Array.isArray(j)) throw new Error('not array');
     return j;
   } catch(e){ return null; }
+}
+function lexicalGlossPath(language){
+  const normalized = language === 'hebrew' ? 'hebrew' : 'greek';
+  return `/data/glosses/${normalized}-glosses.json`;
+}
+async function loadLexicalGlossMap(language = 'greek'){
+  const normalized = language === 'hebrew' ? 'hebrew' : 'greek';
+  if(lexicalGlossMapCache.has(normalized)) return lexicalGlossMapCache.get(normalized);
+  if(lexicalGlossMapPromises.has(normalized)) return lexicalGlossMapPromises.get(normalized);
+  lexicalGlossMapLoadCounts[normalized] += 1;
+  const pending = (async () => {
+    const response = await fetch(lexicalGlossPath(normalized), { cache: 'no-store' });
+    if(!response.ok) throw new Error(`${normalized === 'hebrew' ? 'Hebrew' : 'Greek'} lexical glosses could not be loaded (${response.status}).`);
+    const value = await response.json();
+    if(!value || Array.isArray(value) || typeof value !== 'object') throw new Error(`${normalized === 'hebrew' ? 'Hebrew' : 'Greek'} lexical glosses are malformed.`);
+    lexicalGlossMapCache.set(normalized, value);
+    return value;
+  })().catch(error => {
+    lexicalGlossMapPromises.delete(normalized);
+    throw error;
+  });
+  lexicalGlossMapPromises.set(normalized, pending);
+  return pending;
+}
+function lexicalGlossPreparationDebug(){
+  return {
+    loadCounts: { ...lexicalGlossMapLoadCounts },
+    ready: { greek: lexicalGlossMapCache.has('greek'), hebrew: lexicalGlossMapCache.has('hebrew') },
+    preparing: { greek: lexicalGlossMapPromises.has('greek') && !lexicalGlossMapCache.has('greek'), hebrew: lexicalGlossMapPromises.has('hebrew') && !lexicalGlossMapCache.has('hebrew') }
+  };
 }
 async function fetchSourceObject(path){
   try {
@@ -56,7 +90,13 @@ function applyGreekLexicalSource(items, source){
   return items;
 }
 async function loadVocabularySources(){
-  const [all, greekLexicalSource] = await Promise.all([fetchSourceJson(FILE_ALL), fetchSourceObject('/data/glosses/greek-glosses.json')]);
+  const [all, greekLexicalSource] = await Promise.all([
+    fetchSourceJson(FILE_ALL),
+    loadLexicalGlossMap('greek').catch(error => {
+      console.warn('Greek lexical gloss overlay unavailable; embedded vocabulary glosses remain active.', error);
+      return null;
+    })
+  ]);
   if(all && all.length){
     const sources = await splitVocabularySource(all);
     applyGreekLexicalSource(sources.greek, greekLexicalSource);
@@ -69,4 +109,5 @@ async function loadVocabularySources(){
     hebrew: hf && hf.length ? await normalizeVocabularySource(hf, 'hebrew') : null
   };
 }
-if(typeof module !== 'undefined') module.exports = { fetchSourceJson, fetchSourceObject, normalizeSourceWord, normalizeVocabularySource, splitVocabularySource, applyGreekLexicalSource, loadVocabularySources };
+if(typeof window !== 'undefined') Object.assign(window, { loadLexicalGlossMap, lexicalGlossPreparationDebug });
+if(typeof module !== 'undefined') module.exports = { fetchSourceJson, fetchSourceObject, lexicalGlossPath, loadLexicalGlossMap, lexicalGlossPreparationDebug, normalizeSourceWord, normalizeVocabularySource, splitVocabularySource, applyGreekLexicalSource, loadVocabularySources };

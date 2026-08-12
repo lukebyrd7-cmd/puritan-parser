@@ -455,7 +455,11 @@ async function loadReaderGlossSource(language = 'greek'){
   const config = getReaderConfig(language);
   if(readerGlossSourceCache.has(language)) return readerGlossSourceCache.get(language);
   let glosses = {};
-  try { glosses = await fetchReaderJson(config.glossPath); }
+  try {
+    glosses = typeof loadLexicalGlossMap === 'function'
+      ? await loadLexicalGlossMap(language)
+      : await fetchReaderJson(config.glossPath);
+  }
   catch(e) { glosses = {}; }
   readerGlossSourceCache.set(language, glosses);
   return glosses;

@@ -187,12 +187,12 @@ test('whole Hebrew interlinear corpus preserves Reader identity and has no unres
   assert.match(documentation, /missing occurrence glosses.*successfully aligned or explicitly resolved tokens/is);
 });
 
-test('service worker leaves Hebrew interlinear chapters out of startup precache and runtime-caches JSON on demand', () => {
+test('service worker installs every Hebrew interlinear chapter for offline Word Details', () => {
   const sw = fs.readFileSync(path.join(ROOT, 'sw.js'), 'utf8');
-  const filesBlock = sw.match(/const FILES = \[([\s\S]*?)\];/)?.[1] || '';
-  assert.doesNotMatch(filesBlock, /['"]\.\/data\/hebrew-interlinear\//);
+  assert.match(sw, /cachedJson\(cache, '\.\/data\/hebrew-interlinear\/manifest\.json'\)/);
+  assert.match(sw, /chapterPaths\(interlinear, 'data\/hebrew-interlinear'\)/);
   assert.match(sw, /if \(url\.pathname\.endsWith\('\.json'\)\)/);
-  assert.match(sw, /cache\.put\(evt\.request, copy\)/);
+  assert.match(sw, /cacheFirst\(event\.request/);
 });
 
 test('About & Sources discloses Hebrew interlinear provenance, gloss limits, and license', () => {
