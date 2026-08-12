@@ -1,6 +1,6 @@
 // Service worker for the static Puritan Parser app.
 // Keep this file next to index.html so root-scoped registration covers every route.
-const APP_VERSION = 'v1.9.4-pwa-offline-reliability-1';
+const APP_VERSION = 'v1.9.4-pwa-offline-reliability-2';
 const CACHE_PREFIX = 'puritan-parser-';
 const CACHE = `${CACHE_PREFIX}v110-${APP_VERSION}`;
 const CACHE_BATCH_SIZE = 24;
@@ -75,6 +75,8 @@ const APP_SHELL_FILES = [
   `./styles.css?v=${APP_VERSION}`,
   ...STARTUP_SCRIPT_PATHS.map(path => `./${path}?v=${APP_VERSION}`),
   './manifest.json',
+  `./assets/fonts/eb-garamond-v33-greek-ext.woff2?v=${APP_VERSION}`,
+  `./assets/fonts/eb-garamond-v33-greek.woff2?v=${APP_VERSION}`,
   './data/metadata/content-manifest.json',
   `./data/glosses/corrections.json?v=${APP_VERSION}`,
   './logo.png',

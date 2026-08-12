@@ -74,7 +74,7 @@ const PURITAN_PARSER_SCRIPTS = [
   ...Object.values(PURITAN_PARSER_FEATURE_SCRIPTS).flat(),
   'src/bootstrap.js'
 ];
-const PURITAN_PARSER_ASSET_VERSION = 'v1.9.4-pwa-offline-reliability-1';
+const PURITAN_PARSER_ASSET_VERSION = 'v1.9.4-pwa-offline-reliability-2';
 const PURITAN_SCRIPT_LOAD_TIMEOUT_MS = 9000;
 
 const puritanLoadedScripts = new Map();

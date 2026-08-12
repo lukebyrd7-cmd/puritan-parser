@@ -1,3 +1,20 @@
+@font-face {
+  font-family: 'Puritan EB Garamond Greek';
+  font-style: normal;
+  font-weight: 400 800;
+  font-display: block;
+  src: url('/assets/fonts/eb-garamond-v33-greek-ext.woff2?v=v1.9.4-pwa-offline-reliability-2') format('woff2');
+  unicode-range: U+1F00-1FFF;
+}
+@font-face {
+  font-family: 'Puritan EB Garamond Greek';
+  font-style: normal;
+  font-weight: 400 800;
+  font-display: block;
+  src: url('/assets/fonts/eb-garamond-v33-greek.woff2?v=v1.9.4-pwa-offline-reliability-2') format('woff2');
+  unicode-range: U+0370-0377, U+037A-037F, U+0384-038A, U+038C, U+038E-03A1, U+03A3-03FF;
+}
+
 /* =============================================
    PURITAN PARSER v3 — Enhanced
    ============================================= */
@@ -23,6 +40,7 @@
   --shadow: 0 4px 16px rgba(26,18,8,0.08), 0 1px 4px rgba(26,18,8,0.04);
   --shadow-lg: 0 12px 40px rgba(26,18,8,0.12), 0 2px 8px rgba(26,18,8,0.06);
   --font-serif: 'EB Garamond', Georgia, serif;
+  --font-greek: 'Puritan EB Garamond Greek', 'EB Garamond', Georgia, serif;
   --font-mono: 'JetBrains Mono', 'Courier New', monospace;
   --font-sans: system-ui, -apple-system, 'Segoe UI', sans-serif;
 }
@@ -2036,6 +2054,9 @@ button:focus-visible, input:focus-visible, select:focus-visible {
   color: var(--text);
 }
 .reader-text-hebrew { text-align: right; }
+.reader-text-greek,
+.reader-word-surface[lang="grc"],
+.word-page-occurrence-form[lang="grc"] { font-family: var(--font-greek); }
 .reader-chapter-heading { font-size: 23px; line-height: 1.2; margin: 0 0 12px; font-family: 'EB Garamond', Georgia, serif; font-weight: 700; }
 .reader-chapter-section {
   padding-block: 8px 28px;

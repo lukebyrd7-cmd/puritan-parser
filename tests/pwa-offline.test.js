@@ -51,8 +51,8 @@ function createServiceWorkerHarness() {
     if (!online) throw new Error('TOTAL_NETWORK_LOSS');
     const filePath = localPathForUrl(value);
     if (!fs.existsSync(filePath) || !fs.statSync(filePath).isFile()) return new Response('missing', { status: 404 });
-    const contentType = filePath.endsWith('.json') ? 'application/json' : filePath.endsWith('.js') ? 'text/javascript' : 'application/octet-stream';
-    const body = filePath.endsWith('/manifest.json') || filePath.endsWith('content-manifest.json')
+    const contentType = filePath.endsWith('.json') ? 'application/json' : filePath.endsWith('.js') ? 'text/javascript' : filePath.endsWith('.woff2') ? 'font/woff2' : 'application/octet-stream';
+    const body = filePath.endsWith('/manifest.json') || filePath.endsWith('content-manifest.json') || filePath.endsWith('.woff2')
       ? fs.readFileSync(filePath)
       : Buffer.from(filePath.endsWith('.json') ? '{}' : 'cached');
     return new Response(body, { status: 200, headers: { 'content-type': contentType } });
@@ -94,13 +94,19 @@ test('v1.9.4 installs one complete version-compatible offline application state'
   const cache = harness.stores.get(CACHE);
   const expanded = await harness.self.__test.expandOfflineDataFiles(cache);
 
-  assert.match(CACHE, /puritan-parser-v110-v1\.9\.4-pwa-offline-reliability-1/);
+  assert.match(CACHE, /puritan-parser-v110-v1\.9\.4-pwa-offline-reliability-2/);
   assert.ok(expanded.length > 4000, `expected complete corpora, received ${expanded.length} files`);
   assert.equal(cache.responses.size, new Set([...APP_SHELL_FILES, ...OFFLINE_DATA_SEEDS, ...expanded].map(value => new URL(value, `${ORIGIN}/`).href)).size);
 
   for (const script of APP_SHELL_FILES.filter(value => value.includes('.js?'))) {
     assert.match(script, new RegExp(`\\?v=${APP_VERSION}$`));
     assert.ok(await cache.match(new URL(script, `${ORIGIN}/`).href), script);
+  }
+  const greekFonts = APP_SHELL_FILES.filter(value => value.includes('/assets/fonts/eb-garamond-v33-greek'));
+  assert.equal(greekFonts.length, 2);
+  for (const font of greekFonts) {
+    assert.match(font, new RegExp(`\\?v=${APP_VERSION}$`));
+    assert.ok(await cache.match(new URL(font, `${ORIGIN}/`).href), font);
   }
   assert.equal(await cache.match(`${ORIGIN}/src/main.js?v=v1.9.3-bilingual-lexical-completion-1`), undefined);
 });
@@ -134,6 +140,16 @@ test('total network loss still serves cold launches, routes, bilingual data, wor
     assert.equal(response.status, 200, asset);
   }
 
+  for (const font of [
+    `/assets/fonts/eb-garamond-v33-greek-ext.woff2?v=${harness.self.__test.APP_VERSION}`,
+    `/assets/fonts/eb-garamond-v33-greek.woff2?v=${harness.self.__test.APP_VERSION}`
+  ]) {
+    const response = await harness.dispatchFetch(font);
+    assert.equal(response.status, 200, font);
+    assert.equal(response.headers.get('content-type'), 'font/woff2');
+    assert.equal((await response.arrayBuffer()).byteLength, fs.statSync(localPathForUrl(font)).size);
+  }
+
   const version = harness.self.__test.APP_VERSION;
   for (const script of ['/src/main.js', '/src/features/reader/index.js', '/src/features/learn/index.js', '/src/features/global-search/index.js', '/src/features/grammar/index.js', '/src/features/settings/index.js']) {
     const response = await harness.dispatchFetch(`${script}?v=${version}`);
@@ -143,6 +159,16 @@ test('total network loss still serves cold launches, routes, bilingual data, wor
   // A second cold standalone relaunch uses the same fully populated cache.
   const secondLaunch = await harness.dispatchFetch('/reader', { navigate: true });
   assert.equal(secondLaunch.status, 200);
+});
+
+test('Greek Reader uses the local EB Garamond subsets without changing Hebrew typography', () => {
+  const css = fs.readFileSync(path.join(ROOT, 'styles.css'), 'utf8');
+  assert.match(css, /font-family: 'Puritan EB Garamond Greek'/);
+  assert.match(css, /eb-garamond-v33-greek-ext\.woff2\?v=v1\.9\.4-pwa-offline-reliability-2/);
+  assert.match(css, /eb-garamond-v33-greek\.woff2\?v=v1\.9\.4-pwa-offline-reliability-2/);
+  assert.match(css, /\.reader-text-greek,[\s\S]*font-family: var\(--font-greek\)/);
+  assert.match(css, /\.reader-text-hebrew \{ text-align: right; \}/);
+  assert.doesNotMatch(css, /\.reader-text-hebrew[^}]*font-greek/);
 });
 
 test('activation removes only obsolete Puritan Parser caches and never user storage', async () => {

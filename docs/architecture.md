@@ -583,7 +583,7 @@ The expected index shape is documented in `data/indexes/README.md`. Index entrie
 
 ### Offline/PWA caching plan
 
-`sw.js` atomically installs the application shell and the complete runtime data inventory required for Reader, Search, Learn, interlinear details, and translations. The worker expands committed manifests into deterministic chapter lists and caches them in bounded batches. Installed core JSON is cache-first; unclassified same-origin JSON is cached after its first successful fetch. Development sources, audits, tests, and private inputs must never enter the runtime inventory.
+`sw.js` atomically installs the application shell, the versioned local EB Garamond Greek subsets required by Greek Reader, and the complete runtime data inventory required for Reader, Search, Learn, interlinear details, and translations. The worker expands committed manifests into deterministic chapter lists and caches them in bounded batches. Installed core JSON is cache-first; unclassified same-origin JSON is cached after its first successful fetch. Development sources, audits, tests, and private inputs must never enter the runtime inventory. Hebrew retains its existing serif stack and does not use the Greek-only font subsets.
 
 ## Foundation Complete
 
