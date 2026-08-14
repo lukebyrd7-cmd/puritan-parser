@@ -42,9 +42,43 @@ test('deterministic manual-QA strata are complete and contain no failed resoluti
   }
 });
 
+test('all Hebrew verb identities have an explicit source-backed citation classification', () => {
+  const citation = audit.hebrewVerbCitationAudit;
+  assert.equal(citation.records.length, 1603);
+  assert.deepEqual(citation.counts, {
+    EXACT_QAL_PERFECT_3MS_CORPUS: 475,
+    SOURCE_SUPPORTED_QAL_PERFECT_3MS: 548,
+    LEGITIMATE_NON_QAL_EXCEPTION: 580,
+    NEEDS_REVIEW: 0
+  });
+  assert.deepEqual(citation.previous719, {
+    total: 719,
+    SOURCE_SUPPORTED_QAL_PERFECT_3MS: 547,
+    LEGITIMATE_NON_QAL_EXCEPTION: 172,
+    NEEDS_REVIEW: 0
+  });
+  assert.equal(citation.records.filter(item => item.mechanicallyReconstructed).length, 0);
+  assert.equal(citation.records.filter(item => item.category === 'NEEDS_REVIEW').length, 0);
+  assert.ok(citation.records.every(item => item.displayedForm && item.provenance && item.scholarlyAssessment));
+});
+
+test('attested middle-weak verbs use corpus Qal perfect 3ms without changing stable IDs', () => {
+  const cases = [
+    ['935', 'בָּא'], ['6965', 'קָם'], ['4191', 'מֵת'], ['7760', 'שָׂם'], ['7725', 'שָׁב'], ['4135', 'מָל'],
+    ['בּוֹא', 'בָּא'], ['קוּם', 'קָם'], ['מוּת', 'מֵת'], ['שִׂים', 'שָׂם'], ['שׁוּב', 'שָׁב'], ['שׁוּר', 'שָׁר']
+  ];
+  for(const [lemma, expected] of cases){
+    assert.equal(dataset.forms.hebrew[lemma], expected, lemma);
+    assert.equal(VocabularyLearning.lemmaId(study('hebrew', lemma)), `lemma:hebrew:${lemma}`, lemma);
+  }
+  assert.equal(dataset.sources.hebrewVerbCorpusOverrideCount, 43);
+});
+
 test('Hebrew canonical cards ignore prefixed, suffixed, construct, plural, and conjugated representatives', () => {
   const cases = [
     ['559', 'אָמַר'],       // waw-prefixed verb and ordinary Qal verb
+    ['935', 'בָּא'],        // attested hollow Qal perfect 3ms, not lexicon ground form בּוֹא
+    ['7760', 'שָׂם'],       // attested hollow Qal perfect 3ms, not lexicon ground form שׂוּם
     ['1961', 'הָיָה'],      // weak verb
     ['2388', 'חָזַק'],      // derived-stem occurrences
     ['1697', 'דָּבָר'],      // article/conjunction/preposition-bearing noun forms
@@ -64,6 +98,24 @@ test('Hebrew canonical cards ignore prefixed, suffixed, construct, plural, and c
   for(const [lemma, expected] of [['וְ','וְ'], ['הַ','הַ'], ['בְּ','בְּ'], ['לְ','לְ'], ['k','כְּ'], ['מִן','מִן']]){
     assert.equal(CanonicalForms.resolve(study('hebrew', lemma)), expected, lemma);
   }
+});
+
+test('Hebrew card fronts contain no accidental occurrence morphology after citation resolution', () => {
+  assert.equal(audit.languages.hebrew.prefixAfter, 0);
+  assert.equal(audit.languages.hebrew.suffixAfter, 0);
+  assert.equal(audit.languages.hebrew.inflectedNominalAfter, 0);
+  assert.equal(audit.languages.hebrew.noncanonicalVerbAfter, 0);
+  assert.equal(audit.hebrewVerbCitationAudit.records.filter(item => item.category === 'NEEDS_REVIEW').length, 0);
+  assert.deepEqual(audit.hebrewFlashcardContamination, {
+    conjunctionPrefixes: 0,
+    prepositionPrefixes: 0,
+    articles: 0,
+    pronominalSuffixes: 0,
+    constructForms: 0,
+    pluralOrDualInflections: 0,
+    conjugatedOccurrenceVerbForms: 0
+  });
+  assert.equal(audit.languages.greek.unresolvedAfter, 0);
 });
 
 test('Greek canonical cards resolve regular, irregular, nominal, participial, and function-word occurrences to lemmas', () => {
