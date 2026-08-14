@@ -137,6 +137,7 @@ const readerManifestCache = new Map();
 const readerLoadCounts = {};
 const readerGlossSourceCache = new Map();
 const readerVocabularyIndexCache = new Map();
+const readerLearningEntryIndexCache = new Map();
 const readerSearchIndexCache = new Map();
 const readerSearchIndexPromises = new Map();
 let readerPopupLastTrigger = null;
@@ -510,6 +511,19 @@ function getReaderStudyVocabulary(language = 'greek'){
   const entries = getReaderVocabulary(language);
   return typeof getStudyEntries === 'function' ? getStudyEntries(entries, 'lemma') : entries;
 }
+function prepareReaderLearningEntryIndex(language = 'greek'){
+  const entries = getReaderStudyVocabulary(language);
+  const revision = typeof state !== 'undefined' ? Number(state.dataRevision) || 0 : 0;
+  const cached = readerLearningEntryIndexCache.get(language);
+  if(cached && cached.entries === entries && cached.revision === revision) return cached.byId;
+  const byId = new Map();
+  entries.forEach(entry => {
+    const id = ReaderVocabularyLearningModel?.lemmaId?.(entry) || cleanReaderTokenValue(entry?.id);
+    if(id) byId.set(id, entry);
+  });
+  readerLearningEntryIndexCache.set(language, { entries, revision, byId });
+  return byId;
+}
 function bestReaderVocabMatches(lemma, language = 'greek'){
   const exact = cleanReaderTokenValue(lemma);
   const normalized = normalizeReaderText(exact);
@@ -517,7 +531,12 @@ function bestReaderVocabMatches(lemma, language = 'greek'){
   return index.exact.get(exact) || index.normalized.get(normalized) || [];
 }
 function readerVocabularyLearningEntry(info = {}){
-  const language = info.language || readerState.language || 'greek';
+  const language = String(info.language || readerState.language || 'greek').toLowerCase() === 'hebrew' ? 'hebrew' : 'greek';
+  const stableId = cleanReaderTokenValue(info.id);
+  if(stableId){
+    const exact = prepareReaderLearningEntryIndex(language).get(stableId);
+    if(exact) return exact;
+  }
   const lemma = cleanReaderTokenValue(info.lemma || info.surface);
   if(!lemma) return null;
   const normalized = normalizeReaderText(lemma);
@@ -751,6 +770,7 @@ function renderReaderWordLearning(info = {}, options = {}){
   const id = entry && ReaderVocabularyLearningModel ? ReaderVocabularyLearningModel.lemmaId(entry) : '';
   const language = info.language || readerState.language || 'greek';
   const attention = id && ReaderLearningPracticeModel?.needsAttention?.(id, language);
+  const maintenanceEnabled = ReaderLearningPracticeModel?.loadMaintenancePreference?.().enabled !== false;
   const action = status === ReaderVocabularyLearningModel?.STATUS?.NOT_LEARNED || status === 'Not Learned'
     ? `<button class="btn btn-primary btn-sm" type="button" data-word-learn-action="learn" data-language="${escReaderAttr(language)}" data-word-id="${escReaderAttr(id)}">Add to Learning</button><button class="btn btn-ghost btn-sm" type="button" data-word-learn-action="known" data-language="${escReaderAttr(language)}" data-word-id="${escReaderAttr(id)}">Mark as Known</button>`
     : status === ReaderVocabularyLearningModel?.STATUS?.LEARNING || status === ReaderVocabularyLearningModel?.STATUS?.REVIEWING || status === 'Learning' || status === 'Reviewing'
@@ -758,17 +778,24 @@ function renderReaderWordLearning(info = {}, options = {}){
       : `<button class="btn btn-primary btn-sm" type="button" data-word-learn-action="learning" data-language="${escReaderAttr(language)}" data-word-id="${escReaderAttr(id)}">Return to Learning</button>`;
   const record = entry && ReaderVocabularyLearningModel ? ReaderVocabularyLearningModel.getRecord(ReaderVocabularyLearningModel.loadStore(), entry) : null;
   const recentConfidence = (record?.history || []).slice().reverse().find(event => event?.confidence)?.confidence;
+  const knownSourceLabel = details?.knownSource === 'manual' ? 'Manual' : details?.knownSource === 'self_reported' ? 'Self-reported' : details?.knownSource === 'review' ? 'Review progress' : '';
+  const scheduleExplanation = details && !details.scheduled && (status === ReaderVocabularyLearningModel?.STATUS?.KNOWN || status === 'Known')
+    ? (maintenanceEnabled ? 'Not scheduled yet. Maintenance SRS is on.' : 'Marked Known without a scheduled review. Maintenance SRS is off.')
+    : details?.explanation;
   const detailsHtml = details && !options.compact ? `
           <dl class="word-page-meta word-page-learning-meta">
             ${readerWordPageMeta('Next Review', details.nextReviewLabel)}
             ${readerWordPageMeta('Interval', details.intervalLabel)}
-            ${readerWordPageMeta('Successful Reviews', String(details.successfulReviews))}
-            ${readerWordPageMeta('Total Reviews', String(details.totalReviews))}
+            ${readerWordPageMeta('Recognized Reviews', String(details.successfulReviews))}
+            ${readerWordPageMeta('All Reviews', String(details.totalReviews))}
             ${readerWordPageMeta('Review History', details.historySummary)}
-            ${readerWordPageMeta('Known Source', details.knownSource ? details.knownSource.replace(/_/g, ' ') : '')}
+            ${readerWordPageMeta('Last Review', details.lastReviewedLabel)}
+            ${readerWordPageMeta('Last Rating', details.lastRating ? details.lastRating.replace(/^./, char => char.toUpperCase()) : '')}
+            ${details.totalReviews ? readerWordPageMeta('Ratings', `Again ${details.ratingCounts.again} · Hard ${details.ratingCounts.hard} · Good ${details.ratingCounts.good} · Easy ${details.ratingCounts.easy}`) : ''}
+            ${readerWordPageMeta('Known Source', knownSourceLabel)}
             ${mastery ? readerWordPageMeta('Mastery Grade', `${mastery.letter} — ${mastery.label}`) : ''}
           </dl>
-          <p class="small muted">${escHtml(details.explanation)}</p>` : '';
+          <p class="small muted">${escHtml(scheduleExplanation)}</p>` : '';
   return `
         <section class="word-page-section word-page-learning${options.compact ? ' reader-word-learning-compact' : ''}" aria-labelledby="wordPageLearningHeading${options.compact ? 'Quick' : ''}">
           <h2 id="wordPageLearningHeading${options.compact ? 'Quick' : ''}">Learning</h2>
@@ -3149,19 +3176,7 @@ function renderReaderWordPageContent(info = readerState.wordPageInfo || {}, opti
   const partOfSpeech = readerPartOfSpeechForInfo(info);
   const resolution = readerGlossResolution(info);
   const glosses = resolution.effective;
-  const links = readerGrammarLinksForInfo(info);
   const suffix = options.panel ? 'Panel' : '';
-  const referenceItems = [
-    ['Grammar Handbook', links.map(link => link.label).join(', ')],
-    ['Paradigm Charts', readerParseKind(info.parse, info.parseExplanation) ? partOfSpeech : ''],
-    ['Morphology Guide', cleanReaderTokenValue(info.parse) ? 'Parsing and morphology' : '']
-  ].filter(([, value]) => cleanReaderTokenValue(value));
-  const referenceHtml = `
-        <section class="word-page-section" aria-labelledby="wordPageReferenceHeading${suffix}">
-          <h2 id="wordPageReferenceHeading${suffix}">Reference</h2>
-          ${links.length ? `<div class="reader-word-links word-page-links" aria-label="Related grammar links">${links.map(link => `<button class="reader-word-link" type="button" data-topic-id="${escHtml(link.topicId)}">${escHtml(link.label)}</button>`).join('')}</div>` : '<p class="word-page-context-empty">No direct Reference links are available for this word yet.</p>'}
-          ${referenceItems.length ? `<dl class="word-page-meta word-page-meta-secondary">${referenceItems.map(([label, value]) => readerWordPageMeta(label, value)).join('')}</dl>` : ''}
-        </section>`;
   return `${hasWordInfo ? `<header class="word-page-header">
         <h1 id="wordPageTitle${suffix}" class="word-page-headword"${headwordAttrs}>${escHtml(headword)}</h1>
         ${partOfSpeech ? `<div class="word-page-pos">${escHtml(partOfSpeech)}</div>` : ''}
@@ -3176,9 +3191,7 @@ function renderReaderWordPageContent(info = readerState.wordPageInfo || {}, opti
       ${renderReaderWordStudySets(info)}
       ${renderPersonalGlossEditor(info, suffix)}
       <section class="word-page-section"><details><summary>Sources and data</summary><dl class="word-page-meta">${readerWordPageMeta('Standard gloss source', info.glossSource || 'Puritan Parser lexical gloss data')}${readerWordPageMeta('License', info.glossLicense)}${readerWordPageMeta('Attribution', info.glossAttribution)}${readerWordPageMeta('Occurrence gloss source', info.occurrenceGloss ? 'MACULA Hebrew WLC / Cherith' : '')}${readerWordPageMeta('Puritan Parser correction', resolution.correction?.valid ? `${resolution.correction.reason} — ${resolution.correction.sourceReference}` : '')}${readerWordPageMeta('Personal gloss status', resolution.personal.active ? 'Stored locally' : '')}</dl></details></section>
-      ${renderIssueReport(info, suffix)}
-      ${referenceHtml}
-      ${renderReaderWordPageContext([], true)}` : `<p class="word-page-empty">Open a word from the Reader to build this page.</p>`}`;
+      ${renderIssueReport(info, suffix)}` : `<p class="word-page-empty">Open a word from the Reader to build this page.</p>`}`;
 }
 function renderReaderWordPage(){
   const root = $('#wordPageShell'); if(!root) return;
@@ -3207,7 +3220,6 @@ function renderReaderWordPage(){
       if(returnLocation && typeof document !== 'undefined') await setReaderLocation(returnLocation);
     }
   }));
-  $$('.reader-word-link', root).forEach(btn => btn.addEventListener('click', () => navigateReaderGrammarLink(btn.dataset.topicId)));
   $$('[data-word-learn-action]', root).forEach(btn => btn.addEventListener('click', () => {
     if(btn.dataset.wordLearnAction === 'learn') introduceReaderWordFromPage(info);
     if(btn.dataset.wordLearnAction === 'review') reviewReaderWordFromPage(info);
@@ -3217,10 +3229,7 @@ function renderReaderWordPage(){
   $$('[data-word-attention-toggle]', root).forEach(btn => btn.addEventListener('click', () => toggleReaderNeedsAttention(info)));
   $$('[data-word-study-set-add]', root).forEach(form => form.addEventListener('submit', event => { event.preventDefault(); addReaderWordToStudySet(new FormData(form).get('setId'), info); }));
   $$('[data-word-study-set-create]', root).forEach(form => form.addEventListener('submit', event => { event.preventDefault(); createReaderStudySetFromWord(new FormData(form).get('title'), info); }));
-  attachReaderWordPageContextHandlers(root, info);
   attachPersonalGlossAndIssueHandlers(root, info);
-  const lookupLemma = cleanReaderTokenValue(info.lemma || info.surface);
-  if(lookupLemma) updateReaderWordPageContext(lookupLemma, info.language || readerState.language, 6, info);
 }
 function readerWordPageMeta(label, value){
   const clean = cleanReaderTokenValue(value);

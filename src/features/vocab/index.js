@@ -9,7 +9,7 @@ const featureViewLoadPromises = new Map();
 const FeatureViewLoadTimeoutMs = 10000;
 const lifecycleDiagnostics = (() => {
   const enabled = typeof window !== 'undefined' && typeof performance !== 'undefined' && ['localhost','127.0.0.1'].includes(location.hostname);
-  const state = { route: '', mounts: 0, unmounts: 0, renders: {}, listenerBindings: {}, activeObservers: {}, activeTimers: 0, activeJobs: {}, storageWrites: 0, longTasks: [], clickResponses: [] };
+  const state = { route: '', mounts: 0, unmounts: 0, renders: {}, listenerBindings: {}, activeObservers: {}, activeTimers: 0, activeJobs: {}, storageWrites: 0, longTasks: [], clickResponses: [], practiceInteractions: [] };
   const snapshot = () => ({ ...state, renders: { ...state.renders }, listenerBindings: { ...state.listenerBindings }, activeObservers: { ...state.activeObservers }, activeJobs: { ...state.activeJobs }, longTasks: state.longTasks.slice(), clickResponses: state.clickResponses.slice(), memory: performance.memory ? { usedJSHeapSize: performance.memory.usedJSHeapSize, totalJSHeapSize: performance.memory.totalJSHeapSize } : null });
   const publish = () => { if(enabled && document?.documentElement) document.documentElement.dataset.puritanLifecycle = JSON.stringify(snapshot()); };
   if(enabled && typeof PerformanceObserver === 'function' && PerformanceObserver.supportedEntryTypes?.includes('longtask')){
@@ -37,8 +37,9 @@ const lifecycleDiagnostics = (() => {
     observer(name, active){ if(enabled){ state.activeObservers[name] = active ? 1 : 0; publish(); } },
     job(name, delta){ if(enabled){ state.activeJobs[name] = Math.max(0, (state.activeJobs[name] || 0) + delta); publish(); } },
     write(){ if(enabled){ state.storageWrites += 1; publish(); } },
+    interaction(duration){ if(enabled){ state.practiceInteractions.push({ duration, domNodes: document.querySelectorAll('*').length, listenerBindings: state.listenerBindings.learn || 0, memory: performance.memory?.usedJSHeapSize || null }); state.practiceInteractions = state.practiceInteractions.slice(-200); publish(); } },
     snapshot,
-    reset(){ if(!enabled) return; state.mounts = 0; state.unmounts = 0; state.renders = {}; state.listenerBindings = {}; state.storageWrites = 0; state.longTasks = []; state.clickResponses = []; publish(); }
+    reset(){ if(!enabled) return; state.mounts = 0; state.unmounts = 0; state.renders = {}; state.listenerBindings = {}; state.storageWrites = 0; state.longTasks = []; state.clickResponses = []; state.practiceInteractions = []; publish(); }
   };
   if(typeof window !== 'undefined') window.PuritanLifecycleDiagnostics = api;
   return api;

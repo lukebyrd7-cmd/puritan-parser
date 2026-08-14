@@ -1,8 +1,8 @@
 // Service worker for the static Puritan Parser app.
 // Keep this file next to index.html so root-scoped registration covers every route.
-const APP_VERSION = 'v1.9.5-canonical-vocabulary-forms-2';
+const APP_VERSION = 'v1.9.6-srs-runtime-reliability-2';
 const CACHE_PREFIX = 'puritan-parser-';
-const CACHE = `${CACHE_PREFIX}v112-${APP_VERSION}`;
+const CACHE = `${CACHE_PREFIX}v114-${APP_VERSION}`;
 const CACHE_BATCH_SIZE = 24;
 
 const STARTUP_SCRIPT_PATHS = [

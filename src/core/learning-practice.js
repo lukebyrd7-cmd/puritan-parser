@@ -296,12 +296,14 @@
     };
     next.history.push(event);
     next.history = next.history.slice(-MAX_RECORD_HISTORY);
+    next.revision = Math.max(0, Number(next.revision) || 0) + 1;
     return { record: next, event };
   }
   function appendEvidenceOnly(record = {}, confidence, context = {}){
     const next = clone(record) || {}; next.history = Array.isArray(next.history) ? next.history.slice() : [];
     const event = { schemaVersion: VERSION, eventId: clean(context.eventId) || uuid(), vocabularyId: clean(context.vocabularyId || next.id), language: context.language === 'hebrew' ? 'hebrew' : 'greek', timestamp: clean(context.timestamp) || nowISO(), date: clean(context.date) || todayISO(), practice: clean(context.practiceType) || 'maintenance', sessionId: clean(context.sessionId), phase: clean(context.phase), confidence: confidenceOf(confidence), result: confidenceResult(confidence), promptDirection: DIRECTIONS.includes(context.promptDirection) ? context.promptDirection : 'reading', scheduleUpdated: false, recap: context.recap === true, countTowardDaily: context.countTowardDaily !== false };
     next.history.push(event); next.history = next.history.slice(-MAX_RECORD_HISTORY);
+    next.revision = Math.max(0, Number(next.revision) || 0) + 1;
     return { record: next, event };
   }
   function eventAlreadyRecorded(record = {}, eventId){ return Boolean(eventId && (record.history || []).some(event => event?.eventId === eventId)); }
@@ -410,7 +412,7 @@
   }
   function sessionExpired(session, now = Date.now()){ return Boolean(session && now - new Date(session.updatedAt || session.createdAt).getTime() > SESSION_EXPIRY_MS); }
   function activeSession(language, adapter){ const session = loadSessions(adapter).sessions[language]; return session && !session.completedAt ? session : null; }
-  function saveSession(session, adapter){ const store = loadSessions(adapter); const normalized = normalizeSession({ ...session, updatedAt: nowISO() }); store.sessions[normalized.language] = normalized; store.revision += 1; writeJson(SESSION_KEY, store, adapter); bumpRevision(adapter); return normalized; }
+  function saveSession(session, adapter, options = {}){ const store = loadSessions(adapter); const normalized = normalizeSession({ ...session, updatedAt: nowISO() }); store.sessions[normalized.language] = normalized; store.revision += 1; writeJson(SESSION_KEY, store, adapter); if(options.bumpRevision !== false) bumpRevision(adapter); return normalized; }
   function discardSession(language, adapter){ const store = loadSessions(adapter); store.sessions[language === 'hebrew' ? 'hebrew' : 'greek'] = null; store.revision += 1; writeJson(SESSION_KEY, store, adapter); bumpRevision(adapter); return true; }
 
   function assembleSession(options = {}){
@@ -486,7 +488,13 @@
     const cards = selectedIds.map((id, index) => makeCard(id, directionFor(profile.promptDirection, sessionId, id, index), introducedIds.has(id) || statusKey(selectedEntryById.get(id)) === 'new' ? 'new' : 'maintenance', index));
     return normalizeSession({ sessionId, language, sessionType: 'focused', source: profile.source, sourceId: profile.sourceId, strategy: profile.strategy, selectedGrades: profile.selectedGrades, promptDirection: profile.promptDirection, phase: cards[0]?.phase || 'complete', cards, position: 0, target: profile.unlimited ? 0 : cards.length, unlimited: profile.unlimited, remainingCandidateIds, introducedWordIds: [...introducedIds], requestedNewCount: profile.introduceNewCount, diagnostics: validated.diagnostics, returnPage: options.returnPage, contextTitle: options.contextTitle, contextDetail: options.contextDetail, limitedByPool: !profile.unlimited && cards.length < profile.size, createdAt: nowISO() });
   }
-  function currentCard(session){ const normalized = normalizeSession(session); return normalized.cards.slice(normalized.position).find(card => !card.answered) || null; }
+  function currentCard(session){
+    const value = session?.schemaVersion === VERSION && Array.isArray(session.cards) ? session : normalizeSession(session);
+    for(let index = Math.max(0, Number(value.position) || 0); index < value.cards.length; index += 1){
+      if(!value.cards[index].answered) return value.cards[index];
+    }
+    return null;
+  }
   function advanceSession(session, event){
     const next = normalizeSession(session); const card = currentCard(next); if(!card) return next;
     next.revealedCardId = '';
@@ -520,7 +528,7 @@
   function recordAnswer(options = {}){
     const model = options.model; const session = normalizeSession(options.session); const card = currentCard(session);
     if(!card || card.cardId !== options.cardId) return { accepted: false, reason: 'stale-card', session };
-    const store = model.normalizeStore(options.store); const entry = options.entry; const id = model.lemmaId(entry);
+    const store = model.copyStoreForUpdate ? model.copyStoreForUpdate(options.store) : model.normalizeStore(options.store); const entry = options.entry; const id = model.lemmaId(entry);
     if(id !== card.vocabularyId) return { accepted: false, reason: 'wrong-card', session };
     const existing = store.records[id] || { id, lemma: entry.lemma || entry.word, lang: session.language, status: 'Learning', successCount: 0, intervalDays: 0, due: todayISO(), history: [] };
     if(session.submittedEventIds.includes(card.eventId) || eventAlreadyRecorded(existing, card.eventId)){
@@ -533,7 +541,6 @@
     const context = { eventId: card.eventId, vocabularyId: id, language: session.language, sessionId: session.sessionId, phase: card.phase, practiceType: recap ? 'recap' : scheduled ? 'scheduled' : 'maintenance', promptDirection: card.direction, scheduleUpdated, recap, countTowardDaily: !recap, date: options.dateISO || todayISO() };
     const transition = scheduleUpdated ? applyConfidence(existing, options.confidence, context) : appendEvidenceOnly(existing, options.confidence, context);
     store.records[id] = model.normalizeRecord ? model.normalizeRecord(transition.record) : transition.record;
-    appendAttempt(transition.event, options.adapter);
     return { accepted: true, event: transition.event, store, session: advanceSession(session, transition.event) };
   }
 

@@ -117,6 +117,58 @@ test('self-reported known is represented without creating due backlog', () => {
   assert.deepEqual(VocabularyLearning.dueEntries(entries, store, '2026-06-26'), []);
 });
 
+test('legacy manual Known scheduler streak is not presented as review history', () => {
+  const legacy = VocabularyLearning.normalizeStore({ records: {
+    'lemma:greek:logos': {
+      ...entries[0],
+      status: 'Known',
+      knownSource: 'manual',
+      successCount: 3,
+      intervalDays: 0,
+      due: '9999-12-31',
+      history: [{ date: '2026-06-20', result: 'marked-known' }]
+    }
+  } });
+  const details = VocabularyLearning.learningStatusDetails(legacy, entries[0], '2026-06-26');
+  assert.deepEqual({ successful: details.successfulReviews, total: details.totalReviews, history: details.historySummary }, {
+    successful: 0,
+    total: 0,
+    history: 'No reviews yet.'
+  });
+  assert.equal(details.schedulingSuccessStreak, 3);
+  assert.equal(details.scheduled, false);
+});
+
+test('manual Known and Return to Learning do not fabricate or erase review history', () => {
+  let store = VocabularyLearning.reviewEntry(VocabularyLearning.normalizeStore(), entries[0], 'recognized', '2026-06-20');
+  store = VocabularyLearning.markEntryKnown(store, entries[0], { type: 'word-page' }, '2026-06-21');
+  let record = VocabularyLearning.getRecord(store, entries[0]);
+  assert.equal(record.successCount, 1);
+  assert.equal(record.intervalDays, 0);
+  assert.equal(VocabularyLearning.reviewStatistics(record).total, 1);
+  assert.equal(record.due, '9999-12-31');
+  assert.equal(VocabularyLearning.learningStatusDetails(store, entries[0], '2026-06-21').intervalLabel, 'Not scheduled');
+  store = VocabularyLearning.introduceEntry(store, entries[0], { type: 'word-page' }, '2026-06-22');
+  record = VocabularyLearning.getRecord(store, entries[0]);
+  assert.equal(record.status, 'Learning');
+  assert.equal(record.successCount, 0);
+  assert.equal(record.intervalDays, 0);
+  assert.equal(record.due, '2026-06-22');
+  assert.equal(VocabularyLearning.reviewStatistics(record).total, 1);
+  assert.equal(VocabularyLearning.learningStatus(store, entries[0], '2026-06-22'), 'Learning');
+});
+
+test('review statistics centralize confidence and result event semantics', () => {
+  const stats = VocabularyLearning.reviewStatistics({ history: [
+    { confidence: 'again' }, { confidence: 'hard' }, { confidence: 'good' }, { confidence: 'easy' },
+    { result: 'recognized' }, { result: 'marked-known' }
+  ] });
+  assert.equal(stats.total, 5);
+  assert.equal(stats.recognized, 4);
+  assert.equal(stats.missed, 1);
+  assert.deepEqual(stats.ratings, { again: 1, hard: 1, good: 1, easy: 1 });
+});
+
 test('Missed updates review state by returning the word to Learning sooner', () => {
   let store = VocabularyLearning.introduceEntry(VocabularyLearning.normalizeStore(), entries[0], greek25, '2026-06-26');
   store = VocabularyLearning.reviewEntry(store, entries[0], 'recognized', '2026-06-26');
