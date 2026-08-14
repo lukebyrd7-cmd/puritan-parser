@@ -137,6 +137,7 @@ const readerManifestCache = new Map();
 const readerLoadCounts = {};
 const readerGlossSourceCache = new Map();
 const readerVocabularyIndexCache = new Map();
+const readerLearningEntryIndexCache = new Map();
 const readerSearchIndexCache = new Map();
 const readerSearchIndexPromises = new Map();
 let readerPopupLastTrigger = null;
@@ -510,6 +511,19 @@ function getReaderStudyVocabulary(language = 'greek'){
   const entries = getReaderVocabulary(language);
   return typeof getStudyEntries === 'function' ? getStudyEntries(entries, 'lemma') : entries;
 }
+function prepareReaderLearningEntryIndex(language = 'greek'){
+  const entries = getReaderStudyVocabulary(language);
+  const revision = typeof state !== 'undefined' ? Number(state.dataRevision) || 0 : 0;
+  const cached = readerLearningEntryIndexCache.get(language);
+  if(cached && cached.entries === entries && cached.revision === revision) return cached.byId;
+  const byId = new Map();
+  entries.forEach(entry => {
+    const id = ReaderVocabularyLearningModel?.lemmaId?.(entry) || cleanReaderTokenValue(entry?.id);
+    if(id) byId.set(id, entry);
+  });
+  readerLearningEntryIndexCache.set(language, { entries, revision, byId });
+  return byId;
+}
 function bestReaderVocabMatches(lemma, language = 'greek'){
   const exact = cleanReaderTokenValue(lemma);
   const normalized = normalizeReaderText(exact);
@@ -517,7 +531,12 @@ function bestReaderVocabMatches(lemma, language = 'greek'){
   return index.exact.get(exact) || index.normalized.get(normalized) || [];
 }
 function readerVocabularyLearningEntry(info = {}){
-  const language = info.language || readerState.language || 'greek';
+  const language = String(info.language || readerState.language || 'greek').toLowerCase() === 'hebrew' ? 'hebrew' : 'greek';
+  const stableId = cleanReaderTokenValue(info.id);
+  if(stableId){
+    const exact = prepareReaderLearningEntryIndex(language).get(stableId);
+    if(exact) return exact;
+  }
   const lemma = cleanReaderTokenValue(info.lemma || info.surface);
   if(!lemma) return null;
   const normalized = normalizeReaderText(lemma);
@@ -770,6 +789,9 @@ function renderReaderWordLearning(info = {}, options = {}){
             ${readerWordPageMeta('Recognized Reviews', String(details.successfulReviews))}
             ${readerWordPageMeta('All Reviews', String(details.totalReviews))}
             ${readerWordPageMeta('Review History', details.historySummary)}
+            ${readerWordPageMeta('Last Review', details.lastReviewedLabel)}
+            ${readerWordPageMeta('Last Rating', details.lastRating ? details.lastRating.replace(/^./, char => char.toUpperCase()) : '')}
+            ${details.totalReviews ? readerWordPageMeta('Ratings', `Again ${details.ratingCounts.again} · Hard ${details.ratingCounts.hard} · Good ${details.ratingCounts.good} · Easy ${details.ratingCounts.easy}`) : ''}
             ${readerWordPageMeta('Known Source', knownSourceLabel)}
             ${mastery ? readerWordPageMeta('Mastery Grade', `${mastery.letter} — ${mastery.label}`) : ''}
           </dl>

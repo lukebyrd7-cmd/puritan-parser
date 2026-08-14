@@ -296,12 +296,14 @@
     };
     next.history.push(event);
     next.history = next.history.slice(-MAX_RECORD_HISTORY);
+    next.revision = Math.max(0, Number(next.revision) || 0) + 1;
     return { record: next, event };
   }
   function appendEvidenceOnly(record = {}, confidence, context = {}){
     const next = clone(record) || {}; next.history = Array.isArray(next.history) ? next.history.slice() : [];
     const event = { schemaVersion: VERSION, eventId: clean(context.eventId) || uuid(), vocabularyId: clean(context.vocabularyId || next.id), language: context.language === 'hebrew' ? 'hebrew' : 'greek', timestamp: clean(context.timestamp) || nowISO(), date: clean(context.date) || todayISO(), practice: clean(context.practiceType) || 'maintenance', sessionId: clean(context.sessionId), phase: clean(context.phase), confidence: confidenceOf(confidence), result: confidenceResult(confidence), promptDirection: DIRECTIONS.includes(context.promptDirection) ? context.promptDirection : 'reading', scheduleUpdated: false, recap: context.recap === true, countTowardDaily: context.countTowardDaily !== false };
     next.history.push(event); next.history = next.history.slice(-MAX_RECORD_HISTORY);
+    next.revision = Math.max(0, Number(next.revision) || 0) + 1;
     return { record: next, event };
   }
   function eventAlreadyRecorded(record = {}, eventId){ return Boolean(eventId && (record.history || []).some(event => event?.eventId === eventId)); }
@@ -526,7 +528,7 @@
   function recordAnswer(options = {}){
     const model = options.model; const session = normalizeSession(options.session); const card = currentCard(session);
     if(!card || card.cardId !== options.cardId) return { accepted: false, reason: 'stale-card', session };
-    const store = model.normalizeStore(options.store); const entry = options.entry; const id = model.lemmaId(entry);
+    const store = model.copyStoreForUpdate ? model.copyStoreForUpdate(options.store) : model.normalizeStore(options.store); const entry = options.entry; const id = model.lemmaId(entry);
     if(id !== card.vocabularyId) return { accepted: false, reason: 'wrong-card', session };
     const existing = store.records[id] || { id, lemma: entry.lemma || entry.word, lang: session.language, status: 'Learning', successCount: 0, intervalDays: 0, due: todayISO(), history: [] };
     if(session.submittedEventIds.includes(card.eventId) || eventAlreadyRecorded(existing, card.eventId)){

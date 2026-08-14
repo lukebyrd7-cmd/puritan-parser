@@ -94,7 +94,7 @@ test('v1.9.5 installs one complete version-compatible offline application state'
   const cache = harness.stores.get(CACHE);
   const expanded = await harness.self.__test.expandOfflineDataFiles(cache);
 
-  assert.match(CACHE, /puritan-parser-v113-v1\.9\.6-srs-runtime-reliability/);
+  assert.match(CACHE, /puritan-parser-v114-v1\.9\.6-srs-runtime-reliability-2/);
   assert.ok(expanded.length > 4000, `expected complete corpora, received ${expanded.length} files`);
   assert.equal(cache.responses.size, new Set([...APP_SHELL_FILES, ...OFFLINE_DATA_SEEDS, ...expanded].map(value => new URL(value, `${ORIGIN}/`).href)).size);
 

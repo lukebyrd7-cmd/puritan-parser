@@ -15,6 +15,7 @@
   let cachedDecorationSignature = '';
   let cachedCorpusEntries = [];
   let cachedEntries = [];
+  let cachedCorpusById = new Map();
   let cachedDecoratedById = new Map();
   let cachedLatinTokens = new Map();
   let indexPreparationPromise = null;
@@ -22,6 +23,7 @@
   let indexPreparationCount = 0;
   let corpusBuildCount = 0;
   let decorationBuildCount = 0;
+  let mutableRefreshCount = 0;
   let lastPreparationPhases = {};
   let searchRenderGeneration = 0;
   let scopeRequestGeneration = 0;
@@ -131,10 +133,10 @@
   }
   function storedValue(key){ try { return root.localStorage?.getItem?.(key) || ''; } catch(e) { return ''; } }
   function decorationSignature(){
-    const learning = storedValue(root.VocabularyLearning?.STORAGE_KEY || 'pp_vocab_learning');
-    const decks = storedValue(root.PuritanStudySets?.STORAGE_KEY || 'pp_study_sets');
-    const attention = storedValue(root.LearningPractice?.ATTENTION_KEY || 'pp_learning_practice_attention');
-    return `practice:${root.LearningPractice?.revision?.() || 0}|learning:${learning}|decks:${decks}|attention:${attention}`;
+    const learningRevision = root.VocabularyLearning?.loadStore?.().revision || 0;
+    const deckRevision = root.PuritanStudySets?.loadStore?.().revision || 0;
+    const attentionRevision = root.LearningPractice?.loadAttention?.().revision || 0;
+    return `learning:${learningRevision}|decks:${deckRevision}|attention:${attentionRevision}`;
   }
   function vocabularyForLanguage(language){
     const state = appState();
@@ -217,7 +219,7 @@
     const resolution = root.PuritanPersonalGlosses?.resolve?.(lexicalEntry, { primaryLimit: 3 });
     const personalGlosses = root.PuritanPersonalGlosses?.recordFor?.(entry)?.glosses || [];
     return {
-      id, entry, language: lang, headword, lemma, gloss,
+      id, entry: lexicalEntry, language: lang, headword, lemma, gloss,
       alternateGlosses: alternateGlosses(entry),
       standardGlosses: resolution?.standard?.all || [lexicalEntry.primaryGloss, ...lexicalEntry.alternateGlosses].filter(Boolean),
       personalGlosses,
@@ -257,6 +259,22 @@
       deckCount: deckIds.length
     };
   }
+  function mutableDecorationToken(item, context){
+    const record = context.learningStore.records?.[item.id];
+    const lastEvent = record?.history?.at?.(-1);
+    const attention = context.attention.items?.[item.id];
+    const deckIds = context.decksByVocabularyId.get(item.id) || [];
+    return `${record?.revision || 0}:${record?.updatedAt || ''}:${lastEvent?.eventId || ''}|${attention?.updatedAt || ''}|${deckIds.join(',')}`;
+  }
+  function currentDecoratedItem(item, context){
+    const token = mutableDecorationToken(item, context);
+    const cached = cachedDecoratedById.get(item.id);
+    if(cached?.token === token) return cached.item;
+    const decorated = decorateCorpusItem(item, context);
+    cachedDecoratedById.set(item.id, { token, item: decorated });
+    mutableRefreshCount += 1;
+    return decorated;
+  }
   function buildLatinTokenIndex(entries){
     cachedLatinTokens = new Map();
     entries.forEach(item => new Set(item.latinSearchText.split(/[^a-z0-9]+/).filter(Boolean)).forEach(token => {
@@ -284,18 +302,20 @@
       corpusBuildCount += 1;
       cachedCorpusEntries = ['greek','hebrew'].flatMap(language => vocabularyForLanguage(language).filter(Boolean).map(entry => corpusEntry(entry, language)));
       cachedCorpusEntries.sort((a, b) => b.frequency - a.frequency || a.headword.localeCompare(b.headword));
+      cachedCorpusById = new Map(cachedCorpusEntries.map(item => [item.id, item]));
+      cachedDecoratedById = new Map();
+      cachedEntries = [];
       cachedCorpusSignature = corpusKey;
       cachedDecorationSignature = '';
       buildLatinTokenIndex(cachedCorpusEntries);
     }
     const userKey = decorationSignature();
-    if(userKey !== cachedDecorationSignature){
+    if(!cachedEntries.length || cachedEntries.length !== cachedCorpusEntries.length){
       decorationBuildCount += 1;
       const context = decorationContext();
-      cachedEntries = cachedCorpusEntries.map(item => decorateCorpusItem(item, context));
-      cachedDecoratedById = new Map(cachedEntries.map(item => [item.id, item]));
-      cachedDecorationSignature = userKey;
+      cachedEntries = cachedCorpusEntries.map(item => currentDecoratedItem(item, context));
     }
+    cachedDecorationSignature = userKey;
     return cachedEntries;
   }
   async function prepareGlobalSearchIndex(){
@@ -308,9 +328,8 @@
     await ensureSearchGlosses();
     const glossReadyAt = now();
     const corpusKey = corpusSignature();
-    const userKey = decorationSignature();
-    if(corpusKey === cachedCorpusSignature && userKey === cachedDecorationSignature) return cachedEntries;
-    const preparationKey = `${corpusKey}|${userKey}`;
+    if(corpusKey === cachedCorpusSignature) return cachedEntries;
+    const preparationKey = corpusKey;
     if(indexPreparationPromise && indexPreparationKey === preparationKey) return indexPreparationPromise;
     indexPreparationKey = preparationKey; indexPreparationCount += 1;
     root.PuritanLifecycleDiagnostics?.job?.('search:index', 1);
@@ -330,17 +349,15 @@
         sortedAt = now();
         await buildLatinTokenIndexAsync(cachedCorpusEntries);
         tokenIndexAt = now();
+        cachedCorpusById = new Map(cachedCorpusEntries.map(item => [item.id, item]));
+        cachedDecoratedById = new Map();
         cachedCorpusSignature = corpusKey;
         cachedDecorationSignature = '';
       }
-      const currentUserKey = decorationSignature();
-      if(currentUserKey !== cachedDecorationSignature){
-        decorationBuildCount += 1;
-        const context = decorationContext();
-        cachedEntries = await mapInChunks(cachedCorpusEntries, item => decorateCorpusItem(item, context));
-        cachedDecoratedById = new Map(cachedEntries.map(item => [item.id, item]));
-        cachedDecorationSignature = currentUserKey;
-      }
+      decorationBuildCount += 1;
+      const context = decorationContext();
+      cachedEntries = await mapInChunks(cachedCorpusEntries, item => currentDecoratedItem(item, context));
+      cachedDecorationSignature = decorationSignature();
       const completedAt = now();
       lastPreparationPhases = {
         vocabularyData: dataReadyAt - phaseStarted,
@@ -356,7 +373,7 @@
     })().finally(() => { indexPreparationPromise = null; indexPreparationKey = ''; root.PuritanLifecycleDiagnostics?.job?.('search:index', -1); });
     return indexPreparationPromise;
   }
-  function globalSearchIndexDebug(){ return { preparationCount: indexPreparationCount, corpusBuildCount, decorationBuildCount, corpusSignature: cachedCorpusSignature, decorationSignature: cachedDecorationSignature, preparing: Boolean(indexPreparationPromise), entries: cachedEntries.length, phases: { ...lastPreparationPhases } }; }
+  function globalSearchIndexDebug(){ return { preparationCount: indexPreparationCount, corpusBuildCount, decorationBuildCount, mutableRefreshCount, corpusSignature: cachedCorpusSignature, decorationSignature: cachedDecorationSignature, preparing: Boolean(indexPreparationPromise), entries: cachedEntries.length, phases: { ...lastPreparationPhases } }; }
   function scoreResult(item, query){
     const q = normalizeText(query);
     const transliterationQuery = normalizeSearchQuery(query);
@@ -387,22 +404,25 @@
     const q = normalizeText(query);
     const scopedCount = item => !options.bookId ? 0 : Number(scopedVocabulary?.get(`id:${item.id}`) || scopedVocabulary?.get(`word:${item.language === 'hebrew' ? HebrewSearchApi?.normalizeHebrew?.(item.headword) : normalizeText(item.headword)}`)) || 0;
     const index = buildGlobalSearchIndex();
+    const context = decorationContext();
+    cachedDecorationSignature = decorationSignature();
     const exactLatinIds = /^[a-z0-9]+$/.test(normalizeSearchQuery(query)) ? cachedLatinTokens.get(normalizeSearchQuery(query)) : null;
-    const exactLatinCandidates = exactLatinIds?.map(id => cachedDecoratedById.get(id)).filter(Boolean);
+    const exactLatinCandidates = exactLatinIds?.map(id => cachedCorpusById.get(id)).filter(Boolean);
     const results = [];
-    for(const item of (q && exactLatinCandidates ? exactLatinCandidates : index)){
-      if((language !== 'all' && item.language !== language)
-        || (status !== STATUS_ALL && !(status === 'New' ? item.learningStatus === 'Not Learned' : status === 'Known' ? item.learningStatus.startsWith('Known') : status === 'Learning' ? ['Learning','Reviewing'].includes(item.learningStatus) : item.learningStatus === status))
+    for(const corpusItem of (q && exactLatinCandidates ? exactLatinCandidates : index)){
+      if((language !== 'all' && corpusItem.language !== language)
+        || (options.partOfSpeech && options.partOfSpeech !== 'all' && corpusItem.partOfSpeech !== options.partOfSpeech)
+        || (Number(options.frequencyMinimum) && corpusItem.frequency < Number(options.frequencyMinimum))
+        || (Number(options.frequencyMaximum) && corpusItem.frequency > Number(options.frequencyMaximum))) continue;
+      const scopeFrequency = scopedCount(corpusItem);
+      if(options.bookId && !scopeFrequency) continue;
+      const score = q ? scoreResult(corpusItem, query) : (options.bookId ? scopeFrequency : corpusItem.frequency);
+      if(q && !score) continue;
+      const item = currentDecoratedItem(corpusItem, context);
+      if((status !== STATUS_ALL && !(status === 'New' ? item.learningStatus === 'Not Learned' : status === 'Known' ? item.learningStatus.startsWith('Known') : status === 'Learning' ? ['Learning','Reviewing'].includes(item.learningStatus) : item.learningStatus === status))
         || (options.attentionOnly && !item.needsAttention)
         || (options.mastery && options.mastery !== 'all' && item.masteryGrade !== options.mastery)
-        || (options.partOfSpeech && options.partOfSpeech !== 'all' && item.partOfSpeech !== options.partOfSpeech)
-        || (Number(options.frequencyMinimum) && item.frequency < Number(options.frequencyMinimum))
-        || (Number(options.frequencyMaximum) && item.frequency > Number(options.frequencyMaximum))
         || (options.deckId && options.deckId !== 'all' && !item.deckIds.includes(options.deckId))) continue;
-      const scopeFrequency = scopedCount(item);
-      if(options.bookId && !scopeFrequency) continue;
-      const score = q ? scoreResult(item, query) : (options.bookId ? scopeFrequency : item.frequency);
-      if(q && !score) continue;
       const personalMatch = Boolean(q && item.personalGlosses?.some(gloss => normalizeText(gloss).includes(q)));
       results.push(q || options.bookId ? { ...item, scopeFrequency, score, personalMatch } : item);
     }
@@ -506,7 +526,7 @@
     query('#globalSearchCreateDeck', rootEl)?.addEventListener('click', () => createDeckFromSearch(search.results));
     return rootEl.innerHTML;
   }
-  function searchIndexReady(){ return !indexPreparationPromise && cachedCorpusSignature === corpusSignature() && cachedDecorationSignature === decorationSignature(); }
+  function searchIndexReady(){ return !indexPreparationPromise && cachedCorpusSignature === corpusSignature(); }
   function searchViewActive(rootEl, generation){
     if(generation !== searchRenderGeneration || !query('#globalSearchPanel', rootEl)) return false;
     const view = rootEl.closest?.('#globalSearchView');

@@ -49,6 +49,7 @@ test('Global Search finds Greek lemmas and English glosses with language filters
   assert.ok(result.results[0], 'expected Hebrew alternate gloss search to return a result');
   assert.equal(result.results[0].headword, 'דָּבָר');
   assert.equal(result.results[0].language, 'hebrew');
+  assert.equal(result.results[0].entry.primaryGloss, 'word');
 
   result = search.searchGlobalVocabulary({ query: 'matter', language: 'greek' });
   assert.equal(result.total, 0);
@@ -324,7 +325,7 @@ test('Global Search renders in the app shell without the optional global DOM hel
   if(originalDoubleDollar) global.$$ = originalDoubleDollar;
 });
 
-test('Global Search reuses corpus work, refreshes user decoration separately, and performs no writes', async () => {
+test('Global Search reuses corpus work and refreshes only changed mutable learning decoration', async () => {
   await search.prepareGlobalSearchIndex();
   const baseline = search.globalSearchIndexDebug();
   const writesBeforeReadOnlyWork = storageWriteCount;
@@ -340,12 +341,20 @@ test('Global Search reuses corpus work, refreshes user decoration separately, an
   const afterCorpus = search.globalSearchIndexDebug();
   assert.equal(afterCorpus.corpusBuildCount, baseline.corpusBuildCount + 1);
 
-  storage.set(global.VocabularyLearning.STORAGE_KEY, JSON.stringify(global.VocabularyLearning.normalizeStore()));
+  let learningStore = global.VocabularyLearning.normalizeStore();
+  learningStore = global.VocabularyLearning.introduceEntry(learningStore, global.state.data.greek[0], { type: 'test' }, '2026-08-14');
+  global.VocabularyLearning.saveStore(learningStore);
+  const writesAfterMutation = storageWriteCount;
   await search.prepareGlobalSearchIndex();
+  const afterPreparation = search.globalSearchIndexDebug();
+  assert.equal(afterPreparation.preparationCount, afterCorpus.preparationCount);
+  assert.equal(afterPreparation.corpusBuildCount, afterCorpus.corpusBuildCount);
+  assert.equal(afterPreparation.decorationBuildCount, afterCorpus.decorationBuildCount);
+  const refreshed = search.searchGlobalVocabulary({ query: 'logos', language: 'greek' });
   const afterUserData = search.globalSearchIndexDebug();
-  assert.equal(afterUserData.corpusBuildCount, afterCorpus.corpusBuildCount);
-  assert.equal(afterUserData.decorationBuildCount, afterCorpus.decorationBuildCount + 1);
-  assert.equal(storageWriteCount, writesBeforeReadOnlyWork);
+  assert.equal(refreshed.results[0].learningStatus, 'Learning');
+  assert.equal(afterUserData.mutableRefreshCount, afterPreparation.mutableRefreshCount + 1);
+  assert.equal(storageWriteCount, writesAfterMutation);
 });
 
 test('leaving cold Global Search suppresses the pending result render', async () => {

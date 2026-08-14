@@ -99,9 +99,21 @@
       return cachedStore;
     } catch(e){ return createStore(); }
   }
-  function saveStore(store){
+  function invalidateStoreCache(){
+    cachedRaw = null;
+    cachedStore = null;
+  }
+  function copyStoreForUpdate(store){
+    if(store?.schemaVersion === 2 && store.records && typeof store.records === 'object'){
+      return { schemaVersion: 2, revision: Math.max(0, Number(store.revision) || 0), records: { ...store.records } };
+    }
+    return normalizeStore(store);
+  }
+  function saveStore(store, options = {}){
     const adapter = storage();
-    const normalized = normalizeStore(store);
+    const normalized = options.normalized === true && store?.schemaVersion === 2 && store.records && typeof store.records === 'object'
+      ? { schemaVersion: 2, revision: Math.max(0, Number(store.revision) || 0), records: store.records }
+      : normalizeStore(store);
     normalized.revision += 1;
     const raw = JSON.stringify(normalized);
     if(adapter) adapter.set(STORAGE_KEY, raw);
@@ -113,7 +125,13 @@
   }
   function getRecord(store, entry){
     const id = typeof entry === 'string' ? entry : lemmaId(entry);
-    return normalizeStore(store).records[id] || null;
+    // Stores returned by loadStore/saveStore are already normalized. Avoid
+    // cloning every learning record for each selector lookup; callers such as
+    // Search and Learn legitimately perform thousands of lookups together.
+    const records = store?.schemaVersion === 2 && store.records && typeof store.records === 'object'
+      ? store.records
+      : normalizeStore(store).records;
+    return records[id] || null;
   }
   function learningStatusForRecord(record, dateISO = todayISO()){
     if(!record) return STATUS.NOT_LEARNED;
@@ -139,6 +157,15 @@
     if(value <= 0) return 'Not scheduled';
     if(value === 1) return '1 day';
     return `${value} days`;
+  }
+  function formatReviewedLabel(value){
+    const timestamp = clean(value);
+    if(!timestamp) return 'Not reviewed yet';
+    const parsed = new Date(timestamp);
+    if(timestamp.includes('T') && Number.isFinite(parsed.getTime())){
+      return `${parsed.toISOString().slice(0, 16).replace('T', ' ')} UTC`;
+    }
+    return timestamp.slice(0, 10);
   }
   function reviewEvents(record = {}){
     return (Array.isArray(record.history) ? record.history : []).filter(item =>
@@ -205,7 +232,8 @@
       ratingCounts: stats.ratings,
       schedulingSuccessStreak: Number(safeRecord.successCount) || 0,
       lastReviewed: clean(safeRecord.lastReviewed || stats.last?.date),
-      lastReviewedLabel: safeRecord.lastReviewed || stats.last?.date ? formatDateLabel(safeRecord.lastReviewed || stats.last?.date, dateISO) : 'Not reviewed yet',
+      lastReviewedAt: clean(stats.last?.timestamp || safeRecord.lastReviewed || stats.last?.date),
+      lastReviewedLabel: formatReviewedLabel(stats.last?.timestamp || safeRecord.lastReviewed || stats.last?.date),
       lastRating: clean(stats.last?.confidence || stats.last?.result),
       historySummary: reviewHistorySummary(safeRecord),
       knownSource: safeRecord.knownSource || '',
@@ -419,8 +447,10 @@
     lemmaId,
     normalizeRecord,
     normalizeStore,
+    copyStoreForUpdate,
     loadStore,
     saveStore,
+    invalidateStoreCache,
     getRecord,
     learningStatusForRecord,
     learningStatus,

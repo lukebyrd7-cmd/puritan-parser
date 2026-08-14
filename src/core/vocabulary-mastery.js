@@ -190,6 +190,44 @@
       hasCounted(id){ return combined.has(id); }
     };
   }
+  async function dailyPracticeSummaryAsync(store = {}, language = 'greek', dateISO = '', target = 0, options = {}){
+    const scheduled = new Set();
+    const maintenance = new Set();
+    const records = Object.values(store?.records || {});
+    const budgetMs = Math.max(4, Math.min(24, Number(options.budgetMs) || 8));
+    const now = () => root.performance?.now?.() || Date.now();
+    const yieldToBrowser = () => new Promise(resolve => (root.setTimeout || setTimeout)(resolve, 0));
+    let index = 0;
+    while(index < records.length){
+      const started = now();
+      do {
+        const record = records[index++];
+        if(clean(record?.lang).toLowerCase() !== language) continue;
+        practiceEvents(record).forEach(event => {
+          if(clean(event.date) !== dateISO || event.recap === true || event.practice === 'recap' || event.countTowardDaily === false) return;
+          (event.practice === 'maintenance' ? maintenance : scheduled).add(record.id);
+        });
+      } while(index < records.length && now() - started < budgetMs);
+      options.onChunk?.(now() - started);
+      if(index < records.length) await yieldToBrowser();
+    }
+    const combined = new Set([...scheduled, ...maintenance]);
+    const safeTarget = Math.max(0, Number(target) || 0);
+    return {
+      language,
+      date: dateISO,
+      target: safeTarget,
+      scheduled: scheduled.size,
+      maintenance: maintenance.size,
+      combined: combined.size,
+      remaining: Math.max(0, safeTarget - combined.size),
+      complete: safeTarget > 0 && combined.size >= safeTarget,
+      scheduledIds: scheduled,
+      maintenanceIds: maintenance,
+      combinedIds: combined,
+      hasCounted(id){ return combined.has(id); }
+    };
+  }
   function gradeDistribution(entries = [], store = {}, model, options = {}){
     const result = { A: 0, B: 0, C: 0, D: 0, F: 0, total: 0 };
     knownCandidates(entries, store, model, { ...options, selectedGrades: GRADE_LETTERS }).forEach(item => {
@@ -217,6 +255,7 @@
     knownCandidates,
     buildMaintenanceSession,
     dailyPracticeSummary,
+    dailyPracticeSummaryAsync,
     gradeDistribution
   };
 });
