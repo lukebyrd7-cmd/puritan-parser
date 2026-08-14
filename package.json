@@ -16,6 +16,7 @@
     "greek:abbott-smith:build": "node scripts/abbott-smith-greek-glosses.js --write",
     "lexical:bilingual:audit": "node scripts/bilingual-lexical-audit.js",
     "lexical:bilingual:audit:write": "node scripts/bilingual-lexical-audit.js --write",
+    "canonical:forms:audit": "node scripts/canonical-vocabulary-audit.js --verify",
     "sources:validate": "node scripts/validate-source-ledger.js",
     "reader:generate": "node scripts/generate-reader-data.js",
     "hebrew:reader:generate": "node scripts/generate-hebrew-reader-data.js",

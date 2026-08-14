@@ -14,10 +14,10 @@ test('createWordEntry preserves optional lexicalForm', () => {
   assert.equal(entry.lexicalForm, 'βίβλος, ἡ');
 });
 
-test('getDisplayHeadword prefers lexicalForm, then lemma, then word', () => {
+test('getDisplayHeadword uses canonical lexical fields and never falls back to an occurrence word', () => {
   assert.equal(getDisplayHeadword({ word:'βίβλον', lemma:'βίβλος', lexicalForm:'βίβλος, ἡ' }), 'βίβλος, ἡ');
   assert.equal(getDisplayHeadword({ word:'βίβλον', lemma:'βίβλος' }), 'βίβλος');
-  assert.equal(getDisplayHeadword({ word:'βίβλον' }), 'βίβλον');
+  assert.equal(getDisplayHeadword({ word:'βίβλον' }), '');
   assert.equal(getDisplayHeadword({}), '');
 });
 

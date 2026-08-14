@@ -87,14 +87,14 @@ function createServiceWorkerHarness() {
   return { self, stores, caches, setOnline(value) { online = value; }, dispatchLifecycle, dispatchFetch };
 }
 
-test('v1.9.4 installs one complete version-compatible offline application state', async () => {
+test('v1.9.5 installs one complete version-compatible offline application state', async () => {
   const harness = createServiceWorkerHarness();
   await harness.dispatchLifecycle('install');
   const { CACHE, APP_VERSION, APP_SHELL_FILES, OFFLINE_DATA_SEEDS } = harness.self.__test;
   const cache = harness.stores.get(CACHE);
   const expanded = await harness.self.__test.expandOfflineDataFiles(cache);
 
-  assert.match(CACHE, /puritan-parser-v110-v1\.9\.4-pwa-offline-reliability-2/);
+  assert.match(CACHE, /puritan-parser-v112-v1\.9\.5-canonical-vocabulary-forms-2/);
   assert.ok(expanded.length > 4000, `expected complete corpora, received ${expanded.length} files`);
   assert.equal(cache.responses.size, new Set([...APP_SHELL_FILES, ...OFFLINE_DATA_SEEDS, ...expanded].map(value => new URL(value, `${ORIGIN}/`).href)).size);
 
@@ -126,6 +126,7 @@ test('total network loss still serves cold launches, routes, bilingual data, wor
     '/vocab_all.json',
     '/data/glosses/greek-glosses.json',
     '/data/glosses/hebrew-glosses.json',
+    '/data/lexical/canonical-forms.json',
     '/data/greek/manifest.json',
     '/data/greek/matthew/1.json',
     '/data/greek/search-index.json',

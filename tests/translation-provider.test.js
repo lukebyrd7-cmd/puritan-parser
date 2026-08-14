@@ -153,7 +153,7 @@ test('WEB importer parses USFM book codes and strips word-level markup', () => {
 
 test('service worker installs both translation providers for complete offline use', () => {
   const sw = fs.readFileSync('sw.js', 'utf8');
-  assert.match(sw, /v110-\$\{APP_VERSION\}/);
+  assert.match(sw, /v112-\$\{APP_VERSION\}/);
   assert.match(sw, /'src\/core\/translations\/translation-provider\.js'/);
   assert.match(sw, /\.\/data\/translations\/oeb\/manifest\.json/);
   assert.match(sw, /\.\/data\/translations\/web\/manifest\.json/);

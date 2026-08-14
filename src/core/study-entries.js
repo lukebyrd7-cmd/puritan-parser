@@ -25,7 +25,8 @@
   }
   function displayHeadword(entry){
     if(typeof root.getDisplayHeadword === 'function') return root.getDisplayHeadword(entry);
-    return clean(entry?.lexicalForm) || clean(entry?.lemma) || clean(entry?.word);
+    if(root.CanonicalVocabularyForms?.resolve) return root.CanonicalVocabularyForms.resolve(entry);
+    return clean(entry?.canonicalForm) || clean(entry?.lexicalForm) || clean(entry?.lemma);
   }
   function groupKey(entry){
     const lang = clean(entry?.lang).toLowerCase() || 'unknown';
@@ -71,7 +72,8 @@
     const alternateGlosses = unique(originals.flatMap(entry => [
       sourceGloss(entry), clean(entry?.gloss), clean(entry?.customGloss), ...normalizeGlosses(entry?.alternateGlosses)
     ])).filter(gloss => gloss !== primaryGloss);
-    const lexicalForm = clean(representative?.lexicalForm) || originals.map(entry => clean(entry?.lexicalForm)).find(Boolean) || '';
+    const canonicalForm = displayHeadword(representative) || originals.map(displayHeadword).find(Boolean) || '';
+    const lexicalForm = canonicalForm;
     const forms = unique(originals.map(entry => entry?.word));
     const freq = aggregateLemmaFrequency(originals);
     return {
@@ -81,6 +83,7 @@
       lemma,
       word: lemma,
       lexicalForm,
+      canonicalForm,
       representativeForm: clean(representative?.word) || lemma,
       primaryGloss,
       alternateGlosses,

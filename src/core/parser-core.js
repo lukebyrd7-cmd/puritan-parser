@@ -91,6 +91,20 @@
     hithpael: 'Hithpael'
   };
 
+  const HEBREW_STEM_CODES = {
+    q: 'Qal', N: 'Niphal', p: 'Piel', P: 'Pual', h: 'Hiphil', H: 'Hophal', t: 'Hithpael',
+    o: 'Polel', O: 'Polal', r: 'Hithpolel', m: 'Poel', M: 'Poal', k: 'Palel', K: 'Pulal',
+    Q: 'Qal passive', l: 'Pilpel', L: 'Polpal', f: 'Hithpalpel', D: 'Nithpael', j: 'Pealal',
+    i: 'Pilel', u: 'Hothpaal', c: 'Tiphil', v: 'Hishtaphel', w: 'Nithpalel', y: 'Nithpoel', z: 'Hithpoel'
+  };
+
+  const ARAMAIC_STEM_CODES = {
+    q: 'Peal', Q: 'Peil', u: 'Hithpeel', p: 'Pael', P: 'Ithpaal', M: 'Hithpaal', a: 'Aphel',
+    h: 'Haphel', s: 'Saphel', e: 'Shaphel', H: 'Hophal', i: 'Ithpeel', t: 'Hishtaphel',
+    v: 'Ishtaphel', w: 'Hithaphel', o: 'Polel', z: 'Ithpoel', r: 'Hithpolel', f: 'Hithpalpel',
+    b: 'Hephal', c: 'Tiphel', m: 'Poel', l: 'Palpel', L: 'Ithpalpel', O: 'Ithpolel', G: 'Ittaphal'
+  };
+
   const HEBREW_FORMS = {
     perf: 'perfect',
     impf: 'imperfect',
@@ -104,6 +118,15 @@
 
   function norm(value) {
     return String(value || '').trim();
+  }
+
+  function hebrewStemLabel(code, options = {}){
+    const value = norm(code);
+    if(!value) return '';
+    const named = HEBREW_STEMS[value.toLowerCase()];
+    if(named) return named;
+    const labels = options.aramaic ? ARAMAIC_STEM_CODES : HEBREW_STEM_CODES;
+    return labels[value] || `Stem ${value}`;
   }
 
   function tokenList(parse) {
@@ -137,15 +160,6 @@
 
   function decodeOshbHebrewVerb(parse) {
     const code = norm(parse).match(/(?:^|\/)V([a-z0-9]+)/i)?.[1] || norm(parse).replace(/^HV/i, '');
-    const stemCodes = {
-      q: 'Qal',
-      n: 'Niphal',
-      p: 'Piel',
-      P: 'Pual',
-      h: 'Hiphil',
-      H: 'Hophal',
-      t: 'Hithpael'
-    };
     const formCodes = {
       p: 'perfect',
       q: 'wayyiqtol',
@@ -157,7 +171,7 @@
       a: 'infinitive absolute',
       c: 'infinitive construct'
     };
-    const stem = stemCodes[code[0]] || stemCodes[code[0]?.toLowerCase()] || code[0];
+    const stem = hebrewStemLabel(code[0], { aramaic: /^A/.test(norm(parse)) });
     const form = formCodes[code[1]] || code[1];
     const png = expandPersonNumberGender(code.slice(2)) || code.slice(2);
     const details = [stem, form, png].filter(Boolean);
@@ -248,7 +262,7 @@
   function decodeHebrewVerb(parse) {
     if (/^(H[VCA]|.*\/V)/i.test(norm(parse))) return decodeOshbHebrewVerb(parse);
     const bits = norm(parse).toLowerCase().split('-').filter(Boolean);
-    const stem = HEBREW_STEMS[bits[1]] || bits[1];
+    const stem = hebrewStemLabel(bits[1]);
     const form = HEBREW_FORMS[bits[2]] || bits[2];
     const png = expandPersonNumberGender(bits[3]) || bits[3];
     const details = [stem, form, png].filter(Boolean);
@@ -389,6 +403,7 @@
 
   return {
     decodeParse,
+    hebrewStemLabel,
     grammarCategories,
     matchesGrammarCategory,
     isWeakCard,

@@ -89,25 +89,38 @@ function applyGreekLexicalSource(items, source){
   }
   return items;
 }
+function applyCanonicalForms(items, language){
+  if(typeof CanonicalVocabularyForms === 'undefined') return items;
+  for(const item of items || []){
+    const canonicalForm = CanonicalVocabularyForms.resolve(item, { language });
+    if(canonicalForm){ item.canonicalForm = canonicalForm; item.lexicalForm = canonicalForm; }
+  }
+  return items;
+}
 async function loadVocabularySources(){
-  const [all, greekLexicalSource] = await Promise.all([
+  const [all, greekLexicalSource, canonicalForms] = await Promise.all([
     fetchSourceJson(FILE_ALL),
     loadLexicalGlossMap('greek').catch(error => {
       console.warn('Greek lexical gloss overlay unavailable; embedded vocabulary glosses remain active.', error);
       return null;
-    })
+    }),
+    fetchSourceObject('/data/lexical/canonical-forms.json')
   ]);
+  if(!canonicalForms) throw new Error('Canonical vocabulary forms could not be loaded.');
+  if(typeof CanonicalVocabularyForms !== 'undefined') CanonicalVocabularyForms.setMap(canonicalForms);
   if(all && all.length){
     const sources = await splitVocabularySource(all);
     applyGreekLexicalSource(sources.greek, greekLexicalSource);
+    applyCanonicalForms(sources.greek, 'greek');
+    applyCanonicalForms(sources.hebrew, 'hebrew');
     return sources;
   }
   const gf = await fetchSourceJson(FILE_GREEK);
   const hf = await fetchSourceJson(FILE_HEBREW);
   return {
-    greek: gf && gf.length ? applyGreekLexicalSource(await normalizeVocabularySource(gf, 'greek'), greekLexicalSource) : null,
-    hebrew: hf && hf.length ? await normalizeVocabularySource(hf, 'hebrew') : null
+    greek: gf && gf.length ? applyCanonicalForms(applyGreekLexicalSource(await normalizeVocabularySource(gf, 'greek'), greekLexicalSource), 'greek') : null,
+    hebrew: hf && hf.length ? applyCanonicalForms(await normalizeVocabularySource(hf, 'hebrew'), 'hebrew') : null
   };
 }
 if(typeof window !== 'undefined') Object.assign(window, { loadLexicalGlossMap, lexicalGlossPreparationDebug });
-if(typeof module !== 'undefined') module.exports = { fetchSourceJson, fetchSourceObject, lexicalGlossPath, loadLexicalGlossMap, lexicalGlossPreparationDebug, normalizeSourceWord, normalizeVocabularySource, splitVocabularySource, applyGreekLexicalSource, loadVocabularySources };
+if(typeof module !== 'undefined') module.exports = { fetchSourceJson, fetchSourceObject, lexicalGlossPath, loadLexicalGlossMap, lexicalGlossPreparationDebug, normalizeSourceWord, normalizeVocabularySource, splitVocabularySource, applyGreekLexicalSource, applyCanonicalForms, loadVocabularySources };

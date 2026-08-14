@@ -1,7 +1,8 @@
 function displayHeadwordForEntry(entry){
   if(typeof getDisplayHeadword === 'function') return getDisplayHeadword(entry);
+  if(typeof CanonicalVocabularyForms !== 'undefined') return CanonicalVocabularyForms.resolve(entry);
   const clean = value => typeof value === 'string' ? value.trim() : '';
-  return clean(entry?.lexicalForm) || clean(entry?.lemma) || clean(entry?.word) || '';
+  return clean(entry?.canonicalForm) || clean(entry?.lexicalForm) || clean(entry?.lemma) || '';
 }
 
 /* ---------- FLASHCARD SESSION ---------- */
