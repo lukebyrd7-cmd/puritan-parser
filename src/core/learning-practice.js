@@ -153,9 +153,8 @@
     return GlossApi?.isLearnerEnglishGloss ? GlossApi.isLearnerEnglishGloss(gloss) : /[A-Za-z]/.test(gloss);
   }
   function scriptForm(entry, language){
-    const candidates = language === 'hebrew'
-      ? [entry?.studyForm, entry?.lexicalForm, entry?.hebrewLemma, entry?.root, entry?.representativeForm, entry?.word, entry?.lemma, ...(Array.isArray(entry?.forms) ? entry.forms : [])]
-      : [entry?.studyForm, entry?.lemma, entry?.lexicalForm, entry?.representativeForm, entry?.word, ...(Array.isArray(entry?.forms) ? entry.forms : [])];
+    const canonical = root.CanonicalVocabularyForms?.resolve?.(entry, { language }) || '';
+    const candidates = [canonical, entry?.canonicalForm, entry?.lexicalForm, entry?.lemma];
     const pattern = language === 'hebrew' ? /[\u0590-\u05ff]/ : /[\u0370-\u03ff\u1f00-\u1fff]/;
     return candidates.map(clean).find(value => pattern.test(value) && !/^\d+$/.test(value))
       || candidates.map(clean).find(value => /[A-Za-z]/.test(value) && !/^\d+[+a-z]?$/i.test(value))

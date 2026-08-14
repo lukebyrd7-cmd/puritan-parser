@@ -155,7 +155,7 @@ test('smoke: service worker deterministically installs required runtime JSON in 
 
 test('smoke: versioned startup assets cannot match an older query version', () => {
   const sw = fs.readFileSync('sw.js', 'utf8');
-  assert.match(sw, /const APP_VERSION = 'v1\.9\.4-pwa-offline-reliability-2'/);
+  assert.match(sw, /const APP_VERSION = 'v1\.9\.5-canonical-vocabulary-forms-1'/);
   assert.match(sw, /STARTUP_SCRIPT_PATHS\.map\(path => `\.\/\$\{path\}\?v=\$\{APP_VERSION\}`\)/);
   assert.doesNotMatch(sw, /cacheFirst\(event\.request, \{ ignoreSearch: true \}\)/);
   assert.match(sw, /if \(!response \|\| !response\.ok\) throw new Error/);
@@ -175,11 +175,11 @@ test('smoke: nested hard refreshes resolve startup assets from the app root', ()
   const main = fs.readFileSync('src/main.js', 'utf8');
   const events = fs.readFileSync('src/features/settings/events.js', 'utf8');
   const sw = fs.readFileSync('sw.js', 'utf8');
-  assert.match(html, /href="\/styles\.css\?v=v1\.9\.4-pwa-offline-reliability-2"/);
-  assert.match(html, /src="\/src\/main\.js\?v=v1\.9\.4-pwa-offline-reliability-2"/);
+  assert.match(html, /href="\/styles\.css\?v=v1\.9\.5-canonical-vocabulary-forms-1"/);
+  assert.match(html, /src="\/src\/main\.js\?v=v1\.9\.5-canonical-vocabulary-forms-1"/);
   assert.match(main, /const rootPath = src\.startsWith\('\/'\) \? src : `\/\$\{src\}`/);
   assert.match(main, /script\.src = `\$\{rootPath\}\?v=\$\{PURITAN_PARSER_ASSET_VERSION\}`/);
-  assert.match(main, /PURITAN_PARSER_ASSET_VERSION = 'v1\.9\.4-pwa-offline-reliability-2'/);
+  assert.match(main, /PURITAN_PARSER_ASSET_VERSION = 'v1\.9\.5-canonical-vocabulary-forms-1'/);
   assert.match(main, /PURITAN_SCRIPT_LOAD_TIMEOUT_MS = 9000/);
   assert.match(main, /puritanLoadedScripts\.delete\(src\)/);
   assert.match(main, /serviceWorker\.register\('\/sw\.js'\)/);

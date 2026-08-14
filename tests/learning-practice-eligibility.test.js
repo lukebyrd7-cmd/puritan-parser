@@ -7,7 +7,7 @@ global.VocabularyMastery = require('../src/core/vocabulary-mastery');
 const LearningPractice = require('../src/core/learning-practice');
 
 const greek = (lemma, gloss = 'word', freq = 10) => ({ id: `lemma:greek:${lemma}`, lang: 'greek', lemma, word: lemma, gloss, freq });
-const hebrew = (id, form, gloss = '', freq = 10) => ({ id: `lemma:hebrew:${id}`, lang: 'hebrew', lemma: String(id), word: String(id), representativeForm: form, gloss, freq });
+const hebrew = (id, form, gloss = '', freq = 10) => ({ id: `lemma:hebrew:${id}`, lang: 'hebrew', lemma: String(id), word: String(id), canonicalForm: form, representativeForm: form, gloss, freq });
 const knownStore = entries => VocabularyLearning.normalizeStore({ records: Object.fromEntries(entries.map(entry => [entry.id, { id: entry.id, lemma: entry.lemma, lang: entry.lang, status: 'Known', knownSource: 'manual', successCount: 5, intervalDays: 14, due: '9999-12-31' }])) });
 
 test('central card eligibility resolves Hebrew forms and mapped lexical glosses without exposing numeric ids', () => {

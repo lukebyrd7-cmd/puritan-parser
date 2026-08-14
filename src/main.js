@@ -10,6 +10,7 @@ const PURITAN_PARSER_CORE_SCRIPTS = [
   'src/app-state.js',
   'src/ui/dom.js',
   'src/ui/toast.js',
+  'src/models/canonical-forms.js',
   'src/models/word-entry.js',
   'src/models/gloss.js',
   'src/models/personal-glosses.js',
@@ -74,7 +75,7 @@ const PURITAN_PARSER_SCRIPTS = [
   ...Object.values(PURITAN_PARSER_FEATURE_SCRIPTS).flat(),
   'src/bootstrap.js'
 ];
-const PURITAN_PARSER_ASSET_VERSION = 'v1.9.4-pwa-offline-reliability-2';
+const PURITAN_PARSER_ASSET_VERSION = 'v1.9.5-canonical-vocabulary-forms-1';
 const PURITAN_SCRIPT_LOAD_TIMEOUT_MS = 9000;
 
 const puritanLoadedScripts = new Map();

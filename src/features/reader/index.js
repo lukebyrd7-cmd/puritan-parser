@@ -1157,7 +1157,6 @@ function hebrewMorphologyFields(info = {}){
   const verb = raw.match(/(?:^H?V|\/V)([a-z0-9]+)/i)?.[1] || (/^V-/i.test(raw) ? raw.split('-').slice(1) : null);
   const sourceNominal = raw.match(/(?:^H?|\/)([NA])([a-z]+)/i);
   const nominal = sourceNominal?.[2] || (/^[NA]-/i.test(raw) ? raw.split('-')[1] : '');
-  const stems = { q: 'Qal', n: 'Niphal', p: 'Piel', h: 'Hiphil', t: 'Hithpael' };
   const forms = { p: 'perfect', q: 'wayyiqtol', w: 'wayyiqtol', i: 'imperfect', v: 'imperative', r: 'participle', s: 'participle', a: 'infinitive absolute', c: 'infinitive construct' };
   const genders = { m: 'masculine', f: 'feminine', c: 'common' };
   const numbers = { s: 'singular', p: 'plural', d: 'dual' };
@@ -1173,7 +1172,8 @@ function hebrewMorphologyFields(info = {}){
     add('Gender', genders[png.match(/[mfc]/)?.[0]]);
     add('Number', numbers[png.match(/[spd]/)?.[0]]);
   } else if(verb){
-    add('Stem', stems[verb[0]] || verb[0]);
+    const parser = (typeof ParserCore !== 'undefined' && ParserCore) || (typeof require === 'function' ? require('../../core/parser-core') : null);
+    add('Stem', parser?.hebrewStemLabel ? parser.hebrewStemLabel(verb[0], { aramaic: /^A/.test(raw) }) : `Stem ${verb[0]}`);
     add('Conjugation', forms[verb[1]] || verb[1]);
     const png = verb.slice(2).toLowerCase();
     add('Person', ordinalPerson(png.match(/[123]/)?.[0]));

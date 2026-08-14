@@ -1,8 +1,8 @@
 // Service worker for the static Puritan Parser app.
 // Keep this file next to index.html so root-scoped registration covers every route.
-const APP_VERSION = 'v1.9.4-pwa-offline-reliability-2';
+const APP_VERSION = 'v1.9.5-canonical-vocabulary-forms-1';
 const CACHE_PREFIX = 'puritan-parser-';
-const CACHE = `${CACHE_PREFIX}v110-${APP_VERSION}`;
+const CACHE = `${CACHE_PREFIX}v111-${APP_VERSION}`;
 const CACHE_BATCH_SIZE = 24;
 
 const STARTUP_SCRIPT_PATHS = [
@@ -14,6 +14,7 @@ const STARTUP_SCRIPT_PATHS = [
   'src/app-state.js',
   'src/ui/dom.js',
   'src/ui/toast.js',
+  'src/models/canonical-forms.js',
   'src/models/word-entry.js',
   'src/models/gloss.js',
   'src/models/personal-glosses.js',
@@ -92,6 +93,7 @@ const OFFLINE_DATA_SEEDS = [
   './data/glosses/greek-glosses.json',
   './data/glosses/hebrew-glosses.json',
   './data/glosses/unavailable-glosses.json',
+  './data/lexical/canonical-forms.json',
   './data/greek/manifest.json',
   './data/greek/search-index.json',
   './data/hebrew/manifest.json',
@@ -174,6 +176,7 @@ self.addEventListener('activate', event => {
 function isCoreOfflineData(pathname) {
   return pathname === '/vocab_all.json'
     || pathname.startsWith('/data/glosses/')
+    || pathname.startsWith('/data/lexical/')
     || pathname.startsWith('/data/greek/')
     || pathname.startsWith('/data/hebrew/')
     || pathname.startsWith('/data/hebrew-interlinear/')

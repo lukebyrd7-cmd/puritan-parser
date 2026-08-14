@@ -1,0 +1,2056 @@
+{
+  "schemaVersion": 1,
+  "release": "v1.9.5",
+  "generatedDeterministically": true,
+  "languages": {
+    "greek": {
+      "identities": 5478,
+      "canonicalOkBefore": 1603,
+      "correctionsRequired": 3875,
+      "prefixBefore": 0,
+      "prefixAfter": 0,
+      "suffixBefore": 0,
+      "suffixAfter": 0,
+      "inflectedNominalBefore": 2195,
+      "inflectedNominalAfter": 0,
+      "noncanonicalVerbBefore": 1668,
+      "noncanonicalVerbAfter": 0,
+      "unresolvedAfter": 0,
+      "functionWords": 403,
+      "properNames": 559,
+      "verbs": 1858,
+      "qalCitationSupported": 0,
+      "qalPerfect3msAttested": 0,
+      "verbExceptions": 0,
+      "categories": {
+        "FUNCTION_WORD": 402,
+        "NONCANONICAL_VERB": 1668,
+        "CANONICAL_OK": 916,
+        "INFLECTED_NOUN_OR_ADJECTIVE": 1933,
+        "PROPER_NAME": 559
+      }
+    },
+    "hebrew": {
+      "identities": 9152,
+      "canonicalOkBefore": 2267,
+      "correctionsRequired": 6885,
+      "prefixBefore": 2840,
+      "prefixAfter": 0,
+      "suffixBefore": 640,
+      "suffixAfter": 0,
+      "inflectedNominalBefore": 5492,
+      "inflectedNominalAfter": 0,
+      "noncanonicalVerbBefore": 1470,
+      "noncanonicalVerbAfter": 0,
+      "unresolvedAfter": 0,
+      "functionWords": 211,
+      "properNames": 3236,
+      "verbs": 1603,
+      "qalCitationSupported": 1205,
+      "qalPerfect3msAttested": 486,
+      "verbExceptions": 398,
+      "categories": {
+        "FUNCTION_WORD": 197,
+        "PROPER_NAME": 3236,
+        "CANONICAL_OK": 1050,
+        "NONCANONICAL_VERB": 718,
+        "INFLECTED_NOUN_OR_ADJECTIVE": 1487,
+        "PREFIX_CONTAMINATION": 1893,
+        "SURFACE_FORM_FALLBACK": 2,
+        "SUFFIX_CONTAMINATION": 569
+      }
+    }
+  },
+  "hebrewVerbExceptions": [
+    {
+      "vocabularyId": "lemma:hebrew:נָכָה",
+      "canonicalForm": "נָכָה",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:צָוָה",
+      "canonicalForm": "צָוָה",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:בָּרַךְ",
+      "canonicalForm": "בָּרַךְ",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:בִּקֵּשׁ",
+      "canonicalForm": "בִּקֵּשׁ",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:יָשַׁע",
+      "canonicalForm": "יָשַׁע",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:6680",
+      "canonicalForm": "צָוָה",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:הָלַל",
+      "canonicalForm": "הָלַל",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:יָדָה",
+      "canonicalForm": "יָדָה",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:כָּפַר",
+      "canonicalForm": "כָּפַר",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:5221",
+      "canonicalForm": "נָכָה",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:5329",
+      "canonicalForm": "נָצַח",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:7650",
+      "canonicalForm": "שָׁבַע",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:5046",
+      "canonicalForm": "נָגַד",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:8047",
+      "canonicalForm": "שַׁמָּה",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:3559",
+      "canonicalForm": "כּוּן",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:1245",
+      "canonicalForm": "בָּקַשׁ",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:3498",
+      "canonicalForm": "יָתַר",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:5324",
+      "canonicalForm": "נָצַב",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:7806",
+      "canonicalForm": "שָׁזַר",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:7925",
+      "canonicalForm": "שָׁכַם",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:5012",
+      "canonicalForm": "נָבָא",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:6999",
+      "canonicalForm": "קָטַר",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:8334",
+      "canonicalForm": "שָׁרַת",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:5337",
+      "canonicalForm": "נָצַל",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:7488",
+      "canonicalForm": "רַעֲנָן",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:238",
+      "canonicalForm": "אָזַן",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:6419",
+      "canonicalForm": "פָּלַל",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:3467",
+      "canonicalForm": "יָשַׁע",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:2167",
+      "canonicalForm": "זָמַר",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:7993",
+      "canonicalForm": "שָׁלַךְ",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:4422",
+      "canonicalForm": "מָלַט",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:4118",
+      "canonicalForm": "מַהֵר",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:3213",
+      "canonicalForm": "יָלַל",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:7321",
+      "canonicalForm": "רוּעַ",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:6381",
+      "canonicalForm": "פָּלָא",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:423",
+      "canonicalForm": "אָלָה",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:8045",
+      "canonicalForm": "שָׁמַד",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:2557",
+      "canonicalForm": "חָמֵץ",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:3547",
+      "canonicalForm": "כָּהַן",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:7843",
+      "canonicalForm": "שָׁחַת",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:3985",
+      "canonicalForm": "מָאֵן",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:6950",
+      "canonicalForm": "קָהַל",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:8378",
+      "canonicalForm": "תַּאֲוָה",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:3240",
+      "canonicalForm": "יָנַח",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:7837",
+      "canonicalForm": "שַׁחַר",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:5162",
+      "canonicalForm": "נָחַם",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:3320",
+      "canonicalForm": "יָצַב",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:3198",
+      "canonicalForm": "יָכַח",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:5381",
+      "canonicalForm": "נָשַׂג",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:3276",
+      "canonicalForm": "יַעַל",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:8246",
+      "canonicalForm": "שָׁקַד",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:8366",
+      "canonicalForm": "שָׁתַן",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:7065",
+      "canonicalForm": "קָנָא",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:605",
+      "canonicalForm": "אָנַשׁ",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:5027",
+      "canonicalForm": "נָבַט",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:5749",
+      "canonicalForm": "עוּד",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:3187",
+      "canonicalForm": "יָחַשׂ",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:2974",
+      "canonicalForm": "יָאַל",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:3637",
+      "canonicalForm": "כָּלַם",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:3665",
+      "canonicalForm": "כָּנַע",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:5254",
+      "canonicalForm": "נָסָה",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:8248",
+      "canonicalForm": "שָׁקָה",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:3176",
+      "canonicalForm": "יָחַל",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:5234",
+      "canonicalForm": "נָכַר",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:1319",
+      "canonicalForm": "בָּשַׂר",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:2690",
+      "canonicalForm": "חָצַר",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:7290",
+      "canonicalForm": "רָדַם",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:6923",
+      "canonicalForm": "קָדַם",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:5641",
+      "canonicalForm": "סָתַר",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:7324",
+      "canonicalForm": "רוּק",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:8259",
+      "canonicalForm": "שָׁקַף",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:2986",
+      "canonicalForm": "יָבַל",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:5791",
+      "canonicalForm": "עָוַת",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:6315",
+      "canonicalForm": "פּוּחַ",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:3544",
+      "canonicalForm": "כֵּהֶה",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:3986",
+      "canonicalForm": "מָאֵן",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:926",
+      "canonicalForm": "בָּהַל",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:8172",
+      "canonicalForm": "שָׁעַן",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:7768",
+      "canonicalForm": "שָׁוַע",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:3582",
+      "canonicalForm": "כָּחַד",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:516",
+      "canonicalForm": "אַל תַּשְׁחֵת",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:183",
+      "canonicalForm": "אָוָה",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:1442",
+      "canonicalForm": "גָּדַף",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:2094",
+      "canonicalForm": "זָהַר",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:2013",
+      "canonicalForm": "הָסָה",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:6168",
+      "canonicalForm": "עָרָה",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:2048",
+      "canonicalForm": "הָתַל",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:1082",
+      "canonicalForm": "בָּלַג",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:781",
+      "canonicalForm": "אָרַשׂ",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:1548",
+      "canonicalForm": "גָּלַח",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:5953",
+      "canonicalForm": "עָלַל",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:914",
+      "canonicalForm": "בָּדַל",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:4305",
+      "canonicalForm": "מָטַר",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:7599",
+      "canonicalForm": "שָׁאַן",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:1949",
+      "canonicalForm": "הוּם",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:1624",
+      "canonicalForm": "גָּרָה",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:3832",
+      "canonicalForm": "לָבַט",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:4171",
+      "canonicalForm": "מוּר",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:5496",
+      "canonicalForm": "סוּת",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:6693",
+      "canonicalForm": "צוּק",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:3992",
+      "canonicalForm": "מָאַר",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:4617",
+      "canonicalForm": "מַעֲנֶה",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:7696",
+      "canonicalForm": "שָׁגַע",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:2244",
+      "canonicalForm": "חָבָא",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:481",
+      "canonicalForm": "אָלַם",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:2976",
+      "canonicalForm": "יָאַשׁ",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:3648",
+      "canonicalForm": "כָּמַר",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:5372",
+      "canonicalForm": "נִרְגָּן",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:5786",
+      "canonicalForm": "עָוַר",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:8519",
+      "canonicalForm": "תְּלוּנָה",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:2331",
+      "canonicalForm": "חָוָה",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:3655",
+      "canonicalForm": "כָּנָה",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:7306",
+      "canonicalForm": "רוּחַ",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:3013",
+      "canonicalForm": "יָגָה",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:3313",
+      "canonicalForm": "יָפַע",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:6331",
+      "canonicalForm": "פּוּר",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:2904",
+      "canonicalForm": "טוּל",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:1351",
+      "canonicalForm": "גָּאַל",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:3447",
+      "canonicalForm": "יָשַׁט",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:5095",
+      "canonicalForm": "נָהַל",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:5557",
+      "canonicalForm": "סָלַף",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:6329",
+      "canonicalForm": "פּוּק",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:3322",
+      "canonicalForm": "יָצַג",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:6901",
+      "canonicalForm": "קָבַל",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:6969",
+      "canonicalForm": "קוּן",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:662",
+      "canonicalForm": "אָפַק",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:3784",
+      "canonicalForm": "כָּשַׁף",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:4178",
+      "canonicalForm": "מוֹרָט",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:5172",
+      "canonicalForm": "נָחַשׁ",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:4743",
+      "canonicalForm": "מָקַק",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:7034",
+      "canonicalForm": "קָלָה",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:5408",
+      "canonicalForm": "נָתַח",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:8027",
+      "canonicalForm": "שָׁלַשׁ",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:2318",
+      "canonicalForm": "חָדַשׁ",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:2844",
+      "canonicalForm": "חַת",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:1204",
+      "canonicalForm": "בָּעַת",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:1239",
+      "canonicalForm": "בָּקַר",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:1740",
+      "canonicalForm": "דּוּחַ",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:2118",
+      "canonicalForm": "זָחַח",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:5144",
+      "canonicalForm": "נָזַר",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:3803",
+      "canonicalForm": "כָּתַר",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:3331",
+      "canonicalForm": "יַצַע",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:7376",
+      "canonicalForm": "רָטָשׁ",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:1566",
+      "canonicalForm": "גָּלַע",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:3859",
+      "canonicalForm": "לָהַם",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:7623",
+      "canonicalForm": "שָׁבַח",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:6286",
+      "canonicalForm": "פָּאַר",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:4742",
+      "canonicalForm": "מְקֻצְעָה",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:2163",
+      "canonicalForm": "זָמַן",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:2707",
+      "canonicalForm": "חָקָה",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:4463",
+      "canonicalForm": "מָמוֹת",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:4142",
+      "canonicalForm": "מוּסַבָּה",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:7246",
+      "canonicalForm": "רָבַךְ",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:7947",
+      "canonicalForm": "שָׁלַב",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:8382",
+      "canonicalForm": "תָּאַם",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:444",
+      "canonicalForm": "אָלַח",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:584",
+      "canonicalForm": "אָנַח",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:5064",
+      "canonicalForm": "נָגַר",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:2973",
+      "canonicalForm": "יָאַל",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:5528",
+      "canonicalForm": "סָכַל",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:6385",
+      "canonicalForm": "פָּלַג",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:8581",
+      "canonicalForm": "תַּעָב",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:6296",
+      "canonicalForm": "פָּגַר",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:5253",
+      "canonicalForm": "נָסַג",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:8262",
+      "canonicalForm": "שָׁקַץ",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:8376",
+      "canonicalForm": "תָּאָה",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:2616",
+      "canonicalForm": "חָסַד",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:1718",
+      "canonicalForm": "דָּדָה",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:2936",
+      "canonicalForm": "טָנַף",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:4042",
+      "canonicalForm": "מָגַן",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:4529",
+      "canonicalForm": "מָסָה",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:579",
+      "canonicalForm": "אָנָה",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:6284",
+      "canonicalForm": "פָּאָה",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:6702",
+      "canonicalForm": "צוּת",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:6850",
+      "canonicalForm": "צָפַף",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:874",
+      "canonicalForm": "בָּאַר",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:79",
+      "canonicalForm": "אָבַק",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:1318",
+      "canonicalForm": "בָּשַׁס",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:4524",
+      "canonicalForm": "מֵסַב",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:5432",
+      "canonicalForm": "סַאסְּאָה",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:6049",
+      "canonicalForm": "עָנַן",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:1792",
+      "canonicalForm": "דָּכָא",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:3014",
+      "canonicalForm": "יָגָה",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:1572",
+      "canonicalForm": "גָּמָא",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:2937",
+      "canonicalForm": "טָעָה",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:3231",
+      "canonicalForm": "יָמַן",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:3512",
+      "canonicalForm": "כָּאָה",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:3728",
+      "canonicalForm": "כָּפַשׁ",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:3938",
+      "canonicalForm": "לָעַט",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:3987",
+      "canonicalForm": "מֵאֵן",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:5077",
+      "canonicalForm": "נָדָה",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:5533",
+      "canonicalForm": "סָכַן",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:5537",
+      "canonicalForm": "סָלָא",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:2826",
+      "canonicalForm": "חָשַׁל",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:6775",
+      "canonicalForm": "צָמַד",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:5535",
+      "canonicalForm": "סָכַת",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:5605",
+      "canonicalForm": "סָפַף",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:5756",
+      "canonicalForm": "עוּז",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:6351",
+      "canonicalForm": "פָּחַח",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:6395",
+      "canonicalForm": "פָּלָה",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:7188",
+      "canonicalForm": "קָשַׁח",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:7477",
+      "canonicalForm": "רָעַל",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:7688",
+      "canonicalForm": "שָׁגַח",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:7783",
+      "canonicalForm": "שׁוּק",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:8041",
+      "canonicalForm": "שָׂמַאל",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:258",
+      "canonicalForm": "אָחַד",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:8428",
+      "canonicalForm": "תָּוָה",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:8456",
+      "canonicalForm": "תָּזַז",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:4102",
+      "canonicalForm": "מָהַהּ",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:6229",
+      "canonicalForm": "עָשַׂק",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:6257",
+      "canonicalForm": "עָתַד",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:6428",
+      "canonicalForm": "פָּלַשׁ",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:7511",
+      "canonicalForm": "רָפַס",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:239",
+      "canonicalForm": "אָזַן",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:5539",
+      "canonicalForm": "סָלַד",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:1333",
+      "canonicalForm": "בָּתַק",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:2853",
+      "canonicalForm": "חָתַל",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:3237",
+      "canonicalForm": "יָמַשׁ",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:6026",
+      "canonicalForm": "עָנַג",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:4984",
+      "canonicalForm": "מִתְנַשֵּׂא",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:1972",
+      "canonicalForm": "הָלָא",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:5976",
+      "canonicalForm": "עָמַד",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:6280",
+      "canonicalForm": "עָתַר",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:6800",
+      "canonicalForm": "צָנַע",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:5400",
+      "canonicalForm": "נָשַׂק",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:184",
+      "canonicalForm": "אָוָה",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:377",
+      "canonicalForm": "אִישׁ",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:8427",
+      "canonicalForm": "תָּוָה",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:6014",
+      "canonicalForm": "עָמַר",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:2092",
+      "canonicalForm": "זָהַם",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:2179",
+      "canonicalForm": "זָנַב",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:2325",
+      "canonicalForm": "חוּב",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:2567",
+      "canonicalForm": "חָמַשׁ",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:2894",
+      "canonicalForm": "טוּא",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:142",
+      "canonicalForm": "אָדַר",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:225",
+      "canonicalForm": "אוּת",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:2992",
+      "canonicalForm": "יָבַם",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:2237",
+      "canonicalForm": "זָרַר",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:2480",
+      "canonicalForm": "חָלַט",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:2614",
+      "canonicalForm": "חָנַק",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:2644",
+      "canonicalForm": "חָפָא",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:2926",
+      "canonicalForm": "טָלַל",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:4128",
+      "canonicalForm": "מוּד",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:5314",
+      "canonicalForm": "נָפַשׁ",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:5534",
+      "canonicalForm": "סָכַר",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:5686",
+      "canonicalForm": "עָבַת",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:5823",
+      "canonicalForm": "עָזַק",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:6075",
+      "canonicalForm": "עָפַל",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:6140",
+      "canonicalForm": "עָקַשׁ",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:6478",
+      "canonicalForm": "פָּצַל",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:6582",
+      "canonicalForm": "פָּשַׁח",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:6737",
+      "canonicalForm": "צָיַר",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:7035",
+      "canonicalForm": "קָלַהּ",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:7702",
+      "canonicalForm": "שָׂדַד",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:8151",
+      "canonicalForm": "שָׁנַס",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:8158",
+      "canonicalForm": "שָׁסַף",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:8368",
+      "canonicalForm": "שָׂתַר",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:55",
+      "canonicalForm": "אָבַךְ",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:5727",
+      "canonicalForm": "עָדַן",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:5968",
+      "canonicalForm": "עָלַף",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:7046",
+      "canonicalForm": "קָלַס",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:109",
+      "canonicalForm": "אָדַב",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:1089",
+      "canonicalForm": "בָּלַהּ",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:4059",
+      "canonicalForm": "מִדַּד",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:1727",
+      "canonicalForm": "דּוּב",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:3769",
+      "canonicalForm": "כָּרַר",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:5635",
+      "canonicalForm": "סָרַף",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:8265",
+      "canonicalForm": "שָׂקַר",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:8591",
+      "canonicalForm": "תָּעַע",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:8638",
+      "canonicalForm": "תִּרְגַּם",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:6866",
+      "canonicalForm": "צָרַב",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:5500",
+      "canonicalForm": "סָחָה",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:6080",
+      "canonicalForm": "עָפַר",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:7660",
+      "canonicalForm": "שָׁבַץ",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:8192",
+      "canonicalForm": "שָׁפָה",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:8327",
+      "canonicalForm": "שָׁרַשׁ",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:8338",
+      "canonicalForm": "שָׁשָׁא",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:8341",
+      "canonicalForm": "שָׁשָׁה",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:509",
+      "canonicalForm": "אָלַץ",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:1951",
+      "canonicalForm": "הוּן",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:2980",
+      "canonicalForm": "יָבַב",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:3823",
+      "canonicalForm": "לָבַב",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:5134",
+      "canonicalForm": "נוּק",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:2589",
+      "canonicalForm": "חַנּוֹת",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:2666",
+      "canonicalForm": "חָפַשׁ",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:2946",
+      "canonicalForm": "טָפַח",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:82",
+      "canonicalForm": "אָבַר",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:166",
+      "canonicalForm": "אָהַל",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:1069",
+      "canonicalForm": "בָּכַר",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:1479",
+      "canonicalForm": "גּוּף",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:2187",
+      "canonicalForm": "זָנַק",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:2215",
+      "canonicalForm": "זָרַב",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:2630",
+      "canonicalForm": "חָסַן",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:2959",
+      "canonicalForm": "טָרַח",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:3527",
+      "canonicalForm": "כָּבַר",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:3670",
+      "canonicalForm": "כָּנַף",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:3765",
+      "canonicalForm": "כִּרְסֵם",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:3953",
+      "canonicalForm": "לָקַשׁ",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:4167",
+      "canonicalForm": "מוּק",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:4834",
+      "canonicalForm": "מָרַץ",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:5125",
+      "canonicalForm": "נוּן",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:5765",
+      "canonicalForm": "עֲוַל",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:5743",
+      "canonicalForm": "עוּב",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:5966",
+      "canonicalForm": "עָלַע",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:6424",
+      "canonicalForm": "פָּלַס",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:6500",
+      "canonicalForm": "פָּרָא",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:6671",
+      "canonicalForm": "צָהַר",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:7082",
+      "canonicalForm": "קָסַס",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:7077",
+      "canonicalForm": "קָנַן",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:7106",
+      "canonicalForm": "קָצַע",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:7322",
+      "canonicalForm": "רוּף",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:7567",
+      "canonicalForm": "רָשַׁשׁ",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:7570",
+      "canonicalForm": "רָתַח",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:7576",
+      "canonicalForm": "רָתַק",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:8276",
+      "canonicalForm": "שָׂרַג",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:596",
+      "canonicalForm": "אָנַן",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:3907",
+      "canonicalForm": "לָחַשׁ",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:8567",
+      "canonicalForm": "תָּנָה",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:6426",
+      "canonicalForm": "פָּלַץ",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:2909",
+      "canonicalForm": "טָחָה",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:5239",
+      "canonicalForm": "נָלָה",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:1623",
+      "canonicalForm": "גָּרַד",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:4165",
+      "canonicalForm": "מוּצָק",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:4342",
+      "canonicalForm": "מַכְבִּיר",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:3945",
+      "canonicalForm": "לָצַץ",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:503",
+      "canonicalForm": "אָלַף",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:1652",
+      "canonicalForm": "גָּשַׁם",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:4154",
+      "canonicalForm": "מוּעֶדֶת",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:6338",
+      "canonicalForm": "פָּזַז",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:2636",
+      "canonicalForm": "חַסְפַּס",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:2944",
+      "canonicalForm": "טָעַן",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:2109",
+      "canonicalForm": "זוּן",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:3736",
+      "canonicalForm": "כַּרְבֵּל",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:3960",
+      "canonicalForm": "לָשַׁן",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:3931",
+      "canonicalForm": "לָעַב",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:5586",
+      "canonicalForm": "סָעַף",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:5781",
+      "canonicalForm": "עוּק",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:6127",
+      "canonicalForm": "עָקַל",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:6379",
+      "canonicalForm": "פָּכָה",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:6445",
+      "canonicalForm": "פָּנַק",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:6668",
+      "canonicalForm": "צָהַב",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:7679",
+      "canonicalForm": "שָׂגָא",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:7904",
+      "canonicalForm": "שָׁכָה",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:8308",
+      "canonicalForm": "שָׂרַךְ",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:7583",
+      "canonicalForm": "שָׁאָה",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:8374",
+      "canonicalForm": "תָּאַב",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:8474",
+      "canonicalForm": "תַּחָרָה",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:3054",
+      "canonicalForm": "יָהַד",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:8529",
+      "canonicalForm": "תָּלַע",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:5264",
+      "canonicalForm": "נָסַס",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:7514",
+      "canonicalForm": "רָפַק",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:5010",
+      "canonicalForm": "נָאַר",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:943",
+      "canonicalForm": "בּוּךְ",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:1629",
+      "canonicalForm": "גָּרַז",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:1659",
+      "canonicalForm": "גָּשַׁשׁ",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:1724",
+      "canonicalForm": "דָּהַם",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:5093",
+      "canonicalForm": "נִהְיָה",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:3267",
+      "canonicalForm": "יָעַז",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:2193",
+      "canonicalForm": "זָעַךְ",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:2852",
+      "canonicalForm": "חָתַךְ",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:2933",
+      "canonicalForm": "טָמָה",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:5217",
+      "canonicalForm": "נָכָא",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:3799",
+      "canonicalForm": "כָּתַם",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:4452",
+      "canonicalForm": "מָלַץ",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:5567",
+      "canonicalForm": "סָמַן",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:6192",
+      "canonicalForm": "עָרַם",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:6272",
+      "canonicalForm": "עָתַם",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:6617",
+      "canonicalForm": "פָּתַל",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:5354",
+      "canonicalForm": "נָקַט",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:5379",
+      "canonicalForm": "נִשֵּׂאת",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:7734",
+      "canonicalForm": "שׂוּג",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:8244",
+      "canonicalForm": "שָׂקַד",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:5421",
+      "canonicalForm": "נָתַע",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:5473",
+      "canonicalForm": "סוּג",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:6405",
+      "canonicalForm": "פַּלֵּט",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:6448",
+      "canonicalForm": "פָּסַג",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:6576",
+      "canonicalForm": "פַּרְשֵׁז",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:7088",
+      "canonicalForm": "קָפַד",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:7375",
+      "canonicalForm": "רֻטֲפַשׁ",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:7444",
+      "canonicalForm": "רַנֵּן",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:8281",
+      "canonicalForm": "שָׁרָה",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:541",
+      "canonicalForm": "אָמַן",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:2050",
+      "canonicalForm": "הָתַת",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:1970",
+      "canonicalForm": "הָכַר",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:8497",
+      "canonicalForm": "תָּכָה",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:3554",
+      "canonicalForm": "כָּוָה",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:5702",
+      "canonicalForm": "עָגַן",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:5783",
+      "canonicalForm": "עוּר",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:5913",
+      "canonicalForm": "עָכַס",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:6101",
+      "canonicalForm": "עָצַל",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:8637",
+      "canonicalForm": "תִּרְגַּל",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:7520",
+      "canonicalForm": "רָצַד",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:7735",
+      "canonicalForm": "שׂוּג",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:7738",
+      "canonicalForm": "שָׁוָה",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:7949",
+      "canonicalForm": "שָׁלַג",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:7952",
+      "canonicalForm": "שָׁלָה",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:3235",
+      "canonicalForm": "יָמַר",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    },
+    {
+      "vocabularyId": "lemma:hebrew:3306",
+      "canonicalForm": "יָפַח",
+      "reason": "No Qal occurrence is attested for this identity in the checked-in corpus; retain the independently source-supported canonical headword without reconstructing a Qal form."
+    }
+  ]
+}
