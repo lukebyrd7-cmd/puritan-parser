@@ -140,13 +140,37 @@
     if(value === 1) return '1 day';
     return `${value} days`;
   }
+  function reviewEvents(record = {}){
+    return (Array.isArray(record.history) ? record.history : []).filter(item =>
+      item?.result === 'recognized' || item?.result === 'missed' || ['again','hard','good','easy'].includes(item?.confidence)
+    ).map(item => {
+      if(item.result === 'recognized' || item.result === 'missed') return item;
+      return { ...item, result: item.confidence === 'again' ? 'missed' : 'recognized' };
+    });
+  }
+  function reviewStatistics(record = {}){
+    const events = reviewEvents(record);
+    const ratings = { again: 0, hard: 0, good: 0, easy: 0 };
+    let recognized = 0;
+    let missed = 0;
+    events.forEach(event => {
+      if(event.result === 'recognized') recognized += 1;
+      else missed += 1;
+      if(Object.hasOwn(ratings, event.confidence)) ratings[event.confidence] += 1;
+    });
+    return {
+      events,
+      total: events.length,
+      recognized,
+      missed,
+      ratings,
+      last: events.at(-1) || null
+    };
+  }
   function reviewHistorySummary(record = {}){
-    const history = Array.isArray(record.history) ? record.history : [];
-    const reviews = history.filter(item => item?.result === 'recognized' || item?.result === 'missed');
-    const recognized = reviews.filter(item => item.result === 'recognized').length;
-    const missed = reviews.filter(item => item.result === 'missed').length;
-    if(!reviews.length) return 'No reviews yet.';
-    return `${reviews.length} reviews: ${recognized} recognized, ${missed} missed.`;
+    const stats = reviewStatistics(record);
+    if(!stats.total) return 'No reviews yet.';
+    return `${stats.total} reviews: ${stats.recognized} recognized, ${stats.missed} missed.`;
   }
   function statusExplanation(status, record = {}, dateISO = todayISO()){
     if(status === STATUS.NOT_LEARNED) return 'New word. Not in review yet.';
@@ -162,10 +186,10 @@
     const record = getRecord(store, entry);
     const status = learningStatus(store, entry, dateISO);
     const safeRecord = record || {};
-    const history = Array.isArray(safeRecord.history) ? safeRecord.history : [];
-    const totalReviews = history.filter(item => item?.result === 'recognized' || item?.result === 'missed').length;
+    const stats = reviewStatistics(safeRecord);
     const due = clean(safeRecord.due);
-    const dueState = !record ? 'not-scheduled' : due <= dateISO ? (due < dateISO ? 'overdue' : 'due-today') : 'due-later';
+    const scheduled = Boolean(record && due && due !== '9999-12-31');
+    const dueState = !scheduled ? 'not-scheduled' : due <= dateISO ? (due < dateISO ? 'overdue' : 'due-today') : 'due-later';
     return {
       status,
       label: status,
@@ -173,11 +197,16 @@
       nextReview: due || '',
       nextReviewLabel: formatDateLabel(due, dateISO),
       intervalDays: Number(safeRecord.intervalDays) || 0,
-      intervalLabel: formatInterval(safeRecord.intervalDays),
-      successfulReviews: Number(safeRecord.successCount) || 0,
-      totalReviews,
-      lastReviewed: clean(safeRecord.lastReviewed),
-      lastReviewedLabel: safeRecord.lastReviewed ? formatDateLabel(safeRecord.lastReviewed, dateISO) : 'Not reviewed yet',
+      intervalLabel: scheduled ? formatInterval(safeRecord.intervalDays) : 'Not scheduled',
+      scheduled,
+      successfulReviews: stats.recognized,
+      totalReviews: stats.total,
+      missedReviews: stats.missed,
+      ratingCounts: stats.ratings,
+      schedulingSuccessStreak: Number(safeRecord.successCount) || 0,
+      lastReviewed: clean(safeRecord.lastReviewed || stats.last?.date),
+      lastReviewedLabel: safeRecord.lastReviewed || stats.last?.date ? formatDateLabel(safeRecord.lastReviewed || stats.last?.date, dateISO) : 'Not reviewed yet',
+      lastRating: clean(stats.last?.confidence || stats.last?.result),
       historySummary: reviewHistorySummary(safeRecord),
       knownSource: safeRecord.knownSource || '',
       explanation: statusExplanation(status, safeRecord, dateISO)
@@ -236,7 +265,9 @@
     };
     record.status = STATUS.LEARNING;
     record.knownSource = KNOWN_SOURCES.REVIEW;
-    record.due = clean(record.due) || dateISO;
+    record.successCount = 0;
+    record.intervalDays = 0;
+    record.due = dateISO;
     record.introducedAt = clean(record.introducedAt) || dateISO;
     record.introducedBy = record.introducedBy || { ...introducedBy };
     record.history = Array.isArray(record.history) ? record.history : [];
@@ -340,8 +371,10 @@
       history: []
     };
     record.status = STATUS.KNOWN;
-    record.successCount = Math.max(3, Number(record.successCount) || 0);
-    record.intervalDays = Math.max(0, Number(record.intervalDays) || 0);
+    // Manual status changes are not review evidence and must not fabricate a
+    // scheduler success streak. Existing genuine history remains intact.
+    record.successCount = Math.max(0, Number(record.successCount) || 0);
+    record.intervalDays = 0;
     record.due = '9999-12-31';
     record.knownSource = source?.knownSource || KNOWN_SOURCES.MANUAL;
     record.introducedAt = clean(record.introducedAt) || dateISO;
@@ -394,6 +427,8 @@
     learningStatusDetails,
     formatDateLabel,
     formatInterval,
+    reviewEvents,
+    reviewStatistics,
     reviewHistorySummary,
     pathThreshold,
     matchesFrequencyPath,

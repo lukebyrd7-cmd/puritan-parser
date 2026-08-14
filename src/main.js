@@ -75,7 +75,7 @@ const PURITAN_PARSER_SCRIPTS = [
   ...Object.values(PURITAN_PARSER_FEATURE_SCRIPTS).flat(),
   'src/bootstrap.js'
 ];
-const PURITAN_PARSER_ASSET_VERSION = 'v1.9.5-canonical-vocabulary-forms-2';
+const PURITAN_PARSER_ASSET_VERSION = 'v1.9.6-srs-runtime-reliability';
 const PURITAN_SCRIPT_LOAD_TIMEOUT_MS = 9000;
 
 const puritanLoadedScripts = new Map();

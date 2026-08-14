@@ -71,7 +71,7 @@ const LearnAreas = [
   }
 ];
 
-const learnState = { page: 'home', history: [], customFrequencyErrors: {}, activeVocabularyPath: '', activeReviewPage: '', currentVocabularyWordId: '', focusedReviewWordId: '', reviewReveal: false, lastReviewResult: null, progressCache: {}, progressLoading: {}, recognitionSession: null, parsingRecognitionSession: null, parsingDrafts: {}, practiceSession: null, maintenanceSession: null, maintenanceError: '', studySetFormError: '', studySetWordPickerQuery: '', studySetDraft: null, selectedRecognitionTargets: {}, unifiedRevealed: false, unifiedSubmitting: false, practicePreparing: {}, practicePreparationGeneration: 0, vocabularyEntryCache: {}, vocabularyEntryPromises: {}, profileDrafts: {}, profileError: '', dashboardRevision: -1, dashboardSummary: null, dashboardPending: false, dashboardVocabularyStore: null, glossMaps: { greek: null, hebrew: null }, glossMapPromises: {} };
+const learnState = { page: 'home', history: [], customFrequencyErrors: {}, activeVocabularyPath: '', activeReviewPage: '', currentVocabularyWordId: '', focusedReviewWordId: '', reviewReveal: false, lastReviewResult: null, progressCache: {}, progressLoading: {}, recognitionSession: null, parsingRecognitionSession: null, parsingDrafts: {}, practiceSession: null, maintenanceSession: null, maintenanceError: '', studySetFormError: '', studySetWordPickerQuery: '', studySetDraft: null, selectedRecognitionTargets: {}, unifiedRevealed: false, unifiedSubmitting: false, unifiedError: '', practicePreparing: {}, practicePreparationGeneration: 0, vocabularyEntryCache: {}, vocabularyEntryPromises: {}, profileDrafts: {}, profileError: '', dashboardRevision: -1, dashboardSummary: null, dashboardPending: false, dashboardVocabularyStore: null, glossMaps: { greek: null, hebrew: null }, glossMapPromises: {} };
 const learnPerformanceState = { active: false, navigationStart: 0, milestones: {}, syncFunctions: [], longTasks: [], observer: null };
 function learnPerformanceEnabled(){
   return typeof window !== 'undefined' && typeof performance !== 'undefined' && typeof location !== 'undefined' && ['localhost','127.0.0.1'].includes(location.hostname);
@@ -715,7 +715,11 @@ function learnVocabularyEntries(language){
   const list = (typeof state !== 'undefined' && state.data?.[language]) ? state.data[language] : [];
   const cached = learnState.vocabularyEntryCache[language];
   if(cached?.source === list) return cached.entries;
-  if(typeof getStudyEntries === 'function') return getStudyEntries(list, 'lemma');
+  if(typeof getStudyEntries === 'function'){
+    const entries = getStudyEntries(list, 'lemma');
+    learnState.vocabularyEntryCache[language] = { source: list, entries, byId: null };
+    return entries;
+  }
   return list;
 }
 async function prepareLearnVocabularyEntries(language){
@@ -727,7 +731,7 @@ async function prepareLearnVocabularyEntries(language){
   if(pending?.source === list) return pending.promise;
   const promise = (typeof getStudyEntriesAsync === 'function' ? getStudyEntriesAsync(list, 'lemma', { budgetMs: 8 }) : Promise.resolve(learnVocabularyEntries(normalized)))
     .then(entries => {
-      if(((typeof state !== 'undefined' && state.data?.[normalized]) || []) === list) learnState.vocabularyEntryCache[normalized] = { source: list, entries };
+      if(((typeof state !== 'undefined' && state.data?.[normalized]) || []) === list) learnState.vocabularyEntryCache[normalized] = { source: list, entries, byId: null };
       return entries;
     })
     .finally(() => {
@@ -861,7 +865,11 @@ function learnWordId(entry){
   return VocabularyLearningModel ? VocabularyLearningModel.lemmaId(entry) : entry?.id;
 }
 function findLearnVocabularyEntry(language, id){
-  return learnVocabularyEntries(language).find(entry => learnWordId(entry) === id) || null;
+  const entries = learnVocabularyEntries(language);
+  const list = (typeof state !== 'undefined' && state.data?.[language]) ? state.data[language] : [];
+  const cached = learnState.vocabularyEntryCache[language];
+  if(cached?.source === list && !cached.byId) cached.byId = new Map(entries.map(entry => [learnWordId(entry), entry]));
+  return cached?.source === list ? cached.byId.get(id) || null : entries.find(entry => learnWordId(entry) === id) || null;
 }
 function getLearnCurrentPathWord(path){
   const entries = learnEntriesForPath(path);
@@ -938,7 +946,7 @@ function renderLearningStatusSummary(entry, options = {}){
       <dl>
         <div><dt>Next review</dt><dd>${escHtml(details.nextReviewLabel)}</dd></div>
         <div><dt>Interval</dt><dd>${escHtml(details.intervalLabel)}</dd></div>
-        <div><dt>Reviews</dt><dd>${escHtml(String(details.successfulReviews))} successful · ${escHtml(String(details.totalReviews))} total</dd></div>
+        <div><dt>Reviews</dt><dd>${escHtml(String(details.successfulReviews))} recognized · ${escHtml(String(details.totalReviews))} total</dd></div>
       </dl>
     </div>`;
 }
@@ -1757,7 +1765,6 @@ function persistStandaloneConfidence(entry, confidence, context = {}){
     : LearningPracticeModel.appendEvidenceOnly(existing, confidence, { ...context, vocabularyId: id, language: entry.lang, scheduleUpdated: false });
   store.records[id] = transition.record;
   VocabularyLearningModel.saveStore(store);
-  LearningPracticeModel.appendAttempt(transition.event, learnStorage());
   return transition.event;
 }
 function gradeUnifiedPractice(confidence){
@@ -1769,13 +1776,30 @@ function gradeUnifiedPractice(confidence){
   if(card && session.revealedCardId === card.cardId) learnState.unifiedRevealed = true;
   if(!session || !card || !entry || !learnState.unifiedRevealed) return false;
   learnState.unifiedSubmitting = true;
+  learnState.unifiedError = '';
+  const started = typeof performance !== 'undefined' ? performance.now() : 0;
+  const adapter = learnStorage();
+  const rollbackKeys = [VocabularyLearningModel.STORAGE_KEY, LearningPracticeModel.SESSION_KEY, LearningPracticeModel.REVISION_KEY];
+  const before = new Map(rollbackKeys.map(key => [key, adapter?.get(key)]));
   try {
-    const result = LearningPracticeModel.recordAnswer({ session, cardId: card.cardId, entry, confidence, model: VocabularyLearningModel, store: learnVocabularyStore(), maintenanceSrs: LearningPracticeModel.loadMaintenancePreference(learnStorage()).enabled, adapter: learnStorage() });
+    const result = LearningPracticeModel.recordAnswer({ session, cardId: card.cardId, entry, confidence, model: VocabularyLearningModel, store: learnVocabularyStore(), maintenanceSrs: LearningPracticeModel.loadMaintenancePreference(adapter).enabled, adapter });
     if(result.accepted) VocabularyLearningModel.saveStore(result.store);
-    LearningPracticeModel.saveSession(result.session, learnStorage());
+    // The vocabulary write already advances the shared revision. Persist the
+    // matching session checkpoint without a redundant revision write.
+    LearningPracticeModel.saveSession(result.session, adapter, { bumpRevision: false });
     learnState.unifiedRevealed = false;
     renderLearn();
+    if(started && typeof window !== 'undefined') window.PuritanLifecycleDiagnostics?.interaction?.(performance.now() - started);
     return result.accepted;
+  } catch(error) {
+    rollbackKeys.forEach(key => {
+      const value = before.get(key);
+      if(value == null) adapter?.remove?.(key);
+      else adapter?.set?.(key, value);
+    });
+    learnState.unifiedError = 'That rating was not saved. Please try again.';
+    renderLearn();
+    return false;
   } finally { learnState.unifiedSubmitting = false; }
 }
 function startDifficultRecap(language){
@@ -1843,9 +1867,9 @@ function renderDailyPracticePage(language){
   const entry = unifiedEntryForCard(language, card);
   if(card && session.revealedCardId === card.cardId) learnState.unifiedRevealed = true;
   const completed = !card;
-  const daily = learnDailyPracticeSummary(language);
   const focused = session.sessionType === 'focused';
   if(completed){
+    const daily = learnDailyPracticeSummary(language);
     const difficult = session.difficultIds.length;
     return `<section class="panel learn-panel learn-session-complete" aria-labelledby="learnDailyCompleteTitle">
       ${renderLearnHeader(`${session.contextTitle || `${learnLanguageTitle(language)} practice`} complete`, session.contextDetail || (focused ? 'Focused vocabulary practice' : 'Daily vocabulary practice'), 'learnDailyCompleteTitle')}
@@ -1858,7 +1882,7 @@ function renderDailyPracticePage(language){
         <div class="learn-vocab-actions">${difficult && !session.recapStarted ? `<button class="btn btn-primary" type="button" data-learn-start-recap="${escHtml(language)}">Review difficult words again</button>` : ''}${focused ? '' : `<button class="btn btn-ghost" type="button" data-learn-continue-extra="${escHtml(language)}">Continue practicing</button>`}<button class="btn btn-ghost" type="button" data-learn-save-exit="${escHtml(language)}">${session.returnPage && session.returnPage !== 'home' ? 'Return' : 'Return to Learn'}</button></div>
       </section></section>`;
   }
-  const answered = session.cards.filter(item => item.answered && item.phase !== 'recap').length;
+  const answered = session.counts.scheduled + session.counts.learning + session.counts.new + session.counts.maintenance;
   const total = session.cards.filter(item => item.phase !== 'recap').length;
   const phaseLabel = { scheduled: 'Scheduled reviews', learning: 'Ready Learning words', new: 'Introduced New words', maintenance: 'Balanced maintenance', recap: 'Difficult-word recap' }[card.phase];
   const title = session.contextTitle || `${learnLanguageTitle(language)} daily practice`;
@@ -1871,6 +1895,7 @@ function renderDailyPracticePage(language){
   return `<section class="panel learn-panel learn-active-practice" aria-labelledby="learnDailySessionTitle">
     <header class="learn-session-header"><div><h1 id="learnDailySessionTitle">${escHtml(title)}</h1><span class="small muted">${escHtml(detail)}</span></div><span>${escHtml(progress)}</span></header>
     ${announcesTransition ? '<p class="learn-phase-transition" role="status">Scheduled reviews complete. Continuing with balanced vocabulary maintenance.</p>' : ''}
+    ${learnState.unifiedError ? `<p class="learn-inline-validation" role="alert">${escHtml(learnState.unifiedError)}</p>` : ''}
     ${renderUnifiedVocabularyCard(entry, card, learnState.unifiedRevealed)}
     <div class="learn-unified-controls">${learnState.unifiedRevealed ? renderConfidenceControls('data-learn-unified-confidence') : '<button class="btn btn-primary learn-unified-reveal" type="button" data-learn-unified-reveal="true">Reveal</button>'}</div>
     <button class="btn btn-ghost btn-sm learn-save-exit" type="button" data-learn-save-exit="${escHtml(language)}">Save and exit</button>

@@ -1336,7 +1336,7 @@ test('Language review page reveals due vocabulary and grading updates state', ()
   const text = renderedText(html);
   assert.match(text, /word Other translations message • account Greek · freq 330×/);
   assert.match(text, /Learning · Still being learned\. Due today\./);
-  assert.match(text, /Next review Due today Interval Not scheduled Reviews 0 successful · 0 total/);
+  assert.match(text, /Next review Due today Interval Not scheduled Reviews 0 recognized · 0 total/);
   assert.doesNotMatch(text, /message, account/);
   assert.doesNotMatch(text, /word •/);
   assert.equal((html.match(/<span>word<\/span>/g) || []).length, 0);

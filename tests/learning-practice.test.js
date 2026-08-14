@@ -281,3 +281,51 @@ test('recap is one deduplicated pass, keeps direction, and never updates schedul
   assert.equal(evidence.event.scheduleUpdated, false);
   assert.equal(evidence.event.countTowardDaily, false);
 });
+
+test('two hundred persisted session transitions stay bounded and keep one authoritative review event', () => {
+  const adapter = memory();
+  const words = Array.from({ length: 205 }, (_, index) => entry(`stress-${index}`));
+  let current = store(words.map(word => record(word)));
+  let session = LearningPractice.assembleFocusedSession({
+    language: 'greek',
+    profile: { ...LearningPractice.defaultProfile('greek'), unlimited: true },
+    entries: words,
+    store: current,
+    model: VocabularyLearning
+  });
+  const byId = new Map(words.map(word => [word.id, word]));
+  for(let index = 0; index < 200; index += 1){
+    const card = LearningPractice.currentCard(session);
+    const answer = LearningPractice.recordAnswer({
+      session,
+      cardId: card.cardId,
+      entry: byId.get(card.vocabularyId),
+      confidence: ['again','hard','good','easy'][index % 4],
+      model: VocabularyLearning,
+      store: current,
+      adapter,
+      dateISO: DATE
+    });
+    assert.equal(answer.accepted, true);
+    current = answer.store;
+    session = LearningPractice.saveSession(answer.session, adapter);
+  }
+  const reviewCount = Object.values(current.records).reduce((sum, item) => sum + VocabularyLearning.reviewStatistics(item).total, 0);
+  assert.equal(reviewCount, 200);
+  assert.equal(session.position, 200);
+  assert.equal(session.cards.length, 205);
+  assert.equal(session.submittedEventIds.length, 200);
+  assert.equal(adapter.values.has(LearningPractice.ATTEMPT_KEY), false);
+  assert.ok(Object.values(current.records).every(item => item.history.length <= 1));
+  assert.ok(LearningPractice.currentCard(session));
+});
+
+test('legacy global attempts remain importable and exportable without receiving duplicate writes', () => {
+  const event = { eventId: 'legacy-attempt', result: 'recognized' };
+  const adapter = memory({ [LearningPractice.ATTEMPT_KEY]: JSON.stringify({ schemaVersion: 3, revision: 1, events: [event] }) });
+  const exported = LearningPractice.exportState(adapter);
+  assert.deepEqual(exported.attempts.events, [event]);
+  const restored = memory();
+  LearningPractice.importState(exported, restored);
+  assert.deepEqual(LearningPractice.exportState(restored).attempts.events, [event]);
+});

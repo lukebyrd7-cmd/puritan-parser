@@ -172,12 +172,17 @@
   function vocabularyStatistics(store = loadVocabularyStore()){
     const normalized = VocabularyLearningModel?.normalizeStore ? VocabularyLearningModel.normalizeStore(store) : { records: store?.records || {} };
     const records = Object.values(normalized.records || {});
-    const reviewEvents = records.flatMap(record => Array.isArray(record.history) ? record.history : []);
+    const reviewStats = records.map(record => VocabularyLearningModel?.reviewStatistics
+      ? VocabularyLearningModel.reviewStatistics(record)
+      : { total: (record.history || []).filter(event => event.result === 'recognized' || event.result === 'missed').length, recognized: (record.history || []).filter(event => event.result === 'recognized').length, missed: (record.history || []).filter(event => event.result === 'missed').length });
     return {
-      wordsLearned: records.filter(record => record.status === 'Known' || record.successCount >= 3).length,
-      reviewsCompleted: reviewEvents.filter(event => event.result === 'recognized' || event.result === 'missed').length,
-      correctRecognitions: reviewEvents.filter(event => event.result === 'recognized').length,
-      missedRecognitions: reviewEvents.filter(event => event.result === 'missed').length
+      wordsLearned: records.filter(record => {
+        const status = VocabularyLearningModel?.learningStatusForRecord?.(record);
+        return status === VocabularyLearningModel?.STATUS?.KNOWN || status === VocabularyLearningModel?.STATUS?.KNOWN_SELF_REPORTED || status === 'Known' || status === 'Known by Self-Report';
+      }).length,
+      reviewsCompleted: reviewStats.reduce((sum, stats) => sum + stats.total, 0),
+      correctRecognitions: reviewStats.reduce((sum, stats) => sum + stats.recognized, 0),
+      missedRecognitions: reviewStats.reduce((sum, stats) => sum + stats.missed, 0)
     };
   }
   function recognitionProgress(history = loadRecognitionHistory()){

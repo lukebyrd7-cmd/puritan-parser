@@ -1496,24 +1496,19 @@ test('clicking Open Word Page closes the popup and opens a dynamic Word Page vie
   assert.match(wordPageHtml, /<dt>Glosses<\/dt><dd>word, message, reason, account, matter<\/dd>/);
   assert.match(wordPageHtml, /<h2 id="wordPageOccurrenceHeading">This Occurrence<\/h2>/);
   assert.match(wordPageHtml, /<h2 id="wordPageLearningHeading">Learning<\/h2>/);
-  assert.match(wordPageHtml, /<h2 id="wordPageReferenceHeading">Reference<\/h2>/);
-  assert.match(wordPageHtml, /<h2 id="wordPageContextHeading">Usage Examples<\/h2>/);
+  assert.doesNotMatch(wordPageHtml, /wordPageReferenceHeading|>Reference<\/h2>/);
+  assert.doesNotMatch(wordPageHtml, /wordPageContextHeading|Usage Examples/);
   assert.match(wordPageHtml, /<h2 id="wordPageNavigationHeading">Navigation<\/h2>/);
   assert.doesNotMatch(wordPageHtml, /wordPageParsingHeading/);
   assert.doesNotMatch(wordPageHtml, /wordPageMorphologyHeading/);
   assert.ok(wordPageHtml.indexOf('wordPageIdentityHeading') < wordPageHtml.indexOf('wordPageOccurrenceHeading'));
   assert.ok(wordPageHtml.indexOf('wordPageOccurrenceHeading') < wordPageHtml.indexOf('wordPageLearningHeading'));
-  assert.ok(wordPageHtml.indexOf('wordPageLearningHeading') < wordPageHtml.indexOf('wordPageReferenceHeading'));
-  assert.ok(wordPageHtml.indexOf('wordPageReferenceHeading') < wordPageHtml.indexOf('wordPageContextHeading'));
-  assert.ok(wordPageHtml.indexOf('wordPageContextHeading') < wordPageHtml.indexOf('wordPageNavigationHeading'));
-  assert.match(wordPageHtml, /id="wordPageReaderExamplesSlot"[\s\S]*hidden/);
+  assert.ok(wordPageHtml.indexOf('wordPageLearningHeading') < wordPageHtml.indexOf('wordPageNavigationHeading'));
   assert.doesNotMatch(wordPageHtml, /Also translated as/);
   assert.match(wordPageHtml, /<dt>Frequency<\/dt><dd>68×<\/dd>/);
   assert.match(wordPageHtml, /<dt>Current Reference<\/dt><dd>John 1:1<\/dd>/);
   assert.doesNotMatch(wordPageHtml, /<dt>Meaning in Context<\/dt>/);
-  assert.match(wordPageHtml, /data-topic-id="greek-nouns"/);
-  assert.match(wordPageHtml, />Greek Nouns<\/button>/);
-  assert.match(wordPageHtml, /Usage Examples/);
+  assert.doesNotMatch(wordPageHtml, /data-topic-id="greek-nouns"|>Greek Nouns<\/button>/);
   assert.doesNotMatch(wordPageHtml, /Word Page/);
   assert.equal(typeof backHandler, 'function');
   await backHandler();
@@ -2791,7 +2786,7 @@ test('Hebrew Word Page opens from the shared popup and Read in Context uses the 
   assert.match(wordPageHtml, /<dt>Glosses<\/dt><dd>word, matter, thing<\/dd>/);
   assert.match(wordPageHtml, /<dt>Strong’s ID<\/dt><dd>1697<\/dd>/);
   assert.match(wordPageHtml, /<dt>Current Reference<\/dt><dd>Jonah 1:1<\/dd>/);
-  assert.match(wordPageHtml, /data-topic-id="hebrew-nouns"/);
+  assert.doesNotMatch(wordPageHtml, /data-topic-id="hebrew-nouns"|wordPageReferenceHeading|Usage Examples/);
 
   const occurrences = await reader.getReaderLemmaOccurrences('3124', 'hebrew', 5);
   assert.ok(occurrences.some(item => item.reference === 'Jonah 1:1'));

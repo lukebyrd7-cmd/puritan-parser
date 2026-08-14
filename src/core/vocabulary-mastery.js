@@ -21,6 +21,7 @@
 
   function clean(value){ return typeof value === 'string' ? value.trim() : ''; }
   function practiceEvents(record = {}){
+    if(root.VocabularyLearning?.reviewEvents) return root.VocabularyLearning.reviewEvents(record);
     return (Array.isArray(record.history) ? record.history : []).filter(event =>
       event?.result === 'recognized' || event?.result === 'missed' || ['again','hard','good','easy'].includes(event?.confidence)
     ).map(event => {

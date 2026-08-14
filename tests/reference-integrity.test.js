@@ -124,8 +124,8 @@ test('v1.3.1 Reference charts have consistent rows, supported labels, and langua
 
 test('v1.3.1 app shell and service worker keep Reference assets reachable without stale versioning', () => {
   const sw = fs.readFileSync('sw.js', 'utf8');
-  assert.match(sw, /v112-\$\{APP_VERSION\}/, 'service-worker cache version is bumped for canonical vocabulary forms');
-  assert.match(fs.readFileSync('index.html', 'utf8'), /src\/main\.js\?v=v1\.9\.5-canonical-vocabulary-forms-2/, 'startup query string is bumped with the cache');
+  assert.match(sw, /v113-\$\{APP_VERSION\}/, 'service-worker cache version is bumped for SRS runtime reliability');
+  assert.match(fs.readFileSync('index.html', 'utf8'), /src\/main\.js\?v=v1\.9\.6-srs-runtime-reliability/, 'startup query string is bumped with the cache');
   assert.match(sw, /'src\/features\/grammar\/handbook-data\.js'/);
   assert.match(sw, /'src\/features\/grammar\/reference-data\.js'/);
   assert.match(sw, /'src\/features\/grammar\/index\.js'/);
