@@ -14,7 +14,7 @@ const sourceRef = process.argv.find(value => value.startsWith('--source-ref='))?
 const language = process.argv.includes('--hebrew') ? 'hebrew' : 'greek';
 
 function source(file){
-  if(sourceRef) return execFileSync('git', ['show', `${sourceRef}:${file}`], { cwd: ROOT, encoding: 'utf8' });
+  if(sourceRef) return execFileSync('git', ['show', `${sourceRef}:${file}`], { cwd: ROOT, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] });
   return fs.readFileSync(path.join(ROOT, file), 'utf8');
 }
 
@@ -35,10 +35,16 @@ function loadModels(adapter){
     module: { exports: {} },
     exports: {}
   });
-  for(const file of ['src/models/vocabulary-learning.js', 'src/core/vocabulary-mastery.js', 'src/core/learning-practice.js']){
+  for(const file of ['src/core/calendar-date.js', 'src/models/vocabulary-learning.js', 'src/core/vocabulary-mastery.js', 'src/core/learning-practice.js']){
+    let contents;
+    try { contents = source(file); }
+    catch(error){
+      if(sourceRef && file === 'src/core/calendar-date.js') continue;
+      throw error;
+    }
     context.module = { exports: {} };
     context.exports = context.module.exports;
-    vm.runInContext(source(file), context, { filename: file });
+    vm.runInContext(contents, context, { filename: file });
   }
   return { learning: context.VocabularyLearning, practice: context.LearningPractice };
 }

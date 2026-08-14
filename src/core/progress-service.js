@@ -4,6 +4,7 @@
   if(typeof module === 'object' && module.exports) module.exports = api;
   root.ProgressService = api;
 })(typeof globalThis !== 'undefined' ? globalThis : this, function(root){
+  const CalendarDate = root.PuritanCalendarDate || (typeof require === 'function' ? require('./calendar-date') : null);
   const VocabularyLearningModel = root.VocabularyLearning || (typeof require === 'function' ? require('../models/vocabulary-learning') : null);
   const VocabularyMasteryModel = root.VocabularyMastery || (typeof require === 'function' ? require('./vocabulary-mastery') : null);
   const BookProgressModel = root.BookProgress || (typeof require === 'function' ? require('./book-progress') : null);
@@ -16,12 +17,10 @@
   function clean(value){ return typeof value === 'string' ? value.trim() : ''; }
   function todayISO(){
     if(typeof root.todayISO === 'function') return root.todayISO();
-    return new Date().toISOString().slice(0, 10);
+    return CalendarDate.todayISO();
   }
   function dateDaysAgo(days, fromISO = todayISO()){
-    const date = new Date(`${fromISO}T00:00:00`);
-    date.setDate(date.getDate() - Number(days || 0));
-    return date.toISOString().slice(0, 10);
+    return CalendarDate.shiftISODate(fromISO, -Number(days || 0));
   }
   function storage(){
     if(root.activeStorageAdapter) return root.activeStorageAdapter;

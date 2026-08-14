@@ -4,6 +4,7 @@
   if(typeof module === 'object' && module.exports) module.exports = api;
   root.LearningPractice = api;
 })(typeof globalThis !== 'undefined' ? globalThis : this, function(root){
+  const CalendarDate = root.PuritanCalendarDate || (typeof require === 'function' ? require('./calendar-date') : null);
   const VERSION = 3;
   const PROFILE_KEY = 'pp_learning_practice_profiles';
   const SESSION_KEY = 'pp_learning_practice_sessions';
@@ -27,7 +28,7 @@
 
   function clean(value){ return typeof value === 'string' ? value.trim() : ''; }
   function nowISO(){ return new Date().toISOString(); }
-  function todayISO(){ return typeof root.todayISO === 'function' ? root.todayISO() : new Date().toISOString().slice(0, 10); }
+  function todayISO(){ return typeof root.todayISO === 'function' ? root.todayISO() : CalendarDate.todayISO(); }
   function clone(value){ return value == null ? value : JSON.parse(JSON.stringify(value)); }
   function storage(adapter){
     if(adapter) return adapter;
@@ -51,14 +52,10 @@
     return hash >>> 0;
   }
   function addDays(dateISO, days){
-    const date = new Date(`${dateISO || todayISO()}T12:00:00`);
-    date.setDate(date.getDate() + Math.max(1, Number(days) || 1));
-    return date.toISOString().slice(0, 10);
+    return CalendarDate.shiftISODate(dateISO || todayISO(), Math.max(1, Number(days) || 1));
   }
   function shiftDays(dateISO, days){
-    const date = new Date(`${dateISO || todayISO()}T12:00:00`);
-    date.setDate(date.getDate() + Number(days || 0));
-    return date.toISOString().slice(0, 10);
+    return CalendarDate.shiftISODate(dateISO || todayISO(), days);
   }
   function bumpRevision(adapter){
     const current = Math.max(0, Number(storage(adapter)?.get(REVISION_KEY)) || 0) + 1;

@@ -8,6 +8,7 @@ const PURITAN_PARSER_CORE_SCRIPTS = [
   'src/core/migrations/migrations.js',
   'src/core/migrations/migration-runner.js',
   'src/app-state.js',
+  'src/core/calendar-date.js',
   'src/ui/dom.js',
   'src/ui/toast.js',
   'src/models/canonical-forms.js',
@@ -75,7 +76,7 @@ const PURITAN_PARSER_SCRIPTS = [
   ...Object.values(PURITAN_PARSER_FEATURE_SCRIPTS).flat(),
   'src/bootstrap.js'
 ];
-const PURITAN_PARSER_ASSET_VERSION = 'v1.9.6-srs-runtime-reliability-2';
+const PURITAN_PARSER_ASSET_VERSION = 'v1.9.7-reliability-performance-trust-1';
 const PURITAN_SCRIPT_LOAD_TIMEOUT_MS = 9000;
 
 const puritanLoadedScripts = new Map();

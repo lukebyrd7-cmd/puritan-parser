@@ -24,7 +24,7 @@ function syncSettingsUI(){
   const customAccent = $('#customAccent');
   if(customAccent && /^#[0-9a-f]{6}$/i.test(p.accent || '')) customAccent.value = p.accent;
   $('#fontSizeLabel').textContent = (p.cardFontSize||54)+'px';
-  applyTheme(p.theme||'light');
+  applyTheme(p.theme||'light', { persist: false });
   renderAccentButtons();
 }
 const SRS_PRESETS = {

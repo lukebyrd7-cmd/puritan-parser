@@ -5,6 +5,7 @@
   root.VocabularyLearning = api;
   Object.keys(api).forEach(key => { root[key] = root[key] || api[key]; });
 })(typeof globalThis !== 'undefined' ? globalThis : this, function(root){
+  const CalendarDate = root.PuritanCalendarDate || (typeof require === 'function' ? require('../core/calendar-date') : null);
   const STORAGE_KEY = 'pp_vocab_learning';
   const STATUS = {
     NOT_LEARNED: 'Not Learned',
@@ -22,12 +23,10 @@
   function clean(value){ return typeof value === 'string' ? value.trim() : ''; }
   function todayISO(){
     if(typeof root.todayISO === 'function') return root.todayISO();
-    return new Date().toISOString().slice(0, 10);
+    return CalendarDate.todayISO();
   }
   function addDaysISO(dateISO, days){
-    const date = dateISO ? new Date(`${dateISO}T00:00:00`) : new Date();
-    date.setDate(date.getDate() + Number(days || 0));
-    return date.toISOString().slice(0, 10);
+    return CalendarDate.shiftISODate(dateISO || todayISO(), days);
   }
   function storage(){
     if(root.activeStorageAdapter) return root.activeStorageAdapter;

@@ -275,13 +275,14 @@ test('export and import keep optional learning history while older vocabulary-on
   assert.match(source, /practiceSrsPreference:\s*typeof learnPracticeSrsPreference/);
   assert.match(source, /learningPractice:\s*typeof LearningPractice/);
   assert.match(source, /customDecks:\s*typeof PuritanStudySets/);
-  assert.match(source, /if\(!valid\.length && !learningImported && !practiceImported && !decksImported && !readerLocationImported && !personalGlossesImported\)/);
+  for(const field of ['personalGlosses', 'savedVocabulary', 'preferences', 'dashboard', 'readerLocation', 'readerSettings']) assert.match(source, new RegExp(`${field}:`));
+  assert.match(source, /if\(!valid\.length && !learningImported && !practiceImported && !decksImported && !readerLocationImported && !personalGlossesImported && !savedVocabularyImported && !preferencesImported && !dashboardImported\)/);
   assert.match(source, /VocabularyLearning\.saveStore\(VocabularyLearning\.normalizeStore\(payload\.vocabularyLearning\)\)/);
 });
 
 test('clear-all storage intentionally covers maintenance history and Learn preferences', () => {
   const source = fs.readFileSync(path.join(__dirname, '../src/core/storage/storage.js'), 'utf8');
-  for(const key of ['pp_vocab_learning','pp_learn_review_targets','pp_learn_practice_srs_preference','pp_learn_active_paths','pp_recognition_history']){
+  for(const key of ['pp_vocab_learning','pp_saved_vocabulary','pp_learn_review_targets','pp_learn_practice_srs_preference','pp_learn_active_paths','pp_recognition_history']){
     assert.match(source, new RegExp(`['"]${key}['"]`));
   }
 });
