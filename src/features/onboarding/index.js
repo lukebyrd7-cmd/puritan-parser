@@ -105,7 +105,7 @@ function onboardingVocabularyEntries(language){
 }
 function runOnboardingSeeding(profile){
   if(!OnboardingModel || !OnboardingVocabularyModel) return {};
-  const dateISO = typeof todayISO === 'function' ? todayISO() : new Date().toISOString().slice(0, 10);
+  const dateISO = typeof todayISO === 'function' ? todayISO() : PuritanCalendarDate.todayISO();
   let store = OnboardingVocabularyModel.loadStore();
   const result = {};
   profile.languages.forEach(language => {

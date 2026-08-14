@@ -39,8 +39,8 @@ async function loadData(){
 }
 
 /* ---------- Export ---------- */
-function exportData(){
-  const data = {
+function buildExportData(exportedAt = new Date().toISOString()){
+  return {
     schemaVersion: 4,
     greek: state.data.greek,
     hebrew: state.data.hebrew,
@@ -49,12 +49,18 @@ function exportData(){
     studySets: typeof PuritanStudySets !== 'undefined' ? PuritanStudySets.loadStore() : undefined,
     learningPractice: typeof LearningPractice !== 'undefined' ? LearningPractice.exportState() : undefined,
     personalGlosses: typeof PuritanPersonalGlosses !== 'undefined' ? PuritanPersonalGlosses.exportState() : undefined,
+    savedVocabulary: typeof PuritanSavedVocabulary !== 'undefined' ? PuritanSavedVocabulary.loadStore() : undefined,
+    preferences: { ...state.prefs },
+    dashboard: { ...state.dashboard },
     learnReviewTargets: typeof learnReviewTargets === 'function' ? learnReviewTargets() : undefined,
     practiceSrsPreference: typeof learnPracticeSrsPreference === 'function' ? learnPracticeSrsPreference() : undefined,
     readerLocation: typeof PuritanReaderPreferences !== 'undefined' ? PuritanReaderPreferences.readLocationRecord() : undefined,
     readerSettings: typeof readStorageJson === 'function' ? readStorageJson('pp_reader_adaptive_settings', null) : undefined,
-    exported: new Date().toISOString()
+    exported: exportedAt
   };
+}
+function exportData(){
+  const data = buildExportData();
   const blob = new Blob([JSON.stringify(data,null,2)], {type:'application/json'});
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a'); a.href=url; a.download='puritan-parser-export.json'; a.click();
@@ -75,9 +81,12 @@ async function importDataFile(file){
     const learningImported = payload?.vocabularyLearning && typeof VocabularyLearning !== 'undefined';
     const practiceImported = payload?.learningPractice && typeof LearningPractice !== 'undefined';
     const personalGlossesImported = payload?.personalGlosses && typeof PuritanPersonalGlosses !== 'undefined';
+    const savedVocabularyImported = payload?.savedVocabulary && typeof PuritanSavedVocabulary !== 'undefined';
+    const preferencesImported = payload?.preferences && typeof createPreferences === 'function';
+    const dashboardImported = payload?.dashboard && typeof createDashboardStats === 'function';
     const decksImported = (payload?.customDecks || payload?.studySets) && typeof PuritanStudySets !== 'undefined';
     const readerLocationImported = (payload?.readerLocation || payload?.pp_reader_location) && typeof PuritanReaderPreferences !== 'undefined';
-    if(!valid.length && !learningImported && !practiceImported && !decksImported && !readerLocationImported && !personalGlossesImported){
+    if(!valid.length && !learningImported && !practiceImported && !decksImported && !readerLocationImported && !personalGlossesImported && !savedVocabularyImported && !preferencesImported && !dashboardImported){
       if(preview){ preview.textContent = invalid.length ? `No valid entries found. First error: row ${invalid[0].index+1} ${invalid[0].errors.join(', ')}` : 'No entries found.'; preview.classList.remove('hidden'); }
       toast('Import failed.','danger');
       return;
@@ -97,6 +106,15 @@ async function importDataFile(file){
       const knownIds = new Set(['greek','hebrew'].flatMap(lang => (typeof getStudyEntries === 'function' ? getStudyEntries(state.data[lang] || [], 'lemma') : state.data[lang] || []).map(entry => PuritanPersonalGlosses.vocabularyId(entry))));
       PuritanPersonalGlosses.importState(payload.personalGlosses, { knownIds });
     }
+    if(savedVocabularyImported) PuritanSavedVocabulary.saveStore(PuritanSavedVocabulary.normalizeStore(payload.savedVocabulary));
+    if(preferencesImported){
+      state.prefs = createPreferences(payload.preferences);
+      savePrefs();
+      if(typeof applyTheme === 'function') applyTheme(state.prefs.theme || 'light', { persist: false });
+      if(typeof setAccent === 'function') setAccent(state.prefs.accent || DEFAULTS.accent, { persist: false });
+      document.documentElement.style.setProperty('--fc-word-size', `${state.prefs.cardFontSize || 54}px`);
+    }
+    if(dashboardImported){ state.dashboard = createDashboardStats(payload.dashboard); saveDashboard(); }
     if(payload?.learnReviewTargets && typeof saveLearnReviewTargets === 'function') saveLearnReviewTargets(payload.learnReviewTargets);
     if(payload?.practiceSrsPreference && typeof setLearnPracticeSrsPreference === 'function') setLearnPracticeSrsPreference(payload.practiceSrsPreference);
     if(readerLocationImported) PuritanReaderPreferences.importLocation(payload.readerLocation || payload.pp_reader_location);
@@ -106,11 +124,12 @@ async function importDataFile(file){
     renderList();
     updateDueBadge();
     if(preview){
-      preview.textContent = `Imported ${valid.length} entr${valid.length===1?'y':'ies'}${learningImported ? ' and vocabulary learning history' : ''}${decksImported ? ' and Custom Decks' : ''}${practiceImported ? ' and practice settings' : ''}${personalGlossesImported ? ' and personal glosses' : ''}${readerLocationImported ? ' and Reader locations' : ''}${invalid.length ? `; skipped ${invalid.length} invalid row${invalid.length===1?'':'s'}` : ''}.`;
+      preview.textContent = `Imported ${valid.length} entr${valid.length===1?'y':'ies'}${learningImported ? ' and vocabulary learning history' : ''}${decksImported ? ' and Custom Decks' : ''}${practiceImported ? ' and practice settings' : ''}${personalGlossesImported ? ' and personal glosses' : ''}${savedVocabularyImported ? ' and saved words' : ''}${preferencesImported ? ' and display settings' : ''}${dashboardImported ? ' and dashboard history' : ''}${readerLocationImported ? ' and Reader locations' : ''}${invalid.length ? `; skipped ${invalid.length} invalid row${invalid.length===1?'':'s'}` : ''}.`;
       preview.classList.remove('hidden');
     }
     toast('Import complete.','success');
   } catch(e){
+    console.error('Puritan Parser import failed.', e);
     if(preview){ preview.textContent = 'Could not read that JSON file.'; preview.classList.remove('hidden'); }
     toast('Import failed.','danger');
   }

@@ -14,16 +14,22 @@ const RECORDS = 1000;
 const EVENTS_PER_RECORD = 100;
 
 function source(file){
-  if(sourceRef) return execFileSync('git', ['show', `${sourceRef}:${file}`], { cwd: ROOT, encoding: 'utf8' });
+  if(sourceRef) return execFileSync('git', ['show', `${sourceRef}:${file}`], { cwd: ROOT, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] });
   return fs.readFileSync(path.join(ROOT, file), 'utf8');
 }
 
 function loadModels(adapter){
   const context = vm.createContext({ console, Date, JSON, Math, Object, Array, Set, Map, Promise, setTimeout, crypto: crypto.webcrypto, performance, activeStorageAdapter: adapter, module: { exports: {} }, exports: {} });
-  for(const file of ['src/models/vocabulary-learning.js', 'src/core/vocabulary-mastery.js', 'src/core/learning-practice.js']){
+  for(const file of ['src/core/calendar-date.js', 'src/models/vocabulary-learning.js', 'src/core/vocabulary-mastery.js', 'src/core/learning-practice.js']){
+    let contents;
+    try { contents = source(file); }
+    catch(error){
+      if(sourceRef && file === 'src/core/calendar-date.js') continue;
+      throw error;
+    }
     context.module = { exports: {} };
     context.exports = context.module.exports;
-    vm.runInContext(source(file), context, { filename: file });
+    vm.runInContext(contents, context, { filename: file });
   }
   return { learning: context.VocabularyLearning, mastery: context.VocabularyMastery, practice: context.LearningPractice };
 }

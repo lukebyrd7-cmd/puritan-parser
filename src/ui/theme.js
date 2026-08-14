@@ -1,9 +1,11 @@
 /* ---------- Theme & Accent ---------- */
-function setAccent(hex){
+function setAccent(hex, options = {}){
   document.documentElement.style.setProperty('--accent', hex);
   document.documentElement.style.setProperty('--accent-dark', adjustBrightness(hex, -20));
   document.documentElement.style.setProperty('--accent-glow', hexToRgba(hex, 0.15));
-  state.prefs.accent = hex; savePrefs(); renderAccentButtons();
+  state.prefs.accent = hex;
+  if(options.persist !== false) savePrefs();
+  renderAccentButtons();
 }
 function hexToRgba(hex, alpha){
   const r=parseInt(hex.slice(1,3),16), g=parseInt(hex.slice(3,5),16), b=parseInt(hex.slice(5,7),16);
@@ -14,7 +16,7 @@ function adjustBrightness(hex, amt){
   const c=v=>clamp(v,0,255).toString(16).padStart(2,'0');
   return `#${c(r)}${c(g)}${c(b)}`;
 }
-function applyTheme(theme){
+function applyTheme(theme, options = {}){
   state.prefs.theme = theme;
   document.documentElement.classList.remove('dark','light');
   if(theme==='dark') document.documentElement.classList.add('dark');
@@ -24,7 +26,7 @@ function applyTheme(theme){
     else document.documentElement.classList.add('light');
   }
   $$('.theme-btn').forEach(b=>b.classList.toggle('active', b.dataset.theme===theme));
-  savePrefs();
+  if(options.persist !== false) savePrefs();
 }
 const ACCENTS = [
   { name: 'Neutral Green', hex: '#4e8f6e' },

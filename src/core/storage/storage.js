@@ -48,6 +48,7 @@ function clearUserStorage(){
     StorageKeys.vocabLearning,
     StorageKeys.studySets,
     StorageKeys.personalGlosses,
+    'pp_saved_vocabulary',
     StorageKeys.prefs,
     StorageKeys.dashboard,
     StorageKeys.lastLang,

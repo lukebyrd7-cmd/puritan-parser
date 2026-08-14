@@ -67,8 +67,8 @@ async function init(){
   loadDashboard();
   const lastLang = getLastLanguage();
   if(lastLang) state.lang = lastLang;
-  applyTheme(state.prefs.theme||'light');
-  setAccent(state.prefs.accent||DEFAULTS.accent);
+  applyTheme(state.prefs.theme||'light', { persist: false });
+  setAccent(state.prefs.accent||DEFAULTS.accent, { persist: false });
   if(!appEventsWired){
     wireEvents();
     appEventsWired = true;
